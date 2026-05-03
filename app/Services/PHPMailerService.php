@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Services;
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+use Illuminate\Support\Facades\Log;
+
+class PHPMailerService
+{
+    private PHPMailer $mailer;
+
+    public function __construct()
+    {
+        $this->mailer = new PHPMailer(true);
+        $this->configure();
+    }
+
+    private function configure(): void
+    {
+        try {
+            // Server settings
+            $this->mailer->isSMTP();
+            $this->mailer->Host = config('phpmailer.host', 'smtp.gmail.com');
+            $this->mailer->SMTPAuth = true;
+            $this->mailer->Username = config('phpmailer.username');
+            $this->mailer->Password = config('phpmailer.password');
+            
+            // Set encryption based on configuration
+            $encryption = config('phpmailer.encryption', 'tls');
+            if ($encryption === 'tls') {
+                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } elseif ($encryption === 'ssl') {
+                $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            }
+            
+            $this->mailer->Port = config('phpmailer.port', 587);
+
+            // Recipients
+            $this->mailer->setFrom(
+                config('phpmailer.from.address', 'noreply@aspire.edu'),
+                config('phpmailer.from.name', 'ASPIRE System')
+            );
+
+            // Content settings
+            $this->mailer->isHTML(true);
+            $this->mailer->CharSet = 'UTF-8';
+
+            // Debug settings
+            if (config('phpmailer.debug', false)) {
+                $this->mailer->SMTPDebug = SMTP::DEBUG_SERVER;
+                $this->mailer->Debugoutput = function($str, $level) {
+                    Log::debug("PHPMailer [{$level}]: {$str}");
+                };
+            }
+
+            // SMTP options
+            $smtpOptions = config('phpmailer.smtp_options', []);
+            if (!empty($smtpOptions)) {
+                $this->mailer->SMTPOptions = $smtpOptions;
+            }
+
+        } catch (Exception $e) {
+            Log::error('PHPMailer configuration failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function sendVerificationEmail($user, $verificationUrl): bool
+    {
+        try {
+            $this->mailer->addAddress($user->email, $user->name);
+            $this->mailer->Subject = 'ASPIRE - Verify Your Email';
+            
+            $this->mailer->Body = $this->getVerificationEmailTemplate($user, $verificationUrl);
+            $this->mailer->AltBody = strip_tags($this->mailer->Body);
+
+            return $this->mailer->send();
+
+        } catch (Exception $e) {
+            Log::error('Failed to send verification email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function sendPasswordResetEmail($user, $resetUrl): bool
+    {
+        try {
+            $this->mailer->addAddress($user->email, $user->name);
+            $this->mailer->Subject = 'Reset Your ASPIRE Password';
+            
+            $this->mailer->Body = $this->getPasswordResetEmailTemplate($user, $resetUrl);
+            $this->mailer->AltBody = strip_tags($this->mailer->Body);
+
+            return $this->mailer->send();
+
+        } catch (Exception $e) {
+            Log::error('Failed to send password reset email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function getVerificationEmailTemplate($user, $verificationUrl): string
+    {
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Email Verification</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #1e40af; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>ASPIRE System</h1>
+                    <p>Automated Supervision Platform for Instructional Reform & Excellence</p>
+                </div>
+                <div class='content'>
+                    <h2>Welcome to ASPIRE, {$user->name}!</h2>
+                    <p>Thank you for registering with the ASPIRE system for DepEd Philippines.</p>
+                    <p>Please click the button below to verify your email address and activate your account:</p>
+                    <div style='text-align: center;'>
+                        <a href='{$verificationUrl}' class='button text-white'>Verify Email Address</a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style='word-break: break-all; color: #1e40af;'>{$verificationUrl}</p>
+                    <p><strong>Note:</strong> This verification link will expire in 24 hours.</p>
+                </div>
+                <div class='footer'>
+                    <p>This is an automated message from the ASPIRE system. Please do not reply to this email.</p>
+                    <p>© 2026 ASPIRE - Department of Education Sagay City, Negros Occidental, Philippines</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
+    private function getPasswordResetEmailTemplate($user, $resetUrl): string
+    {
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Password Reset</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #dc2626; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>ASPIRE System</h1>
+                    <p>Password Reset Request</p>
+                </div>
+                <div class='content'>
+                    <h2>Password Reset Request</h2>
+                    <p>Hello {$user->name},</p>
+                    <p>We received a request to reset your password for your ASPIRE account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style='text-align: center;'>
+                        <a href='{$resetUrl}' class='button text-white'>Reset Password</a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style='word-break: break-all; color: #dc2626;'>{$resetUrl}</p>
+                    <p><strong>Note:</strong> This password reset link will expire in 1 hour.</p>
+                    <p>If you didn't request this password reset, please ignore this email.</p>
+                </div>
+                <div class='footer'>
+                    <p>This is an automated message from the ASPIRE system. Please do not reply to this email.</p>
+                    <p>© 2026 ASPIRE - Department of Education Sagay City, Negros Occidental, Philippines</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
+    public function testConnection(): bool
+    {
+        try {
+            return $this->mailer->SMTP->connect();
+        } catch (Exception $e) {
+            Log::error('SMTP connection test failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+}
