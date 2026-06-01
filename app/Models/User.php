@@ -26,6 +26,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'school_id',
+        'status',
+        'password_set_at',
     ];
 
     /**
@@ -66,6 +68,46 @@ class User extends Authenticatable implements MustVerifyEmail
     public function teacher()
     {
         return $this->hasOne(Teacher::class);
+    }
+
+    /**
+     * Get the supervisor profile associated with the user.
+     */
+    public function supervisor()
+    {
+        return $this->hasOne(Supervisor::class);
+    }
+
+    /**
+     * Get the user profile associated with the user.
+     */
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * Get the teacher profile associated with the user.
+     */
+    public function teacherProfile()
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
+
+    /**
+     * Get the supervisor profile associated with the user.
+     */
+    public function supervisorProfile()
+    {
+        return $this->hasOne(SupervisorProfile::class);
+    }
+
+    /**
+     * Get the school head profile associated with the user.
+     */
+    public function schoolHeadProfile()
+    {
+        return $this->hasOne(SchoolHeadProfile::class);
     }
 
     // Role-based methods

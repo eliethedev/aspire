@@ -89,7 +89,7 @@ class PHPMailerService
         try {
             $this->mailer->addAddress($user->email, $user->name);
             $this->mailer->Subject = 'Reset Your ASPIRE Password';
-            
+
             $this->mailer->Body = $this->getPasswordResetEmailTemplate($user, $resetUrl);
             $this->mailer->AltBody = strip_tags($this->mailer->Body);
 
@@ -97,6 +97,38 @@ class PHPMailerService
 
         } catch (Exception $e) {
             Log::error('Failed to send password reset email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function sendInvitationEmail($invitation, $subject, $body): bool
+    {
+        try {
+            $this->mailer->addAddress($invitation->email, $invitation->user->name);
+            $this->mailer->Subject = $subject;
+            $this->mailer->Body = $body;
+            $this->mailer->AltBody = strip_tags($body);
+
+            return $this->mailer->send();
+
+        } catch (Exception $e) {
+            Log::error('Failed to send invitation email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function sendGenericEmail($email, $name, $subject, $body): bool
+    {
+        try {
+            $this->mailer->addAddress($email, $name);
+            $this->mailer->Subject = $subject;
+            $this->mailer->Body = $body;
+            $this->mailer->AltBody = strip_tags($body);
+
+            return $this->mailer->send();
+
+        } catch (Exception $e) {
+            Log::error('Failed to send generic email: ' . $e->getMessage());
             return false;
         }
     }

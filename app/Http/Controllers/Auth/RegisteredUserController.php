@@ -5,20 +5,26 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegistrationRequest;
 use App\Models\User;
+use App\Models\School;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(): \Illuminate\View\View
     {
-        return view('auth.register');
+        return view('register', [
+            'schools' => School::select('id', 'name')
+                ->orderBy('name')
+                ->get(),
+        ]);
     }
 
     /**

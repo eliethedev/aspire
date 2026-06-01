@@ -1,3 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+    }
+}
+
+/* Light Background - DepEd White Theme */
+.light-bg {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+    color: black;
+}
+
+/* Glassmorphism Card - Light Theme */
+.glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Sidebar Collapse Styles */
+.sidebar-closed .glass-card {
+    margin-left: -64px !important;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.sidebar-closed main {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+.sidebar-collapsed {
+    width: 80px !important;
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+}
+
+.sidebar-collapsed .sidebar-text {
+    display: none !important;
+}
+
+.sidebar-collapsed .sidebar-link {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.sidebar-collapsed .sidebar-link svg {
+    margin-right: 0 !important;
+}
+
+.sidebar-collapsed nav {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.sidebar-toggle-button {
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-closed .sidebar-toggle-button {
+    transform: rotate(180deg);
+}

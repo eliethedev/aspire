@@ -63,6 +63,6 @@ class School extends Model
 
     public function getDomainAttribute(): string
     {
-        return $this->attributes['domain'] ?? ($this->subdomain ? $this->subdomain . '.' . config('app.domain') : null);
+        return $this->attributes['domain'] ?? ($this->subdomain ? $this->subdomain . '.' . config('app.domain') : '');
     }
 }

@@ -7,16 +7,20 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(): \Illuminate\View\View
     {
-        return view('auth.login');
+        return view('login', [
+            'canResetPassword' => true,
+            'status' => session('status'),
+        ]);
     }
 
     /**
@@ -28,7 +32,26 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return $this->redirectBasedOnRole($request->user());
+    }
+
+    /**
+     * Redirect user based on their role
+     */
+    protected function redirectBasedOnRole($user): RedirectResponse
+    {
+        switch ($user->role) {
+            case 'teacher':
+                return redirect()->route('teacher.dashboard');
+            case 'supervisor':
+                return redirect()->route('supervisor.dashboard');
+            case 'school_head':
+                return redirect()->route('school_head.dashboard');
+            case 'admin':
+                return redirect()->route('admin.dashboard');
+            default:
+                return redirect()->route('dashboard');
+        }
     }
 
     /**

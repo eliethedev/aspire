@@ -13,17 +13,22 @@ class PHPMailerChannel
 
         try {
             $mailerService = app(PHPMailerService::class);
-            
+
             // For verification emails, use the dedicated method
             if ($notification instanceof \App\Notifications\VerifyEmailPHPMailer) {
                 $verificationUrl = $notification->verificationUrl($notifiable);
                 return $mailerService->sendVerificationEmail($notifiable, $verificationUrl);
             }
-            
+
             // For password reset emails
             if ($notification instanceof \Illuminate\Auth\Notifications\ResetPassword) {
                 $resetUrl = $message->actionUrl;
                 return $mailerService->sendPasswordResetEmail($notifiable, $resetUrl);
+            }
+
+            // For invitation emails, use the dedicated method
+            if ($notification instanceof \App\Notifications\UserInvitation) {
+                return $this->sendInvitationEmail($notifiable, $message, $notification);
             }
 
             // For other emails, use a generic method
@@ -35,17 +40,58 @@ class PHPMailerChannel
         }
     }
 
+    private function sendInvitationEmail($notifiable, $message, $notification): bool
+    {
+        try {
+            $mailerService = app(PHPMailerService::class);
+            $invitation = $notification->getInvitation();
+
+            $body = $this->buildInvitationEmail($message, $invitation);
+
+            return $mailerService->sendInvitationEmail($invitation, $message->subject, $body);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send invitation email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function buildInvitationEmail($message, $invitation): string
+    {
+        $setPasswordUrl = url('/auth/set-password/' . $invitation->token);
+        $expiresAt = $invitation->expires_at->format('F j, Y \a\t g:i A');
+
+        $content = "
+            <p>Hello {$invitation->user->name},</p>
+            <p>You have been invited to join ASPIRE, the Department of Education's school supervision platform.</p>
+            <div style='background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                <p><strong>Your Role:</strong> " . ucfirst($invitation->role) . "</p>
+                <p><strong>School:</strong> " . ($invitation->school?->name ?? 'Not assigned') . "</p>
+                <p><strong>Invited by:</strong> {$invitation->invitedBy->name}</p>
+                <p><strong>Expires:</strong> {$expiresAt}</p>
+            </div>
+            <p>To get started, please click the button below to set your password and activate your account.</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$setPasswordUrl}' style='display: inline-block; padding: 14px 28px; background: #1e40af; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>
+                    Set Your Password
+                </a>
+            </div>
+            <p>This invitation link will expire in 7 days. If you don't set your password before then, you'll need to request a new invitation.</p>
+            <p>If you did not expect this invitation, you can safely ignore this email.</p>
+            <p>Best regards,<br>The ASPIRE Team</p>
+        ";
+
+        return $this->wrapEmailTemplate($content, $message->subject);
+    }
+
     private function sendGenericEmail($notifiable, $message): bool
     {
         try {
             $mailerService = app(PHPMailerService::class);
-            
-            $mailerService->mailer->addAddress($notifiable->email, $notifiable->name);
-            $mailerService->mailer->Subject = $message->subject;
-            $mailerService->mailer->Body = $this->buildGenericEmail($message);
-            $mailerService->mailer->AltBody = strip_tags($mailerService->mailer->Body);
 
-            return $mailerService->mailer->send();
+            $body = $this->buildGenericEmail($message);
+
+            return $mailerService->sendGenericEmail($notifiable->email, $notifiable->name, $message->subject, $body);
 
         } catch (\Exception $e) {
             \Log::error('Failed to send generic email: ' . $e->getMessage());

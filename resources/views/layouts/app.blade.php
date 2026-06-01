@@ -12,15 +12,16 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.tsx'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body class="font-sans antialiased" x-data="{ sidebarOpen: true, isHovering: false }">
+        <div class="min-h-screen bg-white" :class="{ 'sidebar-closed': !sidebarOpen }">
             @include('layouts.navigation')
+            @include('layouts.header')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
+                <header class="glass-card border-b border-gray-200" :class="{ 'sidebar-closed': !sidebarOpen }">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -28,7 +29,7 @@
             @endisset
 
             <!-- Page Content -->
-            <main class="py-6">
+            <main class="flex" :class="{ 'sidebar-closed': !sidebarOpen }">
                 @yield('content')
             </main>
         </div>

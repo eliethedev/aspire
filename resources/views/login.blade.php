@@ -14,47 +14,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* Dark Theme Background - Matching Landing Page */
-        .dark-bg {
-            background-color: #030303;
+        /* Light Theme Background - DepEd White Theme */
+        .light-bg {
+            background-color: #ffffff;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.1) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.03) 0px, transparent 50%);
         }
         
-        /* Glassmorphism Card - Matching Landing Page */
+        /* Glassmorphism Card - Light Theme */
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.1);
         }
         
-        /* Dark Input Styling */
-        .dark-input {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: white;
+        /* Light Input Styling */
+        .light-input {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #1f2937;
             transition: all 0.2s ease;
         }
         
-        .dark-input:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-            background-color: rgba(255, 255, 255, 0.08);
+        .light-input:hover {
+            border-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
-        .dark-input:focus {
+        .light-input:focus {
             border-color: rgba(99, 102, 241, 0.5);
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.95);
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
             outline: none;
         }
         
-        .dark-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+        .light-input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
         }
         
-        /* Gradient Button - Matching Landing Page Style */
+        /* Gradient Button - DepEd Theme Style */
         .btn-gradient {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
@@ -79,11 +79,11 @@
         }
     </style>
 </head>
-<body class="antialiased font-sans dark-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="antialiased font-sans light-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
     
     <!-- Background Glow Effects -->
-    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/20"></div>
-    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/15"></div>
+    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/10"></div>
+    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/5"></div>
 
     <div class="w-full max-w-md glass-card rounded-2xl p-8 md:p-10 relative z-10">
         
@@ -96,8 +96,8 @@
                 </svg>
             </div> -->
             
-            <h1 class="text-2xl font-bold text-white mb-2 tracking-tight">Login to Aspire</h1>
-            <p class="text-white/50 text-sm">Sign in to access your ASPIRE account</p>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Login to Aspire</h1>
+            <p class="text-gray-500 text-sm">Sign in to access your ASPIRE account</p>
         </div>
 
         <!-- Login Form -->
@@ -106,14 +106,14 @@
 
             <!-- Email Field -->
             <div>
-                <label class="block text-sm font-semibold text-white/80 mb-2">Email Address</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                 <input 
                     type="email" 
                     name="email" 
                     value="{{ old('email') }}"
                     required 
                     autofocus
-                    class="dark-input w-full px-4 py-3 rounded-xl"
+                    class="light-input w-full px-4 py-3 rounded-xl"
                     placeholder="name@company.com"
                 >
                 @error('email')
@@ -128,20 +128,20 @@
 
             <!-- Password Field -->
             <div>
-                <label class="block text-sm font-semibold text-white/80 mb-2">Password</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
                 <div class="relative">
                     <input 
                         type="password" 
                         name="password" 
                         required
                         id="password"
-                        class="dark-input w-full px-4 py-3 pr-12 rounded-xl"
+                        class="light-input w-full px-4 py-3 pr-12 rounded-xl"
                         placeholder="••••••••"
                     >
                     <button 
                         type="button" 
                         onclick="togglePassword()"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors p-1"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
                     >
                         <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -168,13 +168,13 @@
                     <input 
                         type="checkbox" 
                         name="remember" 
-                        class="w-4 h-4 rounded border-white/30 bg-white/5 text-indigo-500 focus:ring-indigo-500/50 focus:ring-offset-0 cursor-pointer"
+                        class="w-4 h-4 rounded border-gray-300 bg-white text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
                     >
-                    <span class="ml-2 text-sm text-white/60 group-hover:text-white/80 transition-colors">Remember me</span>
+                    <span class="ml-2 text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Remember me</span>
                 </label>
                 <a 
                     href="" 
-                    class="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+                    class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                 >
                     Forgot password?
                 </a>
@@ -192,49 +192,9 @@
             </button>
         </form>
 
-        <!-- Divider -->
-        <div class="relative my-8">
-            <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-white/10"></div>
-            </div>
-            <div class="relative flex justify-center text-xs uppercase">
-                <span class="bg-[#030303] px-3 text-white/40 font-medium">Or continue with</span>
-            </div>
-        </div>
-
-        <!-- Social Login -->
-        <div class="grid grid-cols-2 gap-3 mb-8">
-            <button 
-                type="button" 
-                class="flex items-center justify-center px-4 py-2.5 border border-white/10 rounded-xl hover:bg-white/5 hover:border-white/20 transition-all duration-200 group"
-            >
-                <svg class="w-5 h-5 text-white/60 group-hover:text-white group-hover:scale-110 transition-all" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-            </button>
-            <button 
-                type="button" 
-                class="flex items-center justify-center px-4 py-2.5 border border-white/10 rounded-xl hover:bg-white/5 hover:border-white/20 transition-all duration-200 group"
-            >
-                <svg class="w-5 h-5 text-white/60 group-hover:text-white group-hover:scale-110 transition-all" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-            </button>
-        </div>
-
         <!-- Footer Links -->
         <div class="text-center space-y-4">
-            <p class="text-sm text-white/50">
-                Don't have an account?
-                <a href="{{ route('register') }}" class="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
-                    Sign up
-                </a>
-            </p>
-            
-            <a href="{{ route('home') }}" class="inline-flex items-center text-sm text-white/40 hover:text-white/70 transition-colors group">
+            <a href="{{ route('home') }}" class="inline-flex items-center text-sm text-gray-400 hover:text-gray-600 transition-colors group">
                 <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>

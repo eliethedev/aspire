@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\SchoolAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Teacher extends Model
 {
@@ -24,5 +25,13 @@ class Teacher extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Teacher has many observations
+     */
+    public function observations(): HasMany
+    {
+        return $this->hasMany(Observation::class);
     }
 }

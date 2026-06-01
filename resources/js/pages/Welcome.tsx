@@ -21,43 +21,43 @@ export default function LandingPage(): React.JSX.Element {
     };
 
     return (
-        <div className="relative w-full bg-[#030303]">
+        <div className="relative w-full bg-gradient-to-b from-blue-50 to-white">
             {/* Header Navigation */}
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
-                className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#030303]/50 backdrop-blur-md border-b border-white/5"
+                className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-white/80 backdrop-blur-md border-b border-blue-100"
             >
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     {/* Logo */}
-                    <a href="/" className="text-2xl font-bold text-white tracking-tight">
+                    <a href="/" className="text-2xl font-bold text-blue-900 tracking-tight">
                         ASPIRE
                     </a>
 
                     {/* Navigation Links */}
                     <nav className="hidden md:flex items-center gap-6">
-                        <button 
+                        <button
                             onClick={() => scrollToSection('about')}
-                            className="text-white/70 hover:text-white transition-colors duration-300 text-sm font-medium"
+                            className="text-gray-600 hover:text-blue-700 transition-colors duration-300 text-sm font-medium"
                         >
                             About Us
                         </button>
-                        <button 
+                        <button
                             onClick={() => scrollToSection('features')}
-                            className="text-white/70 hover:text-white transition-colors duration-300 text-sm font-medium"
+                            className="text-gray-600 hover:text-blue-700 transition-colors duration-300 text-sm font-medium"
                         >
                             Features
                         </button>
-                        <button 
+                        <button
                             onClick={() => scrollToSection('contact')}
-                            className="text-white/70 hover:text-white transition-colors duration-300 text-sm font-medium"
+                            className="text-gray-600 hover:text-blue-700 transition-colors duration-300 text-sm font-medium"
                         >
                             Contact
                         </button>
-                          <button 
+                          <button
                             onClick={() => scrollToSection('privacy-policy')}
-                            className="text-white/70 hover:text-white transition-colors duration-300 text-sm font-medium"
+                            className="text-gray-600 hover:text-blue-700 transition-colors duration-300 text-sm font-medium"
                         >
                             Privacy Policy
                         </button>
@@ -67,15 +67,9 @@ export default function LandingPage(): React.JSX.Element {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => handleLogin('teacher')}
-                            className="px-5 py-2 text-white/80 hover:text-white text-sm font-medium transition-colors duration-300"
+                            className="px-5 py-2 text-gray-600 hover:text-blue-700 text-sm font-medium transition-colors duration-300"
                         >
                             Log In
-                        </button>
-                        <button
-                            onClick={() => window.location.href = '/register'}
-                            className="px-5 py-2 bg-white text-[#030303] text-sm font-semibold rounded-full hover:bg-white/90 transition-all duration-300"
-                        >
-                            Sign Up
                         </button>
                     </div>
                 </div>
@@ -99,7 +93,7 @@ export default function LandingPage(): React.JSX.Element {
                     >
                         <button
                             onClick={() => handleLogin('teacher')}
-                            className="group px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 hover:border-white/40 transition-all duration-300"
+                            className="group px-8 py-4 bg-blue-900 text-white font-semibold rounded-full hover:bg-blue-800 transition-all duration-300 shadow-lg shadow-blue-900/30"
                         >
                             <span className="flex items-center gap-2">
                                 Teacher Login
@@ -109,25 +103,12 @@ export default function LandingPage(): React.JSX.Element {
                             </span>
                         </button>
 
-                        <button
-                            onClick={() => handleLogin('supervisor')}
-                            className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white/80 font-semibold rounded-full hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                        >
-                            Supervisor
-                        </button>
-
-                        <button
-                            onClick={() => handleLogin('school-head')}
-                            className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white/80 font-semibold rounded-full hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                        >
-                            School Head
-                        </button>
                     </motion.div>
                 </div>
             </section>
 
             {/* About Us Section */}
-            <section id="about" className="relative py-24 px-6 bg-[#030303]">
+            <section id="about" className="relative py-24 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -136,8 +117,8 @@ export default function LandingPage(): React.JSX.Element {
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">About Us</h2>
-                        <p className="text-lg text-white/60 max-w-3xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">About Us</h2>
+                        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
                             ASPIRE is a comprehensive digital platform revolutionizing teacher supervision 
                             and evaluation in the Philippines. We leverage AI technology to provide 
                             actionable insights and foster professional growth.
@@ -150,13 +131,13 @@ export default function LandingPage(): React.JSX.Element {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.1, duration: 0.6 }}
-                            className="p-8 rounded-2xl bg-white/[0.03] border border-white/10"
+                            className="p-8 rounded-2xl bg-blue-50 border border-blue-100"
                         >
-                            <div className="w-14 h-14 bg-indigo-500/20 rounded-xl flex items-center justify-center mb-6">
-                                <BookOpen className="w-7 h-7 text-indigo-400" />
+                            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                                <BookOpen className="w-7 h-7 text-blue-600" />
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Our Mission</h3>
-                            <p className="text-white/60">
+                            <h3 className="text-xl font-semibold text-blue-900 mb-3">Our Mission</h3>
+                            <p className="text-gray-600">
                                 To provide comprehensive support to supervisors and educators through data-driven insights and AI-assisted feedback, 
                                 enabling continuous improvement in instructional excellence.
                             </p>
@@ -167,13 +148,13 @@ export default function LandingPage(): React.JSX.Element {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.2, duration: 0.6 }}
-                            className="p-8 rounded-2xl bg-white/[0.03] border border-white/10"
+                            className="p-8 rounded-2xl bg-blue-50 border border-blue-100"
                         >
-                            <div className="w-14 h-14 bg-rose-500/20 rounded-xl flex items-center justify-center mb-6">
-                                <Users className="w-7 h-7 text-rose-400" />
+                            <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                                <Users className="w-7 h-7 text-red-600" />
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Our Vision</h3>
-                            <p className="text-white/60">
+                            <h3 className="text-xl font-semibold text-blue-900 mb-3">Our Vision</h3>
+                            <p className="text-gray-600">
                                 A transformed educational landscape where every teacher receives 
                                 personalized support and every school achieves excellence through 
                                 intelligent supervision.
@@ -185,13 +166,13 @@ export default function LandingPage(): React.JSX.Element {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.3, duration: 0.6 }}
-                            className="p-8 rounded-2xl bg-white/[0.03] border border-white/10"
+                            className="p-8 rounded-2xl bg-blue-50 border border-blue-100"
                         >
-                            <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center mb-6">
-                                <Shield className="w-7 h-7 text-amber-400" />
+                            <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                                <Shield className="w-7 h-7 text-blue-600" />
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Our Values</h3>
-                            <p className="text-white/60">
+                            <h3 className="text-xl font-semibold text-blue-900 mb-3">Our Values</h3>
+                            <p className="text-gray-600">
                                 Integrity, innovation, and inclusivity guide our platform development 
                                 to ensure fair and comprehensive teacher evaluation across all institutions.
                             </p>
@@ -201,7 +182,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="relative py-24 px-6 bg-[#0a0a0a]">
+            <section id="features" className="relative py-24 px-6 bg-blue-50">
                 <div className="max-w-7xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -210,8 +191,8 @@ export default function LandingPage(): React.JSX.Element {
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Key Features</h2>
-                        <p className="text-lg text-white/60 max-w-3xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Key Features</h2>
+                        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
                             Comprehensive tools designed for modern educational supervision
                         </p>
                     </motion.div>
@@ -245,13 +226,13 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                                className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] transition-colors duration-300"
+                                className="p-6 rounded-2xl bg-white border border-blue-200 hover:border-blue-300 transition-colors duration-300 shadow-sm"
                             >
-                                <div className="w-12 h-12 bg-white/[0.05] rounded-xl flex items-center justify-center mb-4">
+                                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
                                     {feature.icon}
                                 </div>
-                                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                                <p className="text-white/50 text-sm leading-relaxed">{feature.desc}</p>
+                                <h3 className="text-lg font-semibold text-blue-900 mb-2">{feature.title}</h3>
+                                <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -259,7 +240,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="relative py-24 px-6 bg-[#030303]">
+            <section id="contact" className="relative py-24 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -268,8 +249,8 @@ export default function LandingPage(): React.JSX.Element {
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Contact Us</h2>
-                        <p className="text-lg text-white/60 max-w-3xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold text-blue-900 mb-6">Contact Us</h2>
+                        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
                             Get in touch with our team for support, inquiries, or partnership opportunities
                         </p>
                     </motion.div>
@@ -282,11 +263,11 @@ export default function LandingPage(): React.JSX.Element {
                             transition={{ delay: 0.1, duration: 0.6 }}
                             className="flex flex-col items-center text-center p-6"
                         >
-                            <div className="w-14 h-14 bg-indigo-500/20 rounded-full flex items-center justify-center mb-4">
-                                <Mail className="w-6 h-6 text-indigo-400" />
+                            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <Mail className="w-6 h-6 text-blue-600" />
                             </div>
-                            <h3 className="text-white font-semibold mb-2">Email</h3>
-                            <p className="text-white/60 text-sm">support@aspire.edu.ph</p>
+                            <h3 className="text-blue-900 font-semibold mb-2">Email</h3>
+                            <p className="text-gray-600 text-sm">support@aspire.edu.ph</p>
                         </motion.div>
 
                         <motion.div
@@ -296,11 +277,11 @@ export default function LandingPage(): React.JSX.Element {
                             transition={{ delay: 0.2, duration: 0.6 }}
                             className="flex flex-col items-center text-center p-6"
                         >
-                            <div className="w-14 h-14 bg-rose-500/20 rounded-full flex items-center justify-center mb-4">
-                                <Phone className="w-6 h-6 text-rose-400" />
+                            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                <Phone className="w-6 h-6 text-red-600" />
                             </div>
-                            <h3 className="text-white font-semibold mb-2">Phone</h3>
-                            <p className="text-white/60 text-sm">+63 (1) 123456789 </p>
+                            <h3 className="text-blue-900 font-semibold mb-2">Phone</h3>
+                            <p className="text-gray-600 text-sm">+63 (1) 123456789 </p>
                         </motion.div>
 
                         <motion.div
@@ -310,20 +291,20 @@ export default function LandingPage(): React.JSX.Element {
                             transition={{ delay: 0.3, duration: 0.6 }}
                             className="flex flex-col items-center text-center p-6"
                         >
-                            <div className="w-14 h-14 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
-                                <MapPin className="w-6 h-6 text-amber-400" />
+                            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <MapPin className="w-6 h-6 text-blue-600" />
                             </div>
-                            <h3 className="text-white font-semibold mb-2">Address</h3>
-                            <p className="text-white/60 text-sm">DepEd Sagay National High School Sagay City</p>
+                            <h3 className="text-blue-900 font-semibold mb-2">Address</h3>
+                            <p className="text-gray-600 text-sm">DepEd Sagay National High School Sagay City</p>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="relative py-8 px-6 bg-[#030303] border-t border-white/5">
+            <footer className="relative py-8 px-6 bg-blue-900 border-t border-blue-800">
                 <div className="max-w-7xl mx-auto text-center">
-                    <p className="text-white/40 text-sm">
+                    <p className="text-blue-100 text-sm">
                         © 2026 ASPIRE • Automated Supervision Platform for Instructional Reform & Excellence
                     </p>
                 </div>

@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside class="w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen">
+<aside class="w-58 bg-white shadow-sm border-r border-slate-200 min-h-screen">
     <nav class="mt-8 px-4">
         <ul class="space-y-2">
             <!-- Dashboard -->

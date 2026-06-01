@@ -23,45 +23,39 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:teacher,supervisor,school_head'],
-            'department' => ['nullable', 'string', 'max:255'],
-            'years_of_service' => ['nullable', 'integer', 'min:0'],
+            'school_id' => ['required', 'exists:schools,id'],
+            'department' => ['required', 'string', 'max:255'],
+            'years_of_service' => ['required', 'integer', 'min:0', 'max:50'],
+            'mobile_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/', 'max:11'],
+            'employee_number' => ['nullable', 'string', 'max:50', 'unique:teachers,employee_number'],
+            'prc_license_number' => ['nullable', 'string', 'max:20', 'unique:teachers,prc_license_number'],
+            'position' => ['nullable', 'string', 'max:100'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => 'teacher',
+            'school_id' => $request->school_id,
         ]);
 
-        // If role is teacher, create teacher profile
-        if ($request->role === 'teacher') {
-            Teacher::create([
-                'user_id' => $user->id,
-                'department' => $request->department,
-                'years_of_service' => $request->years_of_service,
-            ]);
-        }
+        // Create teacher profile (registration is only for teachers)
+        Teacher::create([
+            'user_id' => $user->id,
+            'department' => $request->department,
+            'years_of_service' => $request->years_of_service,
+            'school_id' => $request->school_id,
+            'mobile_number' => $request->mobile_number,
+            'employee_number' => $request->employee_number,
+            'prc_license_number' => $request->prc_license_number,
+            'position' => $request->position,
+        ]);
 
         // Auto-login the user
         Auth::login($user);
 
-        // Redirect based on role
-        return $this->redirectBasedOnRole($user);
-    }
-
-    protected function redirectBasedOnRole(User $user)
-    {
-        switch ($user->role) {
-            case 'teacher':
-                return redirect()->route('teacher.dashboard');
-            case 'supervisor':
-                return redirect()->route('supervisor.dashboard');
-            case 'school_head':
-                return redirect()->route('school_head.dashboard');
-            default:
-                return redirect()->route('home');
-        }
+        // Redirect to teacher dashboard
+        return redirect()->route('teacher.dashboard');
     }
 }
