@@ -1,13 +1,5 @@
 <header class="glass-card border-b border-gray-200 bg-white" x-data="{}">
   <div class="max-w-8xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
-    <!-- Logo and Title -->
-    <div class="flex items-center space-x-4">
-      <a href="{{ route('dashboard') }}" class="flex items-center">
-        <x-application-logo class="h-8 w-auto fill-current text-gray-800" />
-        <span class="ml-2 font-semibold text-xl text-gray-800">{{ config('app.name', 'ASPIRE') }} Admin Dashboard</span>
-      </a>
-    </div>
-
     <!-- Search (placeholder) -->
     <div class="flex-1 mx-4 hidden md:block flex items-center">
       <input type="text" placeholder="Search users, schools, lessons..." class="w-full h-10 px-4 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />
@@ -16,10 +8,42 @@
     <!-- Right side: notifications, user menu -->
     <div class="flex items-center space-x-4">
       <!-- Notifications -->
-      <button type="button" class="relative h-10 w-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-        <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">3</span>
-      </button>
+      <x-dropdown align="right" width="80">
+        <x-slot name="trigger">
+          <button type="button" class="relative h-10 w-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span x-text="unreadCount" x-show="unreadCount > 0" class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">0</span>
+          </button>
+        </x-slot>
+        <x-slot name="content">
+          <div x-data="notificationDropdown()" x-init="fetchNotifications()">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+              <button x-show="unreadCount > 0" @click="markAllAsRead()" class="text-xs text-indigo-600 hover:text-indigo-800">Mark all as read</button>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+              <template x-if="notifications.length === 0">
+                <div class="p-4 text-center text-gray-500 text-sm">No notifications</div>
+              </template>
+              <template x-for="notification in notifications" :key="notification.id">
+                <a :href="notification.link || '#'" @click="markAsRead(notification.id)" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0" :class="{'bg-blue-50': !notification.is_read}">
+                  <div class="flex items-start">
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900" x-text="notification.title"></p>
+                      <p class="text-xs text-gray-600 mt-1" x-text="notification.message"></p>
+                      <p class="text-xs text-gray-400 mt-1" x-text="formatDate(notification.created_at)"></p>
+                    </div>
+                    <div x-show="!notification.is_read" class="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                  </div>
+                </a>
+              </template>
+            </div>
+            <div class="p-3 border-t border-gray-200">
+              <a href="{{ route('notifications.show', ['role' => auth()->user()->role ?? 'admin']) }}" class="block text-center text-sm text-indigo-600 hover:text-indigo-800">View all notifications</a>
+            </div>
+          </div>
+        </x-slot>
+      </x-dropdown>
 
       <!-- User dropdown (reuse from navigation) -->
       <x-dropdown align="right" width="48">

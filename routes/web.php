@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SetPasswordController;
@@ -24,6 +25,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/{role}', [NotificationController::class, 'show'])->name('notifications.show');
 });
 
 // School management routes (admin only)
@@ -49,11 +56,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('supervisors', \App\Http\Controllers\Admin\SupervisorController::class);
     Route::get('/supervisors/schools/list', [\App\Http\Controllers\Admin\SupervisorController::class, 'schools'])->name('supervisors.schools');
     Route::get('/supervisors/positions/list', [\App\Http\Controllers\Admin\SupervisorController::class, 'positions'])->name('supervisors.positions');
-});
-
-// Teacher management routes (admin and school_head)
-Route::middleware(['auth', 'role:admin,school_head'])->group(function () {
-    Route::resource('teachers', TeacherController::class);
+    
+    // Teacher management routes
+    Route::resource('teachers', \App\Http\Controllers\Admin\TeacherController::class);
 });
 
 // Teacher routes

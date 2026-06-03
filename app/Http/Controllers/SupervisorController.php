@@ -78,24 +78,38 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
         
-        // Get teachers from the same school
+        // Get teachers from the same school (using teacher's school_id directly)
         $teachers = Teacher::query()
             ->with(['user'])
-            ->whereHas('user', function ($query) use ($user) {
-                $query->where('school_id', $user->school_id);
-            })
+            ->where('school_id', $user->school_id)
             ->get();
 
-        // Get school heads from the same division/district
+        // Get school heads (get all school heads for now, can filter by division/district later)
         $schoolHeads = SchoolHeadProfile::query()
             ->with(['user', 'school'])
-            ->whereHas('school', function ($query) use ($user) {
-                // For now, get all school heads - you may want to filter by division/district
-                $query->where('id', '!=', $user->school_id);
-            })
             ->get();
 
-        return view('supervisor.observations.create', compact('teachers', 'schoolHeads'));
+        // Prepare teacher data for JavaScript
+        $teacherData = $teachers->map(function ($teacher) {
+            return [
+                'id' => $teacher->id,
+                'name' => $teacher->user->name,
+                'subject' => $teacher->subject ?? null,
+                'grade_level' => $teacher->grade_level ?? null
+            ];
+        });
+
+        // Prepare school head data for JavaScript
+        $schoolHeadData = $schoolHeads->map(function ($schoolHead) {
+            return [
+                'id' => $schoolHead->id,
+                'name' => $schoolHead->user->name,
+                'subject' => $schoolHead->subject ?? null,
+                'grade_level' => $schoolHead->grade_level ?? null
+            ];
+        });
+
+        return view('supervisor.observations.create', compact('teachers', 'schoolHeads', 'teacherData', 'schoolHeadData'));
     }
 
     /**

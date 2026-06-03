@@ -5,8 +5,8 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-white">Reports</h1>
-        <p class="text-white/60 mt-1">Overview of your supervision activities and statistics.</p>
+        <h1 class="text-2xl font-bold text-dark">Reports</h1>
+        <p class="text-dark/60 mt-1">Overview of your supervision activities and statistics.</p>
     </div>
 
     <!-- Statistics Cards -->
@@ -20,8 +20,8 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Total Teachers</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['total_teachers'] }}</p>
+                    <p class="text-sm font-medium text-dark/80">Total Teachers</p>
+                    <p class="text-2xl font-bold text-dark">{{ $stats['total_teachers'] }}</p>
                 </div>
             </div>
         </div>
@@ -35,8 +35,8 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Total Observations</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['total_observations'] }}</p>
+                    <p class="text-sm font-medium text-dark/80">Total Observations</p>
+                    <p class="text-2xl font-bold text-dark">{{ $stats['total_observations'] }}</p>
                 </div>
             </div>
         </div>
@@ -50,8 +50,8 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Completed</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['completed_observations'] }}</p>
+                    <p class="text-sm font-medium text-dark/80">Completed</p>
+                    <p class="text-2xl font-bold text-dark">{{ $stats['completed_observations'] }}</p>
                 </div>
             </div>
         </div>
@@ -65,8 +65,8 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Pending</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['pending_observations'] }}</p>
+                    <p class="text-sm font-medium text-dark/80">Pending</p>
+                    <p class="text-2xl font-bold text-dark">{{ $stats['pending_observations'] }}</p>
                 </div>
             </div>
         </div>
@@ -74,14 +74,14 @@
 
     <!-- Recent Observations -->
     <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-        <h2 class="text-lg font-semibold text-white mb-4">Recent Observations</h2>
+        <h2 class="text-lg font-semibold text-dark mb-4">Recent Observations</h2>
         @if($recentObservations->count() > 0)
             <div class="space-y-4">
                 @foreach($recentObservations as $observation)
                     <div class="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10">
                         <div>
-                            <p class="text-sm font-medium text-white">{{ $observation->teacher->user->name }}</p>
-                            <p class="text-xs text-white/60">{{ $observation->observation_date->format('M d, Y') }} - {{ ucfirst(str_replace('-', ' ', $observation->stage)) }}</p>
+                            <p class="text-sm font-medium text-dark">{{ $observation->teacher->user->name }}</p>
+                            <p class="text-xs text-dark/60">{{ $observation->observation_date->format('M d, Y') }} - {{ ucfirst(str_replace('-', ' ', $observation->stage)) }}</p>
                         </div>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                             {{ $observation->status === 'completed' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300' }}">
@@ -92,7 +92,7 @@
             </div>
         @else
             <div class="text-center py-8">
-                <p class="text-white/60">No recent observations to display.</p>
+                <p class="text-dark/60">No recent observations to display.</p>
             </div>
         @endif
     </div>

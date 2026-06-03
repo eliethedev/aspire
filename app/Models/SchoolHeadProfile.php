@@ -21,6 +21,8 @@ class SchoolHeadProfile extends Model
         'school_type',
         'additional_roles',
         'position',
+        'subject',
+        'grade_level',
     ];
 
     protected $casts = [

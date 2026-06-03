@@ -85,7 +85,7 @@
 
                     <!-- Teachers Management -->
                     <li>
-                        <a href="{{ route('teachers.index') }}"
+                        <a href="{{ route('admin.teachers.index') }}"
                            class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ request()->routeIs('teachers.*') ? 'bg-indigo-50 text-indigo-700' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">

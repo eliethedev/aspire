@@ -110,6 +110,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(SchoolHeadProfile::class);
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->orderBy('created_at', 'desc');
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->notifications()->where('is_read', false);
+    }
+
     // Role-based methods
     public function isTeacher(): bool
     {

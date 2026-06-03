@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Teacher Details')
 
@@ -12,14 +12,14 @@
                 <p class="text-gray-600 mt-1">View teacher profile and information.</p>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="{{ route('teachers.edit', $teacher) }}" 
+                <a href="{{ route('admin.teachers.edit', $teacher) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white nded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
                     </svg>
                     Edit Teacher
                 </a>
-                <a href="{{ route('teachers.index') }}" 
+                <a href="{{ route('admin.teachers.index') }}" 
                    class="inline-flex items-center px-4 py-2 text-dark bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -197,7 +197,7 @@
                 <p class="text-gray-600 mt-1">Common actions for this teacher.</p>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="{{ route('teachers.edit', $teacher) }}" 
+                <a href="{{ route('admin.teachers.edit', $teacher) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white nded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
@@ -206,7 +206,7 @@
                 </a>
                 
                 <form method="POST" 
-                      action="{{ route('teachers.destroy', $teacher) }}" 
+                      action="{{ route('admin.teachers.destroy', $teacher) }}" 
                       onsubmit="return confirm('Are you sure you want to delete this teacher? This action cannot be undone.')"
                       class="inline">
                     @csrf

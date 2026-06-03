@@ -1,100 +1,345 @@
-<!-- Sleek Sidebar Navigation -->
-<aside class="w-64 bg-white shadow-sm border-r border-slate-200 min-h-screen transition-all duration-300 ease-in-out"
-     @mouseenter.window="isHovering = true"
-     @mouseleave.window="isHovering = false"
-     @mouseenter="sidebarOpen = true"
-     :class="{ 'sidebar-collapsed': !sidebarOpen }">
-    <!-- Toggle Button -->
-    <div class="flex justify-between items-center px-4 py-3">
-        <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span class="hidden sidebar-text font-medium text-slate-700">ASPIRE</span>
-        </div>
-        <button @click="sidebarOpen = !sidebarOpen"
-                class="p-2 rounded hover:bg-slate-100 transition-colors">
-            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      :d="sidebarOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"/>
+<!-- Unified Sidebar for Teacher, Supervisor, School Head -->
+<aside class="bg-white shadow-sm border-r border-gray-200 h-screen fixed left-0 top-0 z-40 transition-all duration-300 overflow-y-auto" 
+       x-data="@if(auth()->user()->isTeacher()) { observationsOpen: true, feedbackOpen: true, analyticsOpen: true } @elseif(auth()->user()->isSupervisor()) { observationsOpen: false, teachersOpen: true, reportsOpen: true } @else { systemOpen: true, reportsOpen: true } @endif" 
+       :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
+    <style>
+        [x-cloak] { display: none !important; }
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+        aside::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        aside::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    <!-- Logo -->
+    <div class="h-16 flex items-center px-6 border-b border-gray-200 relative">
+        <button @click="$store.sidebar.toggle(); if($store.sidebar.collapsed) { @if(auth()->user()->isTeacher()) { observationsOpen = false; feedbackOpen = false; analyticsOpen = false; } @elseif(auth()->user()->isSupervisor()) { observationsOpen = false; teachersOpen = false; reportsOpen = false; } @else { systemOpen = false; reportsOpen = false; } @endif }" 
+                class="p-2 focus:outline-none hover:bg-gray-100 rounded-lg transition-colors" 
+                :class="$store.sidebar.collapsed ? 'absolute right-2' : ''" 
+                title="Toggle sidebar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
             </svg>
         </button>
+        <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else # @endif" 
+           class="flex items-center space-x-2">
+            <span x-show="!$store.sidebar.collapsed" class="font-bold text-gray-900">
+                @if(auth()->user()->isTeacher()) ASPIRE Teacher @elseif(auth()->user()->isSupervisor()) ASPIRE Supervisor @else ASPIRE School Head @endif
+            </span>
+        </a>
     </div>
 
-    <nav class="mt-8 px-4">
-        <ul class="space-y-2">
-            <!-- Dashboard -->
-            <li>
-                <a href="{{ route('teacher.dashboard') }}"
-                   class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700 {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    <span class="sidebar-text">Dashboard</span>
-                </a>
+    <!-- Navigation -->
+    <nav class="mt-6 px-4 pb-4" :class="$store.sidebar.collapsed ? 'px-2' : 'px-4'">
+        <ul class="space-y-1">
+            <!-- Main Navigation Section -->
+            <li class="mb-4">
+                <span x-show="!$store.sidebar.collapsed" class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main</span>
+                <ul class="space-y-1 mt-1">
+                    <!-- Dashboard -->
+                    <li>
+                        <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else # @endif"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.dashboard') ? 'bg-indigo-50 text-indigo-700' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.dashboard') ? 'bg-indigo-50 text-indigo-700' : '' }} @else {{ request()->routeIs('school_head.dashboard') ? 'bg-indigo-50 text-indigo-700' : '' }} @endif"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- My Observations -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            @if(auth()->user()->isTeacher())
+            <!-- Teacher: Observations Section -->
+            <li class="mb-4" x-show="!$store.sidebar.collapsed">
+                <button @click="observationsOpen = !observationsOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Observations</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">My Observations</span>
-                </a>
+                </button>
+
+                <ul x-show="observationsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">My Observations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Upcoming</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- Feedback & Coaching -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            <!-- Teacher: Feedback Section -->
+            <li class="mb-4" x-show="!$store.sidebar.collapsed">
+                <button @click="feedbackOpen = !feedbackOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Feedback</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': feedbackOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">Feedback & Coaching</span>
-                </a>
+                </button>
+
+                <ul x-show="feedbackOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Feedback & Coaching</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Improvement Plan</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- Performance Analytics -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <!-- Teacher: Analytics Section -->
+            <li x-show="!$store.sidebar.collapsed">
+                <button @click="analyticsOpen = !analyticsOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Analytics</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': analyticsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">Performance Analytics</span>
-                </a>
+                </button>
+
+                <ul x-show="analyticsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Performance Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endif
+
+            @if(auth()->user()->isSupervisor())
+            <!-- Supervisor: Observations Section -->
+            <li class="mb-4" x-show="!$store.sidebar.collapsed">
+                <button @click="observationsOpen = !observationsOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Observations</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <ul x-show="observationsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ request()->routeIs('supervisor.observations.*') ? 'bg-indigo-50 text-indigo-700' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">My Evaluations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('supervisor.observations.create') }}"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors {{ request()->routeIs('supervisor.observations.create') ? 'bg-blue-50 text-blue-700' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">New Observation</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- Improvement Plan -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <!-- Supervisor: Teachers Section -->
+            <li class="mb-4" x-show="!$store.sidebar.collapsed">
+                <button @click="teachersOpen = !teachersOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Teachers</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': teachersOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">Improvement Plan</span>
-                </a>
+                </button>
+
+                <ul x-show="teachersOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="{{ route('supervisor.teachers.index') }}"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ request()->routeIs('supervisor.teachers.*') ? 'bg-indigo-50 text-indigo-700' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Teacher Management</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- Notifications -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            <!-- Supervisor: Reports Section -->
+            <li x-show="!$store.sidebar.collapsed">
+                <button @click="reportsOpen = !reportsOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Reports</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': reportsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">Notifications</span>
-                </a>
+                </button>
+
+                <ul x-show="reportsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="{{ route('supervisor.reports.index') }}"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ request()->routeIs('supervisor.reports.*') ? 'bg-indigo-50 text-indigo-700' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Reports & Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Feedback Management</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endif
+
+            @if(auth()->user()->isSchoolHead())
+            <!-- School Head: System Section -->
+            <li class="mb-4" x-show="!$store.sidebar.collapsed">
+                <button @click="systemOpen = !systemOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>System</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': systemOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <ul x-show="systemOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">System Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Supervisor Management</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-            <!-- Profile -->
-            <li>
-                <a href="#" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-slate-700">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            <!-- School Head: Reports Section -->
+            <li x-show="!$store.sidebar.collapsed">
+                <button @click="reportsOpen = !reportsOpen" class="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors">
+                    <span>Reports</span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': reportsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    <span class="sidebar-text">Profile</span>
-                </a>
+                </button>
+
+                <ul x-show="reportsOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 mt-1">
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Institution Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                           class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <svg class="w-5 h-5" :class="$store.sidebar.collapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span x-show="!$store.sidebar.collapsed">Analytics & Insights</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
+            @endif
         </ul>
     </nav>
-</aside>
 
+    <!-- User Profile Section -->
+    <div class="p-4 border-t border-gray-200 bg-white mt-auto" :class="$store.sidebar.collapsed ? 'justify-center' : ''">
+        <div class="flex items-center" :class="$store.sidebar.collapsed ? '' : 'space-x-3'">
+            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                <span class="text-indigo-600 font-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>
+            </div>
+            <div x-show="!$store.sidebar.collapsed" class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" x-show="!$store.sidebar.collapsed">
+                @csrf
+                <button type="submit" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>

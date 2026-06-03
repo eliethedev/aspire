@@ -20,6 +20,8 @@ class Teacher extends Model
         'mobile_number',
         'prc_license_number',
         'position',
+        'subject',
+        'grade_level',
     ];
 
     public function user()

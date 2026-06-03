@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.a')
 
 @section('title', 'Create New Teacher')
 
@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center">
-            <a href="{{ route('teachers.index') }}" class="mr-4 text-white hover:text-white">
+            <a href="{{ route('admin.teachers.index') }}" class="mr-4 text-white hover:text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -21,7 +21,7 @@
 
     <!-- Form -->
     <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
-        <form method="POST" action="{{ route('teachers.store') }}" class="space-y-8">
+        <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-8">
             @csrf
             
             <!-- User Information -->
@@ -181,7 +181,7 @@
 
             <!-- Form Actions -->
             <div class="flex items-center justify-between ">
-                <a href="{{ route('teachers.index') }}" 
+                <a href="{{ route('admin.teachers.index') }}" 
                    class="px-4 py-2 text-white bg-white border glass-card rounded-lg hover:bg-slate-50 transition-colors">
                     Cancel
                 </a>

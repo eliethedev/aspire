@@ -22,22 +22,63 @@
         <form method="POST" action="{{ route('supervisor.observations.store') }}" class="space-y-6">
             @csrf
             
-            <!-- Step 1: Teacher Selection -->
+            <!-- Step 1: Observation Type Selection -->
             <div class="border-b border-gray-200 pb-6">
-                <h2 class="text-lg font-semibold text-dark mb-4">Step 1: Select Teacher</h2>
+                <h2 class="text-lg font-semibold text-dark mb-4">Step 1: Select Observation Type</h2>
                 
                 <div>
+                    <label class="block text-sm font-medium text-dark mb-2">Who would you like to observe?</label>
+                    <select name="observation_type" id="observation_type" required 
+                            class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onchange="toggleObserveeSelection()">
+                        <option value="">Select observation type</option>
+                        <option value="teacher_observation" {{ old('observation_type') == 'teacher_observation' ? 'selected' : '' }}>Teacher (TI - TIII)</option>
+                        <option value="school_head_observation" {{ old('observation_type') == 'school_head_observation' ? 'selected' : '' }}>School Head / Principal</option>
+                    </select>
+                    @error('observation_type')
+                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-2 text-sm text-gray-500">
+                        <strong>Teacher:</strong> Classroom observation using COT Rating Sheet (Annex E-2)<br>
+                        <strong>School Head:</strong> Leadership & Instructional Leadership evaluation
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 2: Observee Selection -->
+            <div class="border-b border-gray-200 pb-6" id="observee-section">
+                <h2 class="text-lg font-semibold text-dark mb-4">Step 2: Select Observee</h2>
+                
+                <!-- Teacher Selection -->
+                <div id="teacher-selection" class="hidden">
                     <label class="block text-sm font-medium text-dark mb-2">Teacher</label>
-                    <select name="teacher_id" required 
+                    <select name="observee_id" id="teacher_id"
                             class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Select a teacher</option>
                         @foreach($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                            <option value="{{ $teacher->id }}" {{ old('observee_id') == $teacher->id ? 'selected' : '' }}>
                                 {{ $teacher->user->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('teacher_id')
+                    @error('observee_id')
+                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- School Head Selection -->
+                <div id="school-head-selection" class="hidden">
+                    <label class="block text-sm font-medium text-dark mb-2">School Head / Principal</label>
+                    <select name="observee_id" id="school_head_id"
+                            class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select a school head</option>
+                        @foreach($schoolHeads as $schoolHead)
+                            <option value="{{ $schoolHead->id }}" {{ old('observee_id') == $schoolHead->id ? 'selected' : '' }}>
+                                {{ $schoolHead->user->name }} - {{ $schoolHead->school->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('observee_id')
                         <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -102,26 +143,32 @@
                         @enderror
                     </div>
 
-                    <!-- Subject -->
-                    <div>
+                    <!-- Subject (for teacher observations, auto-fetched; for school heads, optional input) -->
+                    <div id="subject-field">
                         <label class="block text-sm font-medium text-dark mb-2">Subject</label>
-                        <input type="text" name="subject" value="{{ old('subject') }}"
+                        <input type="text" name="subject" id="subject_input" value="{{ old('subject') }}"
                             class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., Mathematics">
                         @error('subject')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
+                        <p class="mt-1 text-xs text-gray-500" id="subject-hint">
+                            Auto-fetched from teacher profile for teacher observations
+                        </p>
                     </div>
 
-                    <!-- Grade Level -->
-                    <div>
+                    <!-- Grade Level (for teacher observations, auto-fetched; for school heads, optional input) -->
+                    <div id="grade-level-field">
                         <label class="block text-sm font-medium text-dark mb-2">Grade Level</label>
-                        <input type="text" name="grade_level" value="{{ old('grade_level') }}"
+                        <input type="text" name="grade_level" id="grade_level_input" value="{{ old('grade_level') }}"
                             class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., Grade 10">
                         @error('grade_level')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
+                        <p class="mt-1 text-xs text-gray-500" id="grade-level-hint">
+                            Auto-fetched from teacher profile for teacher observations
+                        </p>
                     </div>
 
                     <!-- Observation Date -->
@@ -187,12 +234,20 @@
 
 @push('scripts')
 <script>
+    // Store teacher data for auto-fetching
+    const teacherData = @json($teacherData);
+
+    // Store school head data for auto-fetching
+    const schoolHeadData = @json($schoolHeadData);
+
     function toggleObserveeSelection() {
         const observationType = document.getElementById('observation_type').value;
         const teacherSelection = document.getElementById('teacher-selection');
         const schoolHeadSelection = document.getElementById('school-head-selection');
         const subjectField = document.getElementById('subject-field');
         const gradeLevelField = document.getElementById('grade-level-field');
+        const subjectHint = document.getElementById('subject-hint');
+        const gradeLevelHint = document.getElementById('grade-level-hint');
         
         // Hide all selections first
         teacherSelection.classList.add('hidden');
@@ -203,12 +258,44 @@
             teacherSelection.classList.remove('hidden');
             subjectField.classList.remove('hidden');
             gradeLevelField.classList.remove('hidden');
+            subjectHint.textContent = 'Auto-fetched from teacher profile (editable)';
+            gradeLevelHint.textContent = 'Auto-fetched from teacher profile (editable)';
         } else if (observationType === 'school_head_observation') {
             schoolHeadSelection.classList.remove('hidden');
+            subjectField.classList.remove('hidden');
+            gradeLevelField.classList.remove('hidden');
+            subjectHint.textContent = 'Auto-fetched from school head profile (editable)';
+            gradeLevelHint.textContent = 'Auto-fetched from school head profile (editable)';
+            // Clear fields for school head
+            document.getElementById('subject_input').value = '';
+            document.getElementById('grade_level_input').value = '';
+        } else {
             subjectField.classList.add('hidden');
             gradeLevelField.classList.add('hidden');
         }
     }
+
+    // Auto-fetch teacher data when teacher is selected
+    document.getElementById('teacher_id')?.addEventListener('change', function() {
+        const teacherId = this.value;
+        const teacher = teacherData.find(t => t.id == teacherId);
+        
+        if (teacher) {
+            document.getElementById('subject_input').value = teacher.subject || '';
+            document.getElementById('grade_level_input').value = teacher.grade_level || '';
+        }
+    });
+
+    // Auto-fetch school head data when school head is selected
+    document.getElementById('school_head_id')?.addEventListener('change', function() {
+        const schoolHeadId = this.value;
+        const schoolHead = schoolHeadData.find(s => s.id == schoolHeadId);
+        
+        if (schoolHead) {
+            document.getElementById('subject_input').value = schoolHead.subject || '';
+            document.getElementById('grade_level_input').value = schoolHead.grade_level || '';
+        }
+    });
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {

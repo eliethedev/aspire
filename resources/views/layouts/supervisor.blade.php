@@ -28,7 +28,7 @@
     <body class="font-sans antialiased bg-gray-50" x-data>
         <div class="flex min-h-screen">
             <!-- Sidebar -->
-            @include('partials.supervisor.sidebar')
+            @include('partials.sidebar')
 
             <!-- Main Content -->
             <div class="flex-1 transition-all duration-300" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-64'">
