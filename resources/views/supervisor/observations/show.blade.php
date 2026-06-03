@@ -7,7 +7,13 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-white">Observation Details</h1>
-            <p class="text-white/60 mt-1">{{ $observation->teacher->user->name }} - {{ $observation->observation_date->format('M d, Y') }}</p>
+            <p class="text-white/60 mt-1">{{ $observation->observee->user->name }} - {{ $observation->observation_date->format('M d, Y') }}</p>
+            <p class="text-white/40 text-sm mt-1">
+                {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
+                @if($observation->isTeacherObservation() && $observation->subject)
+                    | {{ $observation->subject }} - {{ $observation->grade_level }}
+                @endif
+            </p>
         </div>
         <a href="{{ route('supervisor.observations.index') }}" 
            class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">

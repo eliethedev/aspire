@@ -9,6 +9,7 @@ use App\Models\PreObservationPlanning;
 use App\Models\PreConference;
 use App\Models\PostConference;
 use App\Models\CotRating;
+use App\Models\SchoolHeadProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -27,18 +28,18 @@ class SupervisorController extends Controller
             'total_teachers' => Teacher::whereHas('user', function ($query) use ($user) {
                 $query->where('school_id', $user->school_id);
             })->count(),
-            'total_observations' => Observation::where('supervisor_id', $user->id)->count(),
-            'completed_observations' => Observation::where('supervisor_id', $user->id)
+            'total_observations' => Observation::where('observer_id', $user->id)->count(),
+            'completed_observations' => Observation::where('observer_id', $user->id)
                 ->where('status', 'completed')->count(),
-            'pending_observations' => Observation::where('supervisor_id', $user->id)
+            'pending_observations' => Observation::where('observer_id', $user->id)
                 ->where('status', 'pending')->count(),
-            'average_score' => Observation::where('supervisor_id', $user->id)
+            'average_score' => Observation::where('observer_id', $user->id)
                 ->whereNotNull('overall_score')->avg('overall_score') ?? 0,
         ];
 
         // Get recent observations
-        $recentObservations = Observation::with(['teacher.user'])
-            ->where('supervisor_id', $user->id)
+        $recentObservations = Observation::with(['observee'])
+            ->where('observer_id', $user->id)
             ->latest()
             ->take(5)
             ->get();
@@ -85,7 +86,16 @@ class SupervisorController extends Controller
             })
             ->get();
 
-        return view('supervisor.observations.create', compact('teachers'));
+        // Get school heads from the same division/district
+        $schoolHeads = SchoolHeadProfile::query()
+            ->with(['user', 'school'])
+            ->whereHas('school', function ($query) use ($user) {
+                // For now, get all school heads - you may want to filter by division/district
+                $query->where('id', '!=', $user->school_id);
+            })
+            ->get();
+
+        return view('supervisor.observations.create', compact('teachers', 'schoolHeads'));
     }
 
     /**
@@ -94,22 +104,92 @@ class SupervisorController extends Controller
     public function storeObservation(Request $request)
     {
         $validated = $request->validate([
-            'teacher_id' => ['required', 'exists:teachers,id'],
+            'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
+            'observee_id' => ['required'],
             'observation_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
+            'school_year' => ['nullable', 'string'],
+            'quarter' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'observation_number' => ['nullable', 'integer', 'min:1', 'max:2'],
+            'subject' => ['nullable', 'string'],
+            'grade_level' => ['nullable', 'string'],
+            'observation_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
+            'schedule_type' => ['required', 'in:scheduled,immediate'],
         ]);
+
+        // Determine observee type and ID based on observation type
+        $observeeType = $validated['observation_type'] === 'teacher_observation' 
+            ? Teacher::class 
+            : SchoolHeadProfile::class;
+
+        // Determine status based on schedule type
+        $status = $validated['schedule_type'] === 'scheduled' ? 'scheduled' : 'in_progress';
+        $stage = $validated['schedule_type'] === 'scheduled' ? 'pre_observation_planning' : 'observation';
 
         $observation = Observation::create([
-            'teacher_id' => $validated['teacher_id'],
-            'supervisor_id' => Auth::id(),
+            'observer_id' => Auth::id(),
+            'observer_type' => User::class,
+            'observee_id' => $validated['observee_id'],
+            'observee_type' => $observeeType,
+            'observation_type' => $validated['observation_type'],
             'observation_date' => $validated['observation_date'],
-            'stage' => 'pre_observation_planning',
+            'stage' => $stage,
             'notes' => $validated['notes'] ?? null,
-            'status' => 'pending',
+            'status' => $status,
+            'school_year' => $validated['school_year'] ?? $this->getCurrentSchoolYear(),
+            'quarter' => $validated['quarter'] ?? $this->getCurrentQuarter(),
+            'observation_number' => $validated['observation_number'] ?? 1,
+            'subject' => $validated['subject'] ?? null,
+            'grade_level' => $validated['grade_level'] ?? null,
+            'observation_mode' => $validated['observation_mode'] ?? 'in_person',
         ]);
 
-        return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
-            ->with('success', 'Observation has been created successfully.');
+        // Send notification if scheduled
+        if ($status === 'scheduled') {
+            // TODO: Send notification to observee
+        }
+
+        // Redirect based on schedule type
+        if ($validated['schedule_type'] === 'scheduled') {
+            return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
+                ->with('success', 'Observation has been scheduled successfully.');
+        } else {
+            return redirect()->route('supervisor.observations.observation', $observation->id)
+                ->with('success', 'Observation has been created. Start the COT evaluation now.');
+        }
+    }
+
+    /**
+     * Get current school year.
+     */
+    private function getCurrentSchoolYear(): string
+    {
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        
+        if ($currentMonth >= 6) {
+            return $currentYear . '-' . ($currentYear + 1);
+        } else {
+            return ($currentYear - 1) . '-' . $currentYear;
+        }
+    }
+
+    /**
+     * Get current quarter.
+     */
+    private function getCurrentQuarter(): int
+    {
+        $currentMonth = now()->month;
+        
+        if ($currentMonth >= 6 && $currentMonth <= 8) {
+            return 1;
+        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
+            return 2;
+        } elseif ($currentMonth >= 12 || $currentMonth <= 2) {
+            return 3;
+        } else {
+            return 4;
+        }
     }
 
     /**
@@ -301,7 +381,7 @@ class SupervisorController extends Controller
         $this->authorizeObservation($observation);
 
         $observation->load([
-            'teacher.user',
+            'observee.user',
             'preObservationPlanning',
             'preConference',
             'postConference',
@@ -316,7 +396,7 @@ class SupervisorController extends Controller
      */
     private function authorizeObservation(Observation $observation)
     {
-        if ($observation->supervisor_id !== Auth::id()) {
+        if ($observation->observer_id !== Auth::id()) {
             abort(403, 'You are not authorized to access this observation.');
         }
     }
@@ -329,13 +409,16 @@ class SupervisorController extends Controller
         $user = Auth::user();
         
         $observations = Observation::query()
-            ->with(['teacher.user', 'teacher.school'])
-            ->where('supervisor_id', $user->id)
+            ->with(['observee'])
+            ->where('observer_id', $user->id)
             ->when($request->status, function ($query, $status) {
                 $query->where('status', $status);
             })
             ->when($request->stage, function ($query, $stage) {
                 $query->where('stage', $stage);
+            })
+            ->when($request->observation_type, function ($query, $type) {
+                $query->where('observation_type', $type);
             })
             ->latest()
             ->paginate($request->per_page ?? 15);
@@ -355,16 +438,16 @@ class SupervisorController extends Controller
             'total_teachers' => Teacher::whereHas('user', function ($query) use ($user) {
                 $query->where('school_id', $user->school_id);
             })->count(),
-            'total_observations' => Observation::where('supervisor_id', $user->id)->count(),
-            'completed_observations' => Observation::where('supervisor_id', $user->id)
+            'total_observations' => Observation::where('observer_id', $user->id)->count(),
+            'completed_observations' => Observation::where('observer_id', $user->id)
                 ->where('status', 'completed')->count(),
-            'pending_observations' => Observation::where('supervisor_id', $user->id)
+            'pending_observations' => Observation::where('observer_id', $user->id)
                 ->where('status', 'pending')->count(),
         ];
 
         // Get recent observations
-        $recentObservations = Observation::with(['teacher.user'])
-            ->where('supervisor_id', $user->id)
+        $recentObservations = Observation::with(['observee'])
+            ->where('observer_id', $user->id)
             ->latest()
             ->take(10)
             ->get();

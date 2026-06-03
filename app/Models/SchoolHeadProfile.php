@@ -73,4 +73,12 @@ class SchoolHeadProfile extends Model
             default => $this->current_designation,
         };
     }
+
+    /**
+     * School Head has many observations (as observee)
+     */
+    public function observations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Observation::class, 'observee_id');
+    }
 }

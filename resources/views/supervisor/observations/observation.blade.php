@@ -39,8 +39,12 @@
     </div>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-white">Classroom Observation</h1>
-        <p class="text-white/60 mt-1">Complete the Digital COT Form with PPST ratings for {{ $observation->teacher->user->name }}</p>
+        <h1 class="text-2xl font-bold text-white">
+            {{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}
+        </h1>
+        <p class="text-white/60 mt-1">
+            Complete the {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} COT Form for {{ $observation->observee->user->name }}
+        </p>
     </div>
 
     <!-- Pre-Conference Summary -->
@@ -62,23 +66,35 @@
         <form method="POST" action="{{ route('supervisor.observations.storeObservationData', $observation) }}" class="space-y-6">
             @csrf
             
-            <!-- Teacher Info -->
+            <!-- Observee Info -->
             <div class="bg-white/5 rounded-lg p-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <span class="text-white/60 text-sm">Teacher</span>
-                        <p class="text-white font-medium">{{ $observation->teacher->user->name }}</p>
+                        <span class="text-white/60 text-sm">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School Head' }}</span>
+                        <p class="text-white font-medium">{{ $observation->observee->user->name }}</p>
                     </div>
                     <div>
                         <span class="text-white/60 text-sm">Observation Date</span>
                         <p class="text-white font-medium">{{ $observation->observation_date->format('M d, Y') }}</p>
                     </div>
+                    @if($observation->isTeacherObservation())
+                    <div>
+                        <span class="text-white/60 text-sm">Subject</span>
+                        <p class="text-white font-medium">{{ $observation->subject ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-white/60 text-sm">Grade Level</span>
+                        <p class="text-white font-medium">{{ $observation->grade_level ?? 'N/A' }}</p>
+                    </div>
+                    @endif
                 </div>
             </div>
 
             <!-- COT Ratings -->
             <div>
-                <label class="block text-sm font-medium text-white mb-4">PPST Ratings (1-5 Scale)</label>
+                <label class="block text-sm font-medium text-white mb-4">
+                    {{ $observation->isTeacherObservation() ? 'PPST Ratings (1-5 Scale)' : 'Leadership COT Ratings (1-5 Scale)' }}
+                </label>
                 
                 <div id="ratings-container" class="space-y-4">
                     <!-- Rating items will be added dynamically -->
@@ -107,8 +123,9 @@
 @push('scripts')
 <script>
     let ratingIndex = 0;
+    const observationType = '{{ $observation->observation_type }}';
 
-    // PPST Domains and Indicators
+    // PPST Domains and Indicators (for Teacher Observations)
     const ppstDomains = [
         {
             name: 'Domain 1: Content Knowledge and Pedagogy',
@@ -164,9 +181,72 @@
         }
     ];
 
+    // School Head Leadership Domains (for School Head Observations)
+    const schoolHeadDomains = [
+        {
+            name: 'Domain 1: School Leadership',
+            indicators: [
+                '1.1.1 Demonstrate commitment to the vision, mission, and goals of the school',
+                '1.2.1 Set high standards for performance and achievement',
+                '1.3.1 Foster a culture of continuous improvement',
+                '1.4.1 Lead strategic planning and implementation',
+            ]
+        },
+        {
+            name: 'Domain 2: Instructional Leadership',
+            indicators: [
+                '2.1.1 Supervise and support teaching and learning',
+                '2.2.1 Monitor and evaluate curriculum implementation',
+                '2.3.1 Promote professional development of teachers',
+                '2.4.1 Use data to inform instructional decisions',
+            ]
+        },
+        {
+            name: 'Domain 3: Creating a Student-Centered Learning Climate',
+            indicators: [
+                '3.1.1 Ensure safe and conducive learning environment',
+                '3.2.1 Promote inclusive education practices',
+                '3.3.1 Implement learner support programs',
+                '3.4.1 Foster positive school culture',
+            ]
+        },
+        {
+            name: 'Domain 4: Human Resource Development and Management',
+            indicators: [
+                '4.1.1 Develop and implement human resource plans',
+                '4.2.1 Manage staff performance and development',
+                '4.3.1 Promote staff welfare and well-being',
+                '4.4.1 Build collaborative teams',
+            ]
+        },
+        {
+            name: 'Domain 5: Parent Involvement and Community Partnership',
+            indicators: [
+                '5.1.1 Engage parents in school activities',
+                '5.2.1 Build community partnerships',
+                '5.3.1 Mobilize community resources',
+                '5.4.1 Communicate effectively with stakeholders',
+            ]
+        },
+        {
+            name: 'Domain 6: Professional Development and Personal Growth',
+            indicators: [
+                '6.1.1 Engage in continuous professional learning',
+                '6.2.1 Model ethical and professional behavior',
+                '6.3.1 Demonstrate reflective practice',
+                '6.4.1 Share best practices with colleagues',
+            ]
+        }
+    ];
+
+    function getDomains() {
+        return observationType === 'teacher_observation' ? ppstDomains : schoolHeadDomains;
+    }
+
     function addRating() {
         const container = document.getElementById('ratings-container');
-        const domainSelect = ppstDomains.map((d, i) => 
+        const domains = getDomains();
+        const domainSelect = domains.map((d, i) => 
             `<option value="${d.name}">${d.name}</option>`
         ).join('');
 

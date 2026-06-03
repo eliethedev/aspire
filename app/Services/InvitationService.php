@@ -169,9 +169,23 @@ class InvitationService
         DB::transaction(function () use ($invitation) {
             // Mark invitation as used to invalidate it
             $invitation->update(['is_used' => true]);
-            
+
+            // Delete role-specific records
+            $user = $invitation->user;
+            if ($user->role === 'teacher') {
+                \App\Models\Teacher::where('user_id', $user->id)->delete();
+                \App\Models\TeacherProfile::where('user_id', $user->id)->delete();
+            } elseif ($user->role === 'supervisor') {
+                \App\Models\SupervisorProfile::where('user_id', $user->id)->delete();
+            } elseif ($user->role === 'school_head') {
+                \App\Models\SchoolHeadProfile::where('user_id', $user->id)->delete();
+            }
+
+            // Delete user profile
+            \App\Models\UserProfile::where('user_id', $user->id)->delete();
+
             // Delete the associated user
-            $invitation->user->delete();
+            $user->delete();
         });
     }
 
@@ -201,6 +215,18 @@ class InvitationService
         // Create role-specific profile
         switch ($user->role) {
             case 'teacher':
+                // Create Teacher record in teachers table
+                \App\Models\Teacher::create([
+                    'user_id' => $user->id,
+                    'school_id' => $user->school_id,
+                    'department' => $data['department'] ?? 'General',
+                    'years_of_service' => $data['years_of_teaching_experience'] ?? 0,
+                    'mobile_number' => $data['mobile_number'] ?? null,
+                    'prc_license_number' => $data['prc_license_number'] ?? null,
+                    'position' => $data['teaching_position'] ?? null,
+                ]);
+
+                // Create TeacherProfile record
                 \App\Models\TeacherProfile::create([
                     'user_id' => $user->id,
                     'grade_level' => $data['grade_level'] ?? null,

@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('observations', function (Blueprint $table) {
-            //
+            $table->enum('status', ['pending', 'completed'])->default('pending')->after('stage');
+            $table->text('notes')->nullable()->after('observation_date');
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('observations', function (Blueprint $table) {
-            //
+            $table->dropColumn(['status', 'notes']);
         });
     }
 };

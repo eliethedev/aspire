@@ -13,7 +13,12 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-sm glass-card p-6 mb-6">
-        <form method="GET" action="{{ route('supervisor.observations.index') }}" class="flex gap-4">
+        <form method="GET" action="{{ route('supervisor.observations.index') }}" class="flex gap-4 flex-wrap">
+            <select name="observation_type" class="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Types</option>
+                <option value="teacher_observation" {{ request('observation_type') == 'teacher_observation' ? 'selected' : '' }}>Teacher Observations</option>
+                <option value="school_head_observation" {{ request('observation_type') == 'school_head_observation' ? 'selected' : '' }}>School Head Observations</option>
+            </select>
             <select name="status" class="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Statuses</option>
                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
@@ -37,7 +42,8 @@
         <table class="w-full">
             <thead class="bg-white/5">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Teacher</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Observee</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Stage</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">Status</th>
@@ -53,7 +59,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-white/80">{{ $observation->observation_date->format('M d, Y') }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">e_labl
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-white/80">{{ ucfirst(str_replace('-', ' ', $observation->stage)) }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -85,6 +91,15 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    @if($observations->hasPages())
+        <div class="mt-6">
+            {{ $observations->appends(request()->query())->links() }}
+        </div>
+    @endif
+</div>
+@endsection
 
     <!-- Pagination -->
     @if($observations->hasPages())

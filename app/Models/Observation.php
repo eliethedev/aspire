@@ -13,13 +13,22 @@ class Observation extends Model
     use HasFactory, SchoolAware;
 
     protected $fillable = [
-        'teacher_id',
-        'supervisor_id',
+        'observer_id',
+        'observer_type',
+        'observee_id',
+        'observee_type',
+        'observation_type',
         'observation_date',
         'stage',
         'overall_score',
         'notes',
         'status',
+        'school_year',
+        'quarter',
+        'observation_number',
+        'subject',
+        'grade_level',
+        'observation_mode',
     ];
 
     protected $casts = [
@@ -28,7 +37,23 @@ class Observation extends Model
     ];
 
     /**
-     * Observation belongs to a Teacher
+     * Observation belongs to an Observer (polymorphic - can be Supervisor or School Head)
+     */
+    public function observer()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Observation belongs to an Observee (polymorphic - can be Teacher or School Head)
+     */
+    public function observee()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Observation belongs to a Teacher (legacy relationship for backward compatibility)
      */
     public function teacher(): BelongsTo
     {
@@ -36,7 +61,7 @@ class Observation extends Model
     }
 
     /**
-     * Observation is conducted by a Supervisor (User)
+     * Observation is conducted by a Supervisor (User) (legacy relationship for backward compatibility)
      */
     public function supervisor(): BelongsTo
     {
@@ -90,6 +115,38 @@ class Observation extends Model
     public function hasRatings(): bool
     {
         return $this->cotRatings()->exists();
+    }
+
+    /**
+     * Check if this is a teacher observation
+     */
+    public function isTeacherObservation(): bool
+    {
+        return $this->observation_type === 'teacher_observation';
+    }
+
+    /**
+     * Check if this is a school head observation
+     */
+    public function isSchoolHeadObservation(): bool
+    {
+        return $this->observation_type === 'school_head_observation';
+    }
+
+    /**
+     * Scope for teacher observations
+     */
+    public function scopeTeacherObservations($query)
+    {
+        return $query->where('observation_type', 'teacher_observation');
+    }
+
+    /**
+     * Scope for school head observations
+     */
+    public function scopeSchoolHeadObservations($query)
+    {
+        return $query->where('observation_type', 'school_head_observation');
     }
 
     /**
