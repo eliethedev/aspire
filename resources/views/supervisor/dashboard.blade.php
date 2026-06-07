@@ -119,7 +119,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-dark font-medium">{{ $observation->teacher->user->name }}</p>
+                                <p class="text-dark font-medium">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
                                 <p class="text-dark/60 text-sm">{{ $observation->observation_date->format('M d, Y') }} - {{ $observation->status }}</p>
                             </div>
                         </div>

@@ -18,18 +18,18 @@ class CalendarController extends Controller
 
         // Get all observations for the current supervisor's school
         $observations = Observation::query()
-            ->with(['teacher.user', 'supervisor'])
-            ->where('supervisor_id', $user->id)
+            ->with(['observee.user', 'observer'])
+            ->where('observer_id', $user->id)
             ->get()
             ->map(function ($observation) {
                 return [
                     'id' => $observation->id,
-                    'title' => $observation->teacher->user->name,
+                    'title' => $observation->observee->user->name ?? 'Unknown',
                     'start' => $observation->observation_date->toIso8601String(),
                     'end' => $observation->observation_date->toIso8601String(),
                     'extendedProps' => [
-                        'teacher_name' => $observation->teacher->user->name,
-                        'teacher_id' => $observation->teacher->id,
+                        'teacher_name' => $observation->observee->user->name ?? 'Unknown',
+                        'teacher_id' => $observation->observee->id ?? null,
                         'stage' => $observation->stage,
                         'status' => $observation->status,
                         'observation_date' => $observation->observation_date->format('Y-m-d'),
@@ -58,14 +58,14 @@ class CalendarController extends Controller
         $date = $request->query('date');
 
         $observations = Observation::query()
-            ->with(['teacher.user', 'supervisor'])
-            ->where('supervisor_id', $user->id)
+            ->with(['observee.user', 'observer'])
+            ->where('observer_id', $user->id)
             ->whereDate('observation_date', $date)
             ->get()
             ->map(function ($observation) {
                 return [
                     'id' => $observation->id,
-                    'teacher_name' => $observation->teacher->user->name,
+                    'teacher_name' => $observation->observee->user->name ?? 'Unknown',
                     'stage' => $observation->stage,
                     'status' => $observation->status,
                     'observation_date' => $observation->observation_date->format('Y-m-d'),

@@ -15,15 +15,14 @@ class CotRating extends Model
 
     protected $fillable = [
         'observation_id',
-        'rating_category',
-        'score',
-        'max_score',
+        'domain',
+        'indicator',
+        'rating',
         'comments',
     ];
 
     protected $casts = [
-        'score' => 'decimal:2',
-        'max_score' => 'decimal:2',
+        'rating' => 'decimal:2',
     ];
 
     /**
@@ -54,18 +53,15 @@ class CotRating extends Model
     }
 
     /**
-     * Calculate percentage score
+     * Calculate percentage score (rating out of 5)
      */
     public function percentage(): float
     {
-        if ($this->max_score == 0) {
-            return 0;
-        }
-        return ($this->score / $this->max_score) * 100;
+        return ($this->rating / 5) * 100;
     }
 
     /**
-     * Check if rating is excellent (>= 90%)
+     * Check if rating is excellent (>= 90% = 4.5+)
      */
     public function isExcellent(): bool
     {
@@ -73,7 +69,7 @@ class CotRating extends Model
     }
 
     /**
-     * Check if rating needs improvement (< 70%)
+     * Check if rating needs improvement (< 70% = 3.5)
      */
     public function needsImprovement(): bool
     {
@@ -81,18 +77,18 @@ class CotRating extends Model
     }
 
     /**
-     * Scope for ratings by category
+     * Scope for ratings by domain
      */
-    public function scopeByCategory($query, string $category)
+    public function scopeByDomain($query, string $domain)
     {
-        return $query->where('rating_category', $category);
+        return $query->where('domain', $domain);
     }
 
     /**
-     * Scope for high scores (>= 80%)
+     * Scope for high ratings (>= 4)
      */
-    public function scopeHighScores($query)
+    public function scopeHighRatings($query)
     {
-        return $query->whereRaw('(score / max_score) >= 0.8');
+        return $query->where('rating', '>=', 4);
     }
 }

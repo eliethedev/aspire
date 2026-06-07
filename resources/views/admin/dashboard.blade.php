@@ -264,8 +264,8 @@
                     <div class="flex items-start space-x-4 p-4 rounded-xl transition-colors bg-gray-50 hover:bg-gray-100">
                         <div class="w-3 h-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full mt-2 shadow-lg shadow-pink-500/50"></div>
                         <div class="flex-1">
-                            <p class="text-sm text-gray-900">Observation created for <span class="text-pink-600">{{ $observation->teacher->user->name }}</span></p>
-                            <p class="text-xs mt-1 text-gray-600">{{ $observation->created_at->diffForHumans() }} • {{ $observation->teacher->school->name ?? 'Unknown School' }}</p>
+                            <p class="text-sm text-gray-900">Observation created for <span class="text-pink-600">{{ $observation->observee->user->name ?? 'Unknown' }}</span></p>
+                            <p class="text-xs mt-1 text-gray-600">{{ $observation->created_at->diffForHumans() }} • {{ $observation->observee->school->name ?? 'Unknown School' }}</p>
                         </div>
                     </div>
                     @endforeach

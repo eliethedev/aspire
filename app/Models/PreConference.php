@@ -15,6 +15,9 @@ class PreConference extends Model
         'discussion_notes',
         'finalized_focus',
         'conference_date',
+        'teacher_reflection',
+        'lesson_plan_review',
+        'instructional_materials',
     ];
 
     protected $casts = [

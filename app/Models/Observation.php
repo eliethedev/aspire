@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Observation extends Model
 {
@@ -29,11 +30,13 @@ class Observation extends Model
         'subject',
         'grade_level',
         'observation_mode',
+        'evidence_files',
     ];
 
     protected $casts = [
         'observation_date' => 'date',
         'overall_score' => 'decimal:2',
+        'evidence_files' => 'array',
     ];
 
     /**
@@ -99,6 +102,29 @@ class Observation extends Model
     public function postConference()
     {
         return $this->hasOne(PostConference::class);
+    }
+
+    /**
+     * Observation has many logs
+     */
+    public function logs()
+    {
+        return $this->hasMany(ObservationLog::class);
+    }
+
+    /**
+     * Log a stage or status change
+     */
+    public function logChange(array $data): ObservationLog
+    {
+        return $this->logs()->create([
+            'user_id' => Auth::id(),
+            'from_stage' => $data['from_stage'] ?? $this->stage,
+            'to_stage' => $data['to_stage'] ?? $this->stage,
+            'from_status' => $data['from_status'] ?? $this->status,
+            'to_status' => $data['to_status'] ?? $this->status,
+            'notes' => $data['notes'] ?? null,
+        ]);
     }
 
     /**

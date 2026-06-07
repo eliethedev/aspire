@@ -93,7 +93,7 @@ class DashboardController extends Controller
         // Get recent activity
         $recentActivity = [
             'latest_users' => \App\Models\User::latest()->take(5)->get(),
-            'latest_observations' => \App\Models\Observation::with(['teacher.user', 'teacher.school'])
+            'latest_observations' => \App\Models\Observation::with(['observee.user', 'observee.school'])
                 ->latest()
                 ->take(5)
                 ->get(),

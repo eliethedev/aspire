@@ -5,192 +5,219 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Welcome Section -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-white">Welcome back, {{ Auth::user()->name }}!</h1>
-                <p class="text-white mt-1">Here is your latest supervision progress.</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-white/60">{{ now()->format('l, F j, Y') }}</p>
-            </div>
+    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-2xl shadow-lg p-8">
+        <div class="relative z-10">
+            <h1 class="text-2xl font-bold text-white">Welcome back, {{ Auth::user()->name }}!</h1>
+            <p class="text-gray-300 mt-1">Here is your supervision progress overview.</p>
+        </div>
+        <div class="absolute right-6 top-6 text-right">
+            <p class="text-sm text-gray-400">{{ now()->format('l, F j, Y') }}</p>
         </div>
     </div>
 
     <!-- Performance Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-blue-500/20">
-                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-3 rounded-lg bg-indigo-100">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Total Observations</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['total_observations'] }}</p>
+                    <p class="text-sm font-medium text-gray-500">Total Observations</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_observations'] }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Latest Observation Score -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-green-500/20">
-                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-3 rounded-lg bg-green-100">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Average Score</p>
-                    <p class="text-2xl font-bold text-white">{{ $stats['average_cot_score'] }}</p>
+                    <p class="text-sm font-medium text-gray-500">Average Score</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['average_cot_score'], 2) }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Growth Trend -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-purple-500/20">
-                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0V15m0-8l-8 8-4-4-6 6"/>
+                <div class="p-3 rounded-lg bg-amber-100">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Growth Trend</p>
-                    <p class="text-2xl font-bold text-white">Improving</p>
+                    <p class="text-sm font-medium text-gray-500">Upcoming</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['upcoming'] }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Risk Level -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-lg bg-yellow-500/20">
-                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                <div class="p-3 rounded-lg bg-purple-100">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-white/80">Risk Level</p>
-                    <p class="text-2xl font-bold text-white">Low</p>
+                    <p class="text-sm font-medium text-gray-500">Completed</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['completed'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Performance Trend Chart -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-        <h2 class="text-lg font-semibold text-white mb-4">Teacher Growth Trend</h2>
-        <canvas id="growthChart" width="400" height="200"></canvas>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">COT Score Trend</h2>
+        @if(count($cotScores) > 0)
+            <canvas id="growthChart" width="400" height="200"></canvas>
+        @else
+            <p class="text-gray-400 text-sm">No completed observations yet to show trend data.</p>
+        @endif
     </div>
 
     <!-- Recent Observation & AI Feedback -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Recent Observation Results -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-            <h2 class="text-lg font-semibold text-white mb-4">Recent Observation</h2>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Date:</span>
-                    <span class="text-sm text-white">Feb 21, 2026</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Supervisor:</span>
-                    <span class="text-sm text-white">Dr. Santos</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Stage:</span>
-                    <span class="text-sm text-white">Post Conference</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Overall Score:</span>
-                    <span class="text-lg font-bold text-green-400">3.7</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Status:</span>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300">Feedback Available</span>
-                </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Observation</h2>
+                @if($recentObservation)
+                    <a href="{{ route('teacher.observations.show', $recentObservation) }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View Details &rarr;</a>
+                @endif
             </div>
+            @if($recentObservation)
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Date:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $recentObservation->observation_date->format('M d, Y') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Supervisor:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $recentObservation->observer?->name ?? 'Unknown' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Stage:</span>
+                        <span class="text-sm font-medium text-gray-900 capitalize">{{ str_replace('_', ' ', $recentObservation->stage) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Overall Score:</span>
+                        <span class="text-lg font-bold text-indigo-600">{{ number_format($recentObservation->overall_score, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Status:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {{ $recentObservation->status === 'completed' ? 'bg-green-100 text-green-700' : ($recentObservation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
+                            {{ ucwords(str_replace('_', ' ', $recentObservation->status)) }}
+                        </span>
+                    </div>
+                </div>
+            @else
+                <p class="text-gray-400 text-sm">No observation data available yet.</p>
+            @endif
         </div>
 
-        <!-- AI Feedback Section -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-            <h2 class="text-lg font-semibold text-white mb-4">AI Coaching Feedback</h2>
-            <div class="space-y-4">
-                <div>
-                    <h3 class="text-sm font-medium text-green-400 mb-2">Strengths:</h3>
-                    <ul class="text-sm text-white/80 space-y-1">
-                        <li>• Strong classroom engagement</li>
-                        <li>• Clear lesson objectives</li>
-                    </ul>
+        <!-- AI Coaching Feedback -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Post-Conference Feedback</h2>
+            @if($recentFeedback)
+                <div class="space-y-4">
+                    @if($recentFeedback->feedback)
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Feedback:</h3>
+                            <p class="text-gray-900 text-sm">{{ Str::limit($recentFeedback->feedback, 200) }}</p>
+                        </div>
+                    @endif
+                    @if($recentFeedback->action_plan)
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Action Plan:</h3>
+                            <p class="text-gray-900 text-sm">{{ Str::limit($recentFeedback->action_plan, 200) }}</p>
+                        </div>
+                    @endif
+                    @if(!$recentFeedback->feedback && !$recentFeedback->action_plan)
+                        <p class="text-gray-400 text-sm">No feedback recorded yet.</p>
+                    @endif
                 </div>
-                <div>
-                    <h3 class="text-sm font-medium text-orange-400 mb-2">Suggested Improvements:</h3>
-                    <ul class="text-sm text-white/80 space-y-1">
-                        <li>• Improve questioning techniques</li>
-                        <li>• Encourage more student participation</li>
-                    </ul>
-                </div>
-            </div>
+            @else
+                <p class="text-gray-400 text-sm">No post-conference feedback available yet.</p>
+            @endif
         </div>
     </div>
 
-    <!-- Upcoming Supervision & Improvement Plan -->
+    <!-- Next Observation & Agreements -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Upcoming Supervision Schedule -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-            <h2 class="text-lg font-semibold text-white mb-4">Next Observation</h2>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Supervisor:</span>
-                    <span class="text-sm text-white">Mr. Reyes</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Date:</span>
-                    <span class="text-sm text-white">April 10, 2026</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-white/80">Stage:</span>
-                    <span class="text-sm text-white">Pre-Conference</span>
-                </div>
+        <!-- Next Observation -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Next Observation</h2>
+                @if($nextObservation)
+                    <a href="{{ route('teacher.observations.show', $nextObservation) }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View Details &rarr;</a>
+                @endif
             </div>
+            @if($nextObservation)
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Supervisor:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $nextObservation->observer?->name ?? 'Unknown' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Date:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $nextObservation->observation_date->format('M d, Y') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Subject:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $nextObservation->subject ?? 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">Stage:</span>
+                        <span class="text-sm font-medium text-gray-900 capitalize">{{ str_replace('_', ' ', $nextObservation->stage) }}</span>
+                    </div>
+                </div>
+            @else
+                <p class="text-gray-400 text-sm">No upcoming observations scheduled.</p>
+            @endif
         </div>
 
         <!-- Improvement Plan / Agreements -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-            <h2 class="text-lg font-semibold text-white mb-4">Instructional Agreements</h2>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Links</h2>
             <div class="space-y-3">
-                <div class="flex items-start space-x-3">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <p class="text-sm text-white/80">Use more formative assessment strategies</p>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <p class="text-sm text-white/80">Increase student participation activities</p>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <p class="text-sm text-white/80">Implement differentiated instruction methods</p>
-                </div>
+                <a href="{{ route('teacher.observations.index') }}"
+                   class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-indigo-50 transition-colors group">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">All Observations</p>
+                        <p class="text-xs text-gray-500">View your complete observation history</p>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
+@if(count($cotScores) > 0)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('growthChart').getContext('2d');
     const growthChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Observation 1', 'Observation 2', 'Observation 3', 'Observation 4', 'Observation 5'],
+            labels: {!! json_encode($cotLabels) !!},
             datasets: [{
                 label: 'COT Score',
-                data: [3.2, 3.5, 3.7, 3.9, 3.8],
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                data: {!! json_encode($cotScores) !!},
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 tension: 0.4,
                 fill: true
             }]
@@ -215,4 +242,5 @@
         }
     });
 </script>
+@endif
 @endsection

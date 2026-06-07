@@ -15,6 +15,13 @@ class PostConference extends Model
         'ai_comparison',
         'feedback',
         'conference_date',
+        'star_notes',
+        'areas_for_improvement',
+        'challenges_facing_teacher',
+        'ideas_for_addressing_challenges',
+        'prioritized_next_steps',
+        'teacher_reflection',
+        'supervisor_notes',
     ];
 
     protected $casts = [

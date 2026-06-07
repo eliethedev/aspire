@@ -64,6 +64,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Teacher routes
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/observations', [\App\Http\Controllers\Teacher\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations/{observation}', [\App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
+    Route::post('/observations/{observation}/upload-lesson-plan', [\App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->name('observations.upload-lesson-plan');
 });
 
 // Supervisor routes
@@ -89,6 +92,10 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::post('/observations/{observation}/post-conference', [SupervisorController::class, 'storePostConference'])->name('observations.storePostConference');
     
     Route::get('/reports', [SupervisorController::class, 'reports'])->name('reports.index');
+    Route::get('/reports/export', [SupervisorController::class, 'exportReports'])->name('reports.export');
+
+    // Teacher observation history
+    Route::get('/teachers/{observeeId}/observations', [SupervisorController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
 });
 
 // School-specific routes

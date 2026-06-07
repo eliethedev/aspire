@@ -10,12 +10,19 @@ use App\Models\PreConference;
 use App\Models\PostConference;
 use App\Models\CotRating;
 use App\Models\SchoolHeadProfile;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class SupervisorController extends Controller
 {
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Display the supervisor dashboard.
      */
@@ -84,18 +91,22 @@ class SupervisorController extends Controller
             ->where('school_id', $user->school_id)
             ->get();
 
-        // Get school heads (get all school heads for now, can filter by division/district later)
+        // Get school heads (can filter by division/district later)
         $schoolHeads = SchoolHeadProfile::query()
             ->with(['user', 'school'])
             ->get();
 
-        // Prepare teacher data for JavaScript
+        // Prepare teacher data for JavaScript (richer info for browse & preview)
         $teacherData = $teachers->map(function ($teacher) {
             return [
                 'id' => $teacher->id,
                 'name' => $teacher->user->name,
-                'subject' => $teacher->subject ?? null,
-                'grade_level' => $teacher->grade_level ?? null
+                'email' => $teacher->user->email,
+                'subject' => $teacher->subject ?? 'Not set',
+                'grade_level' => $teacher->grade_level ?? 'Not set',
+                'department' => $teacher->department ?? 'Not set',
+                'position' => $teacher->position ?? 'Teacher',
+                'employee_number' => $teacher->employee_number ?? '—',
             ];
         });
 
@@ -104,12 +115,15 @@ class SupervisorController extends Controller
             return [
                 'id' => $schoolHead->id,
                 'name' => $schoolHead->user->name,
-                'subject' => $schoolHead->subject ?? null,
-                'grade_level' => $schoolHead->grade_level ?? null
+                'email' => $schoolHead->user->email,
+                'subject' => $schoolHead->subject ?? 'Not set',
+                'grade_level' => $schoolHead->grade_level ?? 'Not set',
+                'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
+                'position_level' => $schoolHead->position_level ?? '—',
             ];
         });
 
-        return view('supervisor.observations.create', compact('teachers', 'schoolHeads', 'teacherData', 'schoolHeadData'));
+        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData'));
     }
 
     /**
@@ -160,7 +174,14 @@ class SupervisorController extends Controller
 
         // Send notification if scheduled
         if ($status === 'scheduled') {
-            // TODO: Send notification to observee
+            $observee = $observation->observee;
+            if ($observee && $observee->user) {
+                $this->notificationService->notifyObservationScheduled(
+                    $observee->user,
+                    $observation->observation_date->format('M d, Y'),
+                    route('supervisor.observations.show', $observation->id)
+                );
+            }
         }
 
         // Redirect based on schedule type
@@ -213,9 +234,38 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
+        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
+
         $planning = $observation->preObservationPlanning;
 
-        return view('supervisor.observations.pre-observation-planning', compact('observation', 'planning'));
+        // Get previous observations for this observee to show strengths/weaknesses
+        $previousObservations = Observation::with(['cotRatings', 'observee'])
+            ->where('observee_id', $observation->observee_id)
+            ->where('observee_type', $observation->observee_type)
+            ->where('id', '!=', $observation->id)
+            ->whereNotNull('overall_score')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Calculate strengths & weaknesses from previous COT ratings
+        $prevStrengths = collect();
+        $prevWeaknesses = collect();
+        if ($previousObservations->isNotEmpty()) {
+            $prevRatings = \App\Models\CotRating::whereIn('observation_id', $previousObservations->pluck('id'))
+                ->selectRaw('domain, AVG(rating) as avg_rating, COUNT(*) as total')
+                ->groupBy('domain')
+                ->get();
+
+            $prevStrengths = $prevRatings->filter(fn($r) => $r->avg_rating >= 4)->values();
+            $prevWeaknesses = $prevRatings->filter(fn($r) => $r->avg_rating < 3)->values();
+        }
+
+        $preConference = $observation->preConference;
+
+        return view('supervisor.observations.pre-observation-planning', compact(
+            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'preConference'
+        ));
     }
 
     /**
@@ -229,6 +279,8 @@ class SupervisorController extends Controller
             'lesson_plan_file' => ['nullable', 'file', 'mimes:pdf,doc,docx'],
             'ai_insights' => ['nullable', 'string'],
             'suggested_focus' => ['nullable', 'string'],
+            'supervisor_notes' => ['nullable', 'string'],
+            'observation_tool' => ['nullable', 'string', 'in:ppst,classroom_observation_tool,tisuyon'],
         ]);
 
         $filePath = null;
@@ -242,13 +294,24 @@ class SupervisorController extends Controller
                 'lesson_plan_file' => $filePath ?? $observation->preObservationPlanning?->lesson_plan_file,
                 'ai_insights' => $validated['ai_insights'] ?? null,
                 'suggested_focus' => $validated['suggested_focus'] ?? null,
+                'supervisor_notes' => $validated['supervisor_notes'] ?? null,
+                'observation_tool' => $validated['observation_tool'] ?? null,
             ]
         );
 
+        $observation->logChange([
+            'to_stage' => 'pre_conference',
+            'notes' => 'Pre-Observation Planning completed',
+        ]);
         $observation->update(['stage' => 'pre_conference']);
 
-        return redirect()->route('supervisor.observations.preConference', $observation->id)
-            ->with('success', 'Pre-Observation Planning has been saved.');
+        if ($request->input('continue') === 'pre_conference') {
+            return redirect()->route('supervisor.observations.preConference', $observation->id)
+                ->with('success', 'Pre-Observation Planning has been saved. Proceed to Pre-Conference.');
+        }
+
+        return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
+            ->with('success', 'Pre-Observation Planning notes have been saved.');
     }
 
     /**
@@ -275,6 +338,9 @@ class SupervisorController extends Controller
             'discussion_notes' => ['nullable', 'string'],
             'finalized_focus' => ['nullable', 'string'],
             'conference_date' => ['nullable', 'date'],
+            'teacher_reflection' => ['nullable', 'string'],
+            'lesson_plan_review' => ['nullable', 'string'],
+            'instructional_materials' => ['nullable', 'string'],
         ]);
 
         $observation->preConference()->updateOrCreate(
@@ -283,9 +349,16 @@ class SupervisorController extends Controller
                 'discussion_notes' => $validated['discussion_notes'] ?? null,
                 'finalized_focus' => $validated['finalized_focus'] ?? null,
                 'conference_date' => $validated['conference_date'] ?? now(),
+                'teacher_reflection' => $validated['teacher_reflection'] ?? null,
+                'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
+                'instructional_materials' => $validated['instructional_materials'] ?? null,
             ]
         );
 
+        $observation->logChange([
+            'to_stage' => 'observation',
+            'notes' => 'Pre-Conference completed',
+        ]);
         $observation->update(['stage' => 'observation']);
 
         return redirect()->route('supervisor.observations.observation', $observation->id)
@@ -334,12 +407,42 @@ class SupervisorController extends Controller
             ]);
         }
 
+        // Handle evidence file uploads
+        $evidenceFiles = $observation->evidence_files ?? [];
+        if ($request->hasFile('evidence_files')) {
+            foreach ($request->file('evidence_files') as $file) {
+                $path = $file->store('observation_evidences', 'public');
+                $evidenceFiles[] = [
+                    'path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+        }
+
         // Calculate overall score
         $avgRating = $observation->cotRatings()->avg('rating');
+        $observation->logChange([
+            'to_stage' => 'post_conference',
+            'to_status' => 'cot_completed',
+            'notes' => 'COT Ratings completed',
+        ]);
         $observation->update([
             'overall_score' => $avgRating,
-            'stage' => 'post_conference'
+            'status' => 'cot_completed',
+            'stage' => 'post_conference',
+            'evidence_files' => $evidenceFiles,
         ]);
+
+        // Notify the observee that their observation is complete
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notifyObservationCompleted(
+                $observee->user,
+                route('supervisor.observations.show', $observation->id)
+            );
+        }
 
         return redirect()->route('supervisor.observations.postConference', $observation->id)
             ->with('success', 'Observation ratings have been saved.');
@@ -370,6 +473,13 @@ class SupervisorController extends Controller
             'ai_comparison' => ['nullable', 'string'],
             'feedback' => ['nullable', 'string'],
             'conference_date' => ['nullable', 'date'],
+            'star_notes' => ['nullable', 'string'],
+            'areas_for_improvement' => ['nullable', 'string'],
+            'challenges_facing_teacher' => ['nullable', 'string'],
+            'ideas_for_addressing_challenges' => ['nullable', 'string'],
+            'prioritized_next_steps' => ['nullable', 'string'],
+            'teacher_reflection' => ['nullable', 'string'],
+            'supervisor_notes' => ['nullable', 'string'],
         ]);
 
         $observation->postConference()->updateOrCreate(
@@ -378,10 +488,30 @@ class SupervisorController extends Controller
                 'ai_comparison' => $validated['ai_comparison'] ?? null,
                 'feedback' => $validated['feedback'] ?? null,
                 'conference_date' => $validated['conference_date'] ?? now(),
+                'star_notes' => $validated['star_notes'] ?? null,
+                'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
+                'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? null,
+                'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? null,
+                'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? null,
+                'teacher_reflection' => $validated['teacher_reflection'] ?? null,
+                'supervisor_notes' => $validated['supervisor_notes'] ?? null,
             ]
         );
 
+        $observation->logChange([
+            'to_status' => 'completed',
+            'notes' => 'Post-Conference completed',
+        ]);
         $observation->update(['status' => 'completed']);
+
+        // Notify the observee about feedback
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notifyFeedbackReceived(
+                $observee->user,
+                route('supervisor.observations.show', $observation->id)
+            );
+        }
 
         return redirect()->route('supervisor.observations.index')
             ->with('success', 'Post-Conference has been saved. Observation is now complete.');
@@ -421,23 +551,66 @@ class SupervisorController extends Controller
     public function observations(Request $request)
     {
         $user = Auth::user();
-        
-        $observations = Observation::query()
-            ->with(['observee'])
-            ->where('observer_id', $user->id)
-            ->when($request->status, function ($query, $status) {
-                $query->where('status', $status);
+
+        $query = Observation::query()
+            ->with(['observee.user'])
+            ->where('observer_id', $user->id);
+
+        // Search
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                  ->orWhere('grade_level', 'like', "%{$search}%")
+                  ->orWhere('school_year', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%");
+            });
+
+            // Search by observee name (morphTo workaround)
+            $teacherIds = Teacher::whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })->pluck('id');
+
+            $schoolHeadIds = SchoolHeadProfile::whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })->pluck('id');
+
+            if ($teacherIds->isNotEmpty()) {
+                $query->orWhere(function ($q) use ($teacherIds) {
+                    $q->where('observee_type', Teacher::class)
+                      ->whereIn('observee_id', $teacherIds);
+                });
+            }
+
+            if ($schoolHeadIds->isNotEmpty()) {
+                $query->orWhere(function ($q) use ($schoolHeadIds) {
+                    $q->where('observee_type', SchoolHeadProfile::class)
+                      ->whereIn('observee_id', $schoolHeadIds);
+                });
+            }
+        }
+
+        $observations = $query
+            ->when($request->status, function ($q, $status) {
+                $q->where('status', $status);
             })
-            ->when($request->stage, function ($query, $stage) {
-                $query->where('stage', $stage);
+            ->when($request->stage, function ($q, $stage) {
+                $q->where('stage', $stage);
             })
-            ->when($request->observation_type, function ($query, $type) {
-                $query->where('observation_type', $type);
+            ->when($request->observation_type, function ($q, $type) {
+                $q->where('observation_type', $type);
             })
             ->latest()
-            ->paginate($request->per_page ?? 15);
+            ->paginate($request->per_page ?? 10)
+            ->withQueryString();
 
-        return view('supervisor.observations.index', compact('observations'));
+        // Stats for the header
+        $stats = [
+            'total' => Observation::where('observer_id', $user->id)->count(),
+            'in_progress' => Observation::where('observer_id', $user->id)->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count(),
+            'completed' => Observation::where('observer_id', $user->id)->where('stage', 'post_conference')->count(),
+        ];
+
+        return view('supervisor.observations.index', compact('observations', 'stats'));
     }
 
     /**
@@ -466,6 +639,102 @@ class SupervisorController extends Controller
             ->take(10)
             ->get();
 
-        return view('supervisor.reports.index', compact('stats', 'recentObservations'));
+        // Chart data - observations by month
+        $chartData = Observation::where('observer_id', $user->id)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as total")
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        // Scores trend
+        $scoresData = Observation::where('observer_id', $user->id)
+            ->whereNotNull('overall_score')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->reverse()
+            ->values();
+
+        return view('supervisor.reports.index', compact('stats', 'recentObservations', 'chartData', 'scoresData'));
+    }
+
+    /**
+     * Export observations as CSV
+     */
+    public function exportReports()
+    {
+        $user = Auth::user();
+
+        $observations = Observation::with(['observee.user', 'observer'])
+            ->where('observer_id', $user->id)
+            ->latest()
+            ->get();
+
+        $filename = 'observations-report-' . now()->format('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ];
+
+        $callback = function () use ($observations) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['ID', 'Type', 'Observee', 'Observer', 'Date', 'Stage', 'Status', 'Score', 'Subject', 'Grade Level', 'School Year', 'Quarter', 'Created At']);
+
+            foreach ($observations as $obs) {
+                fputcsv($handle, [
+                    $obs->id,
+                    $obs->observation_type,
+                    $obs->observee?->user?->name ?? 'N/A',
+                    $obs->observer?->name ?? 'N/A',
+                    $obs->observation_date?->format('Y-m-d'),
+                    $obs->stage,
+                    $obs->status,
+                    $obs->overall_score,
+                    $obs->subject ?? 'N/A',
+                    $obs->grade_level ?? 'N/A',
+                    $obs->school_year ?? 'N/A',
+                    $obs->quarter ?? 'N/A',
+                    $obs->created_at?->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Display observation history for a specific observee (teacher/school head).
+     */
+    public function teacherObservationHistory(Request $request, $observeeId)
+    {
+        $user = Auth::user();
+        $observeeType = $request->type;
+
+        if (!$observeeType) {
+            return redirect()->route('supervisor.observations.index')
+                ->with('error', 'Observee type is required.');
+        }
+
+        $baseQuery = Observation::with(['observee.user', 'preObservationPlanning', 'preConference', 'postConference', 'cotRatings'])
+            ->where('observer_id', $user->id)
+            ->where('observee_id', $observeeId)
+            ->where('observee_type', $observeeType);
+
+        $observations = $baseQuery->latest()->paginate(10);
+
+        // Get the observee name from the first result
+        $observeeName = $observations->first()?->observee?->user?->name ?? 'Unknown';
+
+        // Stats (use separate query for accuracy)
+        $allForStats = $baseQuery->get();
+        $stats = [
+            'total' => $allForStats->count(),
+            'completed' => $allForStats->where('stage', 'post_conference')->count(),
+            'avg_score' => $allForStats->whereNotNull('overall_score')->avg('overall_score'),
+        ];
+
+        return view('supervisor.observations.teacher-history', compact('observations', 'observeeName', 'observeeId', 'observeeType', 'stats'));
     }
 }

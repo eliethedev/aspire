@@ -15,6 +15,8 @@ class PreObservationPlanning extends Model
         'lesson_plan_file',
         'ai_insights',
         'suggested_focus',
+        'supervisor_notes',
+        'observation_tool',
     ];
 
     protected $casts = [

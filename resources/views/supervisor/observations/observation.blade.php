@@ -11,80 +11,118 @@
 </style>
 @endpush
 
+@php
+    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageLabels = [
+        'pre_observation_planning' => 'Pre-Observation Planning',
+        'pre_conference' => 'Pre-Conference',
+        'observation' => 'Observation',
+        'post_conference' => 'Post-Conference',
+    ];
+    $stageRoutes = [
+        'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
+        'pre_conference' => 'supervisor.observations.preConference',
+        'observation' => 'supervisor.observations.observation',
+        'post_conference' => 'supervisor.observations.postConference',
+    ];
+    $currentStage = 'observation';
+    $currentIdx = array_search($currentStage, $stageKeys);
+@endphp
+
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center gap-2 text-gray-500">
+            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 transition-colors">Evaluations</a></li>
+            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 transition-colors">Observation Details</a></li>
+            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li class="text-gray-900 font-medium">Observation</li>
+        </ol>
+    </nav>
+
     <!-- Progress Steps -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-600 text-white font-semibold">✓</div>
-                <span class="ml-2 text-white font-medium">Pre-Observation Planning</span>
-            </div>
-            <div class="flex-1 mx-4 h-1 bg-green-600"></div>
-            <div class="flex items-center">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-600 text-white font-semibold">✓</div>
-                <span class="ml-2 text-white font-medium">Pre-Conference</span>
-            </div>
-            <div class="flex-1 mx-4 h-1 bg-green-600"></div>
-            <div class="flex items-center">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-semibold">3</div>
-                <span class="ml-2 text-white font-medium">Observation</span>
-            </div>
-            <div class="flex-1 mx-4 h-1 bg-white/20"></div>
-            <div class="flex items-center">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 text-white/60 font-semibold">4</div>
-                <span class="ml-2 text-white/60">Post-Conference</span>
-            </div>
+            @foreach($stageKeys as $i => $key)
+                @php
+                    $isCurrent = $key === $currentStage;
+                    $isCompleted = $i < $currentIdx;
+                    $canAccess = $isCurrent || $isCompleted;
+                @endphp
+                @if($i > 0)
+                    <div class="flex-1 mx-4 h-1 {{ $isCompleted ? 'bg-green-400' : 'bg-gray-200' }}"></div>
+                @endif
+                @if($canAccess)
+                    <a href="{{ $isCurrent ? '#' : route($stageRoutes[$key], $observation) }}"
+                       class="flex items-center group {{ $isCurrent ? 'cursor-default' : 'cursor-pointer' }}">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200' }} font-semibold transition-colors group-hover:shadow-md text-sm">
+                            @if($isCompleted)
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </div>
+                        <span class="ml-2 {{ $isCompleted ? 'text-gray-600' : 'text-gray-900 font-medium' }} text-sm group-hover:text-indigo-600 transition-colors">{{ $stageLabels[$key] }}</span>
+                    </a>
+                @else
+                    <div class="flex items-center opacity-50">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 font-semibold text-sm">{{ $i + 1 }}</div>
+                        <span class="ml-2 text-gray-400 text-sm">{{ $stageLabels[$key] }}</span>
+                    </div>
+                @endif
+            @endforeach
         </div>
     </div>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-white">
+        <h1 class="text-2xl font-bold text-gray-900">
             {{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}
         </h1>
-        <p class="text-white/60 mt-1">
+        <p class="text-gray-500 mt-1">
             Complete the {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} COT Form for {{ $observation->observee->user->name }}
         </p>
     </div>
 
     <!-- Pre-Conference Summary -->
     @if($preConference)
-    <div class="bg-white/5 rounded-xl p-6 mb-6">
-        <h2 class="text-lg font-semibold text-white mb-4">Pre-Conference Summary</h2>
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Pre-Conference Summary</h2>
         <div class="space-y-3">
             @if($preConference->finalized_focus)
             <div>
-                <span class="text-white/60 text-sm">Finalized Focus:</span>
-                <p class="text-white mt-1">{{ $preConference->finalized_focus }}</p>
+                <span class="text-gray-500 text-sm">Finalized Focus:</span>
+                <p class="text-gray-900 mt-1">{{ $preConference->finalized_focus }}</p>
             </div>
             @endif
         </div>
     </div>
     @endif
 
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
-        <form method="POST" action="{{ route('supervisor.observations.storeObservationData', $observation) }}" class="space-y-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <form method="POST" action="{{ route('supervisor.observations.storeObservationData', $observation) }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             
             <!-- Observee Info -->
-            <div class="bg-white/5 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <span class="text-white/60 text-sm">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School Head' }}</span>
-                        <p class="text-white font-medium">{{ $observation->observee->user->name }}</p>
+                        <span class="text-gray-500 text-sm">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School Head' }}</span>
+                        <p class="text-gray-900 font-medium">{{ $observation->observee->user->name }}</p>
                     </div>
                     <div>
-                        <span class="text-white/60 text-sm">Observation Date</span>
-                        <p class="text-white font-medium">{{ $observation->observation_date->format('M d, Y') }}</p>
+                        <span class="text-gray-500 text-sm">Observation Date</span>
+                        <p class="text-gray-900 font-medium">{{ $observation->observation_date->format('M d, Y') }}</p>
                     </div>
                     @if($observation->isTeacherObservation())
                     <div>
-                        <span class="text-white/60 text-sm">Subject</span>
-                        <p class="text-white font-medium">{{ $observation->subject ?? 'N/A' }}</p>
+                        <span class="text-gray-500 text-sm">Subject</span>
+                        <p class="text-gray-900 font-medium">{{ $observation->subject ?? 'N/A' }}</p>
                     </div>
                     <div>
-                        <span class="text-white/60 text-sm">Grade Level</span>
-                        <p class="text-white font-medium">{{ $observation->grade_level ?? 'N/A' }}</p>
+                        <span class="text-gray-500 text-sm">Grade Level</span>
+                        <p class="text-gray-900 font-medium">{{ $observation->grade_level ?? 'N/A' }}</p>
                     </div>
                     @endif
                 </div>
@@ -92,7 +130,7 @@
 
             <!-- COT Ratings -->
             <div>
-                <label class="block text-sm font-medium text-white mb-4">
+                <label class="block text-sm font-medium text-gray-900 mb-4">
                     {{ $observation->isTeacherObservation() ? 'PPST Ratings (1-5 Scale)' : 'Leadership COT Ratings (1-5 Scale)' }}
                 </label>
                 
@@ -100,23 +138,71 @@
                     <!-- Rating items will be added dynamically -->
                 </div>
 
-                <button type="button" onclick="addRating()" class="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">
-                    + Add Rating
+                <button type="button" onclick="addRating()" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Add Rating
                 </button>
             </div>
 
+            <!-- Evidence Files -->
+            <div>
+                <label class="block text-sm font-medium text-gray-900 mb-2">Evidence Files <span class="text-gray-400 font-normal">(photos, videos, documents)</span></label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <p class="text-sm text-gray-500 mb-1">Drop files here or click to upload</p>
+                    <p class="text-xs text-gray-400">Upload photos, videos, or documents as evidence</p>
+                    <input type="file" name="evidence_files[]" multiple accept="image/*,video/*,.pdf,.doc,.docx"
+                           class="mt-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                @if($observation->evidence_files)
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        @foreach($observation->evidence_files as $file)
+                            <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <a href="{{ asset('storage/' . $file['path']) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium truncate">
+                                    {{ $file['original_name'] ?? basename($file['path']) }}
+                                </a>
+                                <span class="text-gray-400 text-xs shrink-0 ml-2">{{ isset($file['size']) ? number_format($file['size'] / 1024, 1) . ' KB' : '' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
             <!-- Actions -->
-            <div class="flex justify-between">
-                <a href="{{ route('supervisor.observations.preConference', $observation) }}" 
-                   class="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">
-                    Back
-                </a>
-                <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
-                    Save & Continue to Post-Conference
-                </button>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ route('supervisor.observations.preConference', $observation) }}" 
+                       class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium text-sm text-center transition-colors">
+                        <span class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            Back to Pre-Conference
+                        </span>
+                    </a>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
+                        <span class="flex items-center justify-center gap-2">
+                            Save &amp; Continue
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </span>
+                    </button>
+                </div>
             </div>
         </form>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="mt-8 pt-6 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+            <a href="{{ route('supervisor.observations.show', $observation) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Details
+            </a>
+            <a href="{{ route('supervisor.observations.index') }}"
+               class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                All Evaluations
+            </a>
+        </div>
     </div>
 </div>
 
@@ -251,23 +337,23 @@
         ).join('');
 
         const html = `
-            <div class="rating-item bg-white/5 rounded-lg p-4" data-index="${ratingIndex}">
+            <div class="rating-item bg-white rounded-lg p-4 border border-gray-200" data-index="${ratingIndex}">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-white mb-2">Domain</label>
-                        <select name="ratings[${ratingIndex}][domain]" required class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Domain</label>
+                        <select name="ratings[${ratingIndex}][domain]" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                             <option value="">Select Domain</option>
                             ${domainSelect}
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-white mb-2">Indicator</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Indicator</label>
                         <input type="text" name="ratings[${ratingIndex}][indicator]" required placeholder="Enter indicator"
-                               class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-white mb-2">Rating (1-5)</label>
-                        <select name="ratings[${ratingIndex}][rating]" required class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rating (1-5)</label>
+                        <select name="ratings[${ratingIndex}][rating]" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                             <option value="">Select Rating</option>
                             <option value="1">1 - Beginning</option>
                             <option value="2">2 - Developing</option>
@@ -277,12 +363,15 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-white mb-2">Comments</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Comments</label>
                         <input type="text" name="ratings[${ratingIndex}][comments]" placeholder="Optional comments"
-                               class="w-full px-4 py-2 rounded-lg bg-white border border-white/20 text-dark focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                     </div>
                 </div>
-                <button type="button" onclick="removeRating(${ratingIndex})" class="mt-3 text-red-400 hover:text-red-300 text-sm">Remove</button>
+                <button type="button" onclick="removeRating(${ratingIndex})" class="mt-2 inline-flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Remove
+                </button>
             </div>
         `;
         

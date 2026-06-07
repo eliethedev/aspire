@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.tsx'])
+        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
         <script>
             document.addEventListener('alpine:init', () => {
@@ -24,14 +25,16 @@
                 });
             });
         </script>
+        @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-50" x-data>
+
         <div class="flex min-h-screen">
             <!-- Sidebar -->
             @include('partials.sidebar')
 
             <!-- Main Content -->
-            <div class="flex-1 transition-all duration-300" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-64'">
+            <div class="flex-1 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-56'">
                 <!-- Header -->
                 @include('layouts.header')
                 
@@ -52,5 +55,6 @@
                 </main>
             </div>
         </div>
+        @stack('scripts')
     </body>
 </html>
