@@ -11,6 +11,8 @@ use App\Models\PostConference;
 use App\Models\CotRating;
 use App\Models\SchoolHeadProfile;
 use App\Services\NotificationService;
+use App\Services\PHPMailerService;
+use App\Services\AIFeedbackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +20,14 @@ use Illuminate\Support\Facades\Storage;
 class SupervisorController extends Controller
 {
     protected NotificationService $notificationService;
+    protected PHPMailerService $mailerService;
+    protected AIFeedbackService $aiFeedback;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, PHPMailerService $mailerService, AIFeedbackService $aiFeedback)
     {
         $this->notificationService = $notificationService;
+        $this->mailerService = $mailerService;
+        $this->aiFeedback = $aiFeedback;
     }
     /**
      * Display the supervisor dashboard.
@@ -176,11 +182,24 @@ class SupervisorController extends Controller
         if ($status === 'scheduled') {
             $observee = $observation->observee;
             if ($observee && $observee->user) {
+                $observeeUser = $observee->user;
+                $formattedDate = $observation->observation_date->format('M d, Y');
+                $observationLink = $observee instanceof \App\Models\Teacher
+                    ? route('teacher.observations.show', $observation->id)
+                    : route('supervisor.observations.show', $observation->id);
+
+                // In-app notification
                 $this->notificationService->notifyObservationScheduled(
-                    $observee->user,
-                    $observation->observation_date->format('M d, Y'),
-                    route('supervisor.observations.show', $observation->id)
+                    $observeeUser,
+                    $formattedDate,
+                    $observationLink
                 );
+
+                // Email notification
+                $observerName = Auth::user()->name;
+                $subject = 'ASPIRE - Classroom Observation Scheduled';
+                $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink);
+                $this->mailerService->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
             }
         }
 
@@ -285,7 +304,10 @@ class SupervisorController extends Controller
 
         $filePath = null;
         if ($request->hasFile('lesson_plan_file')) {
-            $filePath = $request->file('lesson_plan_file')->store('lesson_plans', 'public');
+            $file = $request->file('lesson_plan_file');
+            $originalName = $file->getClientOriginalName();
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $originalName);
+            $filePath = $file->storeAs('lesson_plans', $filename, 'public');
         }
 
         $observation->preObservationPlanning()->updateOrCreate(
@@ -321,10 +343,36 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
+        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
+
         $preConference = $observation->preConference;
         $planning = $observation->preObservationPlanning;
 
-        return view('supervisor.observations.pre-conference', compact('observation', 'preConference', 'planning'));
+        // Load previous COT data for sidebar performance summary
+        $previousObservations = Observation::with(['cotRatings'])
+            ->where('observee_id', $observation->observee_id)
+            ->where('observee_type', $observation->observee_type)
+            ->where('id', '!=', $observation->id)
+            ->whereNotNull('overall_score')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $prevStrengths = collect();
+        $prevWeaknesses = collect();
+        if ($previousObservations->isNotEmpty()) {
+            $prevRatings = \App\Models\CotRating::whereIn('observation_id', $previousObservations->pluck('id'))
+                ->selectRaw('domain, AVG(rating) as avg_rating, COUNT(*) as total')
+                ->groupBy('domain')
+                ->get();
+
+            $prevStrengths = $prevRatings->filter(fn($r) => $r->avg_rating >= 4)->values();
+            $prevWeaknesses = $prevRatings->filter(fn($r) => $r->avg_rating < 3)->values();
+        }
+
+        return view('supervisor.observations.pre-conference', compact(
+            'observation', 'preConference', 'planning', 'prevStrengths', 'prevWeaknesses'
+        ));
     }
 
     /**
@@ -341,6 +389,7 @@ class SupervisorController extends Controller
             'teacher_reflection' => ['nullable', 'string'],
             'lesson_plan_review' => ['nullable', 'string'],
             'instructional_materials' => ['nullable', 'string'],
+            'ai_insights_reviewed' => ['nullable', 'boolean'],
         ]);
 
         $observation->preConference()->updateOrCreate(
@@ -354,6 +403,20 @@ class SupervisorController extends Controller
                 'instructional_materials' => $validated['instructional_materials'] ?? null,
             ]
         );
+
+        // Mark AI insights as reviewed
+        if ($request->has('ai_insights_reviewed')) {
+            $observation->preObservationPlanning()->updateOrCreate(
+                ['observation_id' => $observation->id],
+                ['ai_insights_reviewed' => true]
+            );
+        }
+
+        // If save draft, stay on pre-conference page without advancing stage
+        if ($request->has('save_draft')) {
+            return redirect()->route('supervisor.observations.preConference', $observation->id)
+                ->with('success', 'Pre-Conference draft saved.');
+        }
 
         $observation->logChange([
             'to_stage' => 'observation',
@@ -397,14 +460,20 @@ class SupervisorController extends Controller
         $observation->cotRatings()->delete();
 
         // Create new ratings
+        $createdRatings = [];
         foreach ($validated['ratings'] as $rating) {
-            CotRating::create([
+            $createdRatings[] = CotRating::create([
                 'observation_id' => $observation->id,
                 'domain' => $rating['domain'],
                 'indicator' => $rating['indicator'],
                 'rating' => $rating['rating'],
                 'comments' => $rating['comments'] ?? null,
             ]);
+        }
+
+        // Generate AI feedback for each rating (runs synchronously)
+        foreach ($createdRatings as $cotRating) {
+            $this->aiFeedback->generateFeedback($cotRating->id);
         }
 
         // Handle evidence file uploads
@@ -438,10 +507,10 @@ class SupervisorController extends Controller
         // Notify the observee that their observation is complete
         $observee = $observation->observee;
         if ($observee && $observee->user) {
-            $this->notificationService->notifyObservationCompleted(
-                $observee->user,
-                route('supervisor.observations.show', $observation->id)
-            );
+            $link = $observee instanceof \App\Models\Teacher
+                ? route('teacher.observations.show', $observation->id)
+                : route('supervisor.observations.show', $observation->id);
+            $this->notificationService->notifyObservationCompleted($observee->user, $link);
         }
 
         return redirect()->route('supervisor.observations.postConference', $observation->id)
@@ -458,8 +527,9 @@ class SupervisorController extends Controller
         $postConference = $observation->postConference;
         $cotRatings = $observation->cotRatings;
         $planning = $observation->preObservationPlanning;
+        $preConference = $observation->preConference;
 
-        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning'));
+        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference'));
     }
 
     /**
@@ -507,14 +577,37 @@ class SupervisorController extends Controller
         // Notify the observee about feedback
         $observee = $observation->observee;
         if ($observee && $observee->user) {
-            $this->notificationService->notifyFeedbackReceived(
-                $observee->user,
-                route('supervisor.observations.show', $observation->id)
-            );
+            $link = $observee instanceof \App\Models\Teacher
+                ? route('teacher.observations.show', $observation->id)
+                : route('supervisor.observations.show', $observation->id);
+            $this->notificationService->notifyFeedbackReceived($observee->user, $link);
         }
 
         return redirect()->route('supervisor.observations.index')
             ->with('success', 'Post-Conference has been saved. Observation is now complete.');
+    }
+
+    /**
+     * Download Post-Observation Report
+     */
+    public function downloadReport(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $reportService = app(\App\Services\ObservationReportService::class);
+        $markdown = $reportService->generate($observation);
+
+        $filename = 'post-observation-report-'
+            . preg_replace('/[^a-z0-9]/i', '-', $observation->observee?->user?->name ?? 'teacher')
+            . '-'
+            . ($observation->observation_date?->format('Y-m-d') ?? date('Y-m-d'))
+            . '.md';
+
+        return response()->streamDownload(function () use ($markdown) {
+            echo $markdown;
+        }, $filename, [
+            'Content-Type' => 'text/markdown; charset=utf-8',
+        ]);
     }
 
     /**
@@ -529,10 +622,80 @@ class SupervisorController extends Controller
             'preObservationPlanning',
             'preConference',
             'postConference',
-            'cotRatings'
+            'cotRatings',
+            'cancelledBy',
         ]);
 
         return view('supervisor.observations.show', compact('observation'));
+    }
+
+    /**
+     * Show the cancellation form for an observation.
+     */
+    public function showCancelForm(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if (!$observation->canCancel()) {
+            return redirect()->route('supervisor.observations.show', $observation)
+                ->with('error', 'This observation cannot be cancelled in its current state.');
+        }
+
+        return view('supervisor.observations.cancel', compact('observation'));
+    }
+
+    /**
+     * Cancel an observation.
+     */
+    public function cancel(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if (!$observation->canCancel()) {
+            return redirect()->route('supervisor.observations.show', $observation)
+                ->with('error', 'This observation cannot be cancelled in its current state.');
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'in:teacher_request,supervisor_initiative,conflict_in_schedule,health_reason,insufficient_documentation,technical_issues,weather_emergency,other'],
+            'cancellation_other_reason' => ['nullable', 'string', 'max:500'],
+            'internal_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $reason = $validated['cancellation_reason'] === 'other'
+            ? ($validated['cancellation_other_reason'] ?? 'Other')
+            : $validated['cancellation_reason'];
+
+        $observation->cancel($reason, $validated['internal_note']);
+
+        // Notify the observee
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $observeeUser = $observee->user;
+            $observationLink = $observee instanceof \App\Models\Teacher
+                ? route('teacher.observations.show', $observation->id)
+                : route('supervisor.observations.show', $observation->id);
+
+            $this->notificationService->notifyObservationCancelled(
+                $observeeUser,
+                $observationLink
+            );
+
+            $observerName = Auth::user()->name;
+            $subject = 'ASPIRE - Observation Cancelled';
+            $emailBody = $this->buildObservationCancelledEmail(
+                $observeeUser->name,
+                $observerName,
+                $observation->observation_date->format('M d, Y'),
+                $observation->observation_type,
+                str_replace('_', ' ', ucwords($reason)),
+                $observationLink
+            );
+            $this->mailerService->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+        }
+
+        return redirect()->route('supervisor.observations.index')
+            ->with('success', 'Observation has been cancelled successfully.');
     }
 
     /**
@@ -604,10 +767,12 @@ class SupervisorController extends Controller
             ->withQueryString();
 
         // Stats for the header
+        $baseQuery = Observation::where('observer_id', $user->id);
         $stats = [
-            'total' => Observation::where('observer_id', $user->id)->count(),
-            'in_progress' => Observation::where('observer_id', $user->id)->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count(),
-            'completed' => Observation::where('observer_id', $user->id)->where('stage', 'post_conference')->count(),
+            'total' => (clone $baseQuery)->count(),
+            'in_progress' => (clone $baseQuery)->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->where('status', '!=', 'cancelled')->count(),
+            'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
         ];
 
         return view('supervisor.observations.index', compact('observations', 'stats'));
@@ -736,5 +901,159 @@ class SupervisorController extends Controller
         ];
 
         return view('supervisor.observations.teacher-history', compact('observations', 'observeeName', 'observeeId', 'observeeType', 'stats'));
+    }
+
+    private function buildObservationScheduledEmail(string $observeeName, string $observerName, string $date, string $observationType, string $link): string
+    {
+        $typeLabel = $observationType === 'teacher_observation' ? 'Teacher Observation' : 'School Head Observation';
+
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Observation Scheduled</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #1e40af; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { padding: 20px; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .detail { margin: 8px 0; }
+                .detail-label { font-weight: 600; color: #555; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>ASPIRE System</h1>
+                    <p>Automated Supervision Platform for Instructional Reform & Excellence</p>
+                </div>
+                <div class='content'>
+                    <h2>Hello {$observeeName},</h2>
+                    <p>A classroom observation has been scheduled for you. Please review the details below:</p>
+                    <table style='width: 100%; border-collapse: collapse; margin: 16px 0;'>
+                        <tr><td class='detail-label'>Type:</td><td>{$typeLabel}</td></tr>
+                        <tr><td class='detail-label'>Scheduled By:</td><td>{$observerName}</td></tr>
+                        <tr><td class='detail-label'>Observation Date:</td><td>{$date}</td></tr>
+                    </table>
+                    <div style='text-align: center;'>
+                        <a href='{$link}' class='button'>View Observation Details</a>
+                    </div>
+                    <p style='margin-top: 20px;'><strong>What to expect:</strong></p>
+                    <ul>
+                        <li>Pre-Observation Planning: You may be required to submit a lesson plan and answer pre-observation questions.</li>
+                        <li>Classroom Observation: The actual observation will take place on the scheduled date.</li>
+                        <li>Post-Conference: A feedback session will follow after the observation.</li>
+                    </ul>
+                    <p>Please ensure you are prepared for the observation on the scheduled date. If you have any questions, contact your supervisor.</p>
+                </div>
+                <div class='footer'>
+                    <p>This is an automated message from the ASPIRE system. Please do not reply to this email.</p>
+                    <p>&copy; 2026 ASPIRE - Department of Education Sagay City, Negros Occidental, Philippines</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
+    private function buildObservationCancelledEmail(string $observeeName, string $observerName, string $date, string $observationType, string $reason, string $link): string
+    {
+        $typeLabel = $observationType === 'teacher_observation' ? 'Teacher Observation' : 'School Head Observation';
+
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Observation Cancelled</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { padding: 20px; background: #f9fafb; }
+                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
+                .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                .detail { margin: 8px 0; }
+                .detail-label { font-weight: 600; color: #555; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>ASPIRE System</h1>
+                    <p>Automated Supervision Platform for Instructional Reform & Excellence</p>
+                </div>
+                <div class='content'>
+                    <h2>Hello {$observeeName},</h2>
+                    <p>We regret to inform you that your {$typeLabel} scheduled for <strong>{$date}</strong> has been <strong>cancelled</strong>.</p>
+                    <table style='width: 100%; border-collapse: collapse; margin: 16px 0;'>
+                        <tr><td class='detail-label'>Type:</td><td>{$typeLabel}</td></tr>
+                        <tr><td class='detail-label'>Cancelled By:</td><td>{$observerName}</td></tr>
+                        <tr><td class='detail-label'>Original Date:</td><td>{$date}</td></tr>
+                        <tr><td class='detail-label'>Reason:</td><td>{$reason}</td></tr>
+                    </table>
+                    <div style='text-align: center;'>
+                        <a href='{$link}' class='button'>View Details</a>
+                    </div>
+                    <p>If you have any questions, please contact your supervisor directly.</p>
+                </div>
+                <div class='footer'>
+                    <p>This is an automated message from the ASPIRE system. Please do not reply to this email.</p>
+                    <p>&copy; 2026 ASPIRE - Department of Education Sagay City, Negros Occidental, Philippines</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
+    public function generateAiInsights(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->load(['preObservationPlanning', 'observee']);
+
+        $insights = $this->aiFeedback->generatePreObservationInsights($observation);
+
+        if ($insights === null) {
+            return response()->json(['error' => 'Failed to generate insights. Try again later.'], 500);
+        }
+
+        $observation->preObservationPlanning()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            ['ai_insights' => $insights]
+        );
+
+        $source = $this->aiFeedback->isGeminiConfigured() ? '' : ' (rule-based)';
+        return response()->json(['ai_insights' => $insights, 'source' => $source]);
+    }
+
+    public function generateAiComparison(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->load(['postConference', 'preObservationPlanning', 'observee']);
+
+        if (!$this->aiFeedback->isGeminiConfigured()) {
+            return response()->json(['error' => 'Gemini API is not configured. Set GEMINI_API_KEY in .env'], 400);
+        }
+
+        $comparison = $this->aiFeedback->generatePostConferenceComparison($observation);
+
+        if (!$comparison) {
+            $message = 'Failed to generate AI comparison. ';
+            if (!$this->aiFeedback->isGeminiConfigured()) {
+                $message .= 'Gemini API key is not set.';
+            } else {
+                $message .= 'The Gemini API quota may be exceeded or the service is unreachable. Check storage/logs/laravel.log for details.';
+            }
+            return response()->json(['error' => $message], 500);
+        }
+
+        $observation->postConference()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            ['ai_comparison' => $comparison]
+        );
+
+        return response()->json(['ai_comparison' => $comparison]);
     }
 }

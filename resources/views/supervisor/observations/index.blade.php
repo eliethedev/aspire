@@ -41,7 +41,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
@@ -72,6 +72,17 @@
                 <div>
                     <p class="text-2xl font-bold text-dark-900">{{ $stats['completed'] }}</p>
                     <p class="text-xs text-dark-500">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-dark-900">{{ $stats['cancelled'] }}</p>
+                    <p class="text-xs text-dark-500">Cancelled</p>
                 </div>
             </div>
         </div>
@@ -107,6 +118,7 @@
                         <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                         <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
                 <div>
@@ -219,11 +231,18 @@
 
                 <!-- Status + Actions -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                        {{ $observation->status === 'completed' ? 'bg-green-100 text-green-700' : ($observation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $observation->status === 'completed' ? 'bg-green-500' : ($observation->status === 'scheduled' ? 'bg-amber-500' : 'bg-blue-500') }}"></span>
-                        {{ ucwords(str_replace('_', ' ', $observation->status)) }}
-                    </span>
+                    @if($observation->status === 'cancelled')
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Cancelled
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                            {{ $observation->status === 'completed' ? 'bg-green-100 text-green-700' : ($observation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $observation->status === 'completed' ? 'bg-green-500' : ($observation->status === 'scheduled' ? 'bg-amber-500' : 'bg-blue-500') }}"></span>
+                            {{ ucwords(str_replace('_', ' ', $observation->status)) }}
+                        </span>
+                    @endif
 
                     <a href="{{ route('supervisor.observations.show', $observation) }}"
                        class="px-3 py-1.5 text-sm font-medium text-dark-600 hover:text-dark-900 hover:bg-gray-50 rounded-lg transition-colors">
@@ -239,10 +258,17 @@
                             default => null,
                         };
                     @endphp
-                    @if($continueRoute)
+                    @if($continueRoute && $observation->status !== 'cancelled')
                         <a href="{{ route($continueRoute, $observation) }}"
                            class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
                             Continue
+                        </a>
+                    @endif
+
+                    @if($observation->canCancel())
+                        <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"
+                           class="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                            Cancel
                         </a>
                     @endif
                 </div>

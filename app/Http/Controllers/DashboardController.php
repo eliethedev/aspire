@@ -40,15 +40,33 @@ class DashboardController extends Controller
             return redirect()->route('profile.edit')->with('error', 'Teacher profile not found. Please complete your profile.');
         }
 
-        // Get teacher statistics (mock data for now)
+        $observationsQuery = $teacher->observations();
+
+        // Get teacher statistics
         $stats = [
-            'total_observations' => $teacher->observations()->count() ?? 0,
-            'completed_observations' => $teacher->observations()->completed()->count() ?? 0,
-            'average_cot_score' => 3.8, // Mock data
-            'pending_feedback_count' => 2, // Mock data
+            'total_observations' => $observationsQuery->count(),
+            'completed' => $observationsQuery->completed()->count(),
+            'average_cot_score' => $observationsQuery->completed()->avg('overall_score') ?? 0,
+            'upcoming' => $observationsQuery->pending()->count(),
         ];
 
-        return view('teacher.dashboard', compact('stats'));
+        // Recent observation
+        $recentObservation = $observationsQuery->with('observer')->latest()->first();
+
+        // Next upcoming observation
+        $nextObservation = $observationsQuery->pending()->with('observer')->first();
+
+        // Recent post-conference feedback
+        $recentFeedback = $observationsQuery->completed()->with('postConference')->latest()->first()?->postConference;
+
+        // COT score trend data
+        $cotObservations = $observationsQuery->completed()->orderBy('observation_date')->get(['overall_score', 'observation_date']);
+        $cotScores = $cotObservations->pluck('overall_score');
+        $cotLabels = $cotObservations->pluck('observation_date')->map(fn($d) => $d->format('M d, Y'));
+
+        return view('teacher.dashboard', compact(
+            'stats', 'cotScores', 'cotLabels', 'recentObservation', 'recentFeedback', 'nextObservation'
+        ));
     }
 
     /**

@@ -70,6 +70,7 @@
                         <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                         <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
                 <div>
@@ -121,10 +122,16 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <h3 class="font-semibold text-gray-900">{{ $observation->subject ?? 'No subject' }}</h3>
+                        @if($observation->status === 'cancelled')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">
+                            Cancelled
+                        </span>
+                        @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium
                             {{ $observation->status === 'completed' ? 'bg-green-100 text-green-700' : ($observation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
                             {{ ucwords(str_replace('_', ' ', $observation->status)) }}
                         </span>
+                        @endif
                     </div>
                     <p class="text-sm text-gray-500 mt-0.5">
                         {{ $stageLabel }}

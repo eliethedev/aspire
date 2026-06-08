@@ -62,8 +62,6 @@ function markAsRead(id) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Content-Type': 'application/json',
         },
-    }).then(() => {
-        location.reload();
     });
 }
 </script>

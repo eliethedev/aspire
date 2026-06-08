@@ -150,4 +150,26 @@ class NotificationService
             $link
         );
     }
+
+    public function notifyObservationCancelled(User $observee, string $observationLink): void
+    {
+        $this->createNotification(
+            $observee,
+            'observation_cancelled',
+            'Observation Cancelled',
+            'Your classroom observation has been cancelled. Please contact your supervisor for details.',
+            $observationLink
+        );
+    }
+
+    public function notifyLessonPlanUploaded(User $recipient, string $teacherName, string $observationLink): void
+    {
+        $this->createNotification(
+            $recipient,
+            'lesson_plan_uploaded',
+            'Lesson Plan Uploaded',
+            "{$teacherName} has uploaded a lesson plan for review.",
+            $observationLink
+        );
+    }
 }

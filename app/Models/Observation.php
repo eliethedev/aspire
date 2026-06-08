@@ -31,12 +31,16 @@ class Observation extends Model
         'grade_level',
         'observation_mode',
         'evidence_files',
+        'cancellation_reason',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     protected $casts = [
         'observation_date' => 'date',
         'overall_score' => 'decimal:2',
         'evidence_files' => 'array',
+        'cancelled_at' => 'datetime',
     ];
 
     /**
@@ -157,6 +161,46 @@ class Observation extends Model
     public function isSchoolHeadObservation(): bool
     {
         return $this->observation_type === 'school_head_observation';
+    }
+
+    /**
+     * User who cancelled the observation
+     */
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /**
+     * Check if the observation can be cancelled.
+     * Allowed stages: pre_observation_planning, pre_conference, observation (with warning), post_conference (for record only)
+     */
+    public function canCancel(): bool
+    {
+        if ($this->status === 'cancelled' || $this->status === 'completed') {
+            return false;
+        }
+
+        return in_array($this->stage, ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference']);
+    }
+
+    /**
+     * Cancel the observation with a reason.
+     */
+    public function cancel(string $reason, ?string $internalNote = null): void
+    {
+        $this->logChange([
+            'from_status' => $this->status,
+            'to_status' => 'cancelled',
+            'notes' => $internalNote ?? $reason,
+        ]);
+
+        $this->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => $reason,
+            'cancelled_by' => Auth::id(),
+            'cancelled_at' => now(),
+        ]);
     }
 
     /**

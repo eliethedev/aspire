@@ -131,7 +131,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">{{ basename($planning->lesson_plan_file) }}</p>
+                                <p class="text-sm font-medium text-gray-900">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</p>
                                 <p class="text-xs text-green-600 font-medium">Lesson Plan Uploaded</p>
                             </div>
                         </div>
@@ -169,20 +169,29 @@
                 </div>
                 <p class="text-sm text-gray-500 mb-4">Review AI-generated insights based on the lesson plan and previous observation data.</p>
 
-                @if($planning && $planning->ai_insights)
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $planning->ai_insights }}</p>
-                    </div>
-                @else
-                    <div class="bg-gray-50 rounded-lg p-4 border border-dashed border-gray-300 text-center">
-                        <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                        <p class="text-sm text-gray-500">No AI insights available yet.</p>
-                        <p class="text-xs text-gray-400 mt-1">Insights will appear after the lesson plan is uploaded and analyzed.</p>
-                    </div>
-                @endif
-                <input type="hidden" name="ai_insights" value="{{ $planning?->ai_insights ?? '' }}">
+                <div id="ai-insights-container">
+                    @if($planning && $planning->ai_insights)
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap" id="ai-insights-text">{{ $planning->ai_insights }}</p>
+                        </div>
+                    @else
+                        <div class="bg-gray-50 rounded-lg p-4 border border-dashed border-gray-300 text-center" id="ai-insights-empty">
+                            <svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            <p class="text-sm text-gray-500">No AI insights available yet.</p>
+                            <p class="text-xs text-gray-400 mt-1">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations.</p>
+                        </div>
+                    @endif
+                </div>
+                <input type="hidden" name="ai_insights" id="ai_insights_input" value="{{ $planning?->ai_insights ?? '' }}">
+                <button type="button" id="generate-ai-insights-btn"
+                        class="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-2">
+                    <svg id="ai-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span id="ai-btn-text">Generate AI Insights</span>
+                </button>
             </div>
 
             <!-- Previous Observation Highlights (from past data) -->
@@ -373,4 +382,55 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+document.getElementById('generate-ai-insights-btn')?.addEventListener('click', function() {
+    const btn = this;
+    const spinner = document.getElementById('ai-spinner');
+    const btnText = document.getElementById('ai-btn-text');
+    const input = document.getElementById('ai_insights_input');
+    const container = document.getElementById('ai-insights-container');
+    const empty = document.getElementById('ai-insights-empty');
+
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.textContent = 'Generating...';
+
+    fetch('{{ route("supervisor.observations.generate-ai-insights", $observation) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ai_insights) {
+            input.value = data.ai_insights;
+            if (empty) empty.remove();
+            let existingText = document.getElementById('ai-insights-text');
+            if (existingText) {
+                existingText.textContent = data.ai_insights;
+            } else {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 rounded-lg p-4 border border-gray-200';
+                div.innerHTML = '<p class="text-sm text-gray-700 whitespace-pre-wrap" id="ai-insights-text">' + data.ai_insights.replace(/\n/g, '<br>') + '</p>';
+                container.appendChild(div);
+            }
+        } else if (data.error) {
+            alert(data.error);
+        }
+    })
+    .catch(err => {
+        alert('Failed to generate AI insights. Please try again.');
+        console.error(err);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.textContent = 'Generate AI Insights';
+    });
+});
+</script>
+@endpush
 @endsection

@@ -1,4 +1,4 @@
-<header class="glass-card border-b border-gray-200 bg-white" x-data="{}">
+<header class="glass-card border-b border-gray-200 bg-white">
   <div class="max-w-8xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
     <!-- Search (placeholder) -->
     <div class="flex-1 mx-4 hidden md:block flex items-center">
@@ -8,6 +8,7 @@
     <!-- Right side: notifications, user menu -->
     <div class="flex items-center space-x-4">
       <!-- Notifications -->
+      <div x-data="notificationDropdown()" x-init="fetchNotifications()">
       <x-dropdown align="right" width="80">
         <x-slot name="trigger">
           <button type="button" class="relative h-10 w-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
@@ -16,7 +17,7 @@
           </button>
         </x-slot>
         <x-slot name="content">
-          <div x-data="notificationDropdown()" x-init="fetchNotifications()">
+          <div>
             <div class="p-4 border-b border-gray-200 flex justify-between items-center">
               <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
               <button x-show="unreadCount > 0" @click="markAllAsRead()" class="text-xs text-indigo-600 hover:text-indigo-800">Mark all as read</button>
@@ -44,6 +45,7 @@
           </div>
         </x-slot>
       </x-dropdown>
+      </div>
 
       <!-- User dropdown (reuse from navigation) -->
       <x-dropdown align="right" width="48">
@@ -56,7 +58,15 @@
           </button>
         </x-slot>
         <x-slot name="content">
-          <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+          @php
+            $profileRoute = match(auth()->user()->role) {
+              'teacher' => 'teacher.profile.edit',
+              'supervisor' => 'supervisor.profile.edit',
+              'school_head' => 'school-head.profile.edit',
+              default => 'admin.profile.edit',
+            };
+          @endphp
+          <x-dropdown-link :href="route($profileRoute)">{{ __('Profile') }}</x-dropdown-link>
           <form method="POST" action="{{ route('logout') }}">
             @csrf
             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Log Out') }}</x-dropdown-link>

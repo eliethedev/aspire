@@ -36,7 +36,11 @@ Route::middleware('auth')->group(function () {
 // School management routes (admin only)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
+    // Profile
+    Route::get('/profile', [\App\Http\Controllers\Profile\AdminProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\Profile\AdminProfileController::class, 'update'])->name('profile.update');
+
     Route::resource('schools', \App\Http\Controllers\Admin\SchoolController::class);
     
     Route::post('/schools/{school}/users', [\App\Http\Controllers\Admin\SchoolController::class, 'addUser'])->name('schools.users.add');
@@ -64,6 +68,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Teacher routes
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+
+    // Profile
+    Route::get('/profile', [\App\Http\Controllers\Profile\TeacherProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\Profile\TeacherProfileController::class, 'update'])->name('profile.update');
+
     Route::get('/observations', [\App\Http\Controllers\Teacher\ObservationController::class, 'index'])->name('observations.index');
     Route::get('/observations/{observation}', [\App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
     Route::post('/observations/{observation}/upload-lesson-plan', [\App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->name('observations.upload-lesson-plan');
@@ -72,6 +81,11 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 // Supervisor routes
 Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supervisor.')->group(function () {
     Route::get('/dashboard', [SupervisorController::class, 'dashboard'])->name('dashboard');
+
+    // Profile
+    Route::get('/profile', [\App\Http\Controllers\Profile\SupervisorProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\Profile\SupervisorProfileController::class, 'update'])->name('profile.update');
+
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/observations', [\App\Http\Controllers\CalendarController::class, 'getObservationsByDate'])->name('calendar.observations');
     
@@ -80,6 +94,8 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [SupervisorController::class, 'showObservation'])->name('observations.show');
+    Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
+    Route::post('/observations/{observation}/cancel', [SupervisorController::class, 'cancel'])->name('observations.cancel');
     
     // Stage-specific routes
     Route::get('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
@@ -96,6 +112,22 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 
     // Teacher observation history
     Route::get('/teachers/{observeeId}/observations', [SupervisorController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
+
+    // AI-powered insights
+    Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->name('observations.generate-ai-insights');
+    Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->name('observations.generate-ai-comparison');
+
+    // Post-Observation Report
+    Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->name('observations.report');
+});
+
+// School Head routes
+Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('school-head.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Profile
+    Route::get('/profile', [\App\Http\Controllers\Profile\SchoolHeadProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\Profile\SchoolHeadProfileController::class, 'update'])->name('profile.update');
 });
 
 // School-specific routes

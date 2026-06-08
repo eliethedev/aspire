@@ -23,7 +23,15 @@
 <div class="max-w-7xl mx-auto px-6 py-8">
     <div class="flex justify-between items-center mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Observation Details</h1>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-gray-900">Observation Details</h1>
+                @if($observation->status === 'cancelled')
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        Cancelled
+                    </span>
+                @endif
+            </div>
             <p class="text-gray-500 mt-1">{{ $observation->observee->user->name }} - {{ $observation->observation_date->format('M d, Y') }}</p>
             <p class="text-gray-400 text-sm mt-1">
                 {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
@@ -180,12 +188,29 @@
         <!-- Pre-Conference -->
         @if($observation->preConference)
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Pre-Conference</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Pre-Conference</h2>
+                @if($observation->preObservationPlanning?->ai_insights_reviewed)
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">AI Insights Reviewed</span>
+                @endif
+            </div>
             <div class="space-y-3">
+                @if($observation->preObservationPlanning?->ai_insights)
+                <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                    <span class="text-xs text-purple-700 font-medium">AI Insights</span>
+                    <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ is_array($observation->preObservationPlanning->ai_insights) ? (json_encode($observation->preObservationPlanning->ai_insights) ?: '') : $observation->preObservationPlanning->ai_insights }}</p>
+                </div>
+                @endif
                 @if($observation->preConference->conference_date)
                 <div>
                     <span class="text-gray-500 text-sm">Conference Date:</span>
                     <p class="text-gray-900">{{ $observation->preConference->conference_date->format('M d, Y') }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->lesson_plan_review)
+                <div>
+                    <span class="text-gray-500 text-sm">Lesson Plan Review:</span>
+                    <p class="text-gray-900 mt-1">{{ $observation->preConference->lesson_plan_review }}</p>
                 </div>
                 @endif
                 @if($observation->preConference->discussion_notes)
@@ -198,6 +223,12 @@
                 <div>
                     <span class="text-gray-500 text-sm">Finalized Focus:</span>
                     <p class="text-gray-900 mt-1">{{ $observation->preConference->finalized_focus }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->teacher_reflection)
+                <div>
+                    <span class="text-gray-500 text-sm">Teacher Reflection:</span>
+                    <p class="text-gray-900 mt-1">{{ $observation->preConference->teacher_reflection }}</p>
                 </div>
                 @endif
             </div>
@@ -269,9 +300,27 @@
         @endif
     </div>
 
-    <!-- Continue Button -->
-    @if($observation->stage !== 'post_conference' || $observation->status !== 'completed')
-    <div class="mt-8 flex justify-center">
+    <!-- Cancellation Info -->
+    @if($observation->status === 'cancelled')
+    <div class="mt-8 bg-red-50 border border-red-200 rounded-xl p-6">
+        <div class="flex gap-3">
+            <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.293 4.293a1 1 0 011.414 0L12 10.586l6.293-6.293a1 1 0 111.414 1.414L13.414 12l6.293 6.293a1 1 0 01-1.414 1.414L12 13.414l-6.293 6.293a1 1 0 01-1.414-1.414L10.586 12 4.293 5.707a1 1 0 010-1.414z"/></svg>
+            <div>
+                <h3 class="font-semibold text-red-800">Observation Cancelled</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    Cancelled on {{ $observation->cancelled_at?->format('M d, Y \a\t h:i A') }} by {{ $observation->cancelledBy?->name ?? 'Unknown' }}
+                </p>
+                <p class="text-sm text-red-700 mt-1">
+                    <strong>Reason:</strong> {{ ucwords(str_replace('_', ' ', $observation->cancellation_reason)) }}
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Actions -->
+    @if($observation->status !== 'cancelled' && $observation->status !== 'completed')
+    <div class="mt-8 flex justify-center gap-4">
         @php
             $continueLabel = match($observation->stage) {
                 'pre_observation_planning' => 'Continue to Pre-Observation Planning',
@@ -288,13 +337,32 @@
                 default => null,
             };
         @endphp
-        @if($continueRoute && ($observation->stage !== 'post_conference' || $observation->status !== 'completed'))
+        @if($continueRoute)
             <a href="{{ route($continueRoute, $observation) }}"
                class="inline-flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                 {{ $continueLabel }}
             </a>
         @endif
+
+        @if($observation->canCancel())
+            <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"
+               class="inline-flex items-center gap-3 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all hover:shadow-xl hover:shadow-red-600/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                Cancel Observation
+            </a>
+        @endif
+    </div>
+    @endif
+
+    <!-- Download Report (only when completed) -->
+    @if($observation->status === 'completed')
+    <div class="mt-6 flex justify-center">
+        <a href="{{ route('supervisor.observations.report', $observation) }}"
+           class="inline-flex items-center gap-3 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-600/20 transition-all hover:shadow-xl hover:shadow-emerald-600/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Post-Observation Report
+        </a>
     </div>
     @endif
 
