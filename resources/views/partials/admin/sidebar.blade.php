@@ -175,8 +175,8 @@
                     </li>
 
                     <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
+                        <a href="{{ route('admin.ai.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.ai.*') ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                             </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Settings</span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">AI Settings</span>
                         </a>
                     </li>
                 </ul>

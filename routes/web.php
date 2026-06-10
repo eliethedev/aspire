@@ -63,6 +63,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Teacher management routes
     Route::resource('teachers', \App\Http\Controllers\Admin\TeacherController::class);
+
+    // AI settings management
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AIController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\AIController::class, 'update'])->name('update');
+        Route::post('/test', [\App\Http\Controllers\Admin\AIController::class, 'test'])->name('test');
+    });
 });
 
 // Teacher routes
