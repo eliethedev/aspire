@@ -185,13 +185,20 @@
                     @endif
                 </div>
                 <input type="hidden" name="ai_insights" id="ai_insights_input" value="{{ $planning?->ai_insights ?? '' }}">
-                <button type="button" id="generate-ai-insights-btn"
-                        class="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-2">
-                    <svg id="ai-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <span id="ai-btn-text">Generate AI Insights</span>
-                </button>
+                <div class="mt-3 flex items-center gap-2">
+                    <button type="button" id="generate-ai-insights-btn"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-2">
+                        <svg id="ai-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span id="ai-btn-text">Generate AI Insights</span>
+                    </button>
+                    <button type="button" id="clear-ai-insights-btn"
+                            class="px-4 py-2 text-sm font-medium text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-lg transition-colors inline-flex items-center gap-1.5 {{ $planning?->ai_insights ? '' : 'hidden' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Clear Insights
+                    </button>
+                </div>
             </div>
 
             <!-- Previous Observation Highlights (from past data) -->
@@ -429,6 +436,42 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
         btn.disabled = false;
         spinner.classList.add('hidden');
         btnText.textContent = 'Generate AI Insights';
+    });
+});
+
+document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
+    if (!confirm('Clear AI insights? This cannot be undone.')) return;
+
+    fetch('{{ route("supervisor.observations.clear-ai-insights", $observation) }}', {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('ai_insights_input').value = '';
+            const textEl = document.getElementById('ai-insights-text');
+            if (textEl) {
+                const container = textEl.closest('.bg-gray-50');
+                if (container) container.remove();
+            }
+            const container = document.getElementById('ai-insights-container');
+            if (!document.getElementById('ai-insights-empty')) {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 rounded-lg p-4 border border-dashed border-gray-300 text-center';
+                div.id = 'ai-insights-empty';
+                div.innerHTML = '<svg class="w-10 h-10 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><p class="text-sm text-gray-500">No AI insights available yet.</p><p class="text-xs text-gray-400 mt-1">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations.</p>';
+                container.appendChild(div);
+            }
+            document.getElementById('clear-ai-insights-btn').classList.add('hidden');
+        }
+    })
+    .catch(err => {
+        alert('Failed to clear AI insights.');
+        console.error(err);
     });
 });
 </script>

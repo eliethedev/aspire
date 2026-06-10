@@ -4,9 +4,17 @@ namespace App\Services;
 
 use App\Models\Observation;
 use Illuminate\Support\Facades\Storage;
+use App\Services\AISuggestionService;
 
 class ObservationReportService
 {
+    protected AISuggestionService $aiSuggestions;
+
+    public function __construct(AISuggestionService $aiSuggestions)
+    {
+        $this->aiSuggestions = $aiSuggestions;
+    }
+
     public function generate(Observation $observation): string
     {
         $this->loadRelations($observation);
@@ -41,7 +49,7 @@ class ObservationReportService
         $md .= $this->postConferenceSummary($postCon);
 
         // ==================== SECTION 6: AI-GENERATED INSIGHTS & RECOMMENDATIONS ====================
-        $md .= $this->aiInsights($cotRatings, $planning, $postCon);
+        $md .= $this->aiInsights($observation);
 
         // ==================== SECTION 7: TEACHER REFLECTION & AGREEMENT ====================
         $md .= $this->teacherReflection($postCon, $teacherName, $observerName);
@@ -132,13 +140,14 @@ MD;
         foreach ($cotRatings as $rating) {
             $i++;
             $comments = $rating->comments ?? '-';
-            $md .= "| {$i} | {$rating->domain} | {$rating->indicator} | " . number_format($rating->rating, 1) . " | {$comments} |\n";
+            $ratingDisplay = $rating->not_observed ? 'NO' : number_format($rating->rating, 1);
+            $md .= "| {$i} | {$rating->domain} | {$rating->indicator} | {$ratingDisplay} | {$comments} |\n";
         }
 
         $average = $overallScore ?? $cotRatings->avg('rating');
         $descriptive = $this->getDescriptiveRating($average);
 
-        $md .= "\n**Overall Average Rating:** " . number_format($average, 2) . " / 5.00\n";
+        $md .= "\n**Overall Average Rating:** " . number_format($average, 2) . " / 6.00\n";
         $md .= "**Descriptive Rating:** {$descriptive}\n\n";
 
         return $md;
@@ -147,10 +156,10 @@ MD;
     protected function getDescriptiveRating(float $score): string
     {
         return match (true) {
-            $score >= 4.50 => 'Outstanding',
-            $score >= 3.50 => 'Very Satisfactory',
-            $score >= 2.50 => 'Satisfactory',
-            $score >= 1.50 => 'Fair',
+            $score >= 5.50 => 'Outstanding',
+            $score >= 4.50 => 'Very Satisfactory',
+            $score >= 3.50 => 'Satisfactory',
+            $score >= 2.50 => 'Fair',
             default         => 'Needs Improvement',
         };
     }
@@ -265,34 +274,17 @@ MD;
         return $md;
     }
 
-    protected function aiInsights($cotRatings, $planning, $postCon): string
+    protected function aiInsights(Observation $observation): string
     {
         $md = "## AI-Generated Insights & Recommendations\n\n";
 
-        // Collect all AI feedback across COT ratings
-        $allStrengths = [];
-        $allAreas = [];
-        $allRecommendations = [];
+        $summary = $this->aiSuggestions->compileOverallSummary($observation);
+        $postCon = $observation->postConference;
 
-        foreach ($cotRatings as $rating) {
-            if ($rating->aiFeedback) {
-                $fb = $rating->aiFeedback;
-                if (!empty($fb->strengths) && is_array($fb->strengths)) {
-                    $allStrengths = array_merge($allStrengths, $fb->strengths);
-                }
-                if (!empty($fb->areas_for_improvement) && is_array($fb->areas_for_improvement)) {
-                    $allAreas = array_merge($allAreas, $fb->areas_for_improvement);
-                }
-                if (!empty($fb->recommendations) && is_array($fb->recommendations)) {
-                    $allRecommendations = array_merge($allRecommendations, $fb->recommendations);
-                }
-            }
-        }
-
-        if (!empty($allStrengths) || !empty($allAreas) || !empty($allRecommendations)) {
+        if (!empty($summary['strengths']) || !empty($summary['areas_for_improvement']) || !empty($summary['recommendations'])) {
             $md .= "### Personalized Strengths\n\n";
-            if (!empty($allStrengths)) {
-                foreach ($allStrengths as $s) {
+            if (!empty($summary['strengths'])) {
+                foreach ($summary['strengths'] as $s) {
                     $md .= "- {$s}\n";
                 }
             } else {
@@ -301,8 +293,8 @@ MD;
             $md .= "\n";
 
             $md .= "### Areas for Improvement\n\n";
-            if (!empty($allAreas)) {
-                foreach ($allAreas as $a) {
+            if (!empty($summary['areas_for_improvement'])) {
+                foreach ($summary['areas_for_improvement'] as $a) {
                     $md .= "- {$a}\n";
                 }
             } else {
@@ -311,8 +303,8 @@ MD;
             $md .= "\n";
 
             $md .= "### Actionable Coaching Recommendations\n\n";
-            if (!empty($allRecommendations)) {
-                foreach ($allRecommendations as $r) {
+            if (!empty($summary['recommendations'])) {
+                foreach ($summary['recommendations'] as $r) {
                     $md .= "- {$r}\n";
                 }
             } else {

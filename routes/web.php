@@ -115,7 +115,10 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 
     // AI-powered insights
     Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->name('observations.generate-ai-insights');
+    Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->name('observations.generate-ai-suggestions');
+    Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->name('observations.generate-ai-comparison');
+    Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->name('observations.generate-observation-suggestions');
 
     // Post-Observation Report
     Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->name('observations.report');

@@ -249,7 +249,7 @@
                 <h2 class="text-lg font-semibold text-gray-900">Observation Ratings</h2>
                 <div class="text-right">
                     <p class="text-sm text-gray-500">Overall Score</p>
-                    <p class="text-gray-900 font-bold text-2xl">{{ number_format($observation->overall_score, 2) }} <span class="text-base text-gray-400 font-normal">/ 5.00</span></p>
+                    <p class="text-gray-900 font-bold text-2xl">{{ number_format($observation->overall_score, 2) }} <span class="text-base text-gray-400 font-normal">/ 6.00</span></p>
                 </div>
             </div>
             <div class="space-y-3">
@@ -266,7 +266,7 @@
                         </div>
                         <div>
                             <span class="text-gray-500 text-sm">Rating:</span>
-                            <p class="text-gray-900 font-medium">{{ number_format($rating->rating, 1) }} / 5</p>
+                            <p class="text-gray-900 font-medium">{{ $rating->not_observed ? 'NO' : number_format($rating->rating, 1) }} / 6</p>
                         </div>
                     </div>
                     @if($rating->comments)

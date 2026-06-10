@@ -21,11 +21,11 @@ class AIFeedbackService
     {
         $cotRating = CotRating::with(['observation.teacher'])->findOrFail($cotRatingId);
 
-        if ($this->gemini->isConfigured()) {
-            return $this->generateWithGemini($cotRating);
+        if (!$this->gemini->isConfigured()) {
+            return null;
         }
 
-        return $this->generateFallback($cotRating);
+        return $this->generateWithGemini($cotRating);
     }
 
     protected function generateWithGemini(CotRating $cotRating): ?AiFeedback
@@ -37,9 +37,10 @@ class AIFeedbackService
         $obsType = $observation->observation_type ?? 'N/A';
         $domain = $cotRating->domain;
         $indicator = $cotRating->indicator;
-        $rating = $cotRating->rating;
-        $percentage = $cotRating->percentage();
+        $rating = $cotRating->numericRating();
+        $percentage = $cotRating->isNotObserved() ? 0 : round(($rating / 6) * 100, 1);
 
+        $scoreLabel = $cotRating->isNotObserved() ? 'NO (Not Observed)' : "{$rating}/6";
         $prompt = <<<PROMPT
 You are an expert classroom observation analyst for the Department of Education. Generate detailed feedback for a COT (Classroom Observation Tool) rating.
 
@@ -50,7 +51,7 @@ Observation Type: {$obsType}
 
 Rating Domain: {$domain}
 Rating Indicator: {$indicator}
-Score: {$rating}/7
+Score: {$scoreLabel}
 Percentage: {$percentage}%
 
 Provide a comprehensive analysis with these sections:
@@ -68,7 +69,7 @@ PROMPT;
         ]);
 
         if (!$data) {
-            return $this->generateFallback($cotRating);
+            return null;
         }
 
         $aiFeedback = AiFeedback::create([
@@ -147,8 +148,8 @@ PROMPT;
             }
         }
 
-        return $this->generatePreObservationFallback(
-            $teacherName, $subject, $gradeLevel, $objective, $strategies, $materials, $assessment, $lessonPlanContent
+        return $this->buildPreObservationFallback(
+            $teacherName, $objective, $strategies, $materials, $assessment, $lessonPlanContent, $subject, $gradeLevel
         );
     }
 
@@ -199,78 +200,6 @@ PROMPT;
         ]);
     }
 
-    protected function generateFallback(CotRating $cotRating): AiFeedback
-    {
-        $percentage = $cotRating->percentage();
-        $category = $cotRating->rating_category;
-
-        if ($percentage >= 90) {
-            $analysis = "Excellent performance in {$category}. The teacher demonstrates mastery in this area with consistent application of best practices.";
-        } elseif ($percentage >= 80) {
-            $analysis = "Proficient performance in {$category}. The teacher shows good understanding with minor areas for refinement.";
-        } elseif ($percentage >= 70) {
-            $analysis = "Developing performance in {$category}. The teacher is approaching proficiency with targeted support needed.";
-        } elseif ($percentage >= 60) {
-            $analysis = "Beginning performance in {$category}. Structured coaching and professional development recommended.";
-        } else {
-            $analysis = "Performance in {$category} requires immediate intervention. Intensive support and monitoring necessary.";
-        }
-
-        $recommendations = [];
-        if ($percentage < 70) {
-            $recommendations[] = "Schedule follow-up observation for {$category} within 2 weeks";
-            $recommendations[] = "Provide targeted professional development resources for {$category}";
-            $recommendations[] = "Arrange peer mentoring with high-performing teacher in {$category}";
-        } elseif ($percentage < 80) {
-            $recommendations[] = "Share best practices and exemplar materials for {$category}";
-            $recommendations[] = "Encourage self-reflection and goal setting for {$category}";
-        } else {
-            $recommendations[] = "Document exemplary practices in {$category} for knowledge sharing";
-            $recommendations[] = "Consider peer coaching opportunities in {$category}";
-        }
-
-        $strengths = [];
-        if ($percentage >= 80) {
-            $strengths[] = "Strong command of {$category}";
-        }
-        if ($percentage >= 90) {
-            $strengths[] = "Consistently exceeds expectations";
-            $strengths[] = "Serves as model for peers";
-        }
-
-        $areas = [];
-        if ($percentage < 70) {
-            $areas[] = "Fundamental skills in {$category}";
-        }
-        if ($percentage < 80) {
-            $areas[] = "Consistency in applying {$category} techniques";
-        }
-        if ($percentage < 60) {
-            $areas[] = "Core competencies requiring intensive support";
-        }
-
-        $baseScore = 0.75;
-        if ($observation = $cotRating->observation) {
-            if ($observation->notes) {
-                $baseScore += 0.10;
-            }
-        }
-        $knownCategories = ['instruction', 'assessment', 'classroom_management', 'content_knowledge'];
-        if (in_array($cotRating->rating_category, $knownCategories)) {
-            $baseScore += 0.05;
-        }
-
-        return AiFeedback::create([
-            'cot_rating_id' => $cotRating->id,
-            'analysis' => $analysis,
-            'recommendations' => $recommendations,
-            'strengths' => $strengths,
-            'areas_for_improvement' => $areas,
-            'confidence_score' => min($baseScore, 0.95),
-            'model_version' => config('services.ai.model_version', 'ASPIRE-v1.0'),
-        ]);
-    }
-
     public function getFeedbackNeedingReview(): \Illuminate\Support\Collection
     {
         return AiFeedback::where('confidence_score', '<', 0.60)
@@ -289,15 +218,15 @@ PROMPT;
         return $this->gemini->isConfigured();
     }
 
-    protected function generatePreObservationFallback(
+    protected function buildPreObservationFallback(
         string $teacherName,
-        string $subject,
-        string $gradeLevel,
         string $objective,
         string $strategies,
         string $materials,
         string $assessment,
-        string $lessonPlanContent
+        string $lessonPlanContent,
+        string $subject,
+        string $gradeLevel
     ): string {
         $insights = [];
         $insights[] = "**Pre-Observation Insights for {$teacherName}**";

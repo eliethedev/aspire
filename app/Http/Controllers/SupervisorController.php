@@ -13,6 +13,8 @@ use App\Models\SchoolHeadProfile;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use App\Services\AIFeedbackService;
+use App\Services\AISuggestionService;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -22,12 +24,14 @@ class SupervisorController extends Controller
     protected NotificationService $notificationService;
     protected PHPMailerService $mailerService;
     protected AIFeedbackService $aiFeedback;
+    protected AISuggestionService $aiSuggestions;
 
-    public function __construct(NotificationService $notificationService, PHPMailerService $mailerService, AIFeedbackService $aiFeedback)
+    public function __construct(NotificationService $notificationService, PHPMailerService $mailerService, AIFeedbackService $aiFeedback, AISuggestionService $aiSuggestions)
     {
         $this->notificationService = $notificationService;
         $this->mailerService = $mailerService;
         $this->aiFeedback = $aiFeedback;
+        $this->aiSuggestions = $aiSuggestions;
     }
     /**
      * Display the supervisor dashboard.
@@ -437,8 +441,20 @@ class SupervisorController extends Controller
 
         $cotRatings = $observation->cotRatings;
         $preConference = $observation->preConference;
+        $observation->loadMissing(['preObservationPlanning', 'observee']);
 
-        return view('supervisor.observations.observation', compact('observation', 'cotRatings', 'preConference'));
+        $schoolYear = $observation->school_year ?? config('cot.default_version', '2025-2026');
+        $cotVersion = config("cot.versions.{$schoolYear}", config('cot.versions.' . config('cot.default_version')));
+        $cotIndicators = $cotVersion['indicators'] ?? [];
+        $ratingScale = config('cot.rating_scale', []);
+        $ratingScaleCss = config('cot.rating_scale_css', []);
+        $existingSuggestions = $observation->preObservationPlanning?->ai_insights;
+
+        return view('supervisor.observations.observation', compact(
+            'observation', 'cotRatings', 'preConference',
+            'cotIndicators', 'ratingScale', 'ratingScaleCss',
+            'existingSuggestions', 'schoolYear'
+        ));
     }
 
     /**
@@ -450,10 +466,16 @@ class SupervisorController extends Controller
 
         $validated = $request->validate([
             'ratings' => ['required', 'array'],
+            'ratings.*.indicator_code' => ['required', 'string'],
             'ratings.*.domain' => ['required', 'string'],
             'ratings.*.indicator' => ['required', 'string'],
-            'ratings.*.rating' => ['required', 'numeric', 'min:1', 'max:5'],
+            'ratings.*.rating' => ['nullable', 'integer', 'in:2,3,4,5,6'],
+            'ratings.*.not_observed' => ['nullable', 'boolean'],
+            'ratings.*.has_rating' => ['nullable', 'string'],
             'ratings.*.comments' => ['nullable', 'string'],
+            'other_comments' => ['nullable', 'string'],
+            'star_notes' => ['nullable', 'string'],
+            'supervisor_notes' => ['nullable', 'string'],
         ]);
 
         // Delete existing ratings
@@ -461,13 +483,15 @@ class SupervisorController extends Controller
 
         // Create new ratings
         $createdRatings = [];
-        foreach ($validated['ratings'] as $rating) {
+        foreach ($validated['ratings'] as $item) {
             $createdRatings[] = CotRating::create([
                 'observation_id' => $observation->id,
-                'domain' => $rating['domain'],
-                'indicator' => $rating['indicator'],
-                'rating' => $rating['rating'],
-                'comments' => $rating['comments'] ?? null,
+                'indicator_code' => $item['indicator_code'],
+                'domain' => $item['domain'],
+                'indicator' => $item['indicator'],
+                'rating' => !empty($item['not_observed']) ? null : ($item['rating'] ?? null),
+                'not_observed' => !empty($item['not_observed']),
+                'comments' => $item['comments'] ?? null,
             ]);
         }
 
@@ -490,8 +514,30 @@ class SupervisorController extends Controller
             }
         }
 
-        // Calculate overall score
-        $avgRating = $observation->cotRatings()->avg('rating');
+        // Save additional notes
+        $otherComments = $request->input('other_comments');
+        $observation->update([
+            'evidence_files' => $evidenceFiles,
+            'notes' => $otherComments ? ($observation->notes ? $observation->notes . "\n\n" . $otherComments : $otherComments) : $observation->notes,
+        ]);
+
+        // Auto-save STAR notes to post-conference if provided
+        $starNotes = $request->input('star_notes');
+        $supervisorNotes = $request->input('supervisor_notes');
+        if ($starNotes || $supervisorNotes) {
+            $observation->postConference()->updateOrCreate(
+                ['observation_id' => $observation->id],
+                [
+                    'star_notes' => $starNotes,
+                    'supervisor_notes' => $supervisorNotes,
+                ]
+            );
+        }
+
+        // Calculate overall score (average of numeric ratings excluding NO)
+        $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
+        $avgRating = $rated->exists() ? $rated->avg('rating') : null;
+
         $observation->logChange([
             'to_stage' => 'post_conference',
             'to_status' => 'cot_completed',
@@ -501,8 +547,11 @@ class SupervisorController extends Controller
             'overall_score' => $avgRating,
             'status' => 'cot_completed',
             'stage' => 'post_conference',
-            'evidence_files' => $evidenceFiles,
         ]);
+
+        // Auto-trigger AI post-observation analysis
+        $observation->loadMissing(['postConference', 'preObservationPlanning', 'observee']);
+        $this->aiFeedback->generatePostConferenceComparison($observation);
 
         // Notify the observee that their observation is complete
         $observee = $observation->observee;
@@ -514,7 +563,7 @@ class SupervisorController extends Controller
         }
 
         return redirect()->route('supervisor.observations.postConference', $observation->id)
-            ->with('success', 'Observation ratings have been saved.');
+            ->with('success', 'Observation ratings have been saved. AI analysis has been generated.');
     }
 
     /**
@@ -1024,8 +1073,73 @@ class SupervisorController extends Controller
             ['ai_insights' => $insights]
         );
 
-        $source = $this->aiFeedback->isGeminiConfigured() ? '' : ' (rule-based)';
+        $source = $this->aiFeedback->isGeminiConfigured() ? 'gemini' : 'rule-based';
         return response()->json(['ai_insights' => $insights, 'source' => $source]);
+    }
+
+    public function clearAiInsights(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $observation->preObservationPlanning()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            ['ai_insights' => null]
+        );
+
+        return response()->json(['success' => true]);
+    }
+
+    public function generateAiSuggestions(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->loadMissing(['preObservationPlanning', 'observee']);
+
+        if (!$this->aiFeedback->isGeminiConfigured()) {
+            return response()->json(['error' => 'Gemini API is not configured.'], 400);
+        }
+
+        $planning = $observation->preObservationPlanning;
+        $teacherName = $observation->observee?->name ?? 'Unknown';
+        $subject = $observation->subject ?? 'N/A';
+        $gradeLevel = $observation->grade_level ?? 'N/A';
+        $objective = $planning?->objective ?? 'Not specified';
+        $strategies = $planning?->teaching_strategies ?? 'Not specified';
+        $materials = $planning?->materials ?? 'Not specified';
+        $assessment = $planning?->assessment_methods ?? 'Not specified';
+
+        $prompt = <<<PROMPT
+You are an expert instructional coach. Based on the pre-observation data below, generate two concise text blocks for a pre-conference form.
+
+Teacher: {$teacherName}
+Subject: {$subject}
+Grade Level: {$gradeLevel}
+Objective: {$objective}
+Teaching Strategies: {$strategies}
+Materials: {$materials}
+Assessment Methods: {$assessment}
+
+Return JSON with exactly two keys:
+
+1. "discussion_notes" — 3-4 bullet points covering key discussion topics: teaching strategies, learner diversity, assessment methods, and any support the teacher may need.
+
+2. "finalized_focus" — 2-3 concise focus areas agreed upon for the classroom observation, based on the objective and strategies.
+
+Keep both concise and actionable. No preamble.
+PROMPT;
+
+        $data = app(GeminiService::class)->generateJson($prompt, [
+            'temperature' => 0.3,
+            'max_output_tokens' => 1024,
+        ]);
+
+        if (!$data) {
+            return response()->json(['error' => 'Failed to generate suggestions.'], 500);
+        }
+
+        return response()->json([
+            'discussion_notes' => $data['discussion_notes'] ?? '',
+            'finalized_focus' => $data['finalized_focus'] ?? '',
+        ]);
     }
 
     public function generateAiComparison(Observation $observation)
@@ -1055,5 +1169,18 @@ class SupervisorController extends Controller
         );
 
         return response()->json(['ai_comparison' => $comparison]);
+    }
+
+    public function generateObservationSuggestions(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $suggestions = $this->aiSuggestions->generateObservationSuggestions($observation);
+
+        if ($suggestions === null) {
+            return response()->json(['error' => 'Failed to generate observation suggestions. Try again later.'], 500);
+        }
+
+        return response()->json(['suggestions' => $suggestions]);
     }
 }

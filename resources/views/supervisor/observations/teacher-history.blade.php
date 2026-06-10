@@ -63,7 +63,7 @@
                             &middot; <span class="capitalize">{{ str_replace('_', ' ', $observation->observation_mode) }}</span>
                         </p>
                         @if($observation->overall_score)
-                            <p class="text-sm text-dark-400 mt-0.5">Score: {{ number_format($observation->overall_score, 2) }} / 5.00</p>
+                            <p class="text-sm text-dark-400 mt-0.5">Score: {{ number_format($observation->overall_score, 2) }} / 6.00</p>
                         @endif
                     </div>
                 </div>

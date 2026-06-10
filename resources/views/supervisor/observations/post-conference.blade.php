@@ -88,7 +88,7 @@
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">COT Ratings Summary</h2>
-                    <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500">/ 5.00</span></span>
+                    <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500">/ 6.00</span></span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -135,7 +135,7 @@
                                 <span class="font-medium {{ $avg >= 4 ? 'text-green-600' : ($avg >= 3 ? 'text-yellow-600' : 'text-red-600') }}">{{ number_format($avg, 2) }}</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="h-2 rounded-full {{ $avg >= 4 ? 'bg-green-500' : ($avg >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ ($avg / 5) * 100 }}%"></div>
+                                <div class="h-2 rounded-full {{ $avg >= 4 ? 'bg-green-500' : ($avg >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ ($avg / 6) * 100 }}%"></div>
                             </div>
                         </div>
                     @endforeach
@@ -389,7 +389,7 @@
                 <p class="text-sm text-gray-500 mt-1">out of 5.00</p>
                 <div class="mt-3 w-full bg-gray-200 rounded-full h-3">
                     <div class="h-3 rounded-full {{ $observation->overall_score >= 4 ? 'bg-green-500' : ($observation->overall_score >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}"
-                         style="width: {{ ($observation->overall_score / 5) * 100 }}%"></div>
+                         style="width: {{ $observation->overall_score ? ($observation->overall_score / 6) * 100 : 0 }}%"></div>
                 </div>
             </div>
             @endif

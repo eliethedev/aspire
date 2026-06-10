@@ -165,6 +165,11 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 Dismiss
                             </button>
+                            <button type="button" id="clear-ai-insights-btn"
+                                    class="px-4 py-2 text-sm font-medium text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-lg transition-colors inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Clear
+                            </button>
                         </div>
 
                         <!-- Modify AI Textarea (hidden by default) -->
@@ -298,13 +303,11 @@
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-sm font-medium text-gray-700">Pre-Conference Discussion Notes</label>
-                            @if($aiInsights)
                             <button type="button" onclick="useAiSuggestions()"
                                     class="text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                                 Use AI Suggestions
                             </button>
-                            @endif
                         </div>
                         <p class="text-xs text-gray-500 mb-2">Document key discussion points including teaching strategies, learner diversity considerations, and assessment methods.</p>
                         <textarea name="discussion_notes" id="discussion_notes" rows="5"
@@ -314,13 +317,11 @@
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-sm font-medium text-gray-700">Finalized Observation Focus *</label>
-                            @if($aiInsights)
                             <button type="button" onclick="useAiSuggestions()"
                                     class="text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                                 Use AI Suggestions
                             </button>
-                            @endif
                         </div>
                         <p class="text-xs text-gray-500 mb-2">Areas agreed upon to be the focus of the classroom observation.</p>
                         <textarea name="finalized_focus" id="finalized_focus" rows="4"
@@ -610,22 +611,51 @@ function rejectAiInsights() {
     showToast('AI insights dismissed.');
 }
 
-function useAiSuggestions() {
-    const text = document.getElementById('ai-insights-text');
-    if (!text) return;
-    const insights = text.textContent || text.innerText;
-    document.getElementById('discussion_notes').value = insights;
-    document.getElementById('finalized_focus').value = extractFocusAreas(insights);
-    document.getElementById('ai_insights_reviewed_input').value = '1';
-    showToast('AI suggestions applied to form fields.');
-}
+document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
+    if (!confirm('Clear AI insights from the database? This cannot be undone.')) return;
 
-function extractFocusAreas(text) {
-    const lines = text.split('\n').filter(l => l.trim());
-    const focusLines = lines.filter(l =>
-        l.match(/focus|area|key|observe|watch|challenge|strategy|discussion/i)
-    );
-    return focusLines.length > 0 ? focusLines.slice(0, 5).join('\n') : lines.slice(0, 5).join('\n');
+    fetch('{{ route("supervisor.observations.clear-ai-insights", $observation) }}', {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(err => {
+        alert('Failed to clear AI insights.');
+        console.error(err);
+    });
+});
+
+function useAiSuggestions() {
+    fetch('{{ route("supervisor.observations.generate-ai-suggestions", $observation) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.discussion_notes) {
+            document.getElementById('discussion_notes').value = data.discussion_notes;
+        }
+        if (data.finalized_focus) {
+            document.getElementById('finalized_focus').value = data.finalized_focus;
+        }
+        document.getElementById('ai_insights_reviewed_input').value = '1';
+        showToast('AI suggestions applied to form fields.');
+    })
+    .catch(err => {
+        alert('Failed to generate AI suggestions. Please try again.');
+        console.error(err);
+    });
 }
 
 function markReviewed() {

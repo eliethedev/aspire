@@ -241,7 +241,7 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Observation Ratings</h2>
             <div class="mb-4">
                 <span class="text-gray-500 text-sm">Overall Score:</span>
-                <p class="text-gray-900 font-medium text-2xl">{{ number_format($observation->overall_score, 2) }} / 5.00</p>
+                <p class="text-gray-900 font-medium text-2xl">{{ number_format($observation->overall_score, 2) }} / 6.00</p>
             </div>
             <div class="space-y-3">
                 @foreach($observation->cotRatings as $rating)
@@ -257,7 +257,7 @@
                         </div>
                         <div>
                             <span class="text-gray-500 text-sm">Rating:</span>
-                            <p class="text-gray-900 font-medium">{{ $rating->rating }} / 5</p>
+                            <p class="text-gray-900 font-medium">{{ $rating->not_observed ? 'NO' : $rating->rating }} / 6</p>
                         </div>
                     </div>
                     @if($rating->comments)
