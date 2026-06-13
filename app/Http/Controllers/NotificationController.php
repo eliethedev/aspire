@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 class NotificationController extends Controller
 {
@@ -20,20 +21,20 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markAsRead(Request $request, $id): JsonResponse
+    public function markAsRead(Request $request, $id): RedirectResponse
     {
         $notification = Notification::findOrFail($id);
         
         if ($notification->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            abort(403, 'Unauthorized');
         }
 
         $notification->markAsRead();
 
-        return response()->json(['success' => true]);
+        return redirect()->back();
     }
 
-    public function markAllAsRead(Request $request): JsonResponse
+    public function markAllAsRead(Request $request): RedirectResponse
     {
         $user = auth()->user();
         $user->unreadNotifications()->update([
@@ -41,7 +42,7 @@ class NotificationController extends Controller
             'read_at' => now(),
         ]);
 
-        return response()->json(['success' => true]);
+        return redirect()->back();
     }
 
     public function show($role)

@@ -1,6 +1,6 @@
 <!-- Unified Sidebar for Teacher, Supervisor, School Head -->
 <aside class="sidebar-glass sidebar-floating sidebar-scroll h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar overflow-y-auto" 
-       x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), teachersOpen: $persist(true), reportsOpen: $persist(true) } @else { systemOpen: $persist(true), reportsOpen: $persist(true) } @endif" 
+       x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), feedbackOpen: $persist(true), teachersOpen: $persist(true), reportsOpen: $persist(true) } @else { systemOpen: $persist(true), reportsOpen: $persist(true) } @endif" 
        :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
     <!-- Logo -->
@@ -84,16 +84,31 @@
                             <span x-show="!$store.sidebar.collapsed" class="font-medium">My Observations</span>
                         </a>
                     </li>
+                    @php
+                        $pendingConfirmationCount = auth()->user()->teacher
+                            ? \App\Models\Observation::where('observee_id', auth()->user()->teacher->id)
+                                ->where('observee_type', \App\Models\Teacher::class)
+                                ->where('confirmation_status', 'pending')
+                                ->where('status', '!=', 'cancelled')
+                                ->count()
+                            : 0;
+                    @endphp
                     <li>
                         <a href="{{ route('teacher.observations.index', ['status' => 'scheduled']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('teacher.observations.*') && request('status') === 'scheduled' ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap text-gray-400 relative" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
+                                @if($pendingConfirmationCount > 0)
+                                <span class="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                                @endif
                             </span>
                             <span x-show="!$store.sidebar.collapsed" class="font-medium">Upcoming</span>
+                            @if($pendingConfirmationCount > 0)
+                            <span x-show="!$store.sidebar.collapsed" class="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">{{ $pendingConfirmationCount }}</span>
+                            @endif
                         </a>
                     </li>
                 </ul>
@@ -110,8 +125,8 @@
 
                 <ul x-show="!$store.sidebar.collapsed ? feedbackOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
                     <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
+                        <a href="{{ route('teacher.feedback.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('teacher.feedback.*') ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,8 +137,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
+                        <a href="{{ route('teacher.coaching.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('teacher.coaching.*') ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,6 +228,43 @@
                 </ul>
             </li>
 
+            <!-- Supervisor: Feedback Center -->
+            <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
+                <button x-show="!$store.sidebar.collapsed" @click="feedbackOpen = !feedbackOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                    <span>Feedback</span>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': feedbackOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <ul x-show="!$store.sidebar.collapsed ? feedbackOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
+                    <li>
+                        <a href="{{ route('supervisor.feedback.center') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('supervisor.feedback.center') ? 'sidebar-link-active' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Feedback Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('supervisor.coaching.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('supervisor.coaching.*') ? 'sidebar-link-active' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Coaching Agreements</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- Supervisor: Teachers Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
                 <button x-show="!$store.sidebar.collapsed" @click="teachersOpen = !teachersOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
@@ -232,7 +284,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                                 </svg>
                             </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Teacher Management</span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Teachers List</span>
                         </a>
                     </li>
                 </ul>

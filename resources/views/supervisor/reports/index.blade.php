@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="max-w-7xl mx-auto px-6">
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-dark">Reports</h1>
@@ -22,7 +22,7 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Teachers -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-blue-500/20">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
         </div>
 
         <!-- Total Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-purple-500/20">
                     <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Completed Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-green-500/20">
                     <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Pending Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-yellow-500/20">
                     <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@
                             <p class="text-xs text-dark/60">{{ $observation->observation_date->format('M d, Y') }} - {{ ucfirst(str_replace('-', ' ', $observation->stage)) }}</p>
                         </div>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                            {{ $observation->status === 'completed' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300' }}">
+                            {{ $observation->status === 'completed' ? 'bg-green-500/20 text-green' : 'bg-yellow-500/20 text-yellow' }}">
                             {{ ucfirst($observation->status) }}
                         </span>
                     </div>

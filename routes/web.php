@@ -83,6 +83,15 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
     Route::get('/observations', [\App\Http\Controllers\Teacher\ObservationController::class, 'index'])->name('observations.index');
     Route::get('/observations/{observation}', [\App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
     Route::post('/observations/{observation}/upload-lesson-plan', [\App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->name('observations.upload-lesson-plan');
+    Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\Teacher\ObservationController::class, 'confirm'])->name('observations.confirm');
+    Route::post('/observations/{observation}/reject', [\App\Http\Controllers\Teacher\ObservationController::class, 'reject'])->name('observations.reject');
+
+    // Feedback & Coaching
+    Route::get('/feedback', [\App\Http\Controllers\Teacher\FeedbackController::class, 'index'])->name('feedback.index');
+    Route::get('/feedback/{feedback}', [\App\Http\Controllers\Teacher\FeedbackController::class, 'show'])->name('feedback.show');
+    Route::get('/coaching', [\App\Http\Controllers\Teacher\CoachingController::class, 'index'])->name('coaching.index');
+    Route::get('/coaching/{agreement}', [\App\Http\Controllers\Teacher\CoachingController::class, 'show'])->name('coaching.show');
+    Route::post('/coaching/{agreement}/sign', [\App\Http\Controllers\Teacher\CoachingController::class, 'sign'])->name('coaching.sign');
 });
 
 // Supervisor routes
@@ -97,6 +106,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/calendar/observations', [\App\Http\Controllers\CalendarController::class, 'getObservationsByDate'])->name('calendar.observations');
     
     Route::get('/teachers', [SupervisorController::class, 'teachers'])->name('teachers.index');
+    Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
     Route::get('/observations', [SupervisorController::class, 'observations'])->name('observations.index');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
@@ -107,6 +117,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     // Stage-specific routes
     Route::get('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
     Route::post('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
+    Route::post('/observations/{observation}/request-lesson-plan', [SupervisorController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
     Route::get('/observations/{observation}/pre-conference', [SupervisorController::class, 'preConference'])->name('observations.preConference');
     Route::post('/observations/{observation}/pre-conference', [SupervisorController::class, 'storePreConference'])->name('observations.storePreConference');
     Route::get('/observations/{observation}/observation', [SupervisorController::class, 'observation'])->name('observations.observation');
@@ -121,14 +132,39 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/teachers/{observeeId}/observations', [SupervisorController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
 
     // AI-powered insights
-    Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->name('observations.generate-ai-insights');
-    Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->name('observations.generate-ai-suggestions');
+    Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
+    Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
     Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
-    Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->name('observations.generate-ai-comparison');
-    Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->name('observations.generate-observation-suggestions');
+    Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
+    Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
 
     // Post-Observation Report
     Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->name('observations.report');
+
+    // Feedback Management
+    Route::get('/feedback', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'center'])->name('feedback.center');
+    Route::prefix('observations/{observation}/feedback')->name('feedback.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'create'])->name('create');
+        Route::post('/generate', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'generate'])->middleware('ai.rate.limit')->name('generate');
+        Route::post('/generate-ai', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'generateAi'])->middleware('ai.rate.limit')->name('generate-ai');
+        Route::get('/{feedback}/edit', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'edit'])->name('edit');
+        Route::patch('/{feedback}', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'update'])->name('update');
+        Route::post('/{feedback}/publish', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'publish'])->name('publish');
+        Route::get('/{feedback}/export', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'export'])->name('export');
+        Route::delete('/{feedback}', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'destroy'])->name('destroy');
+    });
+
+    // Coaching Agreements
+    Route::get('/coaching', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'index'])->name('coaching.index');
+    Route::get('/observations/{observation}/coaching/create', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'create'])->name('coaching.create');
+    Route::post('/coaching', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'store'])->name('coaching.store');
+    Route::get('/coaching/{agreement}', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'show'])->name('coaching.show');
+    Route::get('/coaching/{agreement}/edit', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'edit'])->name('coaching.edit');
+    Route::patch('/coaching/{agreement}', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'update'])->name('coaching.update');
+    Route::post('/coaching/{agreement}/sign', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'sign'])->name('coaching.sign');
+    Route::get('/coaching/{agreement}/export', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'export'])->name('coaching.export');
+    Route::delete('/coaching/{agreement}', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'destroy'])->name('coaching.destroy');
 });
 
 // School Head routes

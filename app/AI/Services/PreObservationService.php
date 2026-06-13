@@ -11,6 +11,14 @@ class PreObservationService extends AIService
 {
     protected string $stage = 'pre_observation';
 
+    public function __construct(
+        \App\AI\Contracts\AIServiceInterface $provider,
+        \App\AI\RAG\PPSTRubricRepository $rubrics,
+        protected DocumentExtractorService $documentExtractor
+    ) {
+        parent::__construct($provider, $rubrics);
+    }
+
     public function generateInsights(Observation $observation): ?string
     {
         $observation->loadMissing(['observee.user', 'preObservationPlanning']);
@@ -21,7 +29,7 @@ class PreObservationService extends AIService
         $lessonPlanFile = $planning?->lesson_plan_file;
         if ($lessonPlanFile && Storage::disk('public')->exists($lessonPlanFile)) {
             $fullPath = Storage::disk('public')->path($lessonPlanFile);
-            $lessonPlanContent = $this->extractText($fullPath);
+            $lessonPlanContent = $this->documentExtractor->extractText($fullPath);
         }
 
         $rubricContext = $this->rubrics->getRelevantForLessonPlan(

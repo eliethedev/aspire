@@ -4,9 +4,12 @@ namespace App\AI\Services;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Exceptions\AIException;
+use App\AI\Exceptions\AIRateLimitException;
 use App\AI\RAG\PPSTRubricRepository;
 use App\Models\Observation;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 
 abstract class AIService
 {
@@ -44,11 +47,27 @@ abstract class AIService
         ];
     }
 
+    protected function checkRateLimit(): void
+    {
+        $userId = Auth::id() ?? 'guest';
+        $key = "ai:service:{$this->stage}:{$userId}";
+        $limits = config("ai.rate_limits.operations.{$this->stage}", ['limit' => 20, 'decay' => 60]);
+
+        if (RateLimiter::tooManyAttempts($key, $limits['limit'])) {
+            $availableIn = RateLimiter::availableIn($key);
+            throw new AIRateLimitException($this->stage, $availableIn);
+        }
+
+        RateLimiter::hit($key, $limits['decay']);
+    }
+
     protected function generate(string $prompt, array $overrideOptions = []): ?string
     {
         if (!$this->isAvailable()) {
             return null;
         }
+
+        $this->checkRateLimit();
 
         $options = array_merge($this->getOptions(), $overrideOptions);
 
@@ -64,6 +83,8 @@ abstract class AIService
         if (!$this->isAvailable()) {
             return null;
         }
+
+        $this->checkRateLimit();
 
         $options = array_merge($this->getOptions(), $overrideOptions);
 

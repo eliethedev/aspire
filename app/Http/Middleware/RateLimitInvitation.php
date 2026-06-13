@@ -3,66 +3,62 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Cache\RateLimiter;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
 
 class RateLimitInvitation
 {
     /**
-     * The rate limiter instance.
-     */
-    protected RateLimiter $limiter;
-
-    /**
-     * Create a new rate limiter middleware instance.
-     */
-    public function __construct(RateLimiter $limiter)
-    {
-        $this->limiter = $limiter;
-    }
-
-    /**
      * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  int  $maxAttempts   Default: 5 attempts
+     * @param  int  $decayMinutes  Default: 1 minute
      */
     public function handle(Request $request, Closure $next, int $maxAttempts = 5, int $decayMinutes = 1): Response
     {
         $key = $this->resolveRequestSignature($request);
 
-        if ($this->limiter->tooManyAttempts($key, $maxAttempts)) {
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             return $this->buildResponse($key, $maxAttempts);
         }
 
-        $this->limiter->hit($key, $decayMinutes * 60);
+        RateLimiter::hit($key, $decayMinutes * 60);
 
-        $response = $next($request);
-
-        return $response;
+        return $next($request);
     }
 
     /**
-     * Resolve request signature.
+     * Create a unique rate limit key for invitations.
      */
     protected function resolveRequestSignature(Request $request): string
     {
+        $email = $request->input('email') ?? $request->input('invitee_email');
+        $token = $request->input('token') ?? '';
+
+        // Prioritize email if available (best for invitation sending)
+        if ($email) {
+            return sha1("invitation:send:{$email}");
+        }
+
+        // Fallback to IP + token + path
         return sha1(
-            $request->ip() . '|' . $request->path() . '|' . ($request->input('token') ?? '')
+            "invitation:{$request->ip()}:{$request->path()}:{$token}"
         );
     }
 
     /**
-     * Create a response for rate limiting.
+     * Build rate limit exceeded response.
      */
     protected function buildResponse(string $key, int $maxAttempts): Response
     {
-        $seconds = $this->limiter->availableIn($key);
+        $seconds = RateLimiter::availableIn($key);
 
         return response()->json([
-            'message' => Lang::get('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'message' => 'Too many invitation attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
+            'retry_after' => $seconds,
         ], 429);
     }
 }

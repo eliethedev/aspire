@@ -5,10 +5,19 @@ namespace App\AI\Services;
 use App\AI\Prompts\ObservationSuggestionsPrompt;
 use App\Models\CotRating;
 use App\Models\Observation;
+use Illuminate\Support\Facades\Storage;
 
 class ObservationGuidanceService extends AIService
 {
     protected string $stage = 'observation_guidance';
+
+    public function __construct(
+        \App\AI\Contracts\AIServiceInterface $provider,
+        \App\AI\RAG\PPSTRubricRepository $rubrics,
+        protected DocumentExtractorService $documentExtractor
+    ) {
+        parent::__construct($provider, $rubrics);
+    }
 
     public function generateSuggestions(Observation $observation): ?string
     {
@@ -17,6 +26,13 @@ class ObservationGuidanceService extends AIService
         $teacherName = $observation->observee?->user?->name ?? 'Unknown';
         $planning = $observation->preObservationPlanning;
         $preConference = $observation->preConference;
+
+        $lessonPlanContent = '';
+        $lessonPlanFile = $planning?->lesson_plan_file;
+        if ($lessonPlanFile && Storage::disk('public')->exists($lessonPlanFile)) {
+            $fullPath = Storage::disk('public')->path($lessonPlanFile);
+            $lessonPlanContent = $this->documentExtractor->extractText($fullPath);
+        }
 
         if ($this->isAvailable()) {
             $aiInsights = $planning?->ai_insights ?? null;
@@ -38,6 +54,7 @@ class ObservationGuidanceService extends AIService
                 'suggested_focus' => $planning?->suggested_focus ?? 'Not specified',
                 'discussion_notes' => $preConference?->discussion_notes ?? 'Not specified',
                 'ai_insights' => $aiInsightsText,
+                'lesson_plan_content' => $lessonPlanContent,
                 'rubrics' => $rubricContext,
             ]);
 

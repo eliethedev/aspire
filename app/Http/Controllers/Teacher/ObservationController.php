@@ -96,7 +96,7 @@ class ObservationController extends Controller
         }
 
         $validated = $request->validate([
-            'lesson_plan_file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:20480'],
+            'lesson_plan_file' => ['required', 'file', 'mimes:pdf,doc,docx,pptx,xlsx', 'max:20480'],
         ]);
 
         $file = $request->file('lesson_plan_file');
@@ -146,6 +146,157 @@ class ObservationController extends Controller
         }
     }
 
+    public function confirm(Observation $observation)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+            abort(403);
+        }
+
+        if (!$observation->canConfirm()) {
+            return back()->with('error', 'This observation cannot be confirmed at this time.');
+        }
+
+        $observation->confirm();
+
+        // Notify the supervisor
+        $observer = $observation->observer;
+        if ($observer) {
+            $link = route('supervisor.observations.show', $observation);
+            $this->notificationService->notifyObservationConfirmed($observer, Auth::user()->name, $link);
+
+            $teacherName = Auth::user()->name;
+            $subject = "Observation Confirmed – {$observation->subject}";
+            $this->mailer->sendGenericEmail(
+                $observer->email, $observer->name, $subject,
+                $this->buildObservationConfirmedEmail($teacherName, $subject, $observation, $link)
+            );
+        }
+
+        return back()->with('success', 'You have confirmed the observation schedule.');
+    }
+
+    public function reject(Request $request, Observation $observation)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+            abort(403);
+        }
+
+        if (!$observation->canConfirm()) {
+            return back()->with('error', 'This observation cannot be rejected at this time.');
+        }
+
+        $validated = $request->validate([
+            'rejection_reason' => ['required', 'string', 'in:scheduling_conflict,health_concern,insufficient_preparation,other'],
+            'rejection_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $reason = $validated['rejection_reason'];
+        $notes = $validated['rejection_notes'] ?? null;
+
+        $observation->reject($reason, $notes);
+
+        // Notify the supervisor
+        $observer = $observation->observer;
+        if ($observer) {
+            $link = route('supervisor.observations.show', $observation);
+            $this->notificationService->notifyObservationRejected($observer, Auth::user()->name, str_replace('_', ' ', ucwords($reason)), $link);
+
+            $teacherName = Auth::user()->name;
+            $subject = "Observation Rejected – {$observation->subject}";
+            $this->mailer->sendGenericEmail(
+                $observer->email, $observer->name, $subject,
+                $this->buildObservationRejectedEmail($teacherName, $subject, $observation, $reason, $notes, $link)
+            );
+        }
+
+        return back()->with('success', 'You have rejected the observation schedule. Your supervisor will be notified.');
+    }
+
+    protected function buildObservationConfirmedEmail(string $teacherName, string $subject, Observation $observation, string $observationLink): string
+    {
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset='UTF-8'></head>
+        <body style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0;'>
+            <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f7f6; padding: 40px 0;'>
+                <tr><td align='center'>
+                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);'>
+                        <tr>
+                            <td style='background-color: #059669; padding: 30px 40px; text-align: center;'>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 22px;'>Observation Confirmed</h1>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 30px 40px;'>
+                                <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
+                                    <strong>{$teacherName}</strong> has confirmed the following observation:
+                                </p>
+                                <table style='background-color: #ecfdf5; border-left: 4px solid #059669; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Date:</strong> {$observation->observation_date->format('M d, Y')}</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='background-color: #f9fafb; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb;'>
+                                <p style='color: #9ca3af; font-size: 12px; margin: 0;'>This is an automated notification from the ASPIRE Classroom Observation System.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td></tr>
+            </table>
+        </body>
+        </html>";
+    }
+
+    protected function buildObservationRejectedEmail(string $teacherName, string $subject, Observation $observation, string $reason, ?string $notes, string $observationLink): string
+    {
+        $reasonLabel = str_replace('_', ' ', ucwords($reason));
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset='UTF-8'></head>
+        <body style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0;'>
+            <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f7f6; padding: 40px 0;'>
+                <tr><td align='center'>
+                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);'>
+                        <tr>
+                            <td style='background-color: #dc2626; padding: 30px 40px; text-align: center;'>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 22px;'>Observation Rejected</h1>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 30px 40px;'>
+                                <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
+                                    <strong>{$teacherName}</strong> has rejected the following observation:
+                                </p>
+                                <table style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Reason:</strong> {$reasonLabel}</td></tr>
+                                </table>
+                                " . ($notes ? "<p style='color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;'><strong>Notes:</strong> {$notes}</p>" : "") . "
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='background-color: #f9fafb; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb;'>
+                                <p style='color: #9ca3af; font-size: 12px; margin: 0;'>This is an automated notification from the ASPIRE Classroom Observation System.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td></tr>
+            </table>
+        </body>
+        </html>";
+    }
+
     protected function buildLessonPlanUploadedEmail(string $teacherName, string $subject, Observation $observation, string $observationLink): string
     {
         return "
@@ -171,12 +322,6 @@ class ObservationController extends Controller
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                 </table>
-                                <p style='text-align: center; margin: 30px 0 0 0;'>
-                                    <a href='{$observationLink}'
-                                       style='display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 15px; font-weight: bold;'>
-                                        View Observation
-                                    </a>
-                                </p>
                             </td>
                         </tr>
                         <tr>

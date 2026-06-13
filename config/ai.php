@@ -135,6 +135,39 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | Global per-user rate limits for AI features. "per_minute" applies to the
+    | middleware-level limiter (broadest). "operations" let you define per-task
+    | limits enforced in the service layer.
+    |
+    */
+
+    'rate_limits' => [
+        'per_minute' => (int) env('AI_RATE_LIMIT_PER_MINUTE', 30),
+        'per_hour'   => (int) env('AI_RATE_LIMIT_PER_HOUR', 200),
+        'operations' => [
+            'pre_observation'    => ['limit' => 15, 'decay' => 60],
+            'post_observation'   => ['limit' => 10, 'decay' => 60],
+            'post_conference'    => ['limit' => 10, 'decay' => 60],
+            'final_report'       => ['limit' => 5,  'decay' => 300],
+            'observation_guidance' => ['limit' => 20, 'decay' => 60],
+            'feedback'           => ['limit' => 20, 'decay' => 60],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache
+    |--------------------------------------------------------------------------
+    |
+    | Cache RAG data for performance.
+    |
+    */
+
     'cache' => [
         'ttl' => env('AI_CACHE_TTL', 3600),
         'key_prefix' => 'ai_rag_',

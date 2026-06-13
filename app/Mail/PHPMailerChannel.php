@@ -143,7 +143,7 @@ class PHPMailerChannel
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h1>🏫 ASPIRE System</h1>
+                    <h1>ASPIRE System</h1>
                     <p>Automated Supervision Platform for Instructional Reform & Excellence</p>
                 </div>
                 <div class='content'>

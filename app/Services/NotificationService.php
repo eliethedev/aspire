@@ -172,4 +172,48 @@ class NotificationService
             $observationLink
         );
     }
+
+    public function notifyLessonPlanRequested(User $teacher, string $requesterName, string $observationLink): void
+    {
+        $this->createNotification(
+            $teacher,
+            'lesson_plan_requested',
+            'Lesson Plan Requested',
+            "{$requesterName} has requested you to submit a lesson plan for an upcoming observation.",
+            $observationLink
+        );
+    }
+
+    public function notifyLessonPlanRequestedToSupervisor(User $supervisor, string $teacherName, string $observationLink): void
+    {
+        $this->createNotification(
+            $supervisor,
+            'lesson_plan_requested',
+            'Lesson Plan Requested',
+            "You requested {$teacherName} to submit a lesson plan.",
+            $observationLink
+        );
+    }
+
+    public function notifyObservationConfirmed(User $supervisor, string $teacherName, string $observationLink): void
+    {
+        $this->createNotification(
+            $supervisor,
+            'observation_confirmed',
+            'Observation Confirmed',
+            "{$teacherName} has confirmed the scheduled observation.",
+            $observationLink
+        );
+    }
+
+    public function notifyObservationRejected(User $supervisor, string $teacherName, string $reason, string $observationLink): void
+    {
+        $this->createNotification(
+            $supervisor,
+            'observation_rejected',
+            'Observation Rejected',
+            "{$teacherName} has rejected the scheduled observation. Reason: {$reason}.",
+            $observationLink
+        );
+    }
 }

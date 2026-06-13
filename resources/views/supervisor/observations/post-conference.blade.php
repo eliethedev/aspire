@@ -5,6 +5,10 @@
 @push('styles')
 <style>
     select option { background-color: #1f2937; color: #ffffff; }
+    .sidebar-sticky { position: sticky; top: 1.5rem; align-self: start; max-height: calc(100vh - 3rem); overflow-y: auto; }
+    .sidebar-sticky::-webkit-scrollbar { width: 4px; }
+    .sidebar-sticky::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-sticky::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 </style>
 @endpush
 
@@ -22,12 +26,12 @@
         'observation' => 'supervisor.observations.observation',
         'post_conference' => 'supervisor.observations.postConference',
     ];
-    $currentStage = 'post_conference';
+    $currentStage = $observation->stage;
     $currentIdx = array_search($currentStage, $stageKeys);
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="max-w-7xl mx-auto px-6">
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500">
@@ -164,7 +168,8 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('supervisor.observations.storePostConference', $observation) }}" class="space-y-6">
+            <form method="POST" action="{{ route('supervisor.observations.storePostConference', $observation) }}" class="space-y-6"
+                  x-data="{ submitting: false }" x-on:submit="submitting = true">
                 @csrf
 
                 <!-- Section 1: Conference Schedule -->
@@ -340,12 +345,17 @@
                                 Back to Observation
                             </span>
                         </a>
-                        <button type="submit" 
+                        <button type="submit" :disabled="submitting"
+                                :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                                 class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors"
                                 onclick="return confirm('Mark this observation as complete? This will finalize all ratings and notify the teacher.')">
-                            <span class="flex items-center justify-center gap-2">
+                            <span x-show="!submitting" class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Complete Observation
+                            </span>
+                            <span x-show="submitting" class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Saving...
                             </span>
                         </button>
                     </div>
@@ -354,7 +364,7 @@
         </div>
 
         <!-- Right Column -->
-        <div class="space-y-6">
+        <div class="space-y-6 sidebar-sticky">
 
             <!-- Teacher Info Card -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

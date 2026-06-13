@@ -19,9 +19,10 @@
         <script>
             document.addEventListener('alpine:init', () => {
                 Alpine.store('sidebar', {
-                    collapsed: false,
+                    collapsed: localStorage.getItem('sidebar_collapsed') === 'true',
                     toggle() {
                         this.collapsed = !this.collapsed;
+                        localStorage.setItem('sidebar_collapsed', this.collapsed);
                     }
                 });
             });

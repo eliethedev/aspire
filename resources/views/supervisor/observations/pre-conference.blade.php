@@ -7,7 +7,10 @@
     select option { background-color: #1f2937; color: #ffffff; }
     .ai-panel-enter { animation: slideDown 0.3s ease-out; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .sticky-sidebar { position: sticky; top: 1.5rem; }
+    .sidebar-sticky { position: sticky; top: 1.5rem; align-self: start; max-height: calc(100vh - 3rem); overflow-y: auto; }
+    .sidebar-sticky::-webkit-scrollbar { width: 4px; }
+    .sidebar-sticky::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-sticky::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .insight-card { transition: all 0.2s ease; }
     .insight-card:hover { border-color: #a5b4fc; }
     .copy-btn { opacity: 0; transition: opacity 0.15s ease; }
@@ -32,7 +35,7 @@
         'observation' => 'supervisor.observations.observation',
         'post_conference' => 'supervisor.observations.postConference',
     ];
-    $currentStage = 'pre_conference';
+    $currentStage = $observation->stage;
     $currentIdx = array_search($currentStage, $stageKeys);
     $aiInsights = $planning?->ai_insights;
     $aiReviewed = $planning?->ai_insights_reviewed ?? false;
@@ -40,7 +43,7 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="max-w-7xl mx-auto px-6">
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500">
@@ -101,7 +104,8 @@
     </div>
     @endif
 
-    <form method="POST" action="{{ route('supervisor.observations.storePreConference', $observation) }}" id="pre-conference-form" class="space-y-6">
+    <form method="POST" action="{{ route('supervisor.observations.storePreConference', $observation) }}" id="pre-conference-form" class="space-y-6"
+          x-data="{ submitting: false }" x-on:submit="submitting = true">
     @csrf
     <input type="hidden" name="ai_insights_reviewed" id="ai_insights_reviewed_input" value="{{ $aiReviewed ? '1' : '0' }}">
 
@@ -350,18 +354,28 @@
                     <span class="text-xs text-gray-500">Save and continue to the Observation stage when the pre-conference is complete.</span>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button type="submit" name="save_draft" value="1"
+                    <button type="submit" name="save_draft" value="1" :disabled="submitting"
+                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                             class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm text-center transition-colors">
-                        <span class="flex items-center justify-center gap-2">
+                        <span x-show="!submitting" class="flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Save Draft
                         </span>
+                        <span x-show="submitting" class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Saving...
+                        </span>
                     </button>
-                    <button type="submit"
+                    <button type="submit" :disabled="submitting"
+                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                             class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
-                        <span class="flex items-center justify-center gap-2">
+                        <span x-show="!submitting" class="flex items-center justify-center gap-2">
                             Save &amp; Continue to Observation
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </span>
+                        <span x-show="submitting" class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Saving...
                         </span>
                     </button>
                     <button type="button" onclick="openCancelModal()"
@@ -372,122 +386,120 @@
             </div>
         </div>
 
-        <!-- Right Column - Sticky Sidebar -->
-        <div class="space-y-6 sticky-sidebar">
-            <div class="space-y-6">
-                <!-- Teacher Info Card -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Teacher Information</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <span class="text-xs text-gray-500">Name</span>
-                            <p class="text-sm font-medium text-gray-900">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-500">Position</span>
-                            <p class="text-sm text-gray-900">{{ $observation->observee->position ?? 'Teacher' }}</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-500">School</span>
-                            <p class="text-sm text-gray-900">{{ $observation->observee->school->name ?? 'N/A' }}</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-500">Status</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($observation->status) }}</span>
-                        </div>
+        <!-- Right Column -->
+        <div class="space-y-6 sidebar-sticky">
+            <!-- Teacher Info Card -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Teacher Information</h3>
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-xs text-gray-500">Name</span>
+                        <p class="text-sm font-medium text-gray-900">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500">Position</span>
+                        <p class="text-sm text-gray-900">{{ $observation->observee->position ?? 'Teacher' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500">School</span>
+                        <p class="text-sm text-gray-900">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500">Status</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($observation->status) }}</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Observation Tool Info -->
-                @if($planning?->observation_tool)
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Observation Tool</h3>
-                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                        <p class="text-sm font-medium text-blue-800">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
-                        @if($planning->observation_tool === 'ppst')
-                            <p class="text-xs text-blue-600 mt-1">5 Domains &middot; 27 Indicators</p>
-                        @elseif($planning->observation_tool === 'classroom_observation_tool')
-                            <p class="text-xs text-blue-600 mt-1">9 Performance Indicators</p>
-                        @elseif($planning->observation_tool === 'tisuyon')
-                            <p class="text-xs text-blue-600 mt-1">Peer Observation &middot; Collaborative</p>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
-                <!-- Previous COT Performance Summary -->
-                @if(isset($prevStrengths) && $prevStrengths->isNotEmpty())
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Previous COT Performance</h3>
-                    <div class="bg-green-50 rounded-lg p-3 border border-green-100 mb-3">
-                        <p class="text-xs font-semibold text-green-800 uppercase tracking-wider mb-2">Strengths</p>
-                        <ul class="space-y-1.5">
-                            @foreach($prevStrengths as $strength)
-                            <li class="flex items-center justify-between text-xs">
-                                <span class="text-green-700">{{ $strength->domain }}</span>
-                                <span class="font-medium text-green-600">{{ number_format($strength->avg_rating, 1) }}</span>
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    @if(isset($prevWeaknesses) && $prevWeaknesses->isNotEmpty())
-                    <div class="bg-red-50 rounded-lg p-3 border border-red-100">
-                        <p class="text-xs font-semibold text-red-800 uppercase tracking-wider mb-2">Areas for Improvement</p>
-                        <ul class="space-y-1.5">
-                            @foreach($prevWeaknesses as $weakness)
-                            <li class="flex items-center justify-between text-xs">
-                                <span class="text-red-700">{{ $weakness->domain }}</span>
-                                <span class="font-medium text-red-600">{{ number_format($weakness->avg_rating, 1) }}</span>
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
+            <!-- Observation Tool Info -->
+            @if($planning?->observation_tool)
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Observation Tool</h3>
+                <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <p class="text-sm font-medium text-blue-800">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
+                    @if($planning->observation_tool === 'ppst')
+                        <p class="text-xs text-blue-600 mt-1">5 Domains &middot; 27 Indicators</p>
+                    @elseif($planning->observation_tool === 'classroom_observation_tool')
+                        <p class="text-xs text-blue-600 mt-1">9 Performance Indicators</p>
+                    @elseif($planning->observation_tool === 'tisuyon')
+                        <p class="text-xs text-blue-600 mt-1">Peer Observation &middot; Collaborative</p>
                     @endif
                 </div>
-                @endif
+            </div>
+            @endif
 
-                <!-- Focus Areas Summary -->
-                @if($planning?->suggested_focus)
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Focus Areas</h3>
-                    <p class="text-sm text-gray-700">{{ $planning->suggested_focus }}</p>
-                </div>
-                @endif
-
-                <!-- Agenda Checklist -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Pre-Conference Agenda</h3>
-                    <ul class="space-y-2.5" id="agenda-checklist">
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Review lesson plan objectives and alignment</label>
+            <!-- Previous COT Performance Summary -->
+            @if(isset($prevStrengths) && $prevStrengths->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Previous COT Performance</h3>
+                <div class="bg-green-50 rounded-lg p-3 border border-green-100 mb-3">
+                    <p class="text-xs font-semibold text-green-800 uppercase tracking-wider mb-2">Strengths</p>
+                    <ul class="space-y-1.5">
+                        @foreach($prevStrengths as $strength)
+                        <li class="flex items-center justify-between text-xs">
+                            <span class="text-green-700">{{ $strength->domain }}</span>
+                            <span class="font-medium text-green-600">{{ number_format($strength->avg_rating, 1) }}</span>
                         </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Discuss teaching strategies and methodologies</label>
-                        </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Address learner diversity considerations</label>
-                        </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Review instructional materials and resources</label>
-                        </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Discuss assessment methods and feedback</label>
-                        </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Agree on observation focus areas</label>
-                        </li>
-                        <li class="agenda-item flex items-start gap-2.5">
-                            <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                            <label class="text-xs text-gray-600 cursor-pointer select-none">Address teacher concerns and questions</label>
-                        </li>
+                        @endforeach
                     </ul>
                 </div>
+                @if(isset($prevWeaknesses) && $prevWeaknesses->isNotEmpty())
+                <div class="bg-red-50 rounded-lg p-3 border border-red-100">
+                    <p class="text-xs font-semibold text-red-800 uppercase tracking-wider mb-2">Areas for Improvement</p>
+                    <ul class="space-y-1.5">
+                        @foreach($prevWeaknesses as $weakness)
+                        <li class="flex items-center justify-between text-xs">
+                            <span class="text-red-700">{{ $weakness->domain }}</span>
+                            <span class="font-medium text-red-600">{{ number_format($weakness->avg_rating, 1) }}</span>
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+            </div>
+            @endif
+
+            <!-- Focus Areas Summary -->
+            @if($planning?->suggested_focus)
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Focus Areas</h3>
+                <p class="text-sm text-gray-700">{{ $planning->suggested_focus }}</p>
+            </div>
+            @endif
+
+            <!-- Agenda Checklist -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Pre-Conference Agenda</h3>
+                <ul class="space-y-2.5" id="agenda-checklist">
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Review lesson plan objectives and alignment</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Discuss teaching strategies and methodologies</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Address learner diversity considerations</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Review instructional materials and resources</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Discuss assessment methods and feedback</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Agree on observation focus areas</label>
+                    </li>
+                    <li class="agenda-item flex items-start gap-2.5">
+                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <label class="text-xs text-gray-600 cursor-pointer select-none">Address teacher concerns and questions</label>
+                    </li>
+                </ul>
             </div>
         </div>
 

@@ -39,29 +39,54 @@ class SupervisorController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        
-        // Get statistics
+
+        $observationsQuery = Observation::where('observer_id', $user->id);
+        $obs = (clone $observationsQuery)->get();
+        $obsScored = $obs->whereNotNull('overall_score');
+
         $stats = [
-            'total_teachers' => Teacher::whereHas('user', function ($query) use ($user) {
-                $query->where('school_id', $user->school_id);
-            })->count(),
-            'total_observations' => Observation::where('observer_id', $user->id)->count(),
-            'completed_observations' => Observation::where('observer_id', $user->id)
-                ->where('status', 'completed')->count(),
-            'pending_observations' => Observation::where('observer_id', $user->id)
-                ->where('status', 'pending')->count(),
-            'average_score' => Observation::where('observer_id', $user->id)
-                ->whereNotNull('overall_score')->avg('overall_score') ?? 0,
+            'total_teachers' => Teacher::whereHas('user', fn($q) => $q->where('school_id', $user->school_id))->count(),
+            'total_observations' => $obs->count(),
+            'completed' => $obs->where('status', 'completed')->count(),
+            'in_progress' => $obs->where('status', 'in_progress')->count(),
+            'scheduled' => $obs->where('status', 'scheduled')->count(),
+            'average_score' => round($obsScored->avg('overall_score') ?? 0, 2),
+            'stage_pre_planning' => $obs->where('stage', 'pre_observation_planning')->count(),
+            'stage_pre_conference' => $obs->where('stage', 'pre_conference')->count(),
+            'stage_observation' => $obs->where('stage', 'observation')->count(),
+            'stage_post_conference' => $obs->where('stage', 'post_conference')->count(),
         ];
 
-        // Get recent observations
-        $recentObservations = Observation::with(['observee'])
-            ->where('observer_id', $user->id)
+        $recentObservations = (clone $observationsQuery)
+            ->with('observee.user')
             ->latest()
             ->take(5)
             ->get();
 
-        return view('supervisor.dashboard', compact('stats', 'recentObservations'));
+        $cotScores = (clone $observationsQuery)
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->pluck('overall_score')
+            ->toArray();
+
+        $cotLabels = (clone $observationsQuery)
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->get()
+            ->map(fn($o, $i) => 'Obs ' . ($i + 1))
+            ->toArray();
+
+        $prevAvg = (clone $observationsQuery)
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->take(max(count($cotScores) - 1, 1))
+            ->avg('overall_score');
+
+        $trend = $prevAvg ? ($stats['average_score'] - round($prevAvg, 2)) : 0;
+
+        return view('supervisor.dashboard', compact(
+            'stats', 'recentObservations', 'cotScores', 'cotLabels', 'trend'
+        ));
     }
 
     /**
@@ -74,6 +99,7 @@ class SupervisorController extends Controller
         // Get teachers from the same school as the supervisor
         $teachers = Teacher::query()
             ->with(['user', 'school'])
+            ->withCount('observations')
             ->whereHas('user', function ($query) use ($user) {
                 $query->where('school_id', $user->school_id);
             })
@@ -86,6 +112,50 @@ class SupervisorController extends Controller
             ->paginate($request->per_page ?? 15);
 
         return view('supervisor.teachers.index', compact('teachers'));
+    }
+
+    /**
+     * Display a teacher's profile with their details and recent observations.
+     */
+    public function teacherProfile(Teacher $teacher)
+    {
+        $user = Auth::user();
+
+        if ($teacher->user->school_id !== $user->school_id) {
+            abort(403, 'This teacher does not belong to your school.');
+        }
+
+        $teacher->load(['user', 'school']);
+
+        $observations = Observation::with(['preObservationPlanning', 'preConference', 'postConference', 'cotRatings'])
+            ->where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class)
+            ->latest()
+            ->paginate(10);
+
+        $stats = [
+            'total' => Observation::where('observee_id', $teacher->id)
+                ->where('observee_type', Teacher::class)
+                ->count(),
+            'completed' => Observation::where('observee_id', $teacher->id)
+                ->where('observee_type', Teacher::class)
+                ->where('stage', 'post_conference')
+                ->count(),
+            'in_progress' => Observation::where('observee_id', $teacher->id)
+                ->where('observee_type', Teacher::class)
+                ->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])
+                ->count(),
+            'avg_score' => Observation::where('observee_id', $teacher->id)
+                ->where('observee_type', Teacher::class)
+                ->whereNotNull('overall_score')
+                ->avg('overall_score'),
+            'latest_observation' => Observation::where('observee_id', $teacher->id)
+                ->where('observee_type', Teacher::class)
+                ->latest()
+                ->first(),
+        ];
+
+        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats'));
     }
 
     /**
@@ -107,7 +177,31 @@ class SupervisorController extends Controller
             ->get();
 
         // Prepare teacher data for JavaScript (richer info for browse & preview)
-        $teacherData = $teachers->map(function ($teacher) {
+        $teacherIds = $teachers->pluck('id');
+
+        $recentObs = Observation::whereIn('observee_id', $teacherIds)
+            ->where('observee_type', Teacher::class)
+            ->latest()
+            ->get()
+            ->groupBy('observee_id');
+
+        $teacherData = $teachers->map(function ($teacher) use ($recentObs) {
+            $observations = $recentObs->get($teacher->id, collect())->take(5)->map(function ($obs) {
+                return [
+                    'id' => $obs->id,
+                    'date' => $obs->observation_date->format('M d, Y'),
+                    'stage' => $obs->stage,
+                    'status' => $obs->status,
+                    'subject' => $obs->subject,
+                    'score' => $obs->overall_score ? number_format($obs->overall_score, 2) : null,
+                    'url' => route('supervisor.observations.show', $obs),
+                ];
+            });
+
+            $totalObs = $recentObs->get($teacher->id, collect())->count();
+            $completedObs = $recentObs->get($teacher->id, collect())->where('stage', 'post_conference')->count();
+            $inProgressObs = $recentObs->get($teacher->id, collect())->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count();
+
             return [
                 'id' => $teacher->id,
                 'name' => $teacher->user->name,
@@ -117,6 +211,13 @@ class SupervisorController extends Controller
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
                 'employee_number' => $teacher->employee_number ?? '—',
+                'profile_url' => route('supervisor.teachers.show', $teacher),
+                'recent_observations' => $observations,
+                'obs_stats' => [
+                    'total' => $totalObs,
+                    'completed' => $completedObs,
+                    'in_progress' => $inProgressObs,
+                ],
             ];
         });
 
@@ -299,7 +400,7 @@ class SupervisorController extends Controller
         $this->authorizeObservation($observation);
 
         $validated = $request->validate([
-            'lesson_plan_file' => ['nullable', 'file', 'mimes:pdf,doc,docx'],
+            'lesson_plan_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,pptx,xlsx'],
             'ai_insights' => ['nullable', 'string'],
             'suggested_focus' => ['nullable', 'string'],
             'supervisor_notes' => ['nullable', 'string'],
@@ -325,19 +426,117 @@ class SupervisorController extends Controller
             ]
         );
 
-        $observation->logChange([
-            'to_stage' => 'pre_conference',
-            'notes' => 'Pre-Observation Planning completed',
-        ]);
-        $observation->update(['stage' => 'pre_conference']);
-
         if ($request->input('continue') === 'pre_conference') {
+            $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+            $currentIdx = array_search($observation->stage, $stageOrder);
+            $targetIdx = array_search('pre_conference', $stageOrder);
+
+            if ($targetIdx === $currentIdx + 1) {
+                $observation->logChange([
+                    'to_stage' => 'pre_conference',
+                    'notes' => 'Pre-Observation Planning completed',
+                ]);
+                $observation->update(['stage' => 'pre_conference']);
+            }
+
             return redirect()->route('supervisor.observations.preConference', $observation->id)
                 ->with('success', 'Pre-Observation Planning has been saved. Proceed to Pre-Conference.');
         }
 
         return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
             ->with('success', 'Pre-Observation Planning notes have been saved.');
+    }
+
+    /**
+     * Request lesson plan from the teacher
+     */
+    public function requestLessonPlan(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $observation->load(['observee.user', 'observee.school']);
+
+        $teacherUser = $observation->observee?->user;
+        if (!$teacherUser) {
+            return redirect()->back()->with('error', 'Teacher not found for this observation.');
+        }
+
+        $requester = Auth::user();
+        $requesterName = $requester->name;
+        $observationLink = route('teacher.observations.show', $observation);
+
+        // Notify the teacher in-app
+        $this->notificationService->notifyLessonPlanRequested($teacherUser, $requesterName, $observationLink);
+
+        // Send email to the teacher
+        $subject = "Lesson Plan Requested – {$observation->subject}";
+        $this->mailerService->sendGenericEmail(
+            $teacherUser->email,
+            $teacherUser->name,
+            $subject,
+            $this->buildLessonPlanRequestedEmail($requesterName, $observation, $observationLink)
+        );
+
+        // Notify the school head(s) of the teacher's school
+        $school = $observation->observee?->school;
+        if ($school) {
+            $schoolHeads = $school->users()->where('role', 'school_head')->get();
+            foreach ($schoolHeads as $schoolHead) {
+                $schoolHeadLink = route('supervisor.observations.show', $observation);
+                $this->notificationService->notifyLessonPlanUploaded($schoolHead, $teacherUser->name, $schoolHeadLink);
+                $this->mailerService->sendGenericEmail(
+                    $schoolHead->email, $schoolHead->name, $subject,
+                    $this->buildLessonPlanRequestedEmail($requesterName, $observation, $schoolHeadLink)
+                );
+            }
+        }
+
+        // Notify the supervisor (requester) as confirmation
+        $supervisorLink = route('supervisor.observations.preObservationPlanning', $observation);
+        $teacherName = $teacherUser->name;
+        $this->notificationService->notifyLessonPlanRequestedToSupervisor($requester, $teacherName, $supervisorLink);
+
+        return redirect()->back()->with('success', 'Lesson plan request has been sent to the teacher.');
+    }
+
+    protected function buildLessonPlanRequestedEmail(string $requesterName, Observation $observation, string $observationLink): string
+    {
+        $subject = "Lesson Plan Requested – {$observation->subject}";
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset='UTF-8'></head>
+        <body style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0;'>
+            <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f7f6; padding: 40px 0;'>
+                <tr><td align='center'>
+                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);'>
+                        <tr>
+                            <td style='background-color: #d97706; padding: 30px 40px; text-align: center;'>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 22px;'>Lesson Plan Requested</h1>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 30px 40px;'>
+                                <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
+                                    <strong>{$requesterName}</strong> has requested you to submit a lesson plan for the following observation:
+                                </p>
+                                <table style='background-color: #fffbeb; border-left: 4px solid #d97706; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style='background-color: #f9fafb; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb;'>
+                                <p style='color: #9ca3af; font-size: 12px; margin: 0;'>This is an automated notification from the ASPIRE Classroom Observation System.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td></tr>
+            </table>
+        </body>
+        </html>";
     }
 
     /**
@@ -422,11 +621,18 @@ class SupervisorController extends Controller
                 ->with('success', 'Pre-Conference draft saved.');
         }
 
-        $observation->logChange([
-            'to_stage' => 'observation',
-            'notes' => 'Pre-Conference completed',
-        ]);
-        $observation->update(['stage' => 'observation']);
+        // Only advance stage forward (prevent regression)
+        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $currentIdx = array_search($observation->stage, $stageOrder);
+        $targetIdx = array_search('observation', $stageOrder);
+
+        if ($targetIdx === $currentIdx + 1) {
+            $observation->logChange([
+                'to_stage' => 'observation',
+                'notes' => 'Pre-Conference completed',
+            ]);
+            $observation->update(['stage' => 'observation']);
+        }
 
         return redirect()->route('supervisor.observations.observation', $observation->id)
             ->with('success', 'Pre-Conference has been saved.');
@@ -538,16 +744,26 @@ class SupervisorController extends Controller
         $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
         $avgRating = $rated->exists() ? $rated->avg('rating') : null;
 
-        $observation->logChange([
-            'to_stage' => 'post_conference',
-            'to_status' => 'cot_completed',
-            'notes' => 'COT Ratings completed',
-        ]);
-        $observation->update([
-            'overall_score' => $avgRating,
-            'status' => 'cot_completed',
-            'stage' => 'post_conference',
-        ]);
+        // Only advance stage forward (prevent regression)
+        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $currentIdx = array_search($observation->stage, $stageOrder);
+        $targetIdx = array_search('post_conference', $stageOrder);
+
+        $updates = ['overall_score' => $avgRating, 'status' => 'cot_completed'];
+        if ($targetIdx === $currentIdx + 1) {
+            $updates['stage'] = 'post_conference';
+            $observation->logChange([
+                'to_stage' => 'post_conference',
+                'to_status' => 'cot_completed',
+                'notes' => 'COT Ratings completed',
+            ]);
+        } else {
+            $observation->logChange([
+                'to_status' => 'cot_completed',
+                'notes' => 'COT Ratings updated',
+            ]);
+        }
+        $observation->update($updates);
 
         // Auto-trigger AI post-observation analysis
         $observation->loadMissing(['postConference', 'preObservationPlanning', 'observee']);
@@ -967,9 +1183,7 @@ class SupervisorController extends Controller
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: #1e40af; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { padding: 20px; background: #f9fafb; }
-                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-                .detail { margin: 8px 0; }
                 .detail-label { font-weight: 600; color: #555; }
             </style>
         </head>
@@ -987,9 +1201,6 @@ class SupervisorController extends Controller
                         <tr><td class='detail-label'>Scheduled By:</td><td>{$observerName}</td></tr>
                         <tr><td class='detail-label'>Observation Date:</td><td>{$date}</td></tr>
                     </table>
-                    <div style='text-align: center;'>
-                        <a href='{$link}' class='button'>View Observation Details</a>
-                    </div>
                     <p style='margin-top: 20px;'><strong>What to expect:</strong></p>
                     <ul>
                         <li>Pre-Observation Planning: You may be required to submit a lesson plan and answer pre-observation questions.</li>
@@ -1022,9 +1233,7 @@ class SupervisorController extends Controller
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { padding: 20px; background: #f9fafb; }
-                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-                .detail { margin: 8px 0; }
                 .detail-label { font-weight: 600; color: #555; }
             </style>
         </head>
@@ -1043,9 +1252,6 @@ class SupervisorController extends Controller
                         <tr><td class='detail-label'>Original Date:</td><td>{$date}</td></tr>
                         <tr><td class='detail-label'>Reason:</td><td>{$reason}</td></tr>
                     </table>
-                    <div style='text-align: center;'>
-                        <a href='{$link}' class='button'>View Details</a>
-                    </div>
                     <p>If you have any questions, please contact your supervisor directly.</p>
                 </div>
                 <div class='footer'>
@@ -1107,6 +1313,17 @@ class SupervisorController extends Controller
         $materials = $planning?->materials ?? 'Not specified';
         $assessment = $planning?->assessment_methods ?? 'Not specified';
 
+        $lessonPlanContent = '';
+        $lessonPlanFile = $planning?->lesson_plan_file;
+        if ($lessonPlanFile && \Illuminate\Support\Facades\Storage::disk('public')->exists($lessonPlanFile)) {
+            $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($lessonPlanFile);
+            $lessonPlanContent = app(\App\AI\Services\DocumentExtractorService::class)->extractText($fullPath);
+        }
+
+        $lessonPlanSection = $lessonPlanContent
+            ? "--- Lesson Plan Content ---\n{$lessonPlanContent}\n\n"
+            : '';
+
         $prompt = <<<PROMPT
 You are an expert instructional coach. Based on the pre-observation data below, generate two concise text blocks for a pre-conference form.
 
@@ -1118,7 +1335,7 @@ Teaching Strategies: {$strategies}
 Materials: {$materials}
 Assessment Methods: {$assessment}
 
-Return JSON with exactly two keys:
+{$lessonPlanSection}Return JSON with exactly two keys:
 
 1. "discussion_notes" — 3-4 bullet points covering key discussion topics: teaching strategies, learner diversity, assessment methods, and any support the teacher may need.
 

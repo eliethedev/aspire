@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Observation;
-use App\Models\CotRating;
 use App\Models\Teacher;
+use App\Models\PreObservationPlanning;
+use App\Models\PreConference;
+use App\Models\PostConference;
+use App\Models\AiFeedback;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -15,13 +18,25 @@ class DashboardController extends Controller
         $teacher = Auth::user()->teacher;
 
         $observationsQuery = Observation::where('observee_id', $teacher->id)
-            ->where('observee_type', Teacher::class);
+            ->where('observee_type', Teacher::class)
+            ->with(['preObservationPlanning', 'preConference', 'postConference']);
+
+        $obs = (clone $observationsQuery)->get();
 
         $stats = [
-            'total_observations' => (clone $observationsQuery)->count(),
-            'average_cot_score' => round((clone $observationsQuery)->whereNotNull('overall_score')->avg('overall_score') ?? 0, 2),
-            'completed' => (clone $observationsQuery)->where('status', 'completed')->count(),
-            'upcoming' => (clone $observationsQuery)->where('status', 'scheduled')->count(),
+            'total' => $obs->count(),
+            'average_cot_score' => round($obs->whereNotNull('overall_score')->avg('overall_score') ?? 0, 2),
+            'completed' => $obs->where('status', 'completed')->count(),
+            'in_progress' => $obs->where('status', 'in_progress')->count(),
+            'scheduled' => $obs->where('status', 'scheduled')->count(),
+            'stage_pre_planning' => $obs->where('stage', 'pre_observation_planning')->count(),
+            'stage_pre_conference' => $obs->where('stage', 'pre_conference')->count(),
+            'stage_observation' => $obs->where('stage', 'observation')->count(),
+            'stage_post_conference' => $obs->where('stage', 'post_conference')->count(),
+            'pending_confirmation' => $obs->where('confirmation_status', 'pending')
+                ->where('stage', 'pre_observation_planning')
+                ->where('status', '!=', 'cancelled')
+                ->count(),
         ];
 
         $recentObservation = (clone $observationsQuery)
@@ -49,11 +64,60 @@ class DashboardController extends Controller
             ->map(fn($o, $i) => 'Obs ' . ($i + 1) . ' - ' . $o->observation_date->format('M d'))
             ->toArray();
 
+        $prevAvg = (clone $observationsQuery)
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->take(max(count($cotScores) - 1, 1))
+            ->avg('overall_score');
+
+        $trend = $prevAvg ? ($stats['average_cot_score'] - round($prevAvg, 2)) : 0;
+
         $recentFeedback = null;
-        if ($recentObservation && $recentObservation->postConference) {
+        if ($recentObservation && $recentObservation->relationLoaded('postConference') && $recentObservation->postConference) {
             $recentFeedback = $recentObservation->postConference;
         }
 
-        return view('teacher.dashboard', compact('stats', 'recentObservation', 'nextObservation', 'cotScores', 'cotLabels', 'recentFeedback'));
+        $latestFeedbacks = AiFeedback::whereIn('observation_id', $obs->pluck('id'))
+            ->where('status', 'published')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        $stageLabels = [
+            'pre_observation_planning' => 'Pre-Observation Planning',
+            'pre_conference' => 'Pre-Conference',
+            'observation' => 'Classroom Observation',
+            'post_conference' => 'Post-Conference',
+        ];
+
+        $stageStatus = [];
+        $stageIcons = [
+            'pre_observation_planning' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            'pre_conference' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
+            'observation' => 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+            'post_conference' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+        ];
+
+        foreach ($stageLabels as $key => $label) {
+            $relation = match ($key) {
+                'pre_observation_planning' => 'preObservationPlanning',
+                'pre_conference' => 'preConference',
+                'post_conference' => 'postConference',
+                default => null,
+            };
+            $done = $relation
+                ? $obs->contains(fn($o) => $o->relationLoaded($relation) && $o->$relation)
+                : $obs->contains(fn($o) => $o->cotRatings()->exists());
+            $stageStatus[$key] = [
+                'done' => $done,
+                'label' => $label,
+                'icon' => $stageIcons[$key],
+            ];
+        }
+
+        return view('teacher.dashboard', compact(
+            'stats', 'recentObservation', 'nextObservation', 'cotScores', 'cotLabels',
+            'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus'
+        ));
     }
 }

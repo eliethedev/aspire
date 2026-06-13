@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'require.school' => \App\Http\Middleware\RequireSchool::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'ai.rate.limit' => \App\Http\Middleware\AIRateLimitMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

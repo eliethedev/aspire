@@ -34,6 +34,11 @@ class Observation extends Model
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',
+        'confirmation_status',
+        'rejection_reason',
+        'rejection_notes',
+        'confirmed_at',
+        'rejected_at',
     ];
 
     protected $casts = [
@@ -41,6 +46,8 @@ class Observation extends Model
         'overall_score' => 'decimal:2',
         'evidence_files' => 'array',
         'cancelled_at' => 'datetime',
+        'confirmed_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     /**
@@ -82,6 +89,14 @@ class Observation extends Model
     public function cotRatings(): HasMany
     {
         return $this->hasMany(CotRating::class);
+    }
+
+    /**
+     * Observation has many AI Feedback entries (at observation level)
+     */
+    public function aiFeedbacks(): HasMany
+    {
+        return $this->hasMany(AiFeedback::class);
     }
 
     /**
@@ -204,6 +219,44 @@ class Observation extends Model
     }
 
     /**
+     * Check if the observation can be confirmed by the teacher.
+     * Only scheduled observations in pre_observation_planning stage can be confirmed.
+     */
+    public function canConfirm(): bool
+    {
+        if ($this->status === 'cancelled' || $this->status === 'completed') {
+            return false;
+        }
+
+        return $this->confirmation_status === 'pending'
+            && $this->stage === 'pre_observation_planning';
+    }
+
+    /**
+     * Confirm the observation schedule.
+     */
+    public function confirm(): void
+    {
+        $this->update([
+            'confirmation_status' => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reject the observation schedule with a reason.
+     */
+    public function reject(string $reason, ?string $notes = null): void
+    {
+        $this->update([
+            'confirmation_status' => 'rejected',
+            'rejection_reason' => $reason,
+            'rejection_notes' => $notes,
+            'rejected_at' => now(),
+        ]);
+    }
+
+    /**
      * Scope for teacher observations
      */
     public function scopeTeacherObservations($query)
@@ -233,5 +286,31 @@ class Observation extends Model
     public function scopeCompleted($query)
     {
         return $query->where('stage', 'post_conference');
+    }
+
+    /**
+     * Scope for pending confirmation
+     */
+    public function scopePendingConfirmation($query)
+    {
+        return $query->where('confirmation_status', 'pending')
+            ->where('stage', 'pre_observation_planning')
+            ->where('status', '!=', 'cancelled');
+    }
+
+    /**
+     * Scope for confirmed observations
+     */
+    public function scopeConfirmed($query)
+    {
+        return $query->where('confirmation_status', 'confirmed');
+    }
+
+    /**
+     * Scope for rejected observations
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('confirmation_status', 'rejected');
     }
 }

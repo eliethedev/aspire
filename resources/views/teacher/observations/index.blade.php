@@ -107,6 +107,14 @@
             $stageLabel = str_replace('Pre Observation Planning', 'Pre-Observation Planning', $stageLabel);
             $stageLabel = str_replace('Post Conference', 'Post-Conference', $stageLabel);
             $stageLabel = str_replace('Pre Conference', 'Pre-Conference', $stageLabel);
+            $confirmationBadge = '';
+            if ($observation->stage === 'pre_observation_planning' && $observation->status !== 'cancelled') {
+                $confirmationBadge = match($observation->confirmation_status) {
+                    'confirmed' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 text-green-700 ml-1">Confirmed</span>',
+                    'rejected' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700 ml-1">Rejected</span>',
+                    default => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-yellow-100 text-yellow-700 ml-1">Awaiting Confirmation</span>',
+                };
+            }
         @endphp
 
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
@@ -122,6 +130,7 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <h3 class="font-semibold text-gray-900">{{ $observation->subject ?? 'No subject' }}</h3>
+                        {!! $confirmationBadge !!}
                         @if($observation->status === 'cancelled')
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">
                             Cancelled
@@ -154,10 +163,17 @@
 
                 <!-- Actions -->
                 <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('teacher.observations.show', $observation) }}"
-                       class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                        View Details
-                    </a>
+                    @if($observation->canConfirm())
+                        <a href="{{ route('teacher.observations.show', $observation) }}"
+                           class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors">
+                            Confirm Schedule
+                        </a>
+                    @else
+                        <a href="{{ route('teacher.observations.show', $observation) }}"
+                           class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                            View Details
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>

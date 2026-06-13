@@ -31,11 +31,11 @@ Percentage: {$percentage}%
 
 {$rubrics}
 
-Provide a comprehensive analysis with these sections:
-1. **analysis** — Detailed analysis of the teacher's performance in this domain
-2. **recommendations** — Array of 2-3 specific, actionable recommendations
-3. **strengths** — Array of 1-3 observable strengths demonstrated
-4. **areas_for_improvement** — Array of 1-2 areas needing improvement
+Provide a comprehensive analysis with these sections: <br>
+1. **analysis** — Detailed analysis of the teacher's performance in this domain<br>
+2. **recommendations** — Array of 2-3 specific, actionable recommendations<br>
+3. **strengths** — Array of 1-3 observable strengths demonstrated<br>
+4. **areas_for_improvement** — Array of 1-2 areas needing improvement<br>
 
 Respond in JSON format with keys: analysis, recommendations, strengths, areas_for_improvement
 PROMPT;
