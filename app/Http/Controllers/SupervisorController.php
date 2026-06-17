@@ -159,6 +159,43 @@ class SupervisorController extends Controller
     }
 
     /**
+     * Display list of school heads.
+     */
+    public function schoolHeads(Request $request)
+    {
+        $user = Auth::user();
+
+        $schoolHeads = SchoolHeadProfile::query()
+            ->with(['user', 'school'])
+            ->withCount(['observations as total_observations' => function ($q) {
+                $q->where('observee_type', SchoolHeadProfile::class);
+            }])
+            ->when($request->search, function ($query, $search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->paginate($request->per_page ?? 15);
+
+        return view('supervisor.teachers.school-heads', compact('schoolHeads'));
+    }
+
+    /**
+     * Display observation history for a specific school head.
+     */
+    public function schoolHeadObservationHistory(SchoolHeadProfile $schoolHead)
+    {
+        $observations = Observation::where('observee_id', $schoolHead->id)
+            ->where('observee_type', SchoolHeadProfile::class)
+            ->with(['observer', 'preObservationPlanning'])
+            ->latest()
+            ->paginate(10);
+
+        return view('supervisor.teachers.school-head-observations', compact('schoolHead', 'observations'));
+    }
+
+    /**
      * Show the form for creating a new observation.
      */
     public function createObservation()
@@ -185,11 +222,13 @@ class SupervisorController extends Controller
             ->get()
             ->groupBy('observee_id');
 
-        $teacherData = $teachers->map(function ($teacher) use ($recentObs) {
+        $teacherData = $teachers->filter(function ($teacher) {
+            return $teacher->user !== null;
+        })->map(function ($teacher) use ($recentObs) {
             $observations = $recentObs->get($teacher->id, collect())->take(5)->map(function ($obs) {
                 return [
                     'id' => $obs->id,
-                    'date' => $obs->observation_date->format('M d, Y'),
+                    'date' => $obs->observation_date ? $obs->observation_date->format('M d, Y') : 'No date',
                     'stage' => $obs->stage,
                     'status' => $obs->status,
                     'subject' => $obs->subject,
@@ -219,10 +258,12 @@ class SupervisorController extends Controller
                     'in_progress' => $inProgressObs,
                 ],
             ];
-        });
+        })->values();
 
         // Prepare school head data for JavaScript
-        $schoolHeadData = $schoolHeads->map(function ($schoolHead) {
+        $schoolHeadData = $schoolHeads->filter(function ($schoolHead) {
+            return $schoolHead->user !== null;
+        })->map(function ($schoolHead) {
             return [
                 'id' => $schoolHead->id,
                 'name' => $schoolHead->user->name,
@@ -232,7 +273,7 @@ class SupervisorController extends Controller
                 'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
                 'position_level' => $schoolHead->position_level ?? '—',
             ];
-        });
+        })->values();
 
         return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData'));
     }
@@ -288,10 +329,12 @@ class SupervisorController extends Controller
             $observee = $observation->observee;
             if ($observee && $observee->user) {
                 $observeeUser = $observee->user;
-                $formattedDate = $observation->observation_date->format('M d, Y');
-                $observationLink = $observee instanceof \App\Models\Teacher
-                    ? route('teacher.observations.show', $observation->id)
-                    : route('supervisor.observations.show', $observation->id);
+                $formattedDate = $observation->observation_date?->format('M d, Y') ?? 'No date';
+                $observationLink = match(true) {
+                    $observee instanceof \App\Models\Teacher => route('teacher.observations.show', $observation->id),
+                    $observee instanceof \App\Models\SchoolHeadProfile => route('school-head.observations.show', $observation->id),
+                    default => route('supervisor.observations.show', $observation->id),
+                };
 
                 // In-app notification
                 $this->notificationService->notifyObservationScheduled(
@@ -772,9 +815,11 @@ class SupervisorController extends Controller
         // Notify the observee that their observation is complete
         $observee = $observation->observee;
         if ($observee && $observee->user) {
-            $link = $observee instanceof \App\Models\Teacher
-                ? route('teacher.observations.show', $observation->id)
-                : route('supervisor.observations.show', $observation->id);
+            $link = match(true) {
+                $observee instanceof \App\Models\Teacher => route('teacher.observations.show', $observation->id),
+                $observee instanceof \App\Models\SchoolHeadProfile => route('school-head.observations.show', $observation->id),
+                default => route('supervisor.observations.show', $observation->id),
+            };
             $this->notificationService->notifyObservationCompleted($observee->user, $link);
         }
 
@@ -842,9 +887,11 @@ class SupervisorController extends Controller
         // Notify the observee about feedback
         $observee = $observation->observee;
         if ($observee && $observee->user) {
-            $link = $observee instanceof \App\Models\Teacher
-                ? route('teacher.observations.show', $observation->id)
-                : route('supervisor.observations.show', $observation->id);
+            $link = match(true) {
+                $observee instanceof \App\Models\Teacher => route('teacher.observations.show', $observation->id),
+                $observee instanceof \App\Models\SchoolHeadProfile => route('school-head.observations.show', $observation->id),
+                default => route('supervisor.observations.show', $observation->id),
+            };
             $this->notificationService->notifyFeedbackReceived($observee->user, $link);
         }
 
@@ -937,9 +984,11 @@ class SupervisorController extends Controller
         $observee = $observation->observee;
         if ($observee && $observee->user) {
             $observeeUser = $observee->user;
-            $observationLink = $observee instanceof \App\Models\Teacher
-                ? route('teacher.observations.show', $observation->id)
-                : route('supervisor.observations.show', $observation->id);
+            $observationLink = match(true) {
+                $observee instanceof \App\Models\Teacher => route('teacher.observations.show', $observation->id),
+                $observee instanceof \App\Models\SchoolHeadProfile => route('school-head.observations.show', $observation->id),
+                default => route('supervisor.observations.show', $observation->id),
+            };
 
             $this->notificationService->notifyObservationCancelled(
                 $observeeUser,
@@ -951,7 +1000,7 @@ class SupervisorController extends Controller
             $emailBody = $this->buildObservationCancelledEmail(
                 $observeeUser->name,
                 $observerName,
-                $observation->observation_date->format('M d, Y'),
+                $observation->observation_date?->format('M d, Y') ?? 'No date',
                 $observation->observation_type,
                 str_replace('_', ' ', ucwords($reason)),
                 $observationLink

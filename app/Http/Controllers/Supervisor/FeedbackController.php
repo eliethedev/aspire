@@ -30,6 +30,7 @@ class FeedbackController extends Controller
             },
         ])
         ->where('observer_id', $user->id)
+        ->where('status', '!=', 'cancelled')
         ->when($request->search, function ($q, $search) {
             $q->whereHas('observee.user', function ($sq) use ($search) {
                 $sq->where('name', 'like', "%{$search}%");

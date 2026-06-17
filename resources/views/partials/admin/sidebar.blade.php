@@ -1,18 +1,15 @@
 <!-- Admin Sidebar -->
-<aside class="sidebar-glass sidebar-floating sidebar-scroll h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar overflow-y-auto" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
+<aside class="sidebar-glass sidebar-floating h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
-    <!-- Logo -->
-    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 relative">
-        <button @click="$store.sidebar.toggle()" class="p-1.5 focus:outline-none hover:bg-indigo-100/50 rounded-lg transition-all duration-200 hover:scale-105" :class="$store.sidebar.collapsed ? 'mx-auto' : ''" title="Toggle sidebar">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-        </button>
-        <a href="{{ route('admin.dashboard') }}" x-show="!$store.sidebar.collapsed" class="flex items-center space-x-2.5 ml-2">
+    <!-- Logo - fixed at top -->
+    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 shrink-0">
+        <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.collapsed ? 'mx-auto' : ''" class="flex items-center space-x-2.5">
             <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ASPIRE Admin</span>
         </a>
     </div>
 
-    <!-- Navigation -->
-    <nav class="mt-5 pb-4" :class="$store.sidebar.collapsed ? 'px-2' : 'px-3'">
+    <!-- Navigation - scrollable -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll mt-5 pb-4" :class="$store.sidebar.collapsed ? 'px-2' : 'px-3'">
         <ul class="space-y-1">
             <!-- Main Navigation Section -->
             <li class="mb-4">
@@ -192,8 +189,8 @@
         </ul>
     </nav>
 
-    <!-- User Profile Section -->
-    <div class="mx-3 mb-3 mt-auto px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
+    <!-- User Profile Section - fixed at bottom -->
+    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
         <div class="flex items-center" :class="$store.sidebar.collapsed ? '' : 'space-x-3'">
             <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
                 <span class="text-white text-sm font-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>

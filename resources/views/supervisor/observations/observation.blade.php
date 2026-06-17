@@ -92,7 +92,7 @@
             {{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}
         </h1>
         <p class="text-gray-500 mt-1">
-            Complete the {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} COT Form for {{ $observation->observee->user->name }}
+            Complete the {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} COT Form for {{ $observation->observee->user->name ?? 'Unknown' }}
             &middot; SY {{ $schoolYear }}
         </p>
     </div>

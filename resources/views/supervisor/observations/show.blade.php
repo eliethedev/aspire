@@ -32,7 +32,7 @@
                     </span>
                 @endif
             </div>
-            <p class="text-gray-500 mt-1">{{ $observation->observee->user->name }} - {{ $observation->observation_date->format('M d, Y') }}</p>
+            <p class="text-gray-500 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
             <p class="text-gray-400 text-sm mt-1">
                 {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
                 @if($observation->isTeacherObservation() && $observation->subject)

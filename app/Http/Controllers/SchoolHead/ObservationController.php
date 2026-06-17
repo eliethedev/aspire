@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\SchoolHead;
 
 use App\Http\Controllers\Controller;
 use App\Models\Observation;
-use App\Models\PreObservationPlanning;
-use App\Models\Teacher;
+use App\Models\SchoolHeadProfile;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ObservationController extends Controller
 {
@@ -25,20 +23,19 @@ class ObservationController extends Controller
 
     public function index(Request $request)
     {
-        $teacher = Auth::user()->teacher;
+        $schoolHead = Auth::user()->schoolHeadProfile;
 
-        if (!$teacher) {
-            return redirect()->route('teacher.dashboard')->with('error', 'Teacher profile not found.');
+        if (!$schoolHead) {
+            return redirect()->route('school-head.dashboard')->with('error', 'School head profile not found.');
         }
 
         $query = Observation::with(['observer'])
-            ->where('observee_id', $teacher->id)
-            ->where('observee_type', Teacher::class);
+            ->where('observee_id', $schoolHead->id)
+            ->where('observee_type', SchoolHeadProfile::class);
 
         if ($search = $request->search) {
             $query->where(function ($q) use ($search) {
                 $q->where('subject', 'like', "%{$search}%")
-                  ->orWhere('grade_level', 'like', "%{$search}%")
                   ->orWhere('school_year', 'like', "%{$search}%");
             });
         }
@@ -51,24 +48,24 @@ class ObservationController extends Controller
             ->withQueryString();
 
         $stats = [
-            'total' => Observation::where('observee_id', $teacher->id)
-                ->where('observee_type', Teacher::class)->count(),
-            'upcoming' => Observation::where('observee_id', $teacher->id)
-                ->where('observee_type', Teacher::class)
+            'total' => Observation::where('observee_id', $schoolHead->id)
+                ->where('observee_type', SchoolHeadProfile::class)->count(),
+            'upcoming' => Observation::where('observee_id', $schoolHead->id)
+                ->where('observee_type', SchoolHeadProfile::class)
                 ->whereIn('status', ['scheduled'])->count(),
-            'completed' => Observation::where('observee_id', $teacher->id)
-                ->where('observee_type', Teacher::class)
+            'completed' => Observation::where('observee_id', $schoolHead->id)
+                ->where('observee_type', SchoolHeadProfile::class)
                 ->where('status', 'completed')->count(),
         ];
 
-        return view('teacher.observations.index', compact('observations', 'stats'));
+        return view('school-head.observations.index', compact('observations', 'stats'));
     }
 
     public function show(Observation $observation)
     {
-        $teacher = Auth::user()->teacher;
+        $schoolHead = Auth::user()->schoolHeadProfile;
 
-        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
             abort(403, 'You are not authorized to view this observation.');
         }
 
@@ -80,77 +77,14 @@ class ObservationController extends Controller
             'cotRatings',
         ]);
 
-        return view('teacher.observations.show', compact('observation'));
-    }
-
-    public function uploadLessonPlan(Request $request, Observation $observation)
-    {
-        $teacher = Auth::user()->teacher;
-
-        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
-            abort(403);
-        }
-
-        if ($observation->stage !== 'pre_observation_planning') {
-            return back()->with('error', 'Lesson plan can only be uploaded during the Pre-Observation Planning stage.');
-        }
-
-        $validated = $request->validate([
-            'lesson_plan_file' => ['required', 'file', 'mimes:pdf,doc,docx,pptx,xlsx', 'max:20480'],
-        ]);
-
-        $file = $request->file('lesson_plan_file');
-        $originalName = $file->getClientOriginalName();
-        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $originalName);
-        $filePath = $file->storeAs('lesson_plans', $filename, 'public');
-
-        $observation->preObservationPlanning()->updateOrCreate(
-            ['observation_id' => $observation->id],
-            ['lesson_plan_file' => $filePath]
-        );
-
-        $this->notifyLessonPlanUploaded($observation, $teacher);
-
-        return back()->with('success', 'Lesson plan uploaded successfully.');
-    }
-
-    protected function notifyLessonPlanUploaded(Observation $observation, Teacher $teacher): void
-    {
-        $teacherUser = $teacher->user;
-        $teacherName = $teacherUser?->name ?? 'A teacher';
-        $subject = "Lesson Plan Uploaded – {$observation->subject}";
-
-        // Notify the observer (supervisor)
-        $observer = $observation->observer;
-        if ($observer && $observer instanceof \App\Models\User) {
-            $link = route('supervisor.observations.show', $observation);
-            $this->notificationService->notifyLessonPlanUploaded($observer, $teacherName, $link);
-            $this->mailer->sendGenericEmail(
-                $observer->email, $observer->name, $subject,
-                $this->buildLessonPlanUploadedEmail($teacherName, $subject, $observation, $link)
-            );
-        }
-
-        // Notify the school head(s) of the teacher's school
-        $school = $teacher->school;
-        if ($school) {
-            $schoolHeads = $school->users()->where('role', 'school_head')->get();
-            foreach ($schoolHeads as $schoolHead) {
-                $link = route('supervisor.observations.show', $observation);
-                $this->notificationService->notifyLessonPlanUploaded($schoolHead, $teacherName, $link);
-                $this->mailer->sendGenericEmail(
-                    $schoolHead->email, $schoolHead->name, $subject,
-                    $this->buildLessonPlanUploadedEmail($teacherName, $subject, $observation, $link)
-                );
-            }
-        }
+        return view('school-head.observations.show', compact('observation'));
     }
 
     public function confirm(Observation $observation)
     {
-        $teacher = Auth::user()->teacher;
+        $schoolHead = Auth::user()->schoolHeadProfile;
 
-        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
             abort(403);
         }
 
@@ -160,17 +94,16 @@ class ObservationController extends Controller
 
         $observation->confirm();
 
-        // Notify the supervisor
         $observer = $observation->observer;
         if ($observer) {
             $link = route('supervisor.observations.show', $observation);
             $this->notificationService->notifyObservationConfirmed($observer, Auth::user()->name, $link);
 
-            $teacherName = Auth::user()->name;
+            $name = Auth::user()->name;
             $subject = "Observation Confirmed – {$observation->subject}";
             $this->mailer->sendGenericEmail(
                 $observer->email, $observer->name, $subject,
-                $this->buildObservationConfirmedEmail($teacherName, $subject, $observation, $link)
+                $this->buildConfirmedEmail($name, $subject, $observation, $link)
             );
         }
 
@@ -179,9 +112,9 @@ class ObservationController extends Controller
 
     public function reject(Request $request, Observation $observation)
     {
-        $teacher = Auth::user()->teacher;
+        $schoolHead = Auth::user()->schoolHeadProfile;
 
-        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
             abort(403);
         }
 
@@ -199,24 +132,69 @@ class ObservationController extends Controller
 
         $observation->reject($reason, $notes);
 
-        // Notify the supervisor
         $observer = $observation->observer;
         if ($observer) {
             $link = route('supervisor.observations.show', $observation);
             $this->notificationService->notifyObservationRejected($observer, Auth::user()->name, str_replace('_', ' ', ucwords($reason)), $link);
 
-            $teacherName = Auth::user()->name;
+            $name = Auth::user()->name;
             $subject = "Observation Rejected – {$observation->subject}";
             $this->mailer->sendGenericEmail(
                 $observer->email, $observer->name, $subject,
-                $this->buildObservationRejectedEmail($teacherName, $subject, $observation, $reason, $notes, $link)
+                $this->buildRejectedEmail($name, $subject, $observation, $reason, $notes, $link)
             );
         }
 
         return back()->with('success', 'You have rejected the observation schedule. Your supervisor will be notified.');
     }
 
-    protected function buildObservationConfirmedEmail(string $teacherName, string $subject, Observation $observation, string $observationLink): string
+    public function uploadPlan(Request $request, Observation $observation)
+    {
+        $schoolHead = Auth::user()->schoolHeadProfile;
+
+        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
+            abort(403);
+        }
+
+        if ($observation->stage !== 'pre_observation_planning') {
+            return back()->with('error', 'Plan can only be uploaded during the Pre-Observation Planning stage.');
+        }
+
+        $validated = $request->validate([
+            'plan_file' => ['required', 'file', 'mimes:pdf,doc,docx,pptx,xlsx', 'max:20480'],
+            'plan_type' => ['required', 'string', 'in:leadership_plan,lesson_plan,other'],
+        ]);
+
+        $file = $request->file('plan_file');
+        $originalName = $file->getClientOriginalName();
+        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $originalName);
+        $filePath = $file->storeAs('leadership_plans', $filename, 'public');
+
+        $observation->preObservationPlanning()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            [
+                'lesson_plan_file' => $filePath,
+                'lesson_plan_notes' => $validated['plan_type'],
+            ]
+        );
+
+        $observer = $observation->observer;
+        if ($observer) {
+            $name = Auth::user()->name;
+            $link = route('supervisor.observations.show', $observation);
+            $this->notificationService->notifyLessonPlanUploaded($observer, $name, $link);
+
+            $subject = "Leadership Plan Uploaded – {$observation->subject}";
+            $this->mailer->sendGenericEmail(
+                $observer->email, $observer->name, $subject,
+                $this->buildPlanUploadedEmail($name, $subject, $observation, $link)
+            );
+        }
+
+        return back()->with('success', 'Plan uploaded successfully.');
+    }
+
+    protected function buildConfirmedEmail(string $name, string $subject, Observation $observation, string $link): string
     {
         return "
         <!DOCTYPE html>
@@ -234,11 +212,10 @@ class ObservationController extends Controller
                         <tr>
                             <td style='padding: 30px 40px;'>
                                 <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
-                                    <strong>{$teacherName}</strong> has confirmed the following observation:
+                                    <strong>{$name}</strong> has confirmed the following observation:
                                 </p>
                                 <table style='background-color: #ecfdf5; border-left: 4px solid #059669; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Date:</strong> {$observation->observation_date?->format('M d, Y') ?? 'No date'}</td></tr>
                                 </table>
@@ -256,7 +233,7 @@ class ObservationController extends Controller
         </html>";
     }
 
-    protected function buildObservationRejectedEmail(string $teacherName, string $subject, Observation $observation, string $reason, ?string $notes, string $observationLink): string
+    protected function buildRejectedEmail(string $name, string $subject, Observation $observation, string $reason, ?string $notes, string $link): string
     {
         $reasonLabel = str_replace('_', ' ', ucwords($reason));
         return "
@@ -275,11 +252,10 @@ class ObservationController extends Controller
                         <tr>
                             <td style='padding: 30px 40px;'>
                                 <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
-                                    <strong>{$teacherName}</strong> has rejected the following observation:
+                                    <strong>{$name}</strong> has rejected the following observation:
                                 </p>
                                 <table style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Reason:</strong> {$reasonLabel}</td></tr>
                                 </table>
                                 " . ($notes ? "<p style='color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;'><strong>Notes:</strong> {$notes}</p>" : "") . "
@@ -297,7 +273,7 @@ class ObservationController extends Controller
         </html>";
     }
 
-    protected function buildLessonPlanUploadedEmail(string $teacherName, string $subject, Observation $observation, string $observationLink): string
+    protected function buildPlanUploadedEmail(string $name, string $subject, Observation $observation, string $link): string
     {
         return "
         <!DOCTYPE html>
@@ -309,17 +285,16 @@ class ObservationController extends Controller
                     <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);'>
                         <tr>
                             <td style='background-color: #2563eb; padding: 30px 40px; text-align: center;'>
-                                <h1 style='color: #ffffff; margin: 0; font-size: 22px;'>Lesson Plan Uploaded</h1>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 22px;'>Leadership Plan Uploaded</h1>
                             </td>
                         </tr>
                         <tr>
                             <td style='padding: 30px 40px;'>
                                 <p style='color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;'>
-                                    <strong>{$teacherName}</strong> has uploaded a lesson plan for the following observation:
+                                    <strong>{$name}</strong> has uploaded a leadership plan for the following observation:
                                 </p>
                                 <table style='background-color: #f0fdf4; border-left: 4px solid #2563eb; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                 </table>
                             </td>

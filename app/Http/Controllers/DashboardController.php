@@ -74,7 +74,7 @@ class DashboardController extends Controller
      */
     private function supervisorDashboard(Request $request)
     {
-        return view('supervisor.dashboard');
+        return redirect()->route('supervisor.dashboard');
     }
 
     /**
@@ -82,7 +82,44 @@ class DashboardController extends Controller
      */
     private function schoolHeadDashboard(Request $request)
     {
-        return view('school-head.dashboard');
+        $user = Auth::user();
+        $schoolHead = $user->schoolHeadProfile;
+
+        if (!$schoolHead) {
+            return view('school-head.dashboard', [
+                'stats' => ['total' => 0, 'scheduled' => 0, 'pending_confirmation' => 0, 'completed' => 0],
+                'nextObservation' => null,
+                'recentObservations' => collect(),
+            ]);
+        }
+
+        $observationsQuery = \App\Models\Observation::where('observee_id', $schoolHead->id)
+            ->where('observee_type', \App\Models\SchoolHeadProfile::class)
+            ->with(['observer', 'preObservationPlanning']);
+
+        $obs = (clone $observationsQuery)->get();
+
+        $stats = [
+            'total' => $obs->count(),
+            'scheduled' => $obs->where('status', 'scheduled')->count(),
+            'completed' => $obs->where('stage', 'post_conference')->count(),
+            'pending_confirmation' => $obs->where('confirmation_status', 'pending')
+                ->where('stage', 'pre_observation_planning')
+                ->where('status', '!=', 'cancelled')
+                ->count(),
+        ];
+
+        $nextObservation = (clone $observationsQuery)
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->oldest('observation_date')
+            ->first();
+
+        $recentObservations = (clone $observationsQuery)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('school-head.dashboard', compact('stats', 'nextObservation', 'recentObservations'));
     }
 
     /**

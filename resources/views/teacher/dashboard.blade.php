@@ -174,7 +174,7 @@
                             <span class="text-xl font-bold text-indigo-600">{{ number_format($recentObservation->overall_score, 1) }}</span>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900">{{ $recentObservation->observation_date->format('M d, Y') }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $recentObservation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
                             <p class="text-xs text-gray-500">{{ $recentObservation->observer?->name ?? 'Unknown' }}</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium {{ $recentObservation->status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
                                 {{ ucwords(str_replace('_', ' ', $recentObservation->status)) }}
@@ -213,14 +213,14 @@
                 </div>
                 @if($nextObservation)
                     @php
-                        $daysUntil = now()->diffInDays($nextObservation->observation_date, false);
+                        $daysUntil = $nextObservation->observation_date ? now()->diffInDays($nextObservation->observation_date, false) : 0;
                     @endphp
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-14 h-14 rounded-full {{ $daysUntil <= 0 ? 'bg-red-50' : ($daysUntil <= 3 ? 'bg-amber-50' : 'bg-blue-50') }} flex items-center justify-center">
                             <svg class="w-6 h-6 {{ $daysUntil <= 0 ? 'text-red-500' : ($daysUntil <= 3 ? 'text-amber-500' : 'text-blue-500') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900">{{ $nextObservation->observation_date->format('M d, Y') }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $nextObservation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
                             <p class="text-xs text-gray-500">{{ $nextObservation->observer?->name ?? 'Unknown' }}</p>
                             @if($daysUntil > 0)
                                 <span class="text-xs font-medium text-amber-600">{{ $daysUntil }} day{{ $daysUntil > 1 ? 's' : '' }} away</span>

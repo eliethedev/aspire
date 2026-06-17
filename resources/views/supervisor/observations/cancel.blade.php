@@ -44,7 +44,7 @@
             </div>
             <div>
                 <dt class="text-gray-500">Observation Date</dt>
-                <dd class="font-medium text-gray-900 mt-0.5">{{ $observation->observation_date->format('M d, Y') }}</dd>
+                <dd class="font-medium text-gray-900 mt-0.5">{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</dd>
             </div>
             @if($observation->subject)
             <div>

@@ -107,6 +107,8 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     
     Route::get('/teachers', [SupervisorController::class, 'teachers'])->name('teachers.index');
     Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
+    Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
+    Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
     Route::get('/observations', [SupervisorController::class, 'observations'])->name('observations.index');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
@@ -174,6 +176,13 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Profile\SchoolHeadProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [\App\Http\Controllers\Profile\SchoolHeadProfileController::class, 'update'])->name('profile.update');
+
+    // Observations (My Performance)
+    Route::get('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations/{observation}', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
+    Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
+    Route::post('/observations/{observation}/reject', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');
+    Route::post('/observations/{observation}/upload-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->name('observations.upload-plan');
 });
 
 // School-specific routes

@@ -51,7 +51,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6" x-data="observationForm()">
+<div class="max-w-5xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900">Create New Observation</h1>
         <p class="text-gray-500 mt-1">Set up a classroom observation or leadership evaluation.</p>
@@ -67,18 +67,14 @@
                     <div class="flex items-center gap-1.5">
                         <div :class="step.status === 'complete' ? 'bg-indigo-600 text-white' : step.status === 'active' ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-600' : 'bg-gray-100 text-gray-400'"
                              class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors">
-                            <template x-if="step.status === 'complete'">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </template>
-                            <template x-if="step.status !== 'complete'">
-                                <span x-text="i + 1"></span>
-                            </template>
+                            <svg x-show="step.status === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span x-show="step.status !== 'complete'" x-text="i + 1"></span>
                         </div>
                         <span :class="step.status === 'complete' ? 'text-indigo-600' : step.status === 'active' ? 'text-gray-900 font-medium' : 'text-gray-400'" class="text-xs hidden sm:inline transition-colors" x-text="step.label"></span>
                     </div>
-                    <template x-if="i < steps.length - 1">
-                        <div :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200'" class="w-6 sm:w-10 h-0.5 rounded transition-colors"></div>
-                    </template>
+                    <div x-show="i < steps.length - 1"
+                         :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200'"
+                         class="w-6 sm:w-10 h-0.5 rounded transition-colors"></div>
                 </div>
             </template>
         </div>
@@ -560,9 +556,9 @@
                 { label: 'Schedule', status: 'pending' },
             ],
             currentStep: 1,
-            selectedType: '{{ old('observation_type') }}',
+            selectedType: @json(old('observation_type')),
             selectedObservee: null,
-            observeeId: '{{ old('observee_id') }}',
+            observeeId: @json(old('observee_id')),
             searchQuery: '',
             showConfirmModal: false,
             submitting: false,
@@ -571,15 +567,15 @@
             schoolHeadData: @json($schoolHeadData),
 
             form: {
-                school_year: '{{ old('school_year', now()->year . '-' . (now()->year + 1)) }}',
-                quarter: '{{ old('quarter') }}',
-                observation_number: '{{ old('observation_number', '1') }}',
-                observation_mode: '{{ old('observation_mode', 'in_person') }}',
-                subject: '{{ old('subject') }}',
-                grade_level: '{{ old('grade_level') }}',
-                observation_date: '{{ old('observation_date', now()->format('Y-m-d')) }}',
-                schedule_type: '{{ old('schedule_type', 'scheduled') }}',
-                notes: '{{ old('notes') }}',
+                school_year: @json(old('school_year', now()->year . '-' . (now()->year + 1))),
+                quarter: @json(old('quarter')),
+                observation_number: @json(old('observation_number', '1')),
+                observation_mode: @json(old('observation_mode', 'in_person')),
+                subject: @json(old('subject')),
+                grade_level: @json(old('grade_level')),
+                observation_date: @json(old('observation_date', now()->format('Y-m-d'))),
+                schedule_type: @json(old('schedule_type', 'scheduled')),
+                notes: @json(old('notes')),
             },
 
             get observeeList() {
@@ -638,16 +634,20 @@
 
             init() {
                 this.updateSteps();
-                if (this.selectedType && this.observeeList.length === 1) {
-                    this.selectObservee(this.observeeList[0]);
-                }
-                const oldObserveeId = '{{ old('observee_id') }}';
+                const oldObserveeId = @json(old('observee_id'));
                 if (oldObserveeId && this.observeeList.length) {
                     const match = this.observeeList.find(item => item.id == oldObserveeId);
                     if (match) {
                         this.selectObservee(match);
                         this.autoFillDetails();
                     }
+                } else if (this.selectedType && this.observeeList.length === 1) {
+                    this.selectObservee(this.observeeList[0]);
+                }
+
+                // Restore the correct step when re-rendering after validation error
+                if (this.selectedType) {
+                    this.currentStep = this.selectedObservee ? 3 : 2;
                 }
             }
         };

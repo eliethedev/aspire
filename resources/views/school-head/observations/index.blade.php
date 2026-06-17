@@ -1,18 +1,16 @@
 @extends('layouts.teacher')
 
-@section('title', 'My Observations')
+@section('title', 'My Performance')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">My Observations</h1>
-            <p class="text-gray-500 mt-1">View all your classroom observations and evaluation results.</p>
+            <h1 class="text-2xl font-bold text-gray-900">My Performance</h1>
+            <p class="text-gray-500 mt-1">View all your leadership observations and evaluation results.</p>
         </div>
     </div>
 
-    <!-- Stats Cards -->
     <div class="grid grid-cols-3 gap-4 mb-8">
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center gap-3">
@@ -49,9 +47,8 @@
         </div>
     </div>
 
-    <!-- Filters -->
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
-        <form method="GET" action="{{ route('teacher.observations.index') }}">
+        <form method="GET" action="{{ route('school-head.observations.index') }}">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-gray-500 mb-1.5">Search</label>
@@ -59,7 +56,7 @@
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" name="search" value="{{ request('search') }}"
                                class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                               placeholder="Search by subject, grade level...">
+                               placeholder="Search by subject...">
                     </div>
                 </div>
                 <div>
@@ -89,7 +86,7 @@
                     Filter
                 </button>
                 @if(request()->anyFilled(['search', 'status', 'stage']))
-                    <a href="{{ route('teacher.observations.index') }}"
+                    <a href="{{ route('school-head.observations.index') }}"
                        class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                         Clear
                     </a>
@@ -98,7 +95,6 @@
         </form>
     </div>
 
-    <!-- Observations List -->
     @forelse($observations as $observation)
         @php
             $supervisorName = $observation->observer?->name ?? 'Unknown';
@@ -119,22 +115,18 @@
 
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
             <div class="flex flex-col sm:flex-row sm:items-start gap-4">
-                <!-- Date Badge -->
                 <div class="hidden sm:block text-center shrink-0 w-16">
                     <p class="text-sm font-bold text-gray-400 uppercase">{{ $observation->observation_date?->format('M') ?? 'N/A' }}</p>
                     <p class="text-3xl font-bold text-indigo-600">{{ $observation->observation_date?->format('d') ?? '--' }}</p>
                     <p class="text-xs text-gray-400">{{ $observation->observation_date?->format('Y') ?? '----' }}</p>
                 </div>
 
-                <!-- Info -->
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="font-semibold text-gray-900">{{ $observation->subject ?? 'No subject' }}</h3>
+                        <h3 class="font-semibold text-gray-900">{{ $observation->subject ?? 'Leadership Observation' }}</h3>
                         {!! $confirmationBadge !!}
                         @if($observation->status === 'cancelled')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">
-                            Cancelled
-                        </span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">Cancelled</span>
                         @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium
                             {{ $observation->status === 'completed' ? 'bg-green-100 text-green-700' : ($observation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
@@ -144,7 +136,6 @@
                     </div>
                     <p class="text-sm text-gray-500 mt-0.5">
                         {{ $stageLabel }}
-                        @if($observation->grade_level) &middot; Grade {{ $observation->grade_level }} @endif
                         &middot; <span class="capitalize">{{ str_replace('_', ' ', $observation->observation_mode) }}</span>
                     </p>
                     <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
@@ -161,15 +152,14 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="flex items-center gap-2 shrink-0">
                     @if($observation->canConfirm())
-                        <a href="{{ route('teacher.observations.show', $observation) }}"
+                        <a href="{{ route('school-head.observations.show', $observation) }}"
                            class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors">
                             Confirm Schedule
                         </a>
                     @else
-                        <a href="{{ route('teacher.observations.show', $observation) }}"
+                        <a href="{{ route('school-head.observations.show', $observation) }}"
                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
                             View Details
                         </a>
@@ -183,8 +173,8 @@
                 <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 mb-1">No observations yet</h3>
-            <p class="text-sm text-gray-500 mb-6">Your supervisor hasn't scheduled any observations yet.</p>
-            <a href="{{ route('teacher.dashboard') }}"
+            <p class="text-sm text-gray-500 mb-6">Your supervisor hasn't scheduled any leadership observations yet.</p>
+            <a href="{{ route('school-head.dashboard') }}"
                class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                 Back to Dashboard
             </a>

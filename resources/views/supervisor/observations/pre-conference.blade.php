@@ -91,7 +91,7 @@
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Pre-Conference</h1>
-        <p class="text-gray-500 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date->format('M d, Y') }}</p>
+        <p class="text-gray-500 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
     </div>
 
     @if($lessonPlanMissing)
@@ -265,7 +265,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Observation Date</label>
-                        <p class="text-gray-900 font-semibold">{{ $observation->observation_date->format('M d, Y') }}</p>
+                        <p class="text-gray-900 font-semibold">{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1" for="conference_date">Pre-Conference Date *</label>

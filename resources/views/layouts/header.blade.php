@@ -1,5 +1,14 @@
 <header class="glass-card border-b border-gray-200 bg-white">
   <div class="max-w-8xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <!-- Sidebar toggle -->
+    <button @click="$store.sidebar.toggle()" 
+            class="p-1.5 focus:outline-none hover:bg-indigo-100/50 rounded-lg transition-all duration-200 hover:scale-105" 
+            title="Toggle sidebar">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+        </svg>
+    </button>
+
     <!-- Search (placeholder) -->
     <div class="flex-1 mx-4 hidden md:block flex items-center">
       <input type="text" placeholder="Search users, schools, lessons..." class="w-full h-10 px-4 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />

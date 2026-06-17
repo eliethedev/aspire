@@ -8,12 +8,11 @@
         <title>{{ config('app.name', 'Laravel') }} - @yield('title', 'Supervisor')</title>
 
         <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link revl="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.tsx'])
-        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.13.3/dist/cdn.min.js"></script>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
         <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
         <script>
@@ -30,13 +29,12 @@
         @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-50" x-data>
-
         <div class="flex min-h-screen">
             <!-- Sidebar -->
             @include('partials.sidebar')
 
             <!-- Main Content -->
-            <div class="flex-1 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-56'">
+            <div class="flex-1 transition-all duration-300" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-64'">
                 <!-- Header -->
                 @include('layouts.header')
                 

@@ -1,29 +1,21 @@
 <!-- Unified Sidebar for Teacher, Supervisor, School Head -->
-<aside class="sidebar-glass sidebar-floating sidebar-scroll h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar overflow-y-auto" 
+<aside class="sidebar-glass sidebar-floating h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" 
        x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), feedbackOpen: $persist(true), teachersOpen: $persist(true), reportsOpen: $persist(true) } @else { systemOpen: $persist(true), reportsOpen: $persist(true) } @endif" 
        :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
-    <!-- Logo -->
-    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 relative">
-        <button @click="$store.sidebar.toggle()" 
-                class="p-1.5 focus:outline-none hover:bg-indigo-100/50 rounded-lg transition-all duration-200 hover:scale-105" 
-                :class="$store.sidebar.collapsed ? 'mx-auto' : ''" 
-                title="Toggle sidebar">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
-            </svg>
-        </button>
+    <!-- Logo - fixed at top -->
+    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 shrink-0">
         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else # @endif" 
-           x-show="!$store.sidebar.collapsed"
-           class="flex items-center space-x-2.5 ml-2">
-            <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+           :class="$store.sidebar.collapsed ? 'mx-auto' : ''"
+           class="flex items-center space-x-2.5">
+           <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 @if(auth()->user()->isTeacher()) ASPIRE @elseif(auth()->user()->isSupervisor()) ASPIRE @else ASPIRE @endif
             </span>
         </a>
     </div>
 
-    <!-- Navigation -->
-    <nav class="mt-5 pb-4" :class="$store.sidebar.collapsed ? 'px-2' : 'px-3'">
+    <!-- Navigation - scrollable -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll mt-5 pb-4" :class="$store.sidebar.collapsed ? 'px-2' : 'px-3'">
         <ul class="space-y-1">
             <!-- Main Navigation Section -->
             <li class="mb-4">
@@ -265,10 +257,10 @@
                 </ul>
             </li>
 
-            <!-- Supervisor: Teachers Section -->
+            <!-- Supervisor: People Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
                 <button x-show="!$store.sidebar.collapsed" @click="teachersOpen = !teachersOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
-                    <span>Teachers</span>
+                    <span>People</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': teachersOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -285,6 +277,18 @@
                                 </svg>
                             </span>
                             <span x-show="!$store.sidebar.collapsed" class="font-medium">Teachers List</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('supervisor.school-heads.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('supervisor.school-heads.*') ? 'sidebar-link-active' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">School Heads</span>
                         </a>
                     </li>
                 </ul>
@@ -329,10 +333,10 @@
             @endif
 
             @if(auth()->user()->isSchoolHead())
-            <!-- School Head: System Section -->
+            <!-- School Head: My Performance Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
                 <button x-show="!$store.sidebar.collapsed" @click="systemOpen = !systemOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
-                    <span>System</span>
+                    <span>My Performance</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': systemOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -340,64 +344,15 @@
 
                 <ul x-show="!$store.sidebar.collapsed ? systemOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
                     <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
+                        <a href="{{ route('school-head.observations.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('school-head.observations.*') ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
                             </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">System Overview</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
-                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
-                            </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Supervisor Management</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <!-- School Head: Reports Section -->
-            <li :class="$store.sidebar.collapsed ? 'mb-1' : ''">
-                <button x-show="!$store.sidebar.collapsed" @click="reportsOpen = !reportsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
-                    <span>Reports</span>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': reportsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-
-                <ul x-show="!$store.sidebar.collapsed ? reportsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
-                    <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
-                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Institution Reports</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
-                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                            </span>
-                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Analytics & Insights</span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">My Observations</span>
                         </a>
                     </li>
                 </ul>
@@ -406,8 +361,8 @@
         </ul>
     </nav>
 
-    <!-- User Profile Section -->
-    <div class="mx-3 mb-3 mt-auto px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
+    <!-- User Profile Section - fixed at bottom -->
+    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
         <div class="flex items-center" :class="$store.sidebar.collapsed ? '' : 'space-x-3'">
             <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
                 <span class="text-white text-sm font-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>

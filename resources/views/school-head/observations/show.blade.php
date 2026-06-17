@@ -4,12 +4,8 @@
 
 @push('styles')
 <style>
-    .progress-step {
-        transition: all 0.2s ease;
-    }
-    .progress-step:hover .step-circle {
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-    }
+    .progress-step { transition: all 0.2s ease; }
+    .progress-step:hover .step-circle { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
     [x-cloak] { display: none !important; }
 </style>
 @endpush
@@ -35,20 +31,19 @@
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900">Observation Details</h1>
+                <h1 class="text-2xl font-bold text-gray-900">Leadership Observation</h1>
                 @if($observation->status === 'cancelled')
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                        Cancelled
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Cancelled
                     </span>
                 @endif
             </div>
             <p class="text-gray-500 mt-1">{{ $observation->observer?->name ?? 'Unknown Supervisor' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
             @if($observation->subject)
-                <p class="text-gray-400 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- Grade {{ $observation->grade_level }} @endif</p>
+                <p class="text-gray-400 text-sm mt-1">{{ $observation->subject }}</p>
             @endif
         </div>
-        <a href="{{ route('teacher.observations.index') }}" 
+        <a href="{{ route('school-head.observations.index') }}"
            class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors text-sm">
             Back to List
         </a>
@@ -71,7 +66,6 @@
         $currentIdx = array_search($observation->stage, $stageKeys);
     @endphp
 
-    <!-- Progress Steps (read-only) -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
             @foreach($stageKeys as $i => $key)
@@ -79,11 +73,9 @@
                     $done = $stageCompleted[$key];
                     $active = $i === $currentIdx && !$done;
                 @endphp
-
                 @if($i > 0)
                     <div class="flex-1 mx-4 h-1 {{ $stageCompleted[$stageKeys[$i - 1]] ? 'bg-green-400' : 'bg-gray-200' }}"></div>
                 @endif
-
                 <div class="flex items-center">
                     <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200' : 'bg-gray-200 text-gray-500') }} font-semibold text-sm">
                         @if($done)
@@ -98,7 +90,6 @@
         </div>
     </div>
 
-    <!-- Confirmation Needed Banner -->
     @if($observation->canConfirm())
     <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6" x-data="{ showRejectModal: false }">
         <div class="flex gap-3">
@@ -106,11 +97,11 @@
             <div class="flex-1">
                 <h3 class="font-semibold text-amber-800">Confirm Your Observation Schedule</h3>
                 <p class="text-sm text-amber-700 mt-1">
-                    Your supervisor has scheduled an observation on <strong>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</strong>.
+                    Your supervisor has scheduled a leadership observation on <strong>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</strong>.
                     Please confirm your availability or provide a reason if you need to reschedule.
                 </p>
                 <div class="flex items-center gap-3 mt-4">
-                    <form action="{{ route('teacher.observations.confirm', $observation) }}" method="POST"
+                    <form action="{{ route('school-head.observations.confirm', $observation) }}" method="POST"
                           x-data="{ submitting: false }"
                           x-on:submit="submitting = true">
                         @csrf
@@ -130,7 +121,6 @@
             </div>
         </div>
 
-        <!-- Reject Modal -->
         <div x-show="showRejectModal"
              x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center"
@@ -143,7 +133,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
-                <form action="{{ route('teacher.observations.reject', $observation) }}" method="POST"
+                <form action="{{ route('school-head.observations.reject', $observation) }}" method="POST"
                       x-data="{ submitting: false }"
                       x-on:submit="submitting = true">
                     @csrf
@@ -171,9 +161,7 @@
                     </div>
                     <div class="flex items-center justify-end gap-3 mt-6">
                         <button type="button" @click="showRejectModal = false"
-                                class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                            Cancel
-                        </button>
+                                class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
                         <button type="submit"
                                 :disabled="submitting"
                                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -188,16 +176,13 @@
     </div>
     @endif
 
-    <!-- Confirmation Info (already confirmed/rejected) -->
     @if($observation->confirmation_status === 'confirmed')
     <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
         <div class="flex gap-3">
             <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <div>
                 <h3 class="font-semibold text-emerald-800">Observation Confirmed</h3>
-                <p class="text-sm text-emerald-700 mt-1">
-                    You confirmed this observation on {{ $observation->confirmed_at?->format('M d, Y \a\t h:i A') }}.
-                </p>
+                <p class="text-sm text-emerald-700 mt-1">You confirmed this observation on {{ $observation->confirmed_at?->format('M d, Y \a\t h:i A') }}.</p>
             </div>
         </div>
     </div>
@@ -209,47 +194,34 @@
             <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <div>
                 <h3 class="font-semibold text-red-800">Observation Rejected</h3>
-                <p class="text-sm text-red-700 mt-1">
-                    You rejected this observation on {{ $observation->rejected_at?->format('M d, Y \a\t h:i A') }}.
-                </p>
+                <p class="text-sm text-red-700 mt-1">You rejected this observation on {{ $observation->rejected_at?->format('M d, Y \a\t h:i A') }}.</p>
                 @if($observation->rejection_reason)
-                <p class="text-sm text-red-700 mt-1">
-                    <strong>Reason:</strong> {{ str_replace('_', ' ', ucwords($observation->rejection_reason)) }}
-                </p>
+                <p class="text-sm text-red-700 mt-1"><strong>Reason:</strong> {{ str_replace('_', ' ', ucwords($observation->rejection_reason)) }}</p>
                 @endif
                 @if($observation->rejection_notes)
-                <p class="text-sm text-red-700 mt-1">
-                    <strong>Notes:</strong> {{ $observation->rejection_notes }}
-                </p>
+                <p class="text-sm text-red-700 mt-1"><strong>Notes:</strong> {{ $observation->rejection_notes }}</p>
                 @endif
             </div>
         </div>
     </div>
     @endif
 
-    <!-- Cancellation Info -->
     @if($observation->status === 'cancelled')
     <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
         <div class="flex gap-3">
             <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.293 4.293a1 1 0 011.414 0L12 10.586l6.293-6.293a1 1 0 111.414 1.414L13.414 12l6.293 6.293a1 1 0 01-1.414 1.414L12 13.414l-6.293 6.293a1 1 0 01-1.414-1.414L10.586 12 4.293 5.707a1 1 0 010-1.414z"/></svg>
             <div>
                 <h3 class="font-semibold text-red-800">Observation Cancelled</h3>
-                <p class="text-sm text-red-700 mt-1">
-                    This observation was cancelled on {{ $observation->cancelled_at?->format('M d, Y \a\t h:i A') }}.
-                </p>
+                <p class="text-sm text-red-700 mt-1">This observation was cancelled on {{ $observation->cancelled_at?->format('M d, Y \a\t h:i A') }}.</p>
                 @if($observation->cancellation_reason)
-                <p class="text-sm text-red-700 mt-1">
-                    <strong>Reason:</strong> {{ ucwords(str_replace('_', ' ', $observation->cancellation_reason)) }}
-                </p>
+                <p class="text-sm text-red-700 mt-1"><strong>Reason:</strong> {{ ucwords(str_replace('_', ' ', $observation->cancellation_reason)) }}</p>
                 @endif
             </div>
         </div>
     </div>
     @endif
 
-    <!-- Stage Details -->
     <div class="space-y-6">
-        <!-- Pre-Observation Planning -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
@@ -257,17 +229,15 @@
                 </div>
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Pre-Observation Planning</h2>
-                    <p class="text-xs text-gray-500">Lesson plan, AI insights, and supervisor recommendations</p>
+                    <p class="text-xs text-gray-500">Leadership plan, AI insights, and supervisor recommendations</p>
                 </div>
                 @if($observation->preObservationPlanning)
                     <span class="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Completed
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg> Completed
                     </span>
                 @elseif($observation->stage === 'pre_observation_planning')
                     <span class="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                        In Progress
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg> In Progress
                     </span>
                 @endif
             </div>
@@ -279,16 +249,23 @@
                             <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-indigo-900">Upload Your Lesson Plan</h3>
-                            <p class="text-xs text-indigo-600">Submit your lesson plan for supervisor review</p>
+                            <h3 class="text-sm font-semibold text-indigo-900">Upload Your Leadership Plan</h3>
+                            <p class="text-xs text-indigo-600">Submit your leadership or management plan for supervisor review</p>
                         </div>
                     </div>
-                    <form action="{{ route('teacher.observations.upload-lesson-plan', $observation) }}" method="POST" enctype="multipart/form-data"
+                    <form action="{{ route('school-head.observations.upload-plan', $observation) }}" method="POST" enctype="multipart/form-data"
                           x-data="{ submitting: false }"
                           x-on:submit="submitting = true">
                         @csrf
-                        <div class="flex items-center gap-3">
-                            <input type="file" name="lesson_plan_file" id="lesson_plan" accept=".pdf,.doc,.docx"
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <select name="plan_type" required
+                                    class="px-3 py-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+                                <option value="">Select plan type...</option>
+                                <option value="leadership_plan">Leadership Plan</option>
+                                <option value="lesson_plan">Lesson Plan</option>
+                                <option value="other">Other Document</option>
+                            </select>
+                            <input type="file" name="plan_file" id="plan_file" accept=".pdf,.doc,.docx,.pptx,.xlsx"
                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 transition-colors cursor-pointer">
                             <button type="submit"
                                     :disabled="submitting"
@@ -298,10 +275,13 @@
                                 <span x-show="submitting">Uploading...</span>
                             </button>
                         </div>
-                        @error('lesson_plan_file')
+                        @error('plan_file')
                             <p class="text-red-500 text-xs mt-2">{{ $message }}</p>
                         @enderror
-                        <p class="text-xs text-gray-400 mt-2">Accepted formats: PDF, DOC, DOCX (max 20MB)</p>
+                        @error('plan_type')
+                            <p class="text-red-500 text-xs mt-2">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-gray-400 mt-2">Accepted formats: PDF, DOC, DOCX, PPTX, XLSX (max 20MB)</p>
                     </form>
                 </div>
             @endif
@@ -315,7 +295,9 @@
                                 <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold text-gray-900">Lesson Plan</p>
+                                <p class="text-sm font-semibold text-gray-900">
+                                    {{ $observation->preObservationPlanning->lesson_plan_notes === 'leadership_plan' ? 'Leadership Plan' : ($observation->preObservationPlanning->lesson_plan_notes === 'lesson_plan' ? 'Lesson Plan' : 'Document') }}
+                                </p>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -375,7 +357,6 @@
             @endif
         </div>
 
-        <!-- Pre-Conference -->
         @if($observation->preConference)
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-3 mb-4">
@@ -384,14 +365,8 @@
                 </div>
                 <div class="flex-1">
                     <h2 class="text-lg font-semibold text-gray-900">Pre-Conference</h2>
-                    <p class="text-xs text-gray-500">Pre-observation discussion between teacher and supervisor</p>
+                    <p class="text-xs text-gray-500">Pre-observation discussion between school head and supervisor</p>
                 </div>
-                @if($observation->preObservationPlanning?->ai_insights_reviewed)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        AI Reviewed
-                    </span>
-                @endif
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 @if($observation->preObservationPlanning?->ai_insights)
@@ -407,12 +382,6 @@
                 <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Conference Date</span>
                     <p class="text-gray-900 font-medium mt-1">{{ $observation->preConference->conference_date->format('M d, Y') }}</p>
-                </div>
-                @endif
-                @if($observation->preConference->lesson_plan_review)
-                <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Lesson Plan Review</span>
-                    <p class="text-gray-900 mt-1">{{ $observation->preConference->lesson_plan_review }}</p>
                 </div>
                 @endif
                 @if($observation->preConference->discussion_notes)
@@ -433,20 +402,10 @@
                     <p class="text-sm text-gray-700">{{ $observation->preConference->finalized_focus }}</p>
                 </div>
                 @endif
-                @if($observation->preConference->teacher_reflection)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span class="text-sm font-semibold text-emerald-800">Teacher Reflection</span>
-                    </div>
-                    <p class="text-sm text-gray-700">{{ $observation->preConference->teacher_reflection }}</p>
-                </div>
-                @endif
             </div>
         </div>
         @endif
 
-        <!-- Observation (COT Ratings) -->
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between mb-4">
@@ -456,7 +415,7 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900">Observation Ratings</h2>
-                        <p class="text-xs text-gray-500">COT-based performance assessment</p>
+                        <p class="text-xs text-gray-500">Performance assessment</p>
                     </div>
                 </div>
                 <div class="text-right">
@@ -510,7 +469,6 @@
         </div>
         @endif
 
-        <!-- Post-Conference -->
         @if($observation->postConference)
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-3 mb-4">
