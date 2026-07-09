@@ -18,10 +18,12 @@ class PreConference extends Model
         'teacher_reflection',
         'lesson_plan_review',
         'instructional_materials',
+        'form_responses',
     ];
 
     protected $casts = [
         'conference_date' => 'datetime',
+        'form_responses' => 'array',
     ];
 
     public function observation(): BelongsTo

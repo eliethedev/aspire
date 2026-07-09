@@ -59,7 +59,7 @@ class TeacherController extends Controller
             'position' => $validated['position'] ?? null,
         ]);
 
-        return redirect()->route('teachers.index')
+        return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher created successfully.');
     }
 
@@ -101,7 +101,7 @@ class TeacherController extends Controller
             'position' => $validated['position'] ?? null,
         ]);
 
-        return redirect()->route('teachers.index')
+        return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher updated successfully.');
     }
 
@@ -111,7 +111,7 @@ class TeacherController extends Controller
         $teacher->delete();
         $user->delete();
 
-        return redirect()->route('teachers.index')
+        return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher deleted successfully.');
     }
 }

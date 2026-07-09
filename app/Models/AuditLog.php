@@ -12,9 +12,15 @@ class AuditLog extends Model
 
     protected $fillable = [
         'user_id',
+        'role',
         'invitation_id',
         'action',
+        'module',
+        'record_id',
         'description',
+        'status',
+        'old_values',
+        'new_values',
         'metadata',
         'ip_address',
         'user_agent',
@@ -22,53 +28,52 @@ class AuditLog extends Model
 
     protected $casts = [
         'metadata' => 'array',
+        'old_values' => 'array',
+        'new_values' => 'array',
     ];
 
-    /**
-     * Get the user that performed the action.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the invitation associated with the log.
-     */
     public function invitation(): BelongsTo
     {
         return $this->belongsTo(Invitation::class);
     }
 
-    /**
-     * Scope a query to only include logs for a specific action.
-     */
     public function scopeForAction($query, string $action)
     {
         return $query->where('action', $action);
     }
 
-    /**
-     * Scope a query to only include logs for a specific user.
-     */
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-    /**
-     * Scope a query to only include logs for a specific invitation.
-     */
     public function scopeForInvitation($query, int $invitationId)
     {
         return $query->where('invitation_id', $invitationId);
     }
 
-    /**
-     * Scope a query to only include recent logs.
-     */
+    public function scopeForModule($query, string $module)
+    {
+        return $query->where('module', $module);
+    }
+
     public function scopeRecent($query, int $days = 30)
     {
         return $query->where('created_at', '>=', now()->subDays($days));
+    }
+
+    public function scopeSuccessful($query)
+    {
+        return $query->where('status', 'success');
+    }
+
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'failed');
     }
 }

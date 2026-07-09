@@ -31,6 +31,7 @@ class Observation extends Model
         'grade_level',
         'observation_mode',
         'evidence_files',
+        'form_template_id',
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',
@@ -49,6 +50,14 @@ class Observation extends Model
         'confirmed_at' => 'datetime',
         'rejected_at' => 'datetime',
     ];
+
+    /**
+     * The form template used for this observation
+     */
+    public function formTemplate(): BelongsTo
+    {
+        return $this->belongsTo(FormTemplate::class, 'form_template_id');
+    }
 
     /**
      * Observation belongs to an Observer (polymorphic - can be Supervisor or School Head)

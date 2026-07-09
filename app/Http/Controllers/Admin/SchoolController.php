@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\School;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -60,6 +61,11 @@ class SchoolController extends Controller
         ]);
 
         $school = School::create($validated);
+
+        app(AuditLogService::class)->logCreate(
+            'schools', $school,
+            "Created school: {$school->name}"
+        );
 
         return redirect()
             ->route('admin.schools.index')
@@ -118,6 +124,13 @@ class SchoolController extends Controller
 
         $school->update($validated);
 
+        app(AuditLogService::class)->logUpdate(
+            'schools', $school,
+            $school->getOriginal(),
+            $validated,
+            "Updated school: {$school->name}"
+        );
+
         return redirect()
             ->route('admin.schools.index')
             ->with('success', "School '{$school->name}' has been updated successfully.");
@@ -130,6 +143,14 @@ class SchoolController extends Controller
     {
         $schoolName = $school->name;
         $school->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'schools', (string) $school->id,
+            "Deleted school: {$schoolName}",
+            'success',
+            ['name' => $schoolName, 'slug' => $school->slug],
+            [],
+        );
 
         return redirect()
             ->route('admin.schools.index')
@@ -149,6 +170,14 @@ class SchoolController extends Controller
 
         $schoolUser = $school->schoolUsers()->create($validated);
 
+        app(AuditLogService::class)->log(
+            'user_added', 'schools', (string) $school->id,
+            "Added user #{$validated['user_id']} to school: {$school->name}",
+            'success',
+            [],
+            ['user_id' => $validated['user_id'], 'role' => $validated['role']],
+        );
+
         return redirect()
             ->route('admin.schools.show', $school)
             ->with('success', 'User has been added to school successfully.');
@@ -160,6 +189,14 @@ class SchoolController extends Controller
     public function removeUser(School $school, $userId)
     {
         $school->schoolUsers()->where('user_id', $userId)->delete();
+
+        app(AuditLogService::class)->log(
+            'user_removed', 'schools', (string) $school->id,
+            "Removed user #{$userId} from school: {$school->name}",
+            'success',
+            ['user_id' => $userId],
+            [],
+        );
 
         return redirect()
             ->route('admin.schools.show', $school)

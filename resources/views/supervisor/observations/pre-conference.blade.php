@@ -231,7 +231,7 @@
                             @if($planning->suggested_focus)
                             <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
                                 <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Suggested Focus</span>
-                                <p class="text-sm text-gray-700 mt-1">{{ Str::limit($planning->suggested_focus, 120) }}</p>
+                                <p class="text-sm text-gray-700 mt-1">{{ Str::limit(is_array($planning->suggested_focus) ? implode(', ', $planning->suggested_focus) : $planning->suggested_focus, 120) }}</p>
                             </div>
                             @endif
                             @if($planning->observation_tool)
@@ -463,7 +463,7 @@
             @if($planning?->suggested_focus)
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Focus Areas</h3>
-                <p class="text-sm text-gray-700">{{ $planning->suggested_focus }}</p>
+                <p class="text-sm text-gray-700">{{ is_array($planning->suggested_focus) ? implode(', ', $planning->suggested_focus) : $planning->suggested_focus }}</p>
             </div>
             @endif
 

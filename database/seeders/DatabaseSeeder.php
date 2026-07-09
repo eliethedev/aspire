@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SchoolSeeder::class,
             SchoolHeadProfileSeeder::class,
+            FormTemplateSeeder::class,
         ]);
 
         // User::factory(10)->create();

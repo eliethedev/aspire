@@ -34,13 +34,13 @@
             @include('partials.sidebar')
 
             <!-- Main Content -->
-            <div class="flex-1 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-56'">
+            <div class="flex-1 pt-16 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'ml-16' : 'ml-56'">
                 <!-- Header -->
                 @include('layouts.header')
                 
                 <!-- Page Heading -->
                 @isset($header)
-                    <header class="bg-white border-b border-gray-200 shadow-sm">
+                    <header class="bg-white border-b border-gray-100">
                         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>
@@ -48,8 +48,8 @@
                 @endisset
 
                 <!-- Page Content -->
-                <main class="py-8 px-4 sm:px-6 lg:px-8">
-                    <div class="max-w-7xl mx-auto">
+                <main class="p-6">
+                    <div class="mx-auto">
                         @yield('content')
                     </div>
                 </main>

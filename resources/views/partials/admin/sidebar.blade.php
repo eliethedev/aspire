@@ -1,10 +1,10 @@
 <!-- Admin Sidebar -->
-<aside class="sidebar-glass sidebar-floating h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
+<aside class="sidebar-glass h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
     <!-- Logo - fixed at top -->
-    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 shrink-0">
+    <div class="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
         <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.collapsed ? 'mx-auto' : ''" class="flex items-center space-x-2.5">
-            <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ASPIRE Admin</span>
+            <span class="text-lg font-bold text-indigo-600">ASPIRE Admin</span>
         </a>
     </div>
 
@@ -14,7 +14,7 @@
             <!-- Main Navigation Section -->
             <li class="mb-4">
                 <div x-show="!$store.sidebar.collapsed" class="sidebar-section-header px-3 py-1.5">
-                    <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Main</span>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Main</span>
                 </div>
                 <ul class="space-y-0.5 mt-1.5">
                     <!-- Dashboard -->
@@ -48,7 +48,7 @@
 
             <!-- Management Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
-                <button x-show="!$store.sidebar.collapsed" @click="managementOpen = !managementOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.collapsed" @click="managementOpen = !managementOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Management</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': managementOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -112,7 +112,7 @@
 
             <!-- Registration Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
-                <button x-show="!$store.sidebar.collapsed" @click="registrationOpen = !registrationOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.collapsed" @click="registrationOpen = !registrationOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Registration</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': registrationOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -137,7 +137,7 @@
 
             <!-- Other Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : ''">
-                <button x-show="!$store.sidebar.collapsed" @click="otherOpen = !otherOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.collapsed" @click="otherOpen = !otherOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Other</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': otherOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -146,8 +146,8 @@
 
                 <ul x-show="!$store.sidebar.collapsed ? otherOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
                     <li>
-                        <a href="#"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600"
+                        <a href="{{ route('admin.observations.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.observations.*') ? 'sidebar-link-active' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,6 +155,32 @@
                                 </svg>
                             </span>
                             <span x-show="!$store.sidebar.collapsed" class="font-medium">Observations</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.announcements.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.announcements.*') ? 'sidebar-link-active' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Announcements</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.audit-logs.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.audit-logs.*') ? 'sidebar-link-active' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap text-gray-400" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Audit Logs</span>
                         </a>
                     </li>
 
@@ -190,9 +216,9 @@
     </nav>
 
     <!-- User Profile Section - fixed at bottom -->
-    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
+    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-xl border border-gray-100" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
         <div class="flex items-center" :class="$store.sidebar.collapsed ? '' : 'space-x-3'">
-            <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-indigo-600 flex-shrink-0">
                 <span class="text-white text-sm font-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>
             </div>
             <div x-show="!$store.sidebar.collapsed" class="flex-1 min-w-0">

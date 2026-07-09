@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\School;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
@@ -89,6 +90,11 @@ class UserManagementController extends Controller
 
         event(new Registered($user));
 
+        app(AuditLogService::class)->logCreate(
+            'users', $user,
+            "Created {$user->role} user: {$user->name}"
+        );
+
         return response()->json($user, 201);
     }
 
@@ -137,6 +143,13 @@ class UserManagementController extends Controller
         // Update Spatie role if changed
         if (isset($validated['role']) && $validated['role'] !== $user->role) {
             $user->syncRoles([$validated['role']]);
+            app(AuditLogService::class)->log(
+                'role_changed', 'users', (string) $user->id,
+                "Changed {$user->name}'s role",
+                'success',
+                ['role' => $user->getOriginal('role')],
+                ['role' => $user->role],
+            );
         }
 
         return response()->json($user);
@@ -157,7 +170,16 @@ class UserManagementController extends Controller
             }
         }
 
+        $userName = $user->name;
         $user->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'users', (string) $user->id,
+            "Deleted user: {$userName}",
+            'success',
+            ['name' => $userName, 'role' => $user->role, 'email' => $user->email],
+            [],
+        );
 
         return response()->json(null, 204);
     }

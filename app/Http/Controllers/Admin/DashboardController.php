@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\School;
-use App\Models\Observation;
+use App\Models\AuditLog;
 use App\Models\CotRating;
+use App\Models\Observation;
+use App\Models\School;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,15 +33,11 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
-        // Get recent activity
-        $recentActivity = [
-            'latest_users' => User::latest()->take(5)->get(),
-            'latest_observations' => Observation::with(['observee.user', 'observee.school'])
-                ->latest()
-                ->take(5)
-                ->get(),
-            'latest_schools' => School::latest()->take(3)->get(),
-        ];
+        // Get recent activity from audit logs
+        $recentAuditLogs = AuditLog::with('user')
+            ->latest()
+            ->take(10)
+            ->get();
 
         // System status
         $systemStatus = [
@@ -52,7 +49,7 @@ class DashboardController extends Controller
             'server_usage' => $this->getServerUsage(),
         ];
 
-        return view('admin.dashboard', compact('stats', 'performance', 'recentActivity', 'systemStatus'));
+        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'systemStatus'));
     }
 
     /**

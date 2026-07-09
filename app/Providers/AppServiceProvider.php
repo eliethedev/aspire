@@ -11,6 +11,9 @@ use App\AI\Services\FinalReportService;
 use App\AI\Services\ObservationGuidanceService;
 use App\AI\Services\PostConferenceService;
 use App\AI\Services\PreObservationService;
+use App\Services\AuditLogService;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -46,6 +49,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(Failed::class, function (Failed $event) {
+            app(AuditLogService::class)->logFailedLogin(
+                $event->user,
+                $event->credentials['email'] ?? 'unknown',
+                'Invalid credentials'
+            );
+        });
     }
 }

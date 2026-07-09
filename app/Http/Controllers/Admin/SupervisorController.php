@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Supervisor;
 use App\Models\School;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
@@ -96,6 +97,11 @@ class SupervisorController extends Controller
 
         event(new Registered($user));
 
+        app(AuditLogService::class)->logCreate(
+            'supervisors', $supervisor,
+            "Created supervisor: {$user->name}"
+        );
+
         return redirect()->route('admin.supervisors.index')
             ->with('success', 'Supervisor has been created successfully.');
     }
@@ -179,6 +185,13 @@ class SupervisorController extends Controller
             $supervisor->update($supervisorData);
         }
 
+        app(AuditLogService::class)->logUpdate(
+            'supervisors', $supervisor,
+            array_merge($userData, $supervisorData),
+            $validated,
+            "Updated supervisor: {$supervisor->user->name}"
+        );
+
         return redirect()->route('admin.supervisors.index')
             ->with('success', 'Supervisor has been updated successfully.');
     }
@@ -189,12 +202,21 @@ class SupervisorController extends Controller
     public function destroy(Supervisor $supervisor)
     {
         $user = $supervisor->user;
+        $userName = $user->name;
         
         // Delete supervisor profile
         $supervisor->delete();
         
         // Delete user
         $user->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'supervisors', (string) $supervisor->id,
+            "Deleted supervisor: {$userName}",
+            'success',
+            ['name' => $userName, 'email' => $user->email],
+            [],
+        );
 
         return redirect()->route('admin.supervisors.index')
             ->with('success', 'Supervisor has been deleted successfully.');

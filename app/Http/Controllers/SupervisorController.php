@@ -10,13 +10,16 @@ use App\Models\PreConference;
 use App\Models\PostConference;
 use App\Models\CotRating;
 use App\Models\SchoolHeadProfile;
+use App\Services\AuditLogService;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use App\Services\AIFeedbackService;
 use App\Services\AISuggestionService;
 use App\Services\GeminiService;
+use App\Services\FormTemplateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class SupervisorController extends Controller
@@ -25,13 +28,15 @@ class SupervisorController extends Controller
     protected PHPMailerService $mailerService;
     protected AIFeedbackService $aiFeedback;
     protected AISuggestionService $aiSuggestions;
+    protected FormTemplateService $formTemplateService;
 
-    public function __construct(NotificationService $notificationService, PHPMailerService $mailerService, AIFeedbackService $aiFeedback, AISuggestionService $aiSuggestions)
+    public function __construct(NotificationService $notificationService, PHPMailerService $mailerService, AIFeedbackService $aiFeedback, AISuggestionService $aiSuggestions, FormTemplateService $formTemplateService)
     {
         $this->notificationService = $notificationService;
         $this->mailerService = $mailerService;
         $this->aiFeedback = $aiFeedback;
         $this->aiSuggestions = $aiSuggestions;
+        $this->formTemplateService = $formTemplateService;
     }
     /**
      * Display the supervisor dashboard.
@@ -306,6 +311,9 @@ class SupervisorController extends Controller
         $status = $validated['schedule_type'] === 'scheduled' ? 'scheduled' : 'in_progress';
         $stage = $validated['schedule_type'] === 'scheduled' ? 'pre_observation_planning' : 'observation';
 
+        $schoolYear = $validated['school_year'] ?? $this->getCurrentSchoolYear();
+        $activeTemplate = $this->formTemplateService->getActiveTemplate($schoolYear, $validated['observation_type']);
+
         $observation = Observation::create([
             'observer_id' => Auth::id(),
             'observer_type' => User::class,
@@ -316,13 +324,20 @@ class SupervisorController extends Controller
             'stage' => $stage,
             'notes' => $validated['notes'] ?? null,
             'status' => $status,
-            'school_year' => $validated['school_year'] ?? $this->getCurrentSchoolYear(),
+            'school_year' => $schoolYear,
             'quarter' => $validated['quarter'] ?? $this->getCurrentQuarter(),
             'observation_number' => $validated['observation_number'] ?? 1,
             'subject' => $validated['subject'] ?? null,
             'grade_level' => $validated['grade_level'] ?? null,
             'observation_mode' => $validated['observation_mode'] ?? 'in_person',
+            'form_template_id' => $activeTemplate?->id,
         ]);
+
+        app(AuditLogService::class)->log(
+            'created', 'observations', (string) $observation->getKey(),
+            "Created observation for {$observation->observee_type} #{$observation->observee_id}",
+            'success', [], $observation->toArray()
+        );
 
         // Send notification if scheduled
         if ($status === 'scheduled') {
@@ -442,13 +457,17 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
-        $validated = $request->validate([
+        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
+        $obsType = $observation->observation_type;
+        $templateRules = $this->formTemplateService->getValidationRules($schoolYear, 'pre_observation_planning', $obsType);
+
+        $validated = $request->validate(array_merge([
             'lesson_plan_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,pptx,xlsx'],
             'ai_insights' => ['nullable', 'string'],
             'suggested_focus' => ['nullable', 'string'],
             'supervisor_notes' => ['nullable', 'string'],
             'observation_tool' => ['nullable', 'string', 'in:ppst,classroom_observation_tool,tisuyon'],
-        ]);
+        ], $templateRules));
 
         $filePath = null;
         if ($request->hasFile('lesson_plan_file')) {
@@ -458,15 +477,20 @@ class SupervisorController extends Controller
             $filePath = $file->storeAs('lesson_plans', $filename, 'public');
         }
 
+        $data = [
+            'lesson_plan_file' => $filePath ?? $observation->preObservationPlanning?->lesson_plan_file,
+            'ai_insights' => $validated['ai_insights'] ?? null,
+            'suggested_focus' => $validated['suggested_focus'] ?? null,
+            'supervisor_notes' => $validated['supervisor_notes'] ?? null,
+            'observation_tool' => $validated['observation_tool'] ?? null,
+        ];
+
+        $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_observation_planning', $request->all(), $obsType);
+        $data = array_merge($data, $formData);
+
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
-            [
-                'lesson_plan_file' => $filePath ?? $observation->preObservationPlanning?->lesson_plan_file,
-                'ai_insights' => $validated['ai_insights'] ?? null,
-                'suggested_focus' => $validated['suggested_focus'] ?? null,
-                'supervisor_notes' => $validated['supervisor_notes'] ?? null,
-                'observation_tool' => $validated['observation_tool'] ?? null,
-            ]
+            $data
         );
 
         if ($request->input('continue') === 'pre_conference') {
@@ -628,7 +652,11 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
-        $validated = $request->validate([
+        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
+        $obsType = $observation->observation_type;
+        $templateRules = $this->formTemplateService->getValidationRules($schoolYear, 'pre_conference', $obsType);
+
+        $validated = $request->validate(array_merge([
             'discussion_notes' => ['nullable', 'string'],
             'finalized_focus' => ['nullable', 'string'],
             'conference_date' => ['nullable', 'date'],
@@ -636,18 +664,23 @@ class SupervisorController extends Controller
             'lesson_plan_review' => ['nullable', 'string'],
             'instructional_materials' => ['nullable', 'string'],
             'ai_insights_reviewed' => ['nullable', 'boolean'],
-        ]);
+        ], $templateRules));
+
+        $data = [
+            'discussion_notes' => $validated['discussion_notes'] ?? null,
+            'finalized_focus' => $validated['finalized_focus'] ?? null,
+            'conference_date' => $validated['conference_date'] ?? now(),
+            'teacher_reflection' => $validated['teacher_reflection'] ?? null,
+            'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
+            'instructional_materials' => $validated['instructional_materials'] ?? null,
+        ];
+
+        $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_conference', $request->all(), $obsType);
+        $data = array_merge($data, $formData);
 
         $observation->preConference()->updateOrCreate(
             ['observation_id' => $observation->id],
-            [
-                'discussion_notes' => $validated['discussion_notes'] ?? null,
-                'finalized_focus' => $validated['finalized_focus'] ?? null,
-                'conference_date' => $validated['conference_date'] ?? now(),
-                'teacher_reflection' => $validated['teacher_reflection'] ?? null,
-                'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
-                'instructional_materials' => $validated['instructional_materials'] ?? null,
-            ]
+            $data
         );
 
         // Mark AI insights as reviewed
@@ -744,9 +777,9 @@ class SupervisorController extends Controller
             ]);
         }
 
-        // Generate AI feedback for each rating (runs synchronously)
+        // Generate AI feedback for each rating (dispatched to queue to avoid rate limits)
         foreach ($createdRatings as $cotRating) {
-            $this->aiFeedback->generateFeedback($cotRating->id);
+            \App\Jobs\GeneratePostObservationFeedback::dispatch($cotRating);
         }
 
         // Handle evidence file uploads
@@ -808,9 +841,13 @@ class SupervisorController extends Controller
         }
         $observation->update($updates);
 
-        // Auto-trigger AI post-observation analysis
+        // Auto-trigger AI post-observation analysis (non-blocking)
         $observation->loadMissing(['postConference', 'preObservationPlanning', 'observee']);
-        $this->aiFeedback->generatePostConferenceComparison($observation);
+        try {
+            $this->aiFeedback->generatePostConferenceComparison($observation);
+        } catch (\App\AI\Exceptions\AIRateLimitException $e) {
+            Log::warning("AI rate limit hit for post-conference comparison on observation {$observation->id}: {$e->getMessage()}");
+        }
 
         // Notify the observee that their observation is complete
         $observee = $observation->observee;
@@ -849,7 +886,11 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
-        $validated = $request->validate([
+        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
+        $obsType = $observation->observation_type;
+        $templateRules = $this->formTemplateService->getValidationRules($schoolYear, 'post_conference', $obsType);
+
+        $validated = $request->validate(array_merge([
             'ai_comparison' => ['nullable', 'string'],
             'feedback' => ['nullable', 'string'],
             'conference_date' => ['nullable', 'date'],
@@ -860,22 +901,27 @@ class SupervisorController extends Controller
             'prioritized_next_steps' => ['nullable', 'string'],
             'teacher_reflection' => ['nullable', 'string'],
             'supervisor_notes' => ['nullable', 'string'],
-        ]);
+        ], $templateRules));
+
+        $data = [
+            'ai_comparison' => $validated['ai_comparison'] ?? null,
+            'feedback' => $validated['feedback'] ?? null,
+            'conference_date' => $validated['conference_date'] ?? now(),
+            'star_notes' => $validated['star_notes'] ?? null,
+            'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
+            'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? null,
+            'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? null,
+            'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? null,
+            'teacher_reflection' => $validated['teacher_reflection'] ?? null,
+            'supervisor_notes' => $validated['supervisor_notes'] ?? null,
+        ];
+
+        $formData = $this->formTemplateService->parseFormData($schoolYear, 'post_conference', $request->all(), $obsType);
+        $data = array_merge($data, $formData);
 
         $observation->postConference()->updateOrCreate(
             ['observation_id' => $observation->id],
-            [
-                'ai_comparison' => $validated['ai_comparison'] ?? null,
-                'feedback' => $validated['feedback'] ?? null,
-                'conference_date' => $validated['conference_date'] ?? now(),
-                'star_notes' => $validated['star_notes'] ?? null,
-                'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
-                'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? null,
-                'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? null,
-                'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? null,
-                'teacher_reflection' => $validated['teacher_reflection'] ?? null,
-                'supervisor_notes' => $validated['supervisor_notes'] ?? null,
-            ]
+            $data
         );
 
         $observation->logChange([
@@ -883,6 +929,12 @@ class SupervisorController extends Controller
             'notes' => 'Post-Conference completed',
         ]);
         $observation->update(['status' => 'completed']);
+
+        app(AuditLogService::class)->log(
+            'completed', 'observations', (string) $observation->getKey(),
+            "Observation #{$observation->getKey()} completed",
+            'success', [], $observation->toArray()
+        );
 
         // Notify the observee about feedback
         $observee = $observation->observee;
@@ -979,6 +1031,13 @@ class SupervisorController extends Controller
             : $validated['cancellation_reason'];
 
         $observation->cancel($reason, $validated['internal_note']);
+
+        app(AuditLogService::class)->log(
+            'cancelled', 'observations', (string) $observation->getKey(),
+            "Observation #{$observation->getKey()} cancelled: {$reason}",
+            'success', [], $observation->toArray(),
+            ['cancellation_reason' => $reason]
+        );
 
         // Notify the observee
         $observee = $observation->observee;

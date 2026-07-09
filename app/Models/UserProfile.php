@@ -25,6 +25,8 @@ class UserProfile extends Model
         'years_of_teaching_experience',
         'date_of_entry_to_deped',
         'employment_status',
+        'office_department',
+        'position_title',
     ];
 
     protected $casts = [

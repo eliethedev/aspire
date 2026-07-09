@@ -64,11 +64,35 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Teacher management routes
     Route::resource('teachers', \App\Http\Controllers\Admin\TeacherController::class);
 
+    // Audit log management
+    Route::get('/audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/{auditLog}', [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('audit-logs.show');
+
+    // Observation management
+    Route::get('/observations', [\App\Http\Controllers\Admin\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations/{observation}', [\App\Http\Controllers\Admin\ObservationController::class, 'show'])->name('observations.show');
+
+    // Announcement management
+    Route::resource('announcements', \App\Http\Controllers\Admin\AnnouncementController::class);
+    Route::post('announcements/{announcement}/send', [\App\Http\Controllers\Admin\AnnouncementController::class, 'send'])->name('announcements.send');
+
     // AI settings management
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\AIController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\Admin\AIController::class, 'update'])->name('update');
         Route::post('/test', [\App\Http\Controllers\Admin\AIController::class, 'test'])->name('test');
+    });
+
+    // Form template management
+    Route::prefix('form-templates')->name('form-templates.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\FormTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\FormTemplateController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\FormTemplateController::class, 'store'])->name('store');
+        Route::get('/{formTemplate}/edit', [\App\Http\Controllers\Admin\FormTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{formTemplate}', [\App\Http\Controllers\Admin\FormTemplateController::class, 'update'])->name('update');
+        Route::delete('/{formTemplate}', [\App\Http\Controllers\Admin\FormTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{formTemplate}/activate', [\App\Http\Controllers\Admin\FormTemplateController::class, 'activate'])->name('activate');
+        Route::post('/{formTemplate}/duplicate', [\App\Http\Controllers\Admin\FormTemplateController::class, 'duplicate'])->name('duplicate');
     });
 });
 

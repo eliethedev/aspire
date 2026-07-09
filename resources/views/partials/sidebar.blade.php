@@ -1,14 +1,14 @@
 <!-- Unified Sidebar for Teacher, Supervisor, School Head -->
-<aside class="sidebar-glass sidebar-floating h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" 
+<aside class="sidebar-glass h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" 
        x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), feedbackOpen: $persist(true), teachersOpen: $persist(true), reportsOpen: $persist(true) } @else { systemOpen: $persist(true), reportsOpen: $persist(true) } @endif" 
        :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
     <!-- Logo - fixed at top -->
-    <div class="h-16 flex items-center px-5 border-b border-indigo-100/50 shrink-0">
+    <div class="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else # @endif" 
            :class="$store.sidebar.collapsed ? 'mx-auto' : ''"
            class="flex items-center space-x-2.5">
-           <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+           <span class="text-lg font-bold text-indigo-600">
                 @if(auth()->user()->isTeacher()) ASPIRE @elseif(auth()->user()->isSupervisor()) ASPIRE @else ASPIRE @endif
             </span>
         </a>
@@ -20,7 +20,7 @@
             <!-- Main Navigation Section -->
             <li class="mb-4">
                 <div x-show="!$store.sidebar.collapsed" class="sidebar-section-header px-3 py-1.5">
-                    <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Main</span>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Main</span>
                 </div>
                 <ul class="space-y-0.5 mt-1.5">
                     <!-- Dashboard -->
@@ -55,7 +55,7 @@
             @if(auth()->user()->isTeacher())
             <!-- Teacher: Observations Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
-                <button x-show="!$store.sidebar.collapsed" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.collapsed" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Observations</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -184,7 +184,7 @@
             @if(auth()->user()->isSupervisor())
             <!-- Supervisor: Observations Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
-                <button x-show="!$store.sidebar.collapsed" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.collapsed" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Observations</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -362,9 +362,9 @@
     </nav>
 
     <!-- User Profile Section - fixed at bottom -->
-    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-2xl bg-white/60 border border-indigo-50/50" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
+    <div class="mx-3 mb-3 shrink-0 px-3 py-3 rounded-xl border border-gray-100" :class="$store.sidebar.collapsed ? 'flex justify-center p-2' : ''">
         <div class="flex items-center" :class="$store.sidebar.collapsed ? '' : 'space-x-3'">
-            <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center sidebar-avatar-ring bg-indigo-600 flex-shrink-0">
                 <span class="text-white text-sm font-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>
             </div>
             <div x-show="!$store.sidebar.collapsed" class="flex-1 min-w-0">

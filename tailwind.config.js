@@ -20,24 +20,19 @@ export default {
             },
             colors: {
                 sidebar: {
-                    bg: '#f8fafc',
+                    bg: '#ffffff',
                     hover: '#f1f5f9',
                     active: '#eef2ff',
-                    accent: '#6366f1',
+                    accent: '#4f46e5',
                     muted: '#94a3b8',
                 },
             },
             boxShadow: {
-                'sidebar': '4px 0 6px -1px rgba(0,0,0,0.03), 2px 0 4px -2px rgba(0,0,0,0.02)',
-                'sidebar-floating': '0 0 20px rgba(0,0,0,0.05), 4px 0 15px rgba(99,102,241,0.06)',
+                'sidebar': '1px 0 0 0 rgba(0,0,0,0.06)',
+                'sidebar-floating': '0 1px 3px rgba(0,0,0,0.05), 1px 0 0 rgba(0,0,0,0.06)',
             },
             transitionTimingFunction: {
                 'sidebar': 'cubic-bezier(0.4, 0, 0.2, 1)',
-            },
-            backgroundImage: {
-                'gradient-sidebar': 'linear-gradient(180deg, #f0f4ff 0%, #f1f5f9 50%, #f8fafc 100%)',
-                'gradient-accent': 'linear-gradient(180deg, #6366f1, #818cf8)',
-                'gradient-brand': 'linear-gradient(135deg, #6366f1, #8b5cf6)',
             },
         },
     },

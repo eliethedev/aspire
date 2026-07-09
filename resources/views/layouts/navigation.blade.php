@@ -26,7 +26,7 @@
                     @endif
                     
                     @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('school_head'))
-                        <x-nav-link :href="route('teachers.index')" :active="request()->routeIs('teachers.*')"
+                        <x-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.*')"
                             class="px-4 py-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm">
                             {{ __('Teachers') }}
                         </x-nav-link>
@@ -51,7 +51,7 @@
                                 {{ __('Register User') }}
                             </span>
                         </x-nav-link>
-                        <x-nav-link :href="route('teachers.create')" :active="request()->routeIs('teachers.create')"
+                        <x-nav-link :href="route('admin.teachers.create')" :active="request()->routeIs('teachers.create')"
                             class="px-4 py-2 rounded-lg transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 hover:shadow-sm">
                             <span class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +168,7 @@
             @endif
             
             @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('school_head'))
-                <x-responsive-nav-link :href="route('teachers.index')" :active="request()->routeIs('teachers.*')"
+                <x-responsive-nav-link :href="route('admin.teachers.index')" :active="request()->routeIs('admin.teachers.*')"
                     class="flex items-center gap-3 px-4 py-3 text-base font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:pl-6">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -200,7 +200,7 @@
                     </svg>
                     {{ __('Register User') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('teachers.create')" :active="request()->routeIs('teachers.create')"
+                <x-responsive-nav-link :href="route('admin.teachers.create')" :active="request()->routeIs('teachers.create')"
                     class="flex items-center gap-3 px-4 py-3 text-base font-medium transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 hover:pl-6">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>

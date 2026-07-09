@@ -14,8 +14,14 @@ class AdminProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user()->load('profile');
+        $p = $user->profile;
 
-        return view('admin.profile', compact('user'));
+        $basicComplete = $user->name && $user->email;
+        $personalComplete = $p?->mobile_number || $p?->date_of_birth || $p?->gender || $p?->employment_status;
+        $addressComplete = $p?->address_barangay || $p?->address_municipality || $p?->address_province;
+        $adminInfoComplete = $p?->employee_id || $p?->office_department || $p?->position_title || $p?->highest_educational_attainment || $p?->major_specialization || $p?->years_of_teaching_experience || $p?->date_of_entry_to_deped;
+
+        return view('admin.profile', compact('user', 'basicComplete', 'personalComplete', 'addressComplete', 'adminInfoComplete'));
     }
 
     public function update(AdminProfileUpdateRequest $request): RedirectResponse
@@ -35,7 +41,7 @@ class AdminProfileController extends Controller
 
         $user->save();
 
-        // Update or create user profile (common fields)
+        // Update or create user profile (admin-specific + common fields)
         $profileData = [
             'mobile_number' => $validated['mobile_number'] ?? null,
             'date_of_birth' => $validated['date_of_birth'] ?? null,
@@ -44,6 +50,8 @@ class AdminProfileController extends Controller
             'address_municipality' => $validated['address_municipality'] ?? null,
             'address_province' => $validated['address_province'] ?? null,
             'employee_id' => $validated['employee_id'] ?? null,
+            'office_department' => $validated['office_department'] ?? null,
+            'position_title' => $validated['position_title'] ?? null,
             'prc_license_number' => $validated['prc_license_number'] ?? null,
             'highest_educational_attainment' => $validated['highest_educational_attainment'] ?? null,
             'major_specialization' => $validated['major_specialization'] ?? null,

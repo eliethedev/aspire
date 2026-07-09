@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Observation;
 use App\Models\PreObservationPlanning;
 use App\Models\Teacher;
+use App\Services\AuditLogService;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use Illuminate\Support\Facades\Auth;
@@ -109,6 +110,12 @@ class ObservationController extends Controller
             ['lesson_plan_file' => $filePath]
         );
 
+        app(AuditLogService::class)->log(
+            'lesson_plan_uploaded', 'observations', (string) $observation->getKey(),
+            "Teacher uploaded lesson plan for observation #{$observation->getKey()}",
+            'success', [], $observation->toArray()
+        );
+
         $this->notifyLessonPlanUploaded($observation, $teacher);
 
         return back()->with('success', 'Lesson plan uploaded successfully.');
@@ -160,6 +167,12 @@ class ObservationController extends Controller
 
         $observation->confirm();
 
+        app(AuditLogService::class)->log(
+            'confirmed', 'observations', (string) $observation->getKey(),
+            "Teacher confirmed observation #{$observation->getKey()}",
+            'success', [], $observation->toArray()
+        );
+
         // Notify the supervisor
         $observer = $observation->observer;
         if ($observer) {
@@ -198,6 +211,13 @@ class ObservationController extends Controller
         $notes = $validated['rejection_notes'] ?? null;
 
         $observation->reject($reason, $notes);
+
+        app(AuditLogService::class)->log(
+            'rejected', 'observations', (string) $observation->getKey(),
+            "Teacher rejected observation #{$observation->getKey()}: {$reason}",
+            'success', [], $observation->toArray(),
+            ['rejection_reason' => $reason, 'rejection_notes' => $notes]
+        );
 
         // Notify the supervisor
         $observer = $observation->observer;
@@ -240,7 +260,7 @@ class ObservationController extends Controller
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Date:</strong> {$observation->observation_date?->format('M d, Y') ?? 'No date'}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Date:</strong> ' . ($observation->observation_date?->format('M d, Y') ?? 'No date') . '</td></tr>
                                 </table>
                             </td>
                         </tr>

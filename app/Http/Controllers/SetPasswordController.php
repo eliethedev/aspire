@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invitation;
+use App\Services\AuditLogService;
 use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -49,12 +51,16 @@ class SetPasswordController extends Controller
         ]);
 
         try {
+            $invitation = Invitation::where('token', $request->token)->firstOrFail();
+
             $user = $this->invitationService->acceptInvitation(
                 $request->token,
                 $request->password,
                 $request->ip(),
                 $request->userAgent()
             );
+
+            app(AuditLogService::class)->logInvitationAccepted($invitation, $user);
 
             return redirect()
                 ->route('dashboard')
@@ -63,6 +69,9 @@ class SetPasswordController extends Controller
             return back()
                 ->withErrors($e->errors())
                 ->withInput();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('login')
+                ->withErrors(['token' => 'Invalid invitation token.']);
         }
     }
 }

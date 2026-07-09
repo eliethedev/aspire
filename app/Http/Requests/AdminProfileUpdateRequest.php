@@ -23,6 +23,8 @@ class AdminProfileUpdateRequest extends FormRequest
             'address_municipality' => ['nullable', 'string', 'max:255'],
             'address_province' => ['nullable', 'string', 'max:255'],
             'employee_id' => ['nullable', 'string', 'max:255'],
+            'office_department' => ['nullable', 'string', 'max:255'],
+            'position_title' => ['nullable', 'string', 'max:255'],
             'prc_license_number' => ['nullable', 'string', 'max:255'],
             'highest_educational_attainment' => ['nullable', 'string', 'max:255'],
             'major_specialization' => ['nullable', 'string', 'max:255'],

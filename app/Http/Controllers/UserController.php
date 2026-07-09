@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\School;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -106,6 +107,13 @@ class UserController extends Controller
             ]);
         }
 
+        app(AuditLogService::class)->logUpdate(
+            'users', $user,
+            $user->getOriginal(),
+            $validated,
+            "Updated user: {$user->name}"
+        );
+
         return redirect()
             ->route('admin.users.index')
             ->with('success', "User {$user->name} has been updated successfully.");
@@ -117,7 +125,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $userName = $user->name;
+        $userId = $user->id;
         $user->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'users', (string) $userId,
+            "Deleted user: {$userName}",
+            'success',
+            ['name' => $userName, 'role' => $user->role, 'email' => $user->email],
+            [],
+        );
 
         return redirect()
             ->route('admin.users.index')

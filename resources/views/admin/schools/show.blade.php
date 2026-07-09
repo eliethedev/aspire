@@ -1,117 +1,141 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'School Details')
+@section('title', $school->name)
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-4 space-y-6">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white rounded-xl border border-gray-100 p-6">
         <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-white">School Details</h1>
-                <p class="text-white mt-1">View school information and settings.</p>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.schools.index') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">{{ $school->name }}</h1>
+                    <p class="text-sm text-gray-500">{{ $school->domain ?? $school->subdomain ?? 'No domain set' }}</p>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center gap-3">
                 <a href="{{ route('admin.schools.edit', $school) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
                     </svg>
                     Edit School
                 </a>
-                <a href="{{ route('admin.schools.index') }}" 
-                   class="inline-flex items-center px-4 py-2 text-white bg-white border glass-card rounded-lg hover:bg-slate-50 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Back to List
-                </a>
             </div>
+        </div>
+        <div class="flex items-center gap-4 mt-4 pl-16">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                @if($school->is_active)
+                    bg-green-100 text-green-800
+                @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
+                    bg-yellow-100 text-yellow-800
+                @else
+                    bg-gray-100 text-gray-600
+                @endif">
+                @if($school->is_active)
+                    Active
+                @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
+                    Trial
+                @else
+                    Inactive
+                @endif
+            </span>
+            <span class="text-sm text-gray-500">{{ $school->users_count ?? 0 }} users</span>
+            <span class="text-sm text-gray-500">Created {{ $school->created_at->format('M j, Y') }}</span>
         </div>
     </div>
 
-    <!-- School Profile Card -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6 mb-6">
-        <div class="flex items-start space-x-6">
-            <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2h-3a2 2 0 00-2-2v14a2 2 0 002 2h3a2 2 0 002 2v3m0 2h4a2 2 0 012 2v10a2 2 0 012 2H7a2 2 0 002-2v-3z"/>
-                </svg>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-blue-50">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $school->users_count ?? 0 }}</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-xl font-bold text-white">{{ $school->name }}</h2>
-                <p class="text-white mt-1">{{ $school->domain ?? $school->subdomain }}</p>
-                <div class="mt-3 flex items-center space-x-4">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                        @if($school->is_active)
-                            bg-green-100 text-green-800
-                        @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
-                            bg-yellow-100 text-yellow-800
-                        @else
-                            bg-slate-100 text-white
-                        @endif">
-                        @if($school->is_active)
-                            Active
-                        @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
-                            Trial
-                        @else
-                            Inactive
-                        @endif
-                    </span>
-                    <span class="text-sm text-white">
-                        {{ $school->users_count ?? 0 }} users
-                    </span>
-                    <span class="text-sm text-white">
-                        Created {{ $school->created_at->format('M j, Y') }}
-                    </span>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-emerald-50">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Teachers</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $school->teachers_count ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-violet-50">
+                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisors</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $school->supervisors_count ?? 0 }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Information Cards -->
+    <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- School Information -->
-        <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center mb-4">
-                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2h-3a2 2 0 00-2-2v14a2 2 0 002 2h3a2 2 0 002 2v3m0 2h4a2 2 0 012 2v10a2 2 0 012 2H7a2 2 0 002-2v-3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-medium text-white">School Information</h3>
+        <div class="bg-white rounded-xl border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-900">School Information</h2>
             </div>
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <h4 class="text-sm font-medium text-white">School Name</h4>
-                        <p class="text-white">{{ $school->name }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->name }}</p>
                     </div>
                     <div>
-                        <h4 class="text-sm font-medium text-white">Slug</h4>
-                        <p class="text-white">{{ $school->slug }}</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-sm font-medium text-white">Domain</h4>
-                        <p class="text-white">{{ $school->domain ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-white">Subdomain</h4>
-                        <p class="text-white">{{ $school->subdomain ?? 'N/A' }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->slug }}</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <h4 class="text-sm font-medium text-white">Status</h4>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->domain ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Subdomain</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->subdomain ?? 'N/A' }}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1
                             @if($school->is_active)
                                 bg-green-100 text-green-800
                             @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
                                 bg-yellow-100 text-yellow-800
                             @else
-                                bg-slate-100 text-white
+                                bg-gray-100 text-gray-600
                             @endif">
                             @if($school->is_active)
                                 Active
@@ -123,109 +147,100 @@
                         </span>
                     </div>
                     <div>
-                        <h4 class="text-sm font-medium text-white">Trial Period</h4>
-                        <p class="text-white">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Trial Period</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">
                             {{ $school->trial_ends_at ? $school->trial_ends_at->format('M j, Y') : 'No Trial' }}
                         </p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <h4 class="text-sm font-medium text-white">Created</h4>
-                        <p class="text-white">{{ $school->created_at->format('F j, Y g:i A') }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Created</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->created_at->format('F j, Y g:i A') }}</p>
                     </div>
                     <div>
-                        <h4 class="text-sm font-medium text-white">Last Updated</h4>
-                        <p class="text-white">{{ $school->updated_at->format('F j, Y g:i A') }}</p>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->updated_at->format('F j, Y g:i A') }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- School Settings -->
-        <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center mb-4">
-                <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 12.3c-.426 0-1.943-.925 1.943 0 0-1.943-.925 1.943 0 0-1.943-.925-1.943H1.006l.006.006h14.038l-.006.006.01.038v3.514l-.01.01-1.047-.01.01-1.047C14.03 13.925 13.099 13.5 0 14.038 14.5c0 .55.453.025.825.025.825 0 1.414 1.414 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-medium text-white">School Settings</h3>
+        <div class="bg-white rounded-xl border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-sm font-semibold text-gray-900">School Settings</h2>
             </div>
-            <div class="bg-slate-50 border glass-card rounded-lg p-4">
-                @if($school->settings)
-                    <pre class="text-sm text-white overflow-x-auto"><code>{{ json_encode($school->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
-                @else
-                    <p class="text-sm text-white">No custom settings configured</p>
-                @endif
+            <div class="p-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    @if($school->settings)
+                        <pre class="text-sm text-gray-700 overflow-x-auto"><code>{{ json_encode($school->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
+                    @else
+                        <p class="text-sm text-gray-500">No custom settings configured</p>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Users Management -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between mb-4">
+    <!-- User Management -->
+    <div class="bg-white rounded-xl border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
-                <h3 class="text-lg font-medium text-white">User Management</h3>
-                <p class="text-sm text-white mt-1">Manage users assigned to this school.</p>
+                <h2 class="text-sm font-semibold text-gray-900">User Management</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Manage users assigned to this school.</p>
             </div>
             <a href="{{ route('admin.schools.users.index', $school) }}" 
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Manage Users
             </a>
         </div>
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h4 class="text-sm font-medium text-white">Total Users</h4>
-                    <p class="text-2xl font-bold text-white">{{ $school->users_count ?? 0 }}</p>
-                </div>
-                <div>
-                    <h4 class="text-sm font-medium text-white">Teachers</h4>
-                    <p class="text-2xl font-bold text-white">{{ $school->teachers_count ?? 0 }}</p>
-                </div>
-                <div>
-                    <h4 class="text-sm font-medium text-white">Supervisors</h4>
-                    <p class="text-2xl font-bold text-white">{{ $school->supervisors_count ?? 0 }}</p>
-                </div>
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $school->users_count ?? 0 }}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Teachers</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $school->teachers_count ?? 0 }}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisors</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $school->supervisors_count ?? 0 }}</p>
             </div>
         </div>
     </div>
 
-    <!-- Actions -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-medium text-white">Quick Actions</h3>
-                <p class="text-sm text-white mt-1">Common actions for this school.</p>
-            </div>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('admin.schools.edit', $school) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-gray-900">Quick Actions</h2>
+        </div>
+        <div class="p-4 flex items-center gap-3">
+            <a href="{{ route('admin.schools.edit', $school) }}" 
+               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
+                </svg>
+                Edit School
+            </a>
+            <form method="POST" 
+                  action="{{ route('admin.schools.destroy', $school) }}" 
+                  onsubmit="return confirm('Are you sure you want to delete this school? This action cannot be undone.')"
+                  class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
-                    Edit School
-                </a>
-                
-                <form method="POST" 
-                      action="{{ route('admin.schools.destroy', $school) }}" 
-                      onsubmit="return confirm('Are you sure you want to delete this school? This action cannot be undone.')"
-                      class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" 
-                            class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        Delete School
-                    </button>
-                </form>
-            </div>
+                    Delete School
+                </button>
+            </form>
         </div>
     </div>
 </div>

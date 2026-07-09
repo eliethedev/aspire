@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\School;
+use App\Services\AuditLogService;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use Illuminate\Http\Request;
@@ -60,6 +61,11 @@ class TeacherController extends Controller
             'position' => $validated['position'] ?? null,
         ]);
 
+        app(AuditLogService::class)->logCreate(
+            'teachers', $teacher,
+            "Created teacher: {$user->name}"
+        );
+
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher created successfully.');
     }
@@ -102,6 +108,13 @@ class TeacherController extends Controller
             'position' => $validated['position'] ?? null,
         ]);
 
+        app(AuditLogService::class)->logUpdate(
+            'teachers', $teacher,
+            $teacher->getOriginal(),
+            $validated,
+            "Updated teacher: {$teacher->user->name}"
+        );
+
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher updated successfully.');
     }
@@ -109,8 +122,17 @@ class TeacherController extends Controller
     public function destroy(Teacher $teacher)
     {
         $user = $teacher->user;
+        $userName = $user->name;
         $teacher->delete();
         $user->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'teachers', (string) $teacher->id,
+            "Deleted teacher: {$userName}",
+            'success',
+            ['name' => $userName, 'email' => $user->email],
+            [],
+        );
 
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher deleted successfully.');

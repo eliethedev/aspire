@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogService;
 use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -150,6 +151,15 @@ class UserInvitationController extends Controller
             // Send invitation email
             $invitation->user->notify(new \App\Notifications\UserInvitation($invitation));
 
+            app(AuditLogService::class)->log(
+                'invitation_created', 'invitations', (string) $invitation->id,
+                "Invitation sent to {$invitation->email} for role {$invitation->role}",
+                'success',
+                [],
+                $invitation->toArray(),
+                ['invitation_email' => $invitation->email, 'invitation_role' => $invitation->role],
+            );
+
             return redirect()
                 ->route('admin.invitations.index')
                 ->with('success', 'Invitation sent successfully to ' . $invitation->email);
@@ -180,6 +190,14 @@ class UserInvitationController extends Controller
             // Send new invitation email
             $invitation->user->notify(new \App\Notifications\UserInvitation($invitation));
 
+            app(AuditLogService::class)->log(
+                'invitation_resent', 'invitations', (string) $invitation->id,
+                "Invitation resent to {$invitation->email}",
+                'success',
+                [],
+                ['resend_count' => $invitation->resend_count, 'expires_at' => $invitation->expires_at->toIso8601String()],
+            );
+
             return back()->with('success', 'Invitation resent successfully to ' . $invitation->email);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors());
@@ -193,6 +211,14 @@ class UserInvitationController extends Controller
     {
         try {
             $this->invitationService->cancelInvitation($invitation);
+
+            app(AuditLogService::class)->log(
+                'invitation_cancelled', 'invitations', (string) $invitation->id,
+                "Invitation for {$invitation->email} was cancelled",
+                'success',
+                ['invitation_email' => $invitation->email, 'invitation_role' => $invitation->role],
+                [],
+            );
 
             return back()->with('success', 'Invitation cancelled successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -209,7 +235,16 @@ class UserInvitationController extends Controller
             return back()->withErrors(['invitation' => 'Cannot delete a used invitation.']);
         }
 
+        $invitationEmail = $invitation->email;
         $invitation->delete();
+
+        app(AuditLogService::class)->log(
+            'deleted', 'invitations', (string) $invitation->id,
+            "Deleted invitation for {$invitationEmail}",
+            'success',
+            ['email' => $invitationEmail, 'role' => $invitation->role],
+            [],
+        );
 
         return back()->with('success', 'Invitation deleted successfully.');
     }

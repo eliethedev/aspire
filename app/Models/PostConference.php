@@ -22,11 +22,13 @@ class PostConference extends Model
         'prioritized_next_steps',
         'teacher_reflection',
         'supervisor_notes',
+        'form_responses',
     ];
 
     protected $casts = [
         'ai_comparison' => 'array',
         'conference_date' => 'datetime',
+        'form_responses' => 'array',
     ];
 
     public function observation(): BelongsTo
