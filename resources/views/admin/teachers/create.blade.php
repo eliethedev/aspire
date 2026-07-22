@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center">
             <a href="{{ route('admin.teachers.index') }}" class="mr-4 text-white hover:text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-8">
             @csrf
             
@@ -37,7 +37,7 @@
                                {{ $errors->has('name') ? 'border-red-500' : '' }}"
                                placeholder="John Doe">
                         @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -50,7 +50,7 @@
                                {{ $errors->has('email') ? 'border-red-500' : '' }}"
                                placeholder="john@example.com">
                         @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                                {{ $errors->has('password') ? 'border-red-500' : '' }}"
                                placeholder="Enter password">
                         @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -78,7 +78,7 @@
                                {{ $errors->has('password_confirmation') ? 'border-red-500' : '' }}"
                                placeholder="Confirm password">
                         @error('password_confirmation')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                         @endforeach
                     </select>
                     @error('school_id')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -117,7 +117,7 @@
                                {{ $errors->has('department') ? 'border-red-500' : '' }}"
                                placeholder="e.g., Mathematics">
                         @error('department')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -130,7 +130,7 @@
                                {{ $errors->has('position') ? 'border-red-500' : '' }}"
                                placeholder="e.g., Senior Teacher">
                         @error('position')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -146,7 +146,7 @@
                                {{ $errors->has('years_of_service') ? 'border-red-500' : '' }}"
                                placeholder="5">
                         @error('years_of_service')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -159,7 +159,7 @@
                                {{ $errors->has('mobile_number') ? 'border-red-500' : '' }}"
                                placeholder="+63 912 345 6789">
                         @error('mobile_number')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -173,7 +173,7 @@
                                {{ $errors->has('prc_license_number') ? 'border-red-500' : '' }}"
                                placeholder="1234567">
                         @error('prc_license_number')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>

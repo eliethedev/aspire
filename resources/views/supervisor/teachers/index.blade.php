@@ -30,7 +30,7 @@
     </div>
 
     <!-- Search & Filter -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
         <form method="GET" action="{{ route('supervisor.teachers.index') }}">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
@@ -38,14 +38,14 @@
                     <div class="relative">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" name="search" value="{{ request('search') }}"
-                               class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                placeholder="Search by name or email...">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-dark-500 mb-1.5">Per Page</label>
                     <select name="per_page" onchange="this.form.submit()"
-                            class="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
                         <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
@@ -80,18 +80,18 @@
             $initial = strtoupper(substr($teacher->user->name, 0, 1));
             $obsCount = $teacher->observations_count ?? 0;
         @endphp
-        <div class="teacher-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4">
+        <div class="teacher-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4">
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <!-- Avatar + Info -->
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="w-11 h-11 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0">
+                    <div class="w-11 h-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0">
                         {{ $initial }}
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <a href="{{ route('supervisor.teachers.show', $teacher) }}" class="font-semibold text-dark-900 truncate hover:text-indigo-600 transition-colors">{{ $teacher->user->name }}</a>
+                            <a href="{{ route('supervisor.teachers.show', $teacher) }}" class="font-semibold text-dark-900 truncate hover:text-indigo-600 dark:text-indigo-400 transition-colors">{{ $teacher->user->name }}</a>
                             @if($teacher->position)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-600">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                                     {{ $teacher->position }}
                                 </span>
                             @endif
@@ -124,7 +124,7 @@
 
                 <!-- Observation Count + Actions -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg {{ $obsCount > 0 ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-50 text-gray-400' }}">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg {{ $obsCount > 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         <span class="text-sm font-medium">{{ $obsCount }}</span>
                     </div>
@@ -137,8 +137,8 @@
         </div>
     @empty
         <!-- Empty State -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-            <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+            <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-dark-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
             </div>
             <h3 class="text-lg font-semibold text-dark-900 mb-1">No teachers found</h3>

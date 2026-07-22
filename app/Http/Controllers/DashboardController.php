@@ -90,24 +90,44 @@ class DashboardController extends Controller
                 'stats' => ['total' => 0, 'scheduled' => 0, 'pending_confirmation' => 0, 'completed' => 0],
                 'nextObservation' => null,
                 'recentObservations' => collect(),
+                'schoolTeachers' => collect(),
+                'cotScores' => [],
+                'cotLabels' => [],
+                'trend' => 0,
+                'avgScore' => 0,
+                'teacherCount' => 0,
+                'unreadNotifications' => 0,
+                'latestFeedbacks' => collect(),
             ]);
         }
 
         $observationsQuery = \App\Models\Observation::where('observee_id', $schoolHead->id)
             ->where('observee_type', \App\Models\SchoolHeadProfile::class)
-            ->with(['observer', 'preObservationPlanning']);
+            ->with(['observer', 'preObservationPlanning', 'postConference']);
 
         $obs = (clone $observationsQuery)->get();
+
+        $completedObs = $obs->where('status', 'completed')->whereNotNull('overall_score');
 
         $stats = [
             'total' => $obs->count(),
             'scheduled' => $obs->where('status', 'scheduled')->count(),
-            'completed' => $obs->where('stage', 'post_conference')->count(),
+            'completed' => $completedObs->count(),
+            'in_progress' => $obs->where('status', 'in_progress')->count(),
             'pending_confirmation' => $obs->where('confirmation_status', 'pending')
                 ->where('stage', 'pre_observation_planning')
                 ->where('status', '!=', 'cancelled')
                 ->count(),
         ];
+
+        $avgScore = round($completedObs->avg('overall_score') ?? 0, 2);
+
+        $prevAvg = (clone $observationsQuery)
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->take(max(count($completedObs) - 1, 1))
+            ->avg('overall_score');
+        $trend = $prevAvg ? round($avgScore - round($prevAvg, 2), 2) : 0;
 
         $nextObservation = (clone $observationsQuery)
             ->whereIn('status', ['scheduled', 'in_progress'])
@@ -119,7 +139,33 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('school-head.dashboard', compact('stats', 'nextObservation', 'recentObservations'));
+        $cotScores = $completedObs->sortBy('observation_date')->pluck('overall_score')->toArray();
+        $cotLabels = $completedObs->sortBy('observation_date')
+            ->map(fn($o) => 'Obs ' . ($o->getKey()) . ' - ' . $o->observation_date->format('M d'))
+            ->values()->toArray();
+
+        $schoolTeachers = collect();
+        $teacherCount = 0;
+        if ($schoolHead->school_id) {
+            $schoolTeachers = \App\Models\Teacher::where('school_id', $schoolHead->school_id)
+                ->with('user')
+                ->get();
+            $teacherCount = $schoolTeachers->count();
+        }
+
+        $unreadNotifications = $user->unreadNotifications()->count();
+
+        $latestFeedbacks = \App\Models\AiFeedback::whereIn('observation_id', $obs->pluck('id'))
+            ->where('status', 'published')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('school-head.dashboard', compact(
+            'stats', 'nextObservation', 'recentObservations', 'schoolTeachers',
+            'cotScores', 'cotLabels', 'trend', 'avgScore', 'teacherCount',
+            'unreadNotifications', 'latestFeedbacks'
+        ));
     }
 
     /**

@@ -22,7 +22,7 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Teachers -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-blue-500/20">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
         </div>
 
         <!-- Total Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-purple-500/20">
                     <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Completed Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-green-500/20">
                     <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
         </div>
 
         <!-- Pending Observations -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-4">
             <div class="flex items-center">
                 <div class="p-3 rounded-lg bg-yellow-500/20">
                     <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,19 +85,19 @@
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Observations Trend -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
             <h2 class="text-lg font-semibold text-dark mb-4">Observations Trend</h2>
             <canvas id="observationsChart" height="200"></canvas>
         </div>
         <!-- Score Distribution -->
-        <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
             <h2 class="text-lg font-semibold text-dark mb-4">Average Score Trend</h2>
             <canvas id="scoresChart" height="200"></canvas>
         </div>
     </div>
 
     <!-- Recent Observations -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-dark">Recent Observations</h2>
             <span class="text-sm text-dark/60">{{ $recentObservations->count() }} total</span>

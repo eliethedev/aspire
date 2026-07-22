@@ -6,63 +6,63 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">My Performance</h1>
-            <p class="text-gray-500 mt-1">View all your leadership observations and evaluation results.</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">My Performance</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">View all your leadership observations and evaluation results.</p>
         </div>
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
-                    <p class="text-xs text-gray-500">Total Observations</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['total'] }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Total Observations</p>
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['upcoming'] }}</p>
-                    <p class="text-xs text-gray-500">Upcoming</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['upcoming'] }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['completed'] }}</p>
-                    <p class="text-xs text-gray-500">Completed</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['completed'] }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
         <form method="GET" action="{{ route('school-head.observations.index') }}">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Search</label>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Search</label>
                     <div class="relative">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" name="search" value="{{ request('search') }}"
-                               class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                placeholder="Search by subject...">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Status</label>
                     <select name="status"
-                            class="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         <option value="">All Statuses</option>
                         <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                         <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -71,9 +71,9 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Stage</label>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Stage</label>
                     <select name="stage"
-                            class="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         <option value="">All Stages</option>
                         <option value="pre_observation_planning" {{ request('stage') == 'pre_observation_planning' ? 'selected' : '' }}>Pre-Observation Planning</option>
                         <option value="pre_conference" {{ request('stage') == 'pre_conference' ? 'selected' : '' }}>Pre-Conference</option>
@@ -87,7 +87,7 @@
                 </button>
                 @if(request()->anyFilled(['search', 'status', 'stage']))
                     <a href="{{ route('school-head.observations.index') }}"
-                       class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                       class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors">
                         Clear
                     </a>
                 @endif
@@ -106,39 +106,39 @@
             $confirmationBadge = '';
             if ($observation->stage === 'pre_observation_planning' && $observation->status !== 'cancelled') {
                 $confirmationBadge = match($observation->confirmation_status) {
-                    'confirmed' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 text-green-700 ml-1">Confirmed</span>',
-                    'rejected' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700 ml-1">Rejected</span>',
+                    'confirmed' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 ml-1">Confirmed</span>',
+                    'rejected' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 ml-1">Rejected</span>',
                     default => '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-yellow-100 text-yellow-700 ml-1">Awaiting Confirmation</span>',
                 };
             }
         @endphp
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
             <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                 <div class="hidden sm:block text-center shrink-0 w-16">
-                    <p class="text-sm font-bold text-gray-400 uppercase">{{ $observation->observation_date?->format('M') ?? 'N/A' }}</p>
-                    <p class="text-3xl font-bold text-indigo-600">{{ $observation->observation_date?->format('d') ?? '--' }}</p>
-                    <p class="text-xs text-gray-400">{{ $observation->observation_date?->format('Y') ?? '----' }}</p>
+                    <p class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase">{{ $observation->observation_date?->format('M') ?? 'N/A' }}</p>
+                    <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ $observation->observation_date?->format('d') ?? '--' }}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ $observation->observation_date?->format('Y') ?? '----' }}</p>
                 </div>
 
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="font-semibold text-gray-900">{{ $observation->subject ?? 'Leadership Observation' }}</h3>
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ $observation->subject ?? 'Leadership Observation' }}</h3>
                         {!! $confirmationBadge !!}
                         @if($observation->status === 'cancelled')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">Cancelled</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">Cancelled</span>
                         @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium
-                            {{ $observation->status === 'completed' ? 'bg-green-100 text-green-700' : ($observation->status === 'scheduled' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
+                            {{ $observation->status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ($observation->status === 'scheduled' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400') }}">
                             {{ ucwords(str_replace('_', ' ', $observation->status)) }}
                         </span>
                         @endif
                     </div>
-                    <p class="text-sm text-gray-500 mt-0.5">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                         {{ $stageLabel }}
                         &middot; <span class="capitalize">{{ str_replace('_', ' ', $observation->observation_mode) }}</span>
                     </p>
-                    <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             {{ $supervisorName }}
@@ -168,12 +168,12 @@
             </div>
         </div>
     @empty
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-            <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+            <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">No observations yet</h3>
-            <p class="text-sm text-gray-500 mb-6">Your supervisor hasn't scheduled any leadership observations yet.</p>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">No observations yet</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your supervisor hasn't scheduled any leadership observations yet.</p>
             <a href="{{ route('school-head.dashboard') }}"
                class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                 Back to Dashboard

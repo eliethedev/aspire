@@ -81,7 +81,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/', [\App\Http\Controllers\Admin\AIController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\Admin\AIController::class, 'update'])->name('update');
         Route::post('/test', [\App\Http\Controllers\Admin\AIController::class, 'test'])->name('test');
+        Route::post('/test-provider', [\App\Http\Controllers\Admin\AIController::class, 'testProvider'])->name('test-provider');
     });
+
+    // Reports
+    Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
 
     // Form template management
     Route::prefix('form-templates')->name('form-templates.')->group(function () {
@@ -207,6 +211,24 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');
     Route::post('/observations/{observation}/upload-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->name('observations.upload-plan');
+
+    // Teacher management
+    Route::get('/teachers', [\App\Http\Controllers\SchoolHead\TeacherController::class, 'index'])->name('teachers.index');
+    Route::get('/teachers/{teacher}', [\App\Http\Controllers\SchoolHead\TeacherController::class, 'show'])->name('teachers.show');
+
+    // Lesson Plans
+    Route::get('/lesson-plans', [\App\Http\Controllers\SchoolHead\LessonPlanController::class, 'index'])->name('lesson-plans.index');
+    Route::get('/lesson-plans/{plan}', [\App\Http\Controllers\SchoolHead\LessonPlanController::class, 'show'])->name('lesson-plans.show');
+
+    // AI Feedback
+    Route::get('/feedback', [\App\Http\Controllers\SchoolHead\FeedbackController::class, 'index'])->name('feedback.index');
+
+    // Coaching
+    Route::get('/coaching', [\App\Http\Controllers\SchoolHead\CoachingController::class, 'index'])->name('coaching.index');
+    Route::get('/coaching/{agreement}', [\App\Http\Controllers\SchoolHead\CoachingController::class, 'show'])->name('coaching.show');
+
+    // Analytics & Reports
+    Route::get('/reports', [\App\Http\Controllers\SchoolHead\ReportController::class, 'index'])->name('reports.index');
 });
 
 // School-specific routes

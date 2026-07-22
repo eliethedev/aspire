@@ -14,39 +14,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* Light Theme Background - DepEd White Theme */
         .light-bg {
-            background-color: #ffffff;
-            background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.03) 0px, transparent 50%);
+            background-color: #f0f5ff;
         }
 
-        /* Glassmorphism Card - Light Theme */
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
         }
 
-        /* Light Input Styling */
         .light-input {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             color: #1f2937;
             transition: all 0.2s ease;
         }
 
         .light-input:hover {
-            border-color: rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.9);
+            border-color: #9ca3af;
         }
 
         .light-input:focus {
-            border-color: rgba(99, 102, 241, 0.5);
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
             outline: none;
         }
 
@@ -54,48 +45,55 @@
             color: rgba(0, 0, 0, 0.4);
         }
 
-        /* Gradient Button - DepEd Theme Style */
-        .btn-gradient {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        .btn-primary {
+            background-color: #2563eb;
             color: white;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.3);
         }
 
-        .btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        .btn-primary:hover {
+            background-color: #1d4ed8;
         }
 
-        .btn-gradient:active {
-            transform: translateY(0);
+        .btn-primary:active {
+            background-color: #1e40af;
         }
 
-        /* Decorative Elements */
-        .glow-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
+        @media (max-width: 380px) {
+            .card-padding {
+                padding: 1.25rem;
+            }
         }
     </style>
 </head>
-<body class="antialiased font-sans light-bg min-h-screen flex items-center justify-center p-4 relative">
+<body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
-    <!-- Background Glow Effects -->
-    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/10"></div>
-    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/5"></div>
+    <!-- Top Nav -->
+    <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            ASPIRE
+        </a>
+        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">
+            Homepage
+        </a>
+    </nav>
 
-    <div class="w-full max-w-md glass-card rounded-2xl p-8 md:p-10 relative z-10">
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-md glass-card rounded-2xl p-6 sm:p-8 md:p-10 card-padding">
 
         <!-- Header Section -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
-                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="text-center mb-6 sm:mb-8">
+            <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-100 mb-3 sm:mb-4">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Forgot Password?</h1>
-            <p class="text-gray-500 text-sm mt-2">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Forgot Password?</h1>
+            <p class="text-gray-500 text-xs sm:text-sm mt-2">
                 Enter your registered email address and we'll send you a new invitation to reset your password.
             </p>
         </div>
@@ -111,7 +109,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('password.email') }}" class="space-y-5">
+        <form method="POST" action="{{ route('password.email') }}" class="space-y-4 sm:space-y-5">
             @csrf
 
             <!-- Email Field -->
@@ -141,7 +139,7 @@
 
             <!-- Submit Button -->
             <button type="submit"
-                    class="btn-gradient w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
+                    class="btn-primary w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
@@ -150,8 +148,8 @@
         </form>
 
         <!-- Back to Login -->
-        <div class="mt-6 text-center">
-            <a href="{{ route('login') }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-1">
+        <div class="mt-4 sm:mt-6 text-center">
+            <a href="{{ route('login') }}" class="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
@@ -160,7 +158,7 @@
         </div>
 
         <!-- Security Notice -->
-        <div class="mt-6 pt-6 border-t border-gray-100">
+        <div class="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100">
             <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -171,6 +169,7 @@
             </div>
         </div>
     </div>
+    </main>
 
 </body>
 </html>

@@ -2,9 +2,6 @@
 
 namespace App\AI\Contracts;
 
-use App\Models\Observation;
-use App\Models\CotRating;
-
 interface AIServiceInterface
 {
     public function generate(string $prompt, array $options = []): ?string;
@@ -16,4 +13,6 @@ interface AIServiceInterface
     public function getProviderName(): string;
 
     public function getModelName(): string;
+
+    public function setModel(string $model): void;
 }

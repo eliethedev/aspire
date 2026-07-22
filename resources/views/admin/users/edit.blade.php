@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center">
             <a href="{{ route('admin.users.index') }}" class="mr-4 text-dark hover:text-dark">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- User Info Card -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center space-x-4">
             <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,9 +32,9 @@
                 <p class="text-sm text-dark">{{ $user->email }}</p>
                 <div class="flex items-center mt-1 space-x-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        @if($user->role === 'admin') bg-purple-100 text-purple-800
-                        @elseif($user->role === 'school_head') bg-blue-100 text-blue-800
-                        @elseif($user->role === 'supervisor') bg-green-100 text-green-800
+                        @if($user->role === 'admin') bg-purple-100 dark:bg-purple-900/30 text-purple-800
+                        @elseif($user->role === 'school_head') bg-blue-100 dark:bg-blue-900/30 text-blue-800
+                        @elseif($user->role === 'supervisor') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
                         @elseif($user->role === 'teacher') bg-yellow-100 text-yellow-800
                         @endif">
                         {{ ucfirst(str_replace('_', ' ', $user->role)) }}
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
             @csrf
             @method('PUT')
@@ -65,7 +65,7 @@
                                class="w-full px-3 py-2 border glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="John Doe">
                         @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -77,7 +77,7 @@
                                class="w-full px-3 py-2 border glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="john@example.com">
                         @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                             @endforeach
                         </select>
                         @error('role')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-dark">
                             Select the appropriate role for this user based on their responsibilities.
@@ -121,7 +121,7 @@
                             @endforeach
                         </select>
                         @error('school_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-dark">
                             Assign to a school if this user is not a system administrator.
@@ -133,7 +133,7 @@
             <!-- Password (Optional) -->
             <div>
                 <h3 class="text-lg font-medium text-dark mb-4">Password (Optional)</h3>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
                     <p class="text-sm text-blue-800">
                         Leave these fields empty to keep the current password. Only enter a new password if you want to change it.
                     </p>
@@ -147,7 +147,7 @@
                                class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Enter new password (optional)">
                         @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -159,7 +159,7 @@
                                class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Confirm new password">
                         @error('password_confirmation')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -173,7 +173,7 @@
                 
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('admin.users.show', $user) }}" 
-                       class="px-4 py-2 text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-colors">
+                       class="px-4 py-2 text-indigo-600 dark:text-indigo-400 border border-indigo-300 rounded-lg hover:bg-indigo-50 dark:bg-indigo-900/20 transition-colors">
                         View User
                     </a>
                 </div>

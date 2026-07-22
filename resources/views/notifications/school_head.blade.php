@@ -1,16 +1,16 @@
-@extends('layouts.school_head')
+@extends('layouts.teacher')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">School Head Notifications</h1>
-        <p class="mt-1 text-sm text-gray-500">View school-wide notifications and updates</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">School Head Notifications</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">View school-wide notifications and updates</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <h2 class="text-lg font-semibold text-gray-900">Your Notifications</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Your Notifications</h2>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                     {{ $notifications->total() }} total
                 </span>
@@ -32,7 +32,7 @@
 
         <div class="divide-y divide-gray-200">
             @forelse($notifications as $notification)
-            <div class="px-6 py-4 {{ !$notification->is_read ? 'bg-blue-50' : '' }}">
+            <div class="px-6 py-4 {{ !$notification->is_read ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
                         @if($notification->type === 'teacher_added')
@@ -42,7 +42,7 @@
                             </svg>
                         </div>
                         @elseif($notification->type === 'observation_report')
-                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                             <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
@@ -55,7 +55,7 @@
                         </div>
                         @else
                         <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                            <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-6 w-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
                         </div>
@@ -63,18 +63,18 @@
                     </div>
                     <div class="ml-4 flex-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-medium text-gray-900">{{ $notification->title }}</h3>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ $notification->title }}</h3>
                             @if(!$notification->is_read)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                                 New
                             </span>
                             @endif
                         </div>
-                        <p class="mt-1 text-sm text-gray-600">{{ $notification->message }}</p>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ $notification->message }}</p>
                         <div class="mt-2 flex items-center justify-between">
-                            <p class="text-xs text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">{{ $notification->created_at->diffForHumans() }}</p>
                             @if($notification->link)
-                            <a href="{{ $notification->link }}" onclick="markAsRead({{ $notification->id }})" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                            <a href="{{ $notification->link }}" onclick="markAsRead({{ $notification->id }})" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">
                                 View details →
                             </a>
                             @endif
@@ -84,17 +84,17 @@
             </div>
             @empty
             <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
-                <p class="mt-1 text-sm text-gray-500">You don't have any notifications yet.</p>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No notifications</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You don't have any notifications yet.</p>
             </div>
             @endforelse
         </div>
 
         @if($notifications->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
             {{ $notifications->links() }}
         </div>
         @endif

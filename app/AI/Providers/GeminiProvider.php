@@ -3,7 +3,6 @@
 namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
-use App\AI\Exceptions\AIException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,7 +25,7 @@ class GeminiProvider implements AIServiceInterface
 
     public function isAvailable(): bool
     {
-        return !empty($this->apiKey);
+        return ! empty($this->apiKey);
     }
 
     public function getProviderName(): string
@@ -39,10 +38,16 @@ class GeminiProvider implements AIServiceInterface
         return $this->model;
     }
 
+    public function setModel(string $model): void
+    {
+        $this->model = $model;
+    }
+
     public function generate(string $prompt, array $options = []): ?string
     {
-        if (!$this->isAvailable()) {
+        if (! $this->isAvailable()) {
             Log::warning('GeminiProvider: API key not configured');
+
             return null;
         }
 
@@ -55,7 +60,7 @@ class GeminiProvider implements AIServiceInterface
 
             $http = Http::timeout($timeout);
 
-            if (!$this->verifySsl) {
+            if (! $this->verifySsl) {
                 $http = $http->withoutVerifying();
             }
 
@@ -88,24 +93,26 @@ class GeminiProvider implements AIServiceInterface
             $data = $response->json();
             $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
-            if (!$text) {
+            if (! $text) {
                 Log::warning('Gemini API: empty response', ['response' => $data]);
+
                 return null;
             }
 
             return trim($text);
         } catch (\Exception $e) {
-            Log::error('GeminiProvider exception: ' . $e->getMessage());
+            Log::error('GeminiProvider exception: '.$e->getMessage());
+
             return null;
         }
     }
 
     public function generateJson(string $prompt, array $options = []): ?array
     {
-        $jsonPrompt = $prompt . "\n\nRespond with valid JSON only, no markdown formatting, no code blocks.";
+        $jsonPrompt = $prompt."\n\nRespond with valid JSON only, no markdown formatting, no code blocks.";
         $result = $this->generate($jsonPrompt, $options);
 
-        if (!$result) {
+        if (! $result) {
             return null;
         }
 
@@ -119,6 +126,7 @@ class GeminiProvider implements AIServiceInterface
                 'error' => json_last_error_msg(),
                 'raw' => $result,
             ]);
+
             return null;
         }
 

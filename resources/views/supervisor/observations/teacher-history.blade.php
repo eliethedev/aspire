@@ -18,15 +18,15 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <p class="text-2xl font-bold text-dark-900">{{ $stats['total'] }}</p>
             <p class="text-xs text-dark-500">Total Observations</p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <p class="text-2xl font-bold text-dark-900">{{ $stats['completed'] }}</p>
             <p class="text-xs text-dark-500">Completed</p>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <p class="text-2xl font-bold text-dark-900">{{ $stats['avg_score'] ? number_format($stats['avg_score'], 2) : 'N/A' }}</p>
             <p class="text-xs text-dark-500">Average Score</p>
         </div>
@@ -37,17 +37,17 @@
         @php
             $stageLabels = ['pre_observation_planning' => 'Pre-Observation Planning', 'pre_conference' => 'Pre-Conference', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
             $stageBadgeColor = match($observation->status) {
-                'completed' => 'bg-green-100 text-green-700',
-                'scheduled' => 'bg-amber-100 text-amber-700',
+                'completed' => 'bg-green-100 dark:bg-green-900/30 text-green-700',
+                'scheduled' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700',
                 default => 'bg-blue-100 text-blue-700',
             };
         @endphp
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-4">
                     <div class="text-center">
                         <p class="text-lg font-bold text-dark-900">{{ $observation->observation_date->format('M') }}</p>
-                        <p class="text-2xl font-bold text-indigo-600">{{ $observation->observation_date->format('d') }}</p>
+                        <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ $observation->observation_date->format('d') }}</p>
                         <p class="text-xs text-dark-400">{{ $observation->observation_date->format('Y') }}</p>
                     </div>
                     <div>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <a href="{{ route('supervisor.observations.show', $observation) }}"
-                       class="px-3 py-1.5 text-sm font-medium text-dark-600 hover:text-dark-900 hover:bg-gray-50 rounded-lg transition-colors">
+                       class="px-3 py-1.5 text-sm font-medium text-dark-600 hover:text-dark-900 hover:bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors">
                         View Details
                     </a>
                     @php
@@ -91,7 +91,7 @@
             </div>
         </div>
     @empty
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
             <h3 class="text-lg font-semibold text-dark-900 mb-1">No observations found</h3>
             <p class="text-sm text-dark-500">This teacher has no observation records yet.</p>
         </div>

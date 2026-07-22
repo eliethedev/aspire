@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center">
             <a href="{{ route('admin.users.index') }}" class="mr-4 text-dark hover:text-dark">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
             @csrf
             
@@ -36,7 +36,7 @@
                                class="w-full px-3 py-2 border text-dark glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="John Doe">
                         @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -48,7 +48,7 @@
                                class="w-full px-3 py-2 border text-dark glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="john@example.com">
                         @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                             @endforeach
                         </select>
                         @error('role')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-dark">
                             Select the appropriate role for this user based on their responsibilities.
@@ -93,7 +93,7 @@
                             @endforeach
                         </select>
                         @error('school_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-dark">
                             Assign to a school if this user is not a system administrator.
@@ -114,7 +114,7 @@
                                class="w-full px-3 py-2 border text-dark glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Enter password">
                         @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -126,7 +126,7 @@
                                class="w-full px-3 py-2 border text-dark glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Confirm password">
                         @error('password_confirmation')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>

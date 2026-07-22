@@ -5,11 +5,11 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-dark">Supervisors</h1>
-                <p class="text-dark mt-1">Manage school supervisors and their information.</p>
+                <h1 class="text-2xl font-bold text-dark dark:text-gray-300 ">Supervisors</h1>
+                <p class="text-dark dark:text-gray-300 mt-1">Manage school supervisors and their information.</p>
             </div>
             <a href="{{ route('admin.supervisors.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,16 +21,16 @@
     </div>
 
     <!-- Search and Filter Form -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
         <form method="GET" action="{{ route('admin.supervisors.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
-                <label for="search" class="block text-sm font-medium text-dark mb-1">Search</label>
+                <label for="search" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Search</label>
                 <input type="text" id="search" name="search" value="{{ request('search') }}"
                        class="w-full px-3 py-2 glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Search by name or email...">
             </div>
             <div>
-                <label for="school_id" class="block text-sm font-medium text-dark mb-1">School</label>
+                <label for="school_id" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">School</label>
                 <select id="school_id" name="school_id"
                         class="w-full px-3 py-2 glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Schools</option>
@@ -42,7 +42,7 @@
                 </select>
             </div>
             <div>
-                <label for="status" class="block text-sm font-medium text-dark mb-1">Status</label>
+                <label for="status" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Status</label>
                 <select id="status" name="status"
                         class="w-full px-3 py-2 glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Status</option>
@@ -54,7 +54,7 @@
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     Filter
                 </button>
-                <a href="{{ route('admin.supervisors.index') }}" class="px-4 py-2 glass-card text-dark rounded-lg hover:bg-white/10 transition-colors ml-2">
+                <a href="{{ route('admin.supervisors.index') }}" class="px-4 py-2 glass-card text-dark dark:text-gray-300 rounded-lg hover:bg-white/10 transition-colors ml-2">
                     Clear
                 </a>
             </div>
@@ -62,24 +62,24 @@
     </div>
 
     <!-- Supervisors Table -->
-    <div class="bg-white rounded-xl shadow-sm glass-card overflow-hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-dark border-glass-card">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Full Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">School</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Position</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Employee ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Full Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">School</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Position</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Employee ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @if($supervisors->count() > 0)
                         @foreach($supervisors as $supervisor)
-                        <tr class="hover:bg-dark text-dark">
+                        <tr class="hover:bg-dark text-dark dark:text-gray-400 ">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium">{{ $supervisor->user->name }}</div>
                             </td>
@@ -97,7 +97,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $supervisor->status === 'active' ? 'bg-green-500 text-white' : 'bg-slate-500 text-white' }}">
+                                    {{ $supervisor->status === 'active' ? 'bg-green-50 dark:bg-green-900/200 dark:text-dark' : 'bg-slate-500 text-dark' }}">
                                     {{ $supervisor->status }}
                                 </span>
                             </td>

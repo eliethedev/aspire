@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center">
             <a href="{{ route('admin.supervisors.index') }}" class="mr-4 text-white hover:text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Supervisor Info Card -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6 mb-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mb-6">
         <div class="flex items-center space-x-4">
             <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@
                 <h3 class="text-lg font-medium text-white">{{ $supervisor->user->name }}</h3>
                 <p class="text-sm text-white">{{ $supervisor->user->email }}</p>
                 <div class="mt-2 flex items-center space-x-4">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/200/20 text-blue-300">
                         {{ $supervisor->position ?? 'No Position' }}
                     </span>
                     <span class="text-sm text-white">
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.supervisors.update', $supervisor) }}" class="space-y-8">
             @csrf
             @method('PUT')
@@ -62,7 +62,7 @@
                                {{ $errors->has('fullName') ? 'border-red-500' : '' }}"
                                placeholder="Juan Dela Cruz">
                         @error('fullName')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -76,7 +76,7 @@
                                {{ $errors->has('email') ? 'border-red-500' : '' }}"
                                placeholder="supervisor@school.edu.ph">
                         @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                            {{ $errors->has('phoneNumber') ? 'border-red-500' : '' }}"
                            placeholder="+63 912 345 6789">
                     @error('phoneNumber')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -116,7 +116,7 @@
                             @endforeach
                         </select>
                         @error('schoolId')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -130,7 +130,7 @@
                                {{ $errors->has('employeeId') ? 'border-red-500' : '' }}"
                                placeholder="1234567">
                         @error('employeeId')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                             <option value="Other" {{ old('position', $supervisor->position) == 'Other' ? 'selected' : '' }}>Other</option>
                         </select>
                         @error('position')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -167,7 +167,7 @@
                             <option value="inactive" {{ old('status', $supervisor->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
                         @error('status')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -190,7 +190,7 @@
     </div>
 
     <!-- Delete Form Outside Main Form -->
-    <div class="bg-white rounded-xl shadow-sm border glass-card p-6 mt-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mt-6">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-lg font-medium text-white">Danger Zone</h3>

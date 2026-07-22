@@ -14,81 +14,79 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* Light Theme Background - DepEd White Theme */
         .light-bg {
-            background-color: #ffffff;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.03) 0px, transparent 50%);
+            background-color: #f0f5ff;
         }
-        
-        /* Glassmorphism Card - Light Theme */
+
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
         }
-        
-        /* Light Input Styling */
+
         .light-input {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             color: #1f2937;
             transition: all 0.2s ease;
         }
-        
+
         .light-input:hover {
-            border-color: rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.9);
+            border-color: #9ca3af;
         }
-        
+
         .light-input:focus {
-            border-color: rgba(99, 102, 241, 0.5);
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
             outline: none;
         }
-        
+
         .light-input::placeholder {
             color: rgba(0, 0, 0, 0.4);
         }
-        
-        /* Gradient Button - DepEd Theme Style */
-        .btn-gradient {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+        .btn-primary {
+            background-color: #2563eb;
             color: white;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.3);
         }
-        
-        .btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
         }
-        
-        .btn-gradient:active {
-            transform: translateY(0);
+
+        .btn-primary:active {
+            background-color: #1e40af;
         }
-        
-        /* Decorative Elements */
-        .glow-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
+
+        @media (max-width: 380px) {
+            .card-padding {
+                padding: 1.25rem;
+            }
         }
     </style>
 </head>
-<body class="antialiased font-sans light-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-    
-    <!-- Background Glow Effects -->
-    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/10"></div>
-    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/5"></div>
+<body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
-    <div class="w-full max-w-md glass-card rounded-2xl p-8 md:p-10 relative z-10">
+    <!-- Top Nav -->
+    <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            ASPIRE
+        </a>
+        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">
+            Homepage
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-md glass-card rounded-2xl p-6 sm:p-8 md:p-10 card-padding">
         
         <!-- Header Section -->
-        <div class="text-center mb-10">
+        <div class="text-center mb-6 sm:mb-10">
             <!-- Logo Icon -->
             <!-- <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-rose-500 mb-6 shadow-lg shadow-indigo-500/30">
               <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,12 +94,12 @@
                 </svg>
             </div> -->
             
-            <h1 class="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Login to Aspire</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">Login to Aspire</h1>
             <p class="text-gray-500 text-sm">Sign in to access your ASPIRE account</p>
         </div>
 
         <!-- Login Form -->
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <form method="POST" action="{{ route('login') }}" class="space-y-4 sm:space-y-5">
             @csrf
 
             <!-- Email Field -->
@@ -163,18 +161,18 @@
             </div>
 
             <!-- Remember & Forgot -->
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
                 <label class="flex items-center cursor-pointer group">
                     <input 
                         type="checkbox" 
                         name="remember" 
-                        class="w-4 h-4 rounded border-gray-300 bg-white text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                        class="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                     >
-                    <span class="ml-2 text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Remember me</span>
+                    <span class="ml-2 text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Remember me</span>
                 </label>
                 <a 
                     href="" 
-                    class="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                    class="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
                 >
                     Forgot password?
                 </a>
@@ -183,7 +181,7 @@
             <!-- Submit Button -->
             <button 
                 type="submit" 
-                class="btn-gradient w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
+                class="btn-primary w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
             >
                 Sign In
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,6 +200,7 @@
             </a>
         </div>
     </div>
+    </main>
 
     <script>
         function togglePassword() {

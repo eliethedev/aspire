@@ -5,11 +5,11 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 space-y-6">
     <!-- Header -->
-    <div class="bg-white rounded-xl border border-gray-100 p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <a href="{{ route('admin.schools.index') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </a>
@@ -19,8 +19,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">{{ $school->name }}</h1>
-                    <p class="text-sm text-gray-500">{{ $school->domain ?? $school->subdomain ?? 'No domain set' }}</p>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ $school->name }}</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{{ $school->domain ?? $school->subdomain ?? 'No domain set' }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -36,11 +36,11 @@
         <div class="flex items-center gap-4 mt-4 pl-16">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                 @if($school->is_active)
-                    bg-green-100 text-green-800
+                    bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
                 @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
                     bg-yellow-100 text-yellow-800
                 @else
-                    bg-gray-100 text-gray-600
+                    bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500
                 @endif">
                 @if($school->is_active)
                     Active
@@ -50,40 +50,40 @@
                     Inactive
                 @endif
             </span>
-            <span class="text-sm text-gray-500">{{ $school->users_count ?? 0 }} users</span>
-            <span class="text-sm text-gray-500">Created {{ $school->created_at->format('M j, Y') }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{{ $school->users_count ?? 0 }} users</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">Created {{ $school->created_at->format('M j, Y') }}</span>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl border border-gray-100 p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div class="flex items-center gap-4">
-                <div class="p-3 rounded-lg bg-blue-50">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $school->users_count ?? 0 }}</p>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total Users</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->users_count ?? 0 }}</p>
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div class="flex items-center gap-4">
-                <div class="p-3 rounded-lg bg-emerald-50">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                    <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Teachers</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $school->teachers_count ?? 0 }}</p>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Teachers</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->teachers_count ?? 0 }}</p>
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-xl border border-gray-100 p-5">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div class="flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-violet-50">
                     <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,8 +91,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisors</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $school->supervisors_count ?? 0 }}</p>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Supervisors</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->supervisors_count ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -101,41 +101,41 @@
     <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- School Information -->
-        <div class="bg-white rounded-xl border border-gray-100">
-            <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="text-sm font-semibold text-gray-900">School Information</h2>
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">School Information</h2>
             </div>
             <div class="p-6 space-y-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->name }}</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">School Name</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->name }}</p>
                     </div>
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->slug }}</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->domain ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Subdomain</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->subdomain ?? 'N/A' }}</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Slug</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->slug }}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Domain</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->domain ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Subdomain</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->subdomain ?? 'N/A' }}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</p>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1
                             @if($school->is_active)
-                                bg-green-100 text-green-800
+                                bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
                             @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
                                 bg-yellow-100 text-yellow-800
                             @else
-                                bg-gray-100 text-gray-600
+                                bg-gray-100 text-gray-600 dark:text-gray-400 dark:text-gray-500
                             @endif">
                             @if($school->is_active)
                                 Active
@@ -147,36 +147,36 @@
                         </span>
                     </div>
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Trial Period</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Trial Period</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">
                             {{ $school->trial_ends_at ? $school->trial_ends_at->format('M j, Y') : 'No Trial' }}
                         </p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Created</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->created_at->format('F j, Y g:i A') }}</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Created</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->created_at->format('F j, Y g:i A') }}</p>
                     </div>
                     <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</p>
-                        <p class="text-sm font-medium text-gray-900 mt-1">{{ $school->updated_at->format('F j, Y g:i A') }}</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Last Updated</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $school->updated_at->format('F j, Y g:i A') }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- School Settings -->
-        <div class="bg-white rounded-xl border border-gray-100">
-            <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="text-sm font-semibold text-gray-900">School Settings</h2>
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">School Settings</h2>
             </div>
             <div class="p-6">
-                <div class="bg-gray-50 rounded-lg p-4">
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     @if($school->settings)
-                        <pre class="text-sm text-gray-700 overflow-x-auto"><code>{{ json_encode($school->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
+                        <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto"><code>{{ json_encode($school->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
                     @else
-                        <p class="text-sm text-gray-500">No custom settings configured</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">No custom settings configured</p>
                     @endif
                 </div>
             </div>
@@ -184,11 +184,11 @@
     </div>
 
     <!-- User Management -->
-    <div class="bg-white rounded-xl border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-gray-900">User Management</h2>
-                <p class="text-xs text-gray-500 mt-0.5">Manage users assigned to this school.</p>
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">User Management</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Manage users assigned to this school.</p>
             </div>
             <a href="{{ route('admin.schools.users.index', $school) }}" 
                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
@@ -199,25 +199,25 @@
             </a>
         </div>
         <div class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-4 rounded-lg bg-gray-50">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $school->users_count ?? 0 }}</p>
+            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total Users</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->users_count ?? 0 }}</p>
             </div>
-            <div class="p-4 rounded-lg bg-gray-50">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Teachers</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $school->teachers_count ?? 0 }}</p>
+            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Teachers</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->teachers_count ?? 0 }}</p>
             </div>
-            <div class="p-4 rounded-lg bg-gray-50">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisors</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $school->supervisors_count ?? 0 }}</p>
+            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Supervisors</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $school->supervisors_count ?? 0 }}</p>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-xl border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-sm font-semibold text-gray-900">Quick Actions</h2>
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h2>
         </div>
         <div class="p-4 flex items-center gap-3">
             <a href="{{ route('admin.schools.edit', $school) }}" 
@@ -234,7 +234,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit" 
-                        class="inline-flex items-center px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">
+                        class="inline-flex items-center px-4 py-2 bg-white border border-red-300 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:bg-red-900/20 transition-colors text-sm font-medium">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>

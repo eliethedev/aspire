@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
+use App\AI\Providers\ClaudeProvider;
 use App\AI\Providers\GeminiProvider;
+use App\AI\Providers\OllamaProvider;
+use App\AI\Providers\OpenAIProvider;
 use App\AI\RAG\CotIndicatorRepository;
 use App\AI\RAG\PPSTRubricRepository;
 use App\AI\Services\AIFeedbackService;
@@ -18,17 +21,37 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Bind the AI provider interface
+        // Bind the default AI provider (used as fallback)
         $this->app->singleton(AIServiceInterface::class, function ($app) {
-            $provider = config('ai.provider', 'gemini');
+            return self::createProvider(
+                config('ai.provider', 'gemini'),
+                config('ai.models.default', 'gemini-2.0-flash')
+            );
+        });
 
-            return match ($provider) {
-                default => new GeminiProvider(),
+        // Bind a provider factory for per-stage resolution
+        $this->app->singleton('ai.provider.factory', function () {
+            return function (?string $stage = null): AIServiceInterface {
+                $defaultProvider = config('ai.provider', 'gemini');
+                $defaultModel = config('ai.models.default', 'gemini-2.0-flash');
+
+                if ($stage && config("ai.models.{$stage}") !== null) {
+                    $stageConfig = config("ai.models.{$stage}");
+                    if (is_array($stageConfig)) {
+                        $provider = $stageConfig['provider'] ?: $defaultProvider;
+                        $model = $stageConfig['model'] ?: $defaultModel;
+                    } else {
+                        $provider = $defaultProvider;
+                        $model = (string) $stageConfig;
+                    }
+                } else {
+                    $provider = $defaultProvider;
+                    $model = $defaultModel;
+                }
+
+                return self::createProvider($provider, $model);
             };
         });
 
@@ -44,9 +67,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(FinalReportService::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    public static function createProvider(string $provider, string $model = ''): AIServiceInterface
+    {
+        return match ($provider) {
+            'openai' => new OpenAIProvider(model: $model ?: null),
+            'claude' => new ClaudeProvider(model: $model ?: null),
+            'ollama' => new OllamaProvider(model: $model ?: null),
+            default => new GeminiProvider,
+        };
+    }
+
     public function boot(): void
     {
         Event::listen(Failed::class, function (Failed $event) {

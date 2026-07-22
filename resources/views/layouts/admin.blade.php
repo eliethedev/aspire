@@ -16,6 +16,14 @@
         <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
         <script>
+            (function() {
+                const theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
+        <script>
             document.addEventListener('alpine:init', () => {
                 Alpine.store('sidebar', {
                     collapsed: localStorage.getItem('sidebar_collapsed') === 'true',
@@ -24,11 +32,19 @@
                         localStorage.setItem('sidebar_collapsed', this.collapsed);
                     }
                 });
+                Alpine.store('theme', {
+                    dark: document.documentElement.classList.contains('dark'),
+                    toggle() {
+                        this.dark = !this.dark;
+                        document.documentElement.classList.toggle('dark', this.dark);
+                        localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+                    }
+                });
             });
         </script>
         @stack('styles')
     </head>
-    <body class="font-sans antialiased bg-gray-50" x-data>
+    <body class="font-sans antialiased bg-gray-50 dark:bg-gray-950 transition-colors" x-data>
         <div class="flex min-h-screen">
             <!-- Sidebar -->
             @include('partials.admin.sidebar')
@@ -40,7 +56,7 @@
                 
                 <!-- Page Heading -->
                 @isset($header)
-                    <header class="bg-white border-b border-gray-100">
+                    <header class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
                         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>

@@ -40,7 +40,7 @@ class LoginController extends Controller
             case 'supervisor':
                 return redirect()->route('supervisor.dashboard');
             case 'school_head':
-                return redirect()->route('school_head.dashboard');
+                return redirect()->route('school-head.dashboard');
             default:
                 return redirect()->route('home');
         }

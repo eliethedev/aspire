@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
                 <a href="{{ route('admin.users.index') }}" class="mr-4 text-slate-600 hover:text-slate-800">
@@ -34,7 +34,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Profile Card -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="text-center">
                     <div class="w-24 h-24 bg-slate-200 rounded-full mx-auto flex items-center justify-center">
                         <svg class="w-12 h-12 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,9 +47,9 @@
                     <div class="mt-4 space-y-2">
                         <div class="flex items-center justify-center">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                @if($user->role === 'admin') bg-purple-100 text-purple-800
-                                @elseif($user->role === 'school_head') bg-blue-100 text-blue-800
-                                @elseif($user->role === 'supervisor') bg-green-100 text-green-800
+                                @if($user->role === 'admin') bg-purple-100 dark:bg-purple-900/30 text-purple-800
+                                @elseif($user->role === 'school_head') bg-blue-100 dark:bg-blue-900/30 text-blue-800
+                                @elseif($user->role === 'supervisor') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
                                 @elseif($user->role === 'teacher') bg-yellow-100 text-yellow-800
                                 @endif">
                                 {{ ucfirst(str_replace('_', ' ', $user->role)) }}
@@ -80,7 +80,7 @@
                     @if($user->email_verified_at)
                     <div class="flex justify-between text-sm">
                         <span class="text-slate-600">Email Verified</span>
-                        <span class="text-green-600">Yes</span>
+                        <span class="text-green-600 dark:text-green-400">Yes</span>
                     </div>
                     @endif
                 </div>
@@ -90,7 +90,7 @@
         <!-- Details and Activity -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Contact Information -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-4">Contact Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -114,7 +114,7 @@
 
             <!-- Teacher Specific Information (if applicable) -->
             @if($user->teacher)
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-4">Teacher Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -138,11 +138,11 @@
             @endif
 
             <!-- Recent Activity -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-4">Recent Activity</h2>
                 <div class="space-y-4">
                     <div class="flex items-start space-x-3">
-                        <div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div class="w-2 h-2 bg-green-50 dark:bg-green-900/200 rounded-full mt-2"></div>
                         <div class="flex-1">
                             <p class="text-sm text-slate-900">Account created</p>
                             <p class="text-xs text-slate-500">{{ $user->created_at->diffForHumans() }}</p>
@@ -151,7 +151,7 @@
                     
                     @if($user->email_verified_at)
                     <div class="flex items-start space-x-3">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                        <div class="w-2 h-2 bg-blue-50 dark:bg-blue-900/200 rounded-full mt-2"></div>
                         <div class="flex-1">
                             <p class="text-sm text-slate-900">Email verified</p>
                             <p class="text-xs text-slate-500">{{ $user->email_verified_at->diffForHumans() }}</p>
@@ -160,7 +160,7 @@
                     @endif
                     
                     <div class="flex items-start space-x-3">
-                        <div class="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                        <div class="w-2 h-2 bg-purple-50 dark:bg-purple-900/200 rounded-full mt-2"></div>
                         <div class="flex-1">
                             <p class="text-sm text-slate-900">Profile last updated</p>
                             <p class="text-xs text-slate-500">{{ $user->updated_at->diffForHumans() }}</p>
@@ -170,7 +170,7 @@
             </div>
 
             <!-- Actions -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="{{ route('admin.users.edit', $user) }}" 

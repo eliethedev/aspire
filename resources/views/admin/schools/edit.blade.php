@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
         <div class="flex items-center">
             <a href="{{ route('admin.schools.index') }}" class="mr-4 text-white hover:text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- School Info Card -->
-    <div class="bg-white rounded-xl shadow-s glass-card p-6 mb-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-s glass-card p-6 mb-6">
         <div class="flex items-start space-x-6">
             <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +33,7 @@
                 <div class="mt-2 flex items-center space-x-4">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         @if($school->is_active)
-                            bg-green-100 text-green-800
+                            bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
                         @elseif($school->trial_ends_at && $school->trial_ends_at->isFuture())
                             bg-yellow-100 text-yellow-800
                         @else
@@ -56,7 +56,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white rounded-xl shadow-s glass-card p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-s glass-card p-6">
         <form method="POST" action="{{ route('admin.schools.update', $school) }}" class="space-y-8">
             @csrf
             @method('PUT')
@@ -75,7 +75,7 @@
                                {{ $errors->has('name') ? 'border-red-500' : '' }}"
                                placeholder="Enter school name">
                         @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     
@@ -89,7 +89,7 @@
                                {{ $errors->has('slug') ? 'border-red-500' : '' }}"
                                placeholder="school-identifier">
                         @error('slug')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-white">Unique identifier for URL (e.g., "manila-science-high-school")</p>
                     </div>
@@ -110,7 +110,7 @@
                                {{ $errors->has('domain') ? 'border-red-500' : '' }}"
                                placeholder="example.com">
                         @error('domain')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-white">Primary domain for this school (optional)</p>
                     </div>
@@ -125,7 +125,7 @@
                                {{ $errors->has('subdomain') ? 'border-red-500' : '' }}"
                                placeholder="manila-science">
                         @error('subdomain')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-sm text-white">Subdomain for this school (optional)</p>
                     </div>
@@ -143,7 +143,7 @@
                         <label for="is_active" class="ml-2 text-sm font-medium text-white">
                             Active School
                         </label>
-                        <p class="text-sm text-gray-600 ml-5">Enable this school for user access and functionality</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 ml-5">Enable this school for user access and functionality</p>
                     </div>
                     
                     <div class="flex items-center">
@@ -153,7 +153,7 @@
                         <label for="has_trial" class="ml-2 text-sm font-medium text-white">
                             Trial Period
                         </label>
-                        <p class="text-sm text-gray-600 ml-2">Set trial period for this school</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 ml-2">Set trial period for this school</p>
                     </div>
                     
                     @if(old('has_trial', $school->has_trial))
@@ -166,9 +166,9 @@
                                class="w-full px-3 text-white py- glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                {{ $errors->has('trial_ends_at') ? 'border-red-500' : '' }}">
                         @error('trial_ends_at')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
-                        <p class="mt-1 text-sm text-gray-600 ml-5">When trial period ends (leave empty for no trial)</p>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 ml-5">When trial period ends (leave empty for no trial)</p>
                     </div>
                     @endif
                 </div>
@@ -184,7 +184,7 @@
                               placeholder='{"theme": "light", "features": ["observations", "reports"]}' 
                               >{{ old('settings', $school->settings) }}</textarea>
                     @error('settings')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                     <p class="mt-1 text-sm text-white">JSON object with school-specific settings</p>
                 </div>
@@ -214,7 +214,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit" 
-                        class="px-4 py-2 text-red-600 bg-danger border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
+                        class="px-4 py-2 text-red-600 dark:text-red-400 bg-danger border border-red-300 rounded-lg hover:bg-red-50 dark:bg-red-900/20 transition-colors">
                     Delete School
                 </button>
             </form>

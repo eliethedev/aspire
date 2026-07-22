@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+[x-cloak] { display: none !important; }
+
 @layer base {
     :root {
         --background: 0 0% 100%;
@@ -15,6 +17,11 @@
     border: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
+.dark .glass-card {
+    background: #1f2937;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
 
 /* ===== SIDEBAR STYLES ===== */
 
@@ -22,11 +29,19 @@
     background: #ffffff;
     border-right: 1px solid rgba(0, 0, 0, 0.06);
 }
+.dark .sidebar-glass {
+    background: #111827;
+    border-right-color: rgba(255, 255, 255, 0.06);
+}
 
 .sidebar-link-active {
     position: relative;
     background: #eef2ff;
     color: #4f46e5;
+}
+.dark .sidebar-link-active {
+    background: rgba(79, 70, 229, 0.15);
+    color: #818cf8;
 }
 
 .sidebar-link-active::before {
@@ -48,6 +63,9 @@
 .sidebar-link-hover:hover {
     background: #f1f5f9;
 }
+.dark .sidebar-link-hover:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
 
 .sidebar-icon-wrap {
     display: flex;
@@ -60,15 +78,152 @@
     transition: all 0.15s ease;
 }
 
-.sidebar-link-active .sidebar-icon-wrap {
-    background: rgba(79, 70, 229, 0.1);
-    color: #4f46e5;
-}
+/* ===== ICON-SPECIFIC COLORS ===== */
+/* Each icon type gets its own color for both idle and active/hover states */
 
-.sidebar-link-hover:hover .sidebar-icon-wrap {
-    background: rgba(79, 70, 229, 0.08);
-    color: #4f46e5;
-}
+/* Dashboard icon - Indigo */
+.icon-dashboard { color: #818cf8; }
+.icon-dashboard:hover { color: #6366f1; }
+.icon-active .icon-dashboard,
+.sidebar-link-active .icon-dashboard { color: #4f46e5; background: rgba(79, 70, 229, 0.1); }
+
+/* Profile icon - Cyan */
+.icon-profile { color: #67e8f9; }
+.icon-profile:hover { color: #22d3ee; }
+.icon-active .icon-profile,
+.sidebar-link-active .icon-profile { color: #0891b2; background: rgba(8, 145, 178, 0.1); }
+
+/* Observations icon - Blue */
+.icon-observations { color: #93c5fd; }
+.icon-observations:hover { color: #60a5fa; }
+.icon-active .icon-observations,
+.sidebar-link-active .icon-observations { color: #2563eb; background: rgba(37, 99, 235, 0.1); }
+
+/* Calendar / Upcoming icon - Amber */
+.icon-calendar { color: #fcd34d; }
+.icon-calendar:hover { color: #fbbf24; }
+.icon-active .icon-calendar,
+.sidebar-link-active .icon-calendar { color: #d97706; background: rgba(217, 119, 6, 0.1); }
+
+/* Feedback icon - Teal */
+.icon-feedback { color: #5eead4; }
+.icon-feedback:hover { color: #2dd4bf; }
+.icon-active .icon-feedback,
+.sidebar-link-active .icon-feedback { color: #0d9488; background: rgba(13, 148, 136, 0.1); }
+
+/* Coaching / Improvement icon - Green */
+.icon-coaching { color: #86efac; }
+.icon-coaching:hover { color: #4ade80; }
+.icon-active .icon-coaching,
+.sidebar-link-active .icon-coaching { color: #16a34a; background: rgba(22, 163, 74, 0.1); }
+
+/* Analytics icon - Purple */
+.icon-analytics { color: #c4b5fd; }
+.icon-analytics:hover { color: #a78bfa; }
+.icon-active .icon-analytics,
+.sidebar-link-active .icon-analytics { color: #7c3aed; background: rgba(124, 58, 237, 0.1); }
+
+/* Reports icon - Orange */
+.icon-reports { color: #fdba74; }
+.icon-reports:hover { color: #fb923c; }
+.icon-active .icon-reports,
+.sidebar-link-active .icon-reports { color: #ea580c; background: rgba(234, 88, 12, 0.1); }
+
+/* Users / People icon - Sky */
+.icon-users { color: #7dd3fc; }
+.icon-users:hover { color: #38bdf8; }
+.icon-active .icon-users,
+.sidebar-link-active .icon-users { color: #0284c7; background: rgba(2, 132, 199, 0.1); }
+
+/* Schools / Building icon - Rose */
+.icon-schools { color: #fda4af; }
+.icon-schools:hover { color: #fb7185; }
+.icon-active .icon-schools,
+.sidebar-link-active .icon-schools { color: #e11d48; background: rgba(225, 29, 72, 0.1); }
+
+/* Registration / Add icon - Emerald */
+.icon-register { color: #6ee7b7; }
+.icon-register:hover { color: #34d399; }
+.icon-active .icon-register,
+.sidebar-link-active .icon-register { color: #059669; background: rgba(5, 150, 105, 0.1); }
+
+/* Announcements icon - Yellow */
+.icon-announcements { color: #fde047; }
+.icon-announcements:hover { color: #facc15; }
+.icon-active .icon-announcements,
+.sidebar-link-active .icon-announcements { color: #ca8a04; background: rgba(202, 138, 4, 0.1); }
+
+/* Audit Logs icon - Slate */
+.icon-audit { color: #94a3b8; }
+.icon-audit:hover { color: #64748b; }
+.icon-active .icon-audit,
+.sidebar-link-active .icon-audit { color: #475569; background: rgba(71, 85, 105, 0.1); }
+
+/* AI Settings icon - Violet */
+.icon-ai { color: #a78bfa; }
+.icon-ai:hover { color: #8b5cf6; }
+.icon-active .icon-ai,
+.sidebar-link-active .icon-ai { color: #7c3aed; background: rgba(139, 92, 246, 0.1); }
+
+/* Lesson Plans icon - Amber */
+.icon-lesson { color: #fcd34d; }
+.icon-lesson:hover { color: #fbbf24; }
+.icon-active .icon-lesson,
+.sidebar-link-active .icon-lesson { color: #d97706; background: rgba(217, 119, 6, 0.1); }
+
+/* Logout - Red */
+.icon-logout { color: #fca5a5; }
+.icon-logout:hover { color: #f87171; background: rgba(254, 226, 226, 0.5); }
+
+/* Sidebar active link per-color overrides */
+.sidebar-link-active .sidebar-icon-wrap.icon-dashboard { color: #4f46e5; background: rgba(79, 70, 229, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-profile { color: #0891b2; background: rgba(8, 145, 178, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-observations { color: #2563eb; background: rgba(37, 99, 235, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-calendar { color: #d97706; background: rgba(217, 119, 6, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-feedback { color: #0d9488; background: rgba(13, 148, 136, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-coaching { color: #16a34a; background: rgba(22, 163, 74, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-analytics { color: #7c3aed; background: rgba(124, 58, 237, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-reports { color: #ea580c; background: rgba(234, 88, 12, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-users { color: #0284c7; background: rgba(2, 132, 199, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-schools { color: #e11d48; background: rgba(225, 29, 72, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-register { color: #059669; background: rgba(5, 150, 105, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-announcements { color: #ca8a04; background: rgba(202, 138, 4, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-audit { color: #475569; background: rgba(71, 85, 105, 0.1); }
+.sidebar-link-active .sidebar-icon-wrap.icon-ai { color: #7c3aed; background: rgba(139, 92, 246, 0.1); }
+
+/* Hover states per icon color */
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-dashboard { color: #4f46e5; background: rgba(79, 70, 229, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-profile { color: #0891b2; background: rgba(8, 145, 178, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-observations { color: #2563eb; background: rgba(37, 99, 235, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-calendar { color: #d97706; background: rgba(217, 119, 6, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-feedback { color: #0d9488; background: rgba(13, 148, 136, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-coaching { color: #16a34a; background: rgba(22, 163, 74, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-analytics { color: #7c3aed; background: rgba(124, 58, 237, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-reports { color: #ea580c; background: rgba(234, 88, 12, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-users { color: #0284c7; background: rgba(2, 132, 199, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-schools { color: #e11d48; background: rgba(225, 29, 72, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-register { color: #059669; background: rgba(5, 150, 105, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-announcements { color: #ca8a04; background: rgba(202, 138, 4, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-audit { color: #475569; background: rgba(71, 85, 105, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-ai { color: #7c3aed; background: rgba(139, 92, 246, 0.08); }
+.sidebar-link-hover:hover .sidebar-icon-wrap.icon-lesson { color: #d97706; background: rgba(217, 119, 6, 0.08); }
+
+/* Active link bar color per icon type */
+.sidebar-link-active.icon-dashboard::before { background: #4f46e5; }
+.sidebar-link-active.icon-profile::before { background: #0891b2; }
+.sidebar-link-active.icon-observations::before { background: #2563eb; }
+.sidebar-link-active.icon-calendar::before { background: #d97706; }
+.sidebar-link-active.icon-feedback::before { background: #0d9488; }
+.sidebar-link-active.icon-coaching::before { background: #16a34a; }
+.sidebar-link-active.icon-analytics::before { background: #7c3aed; }
+.sidebar-link-active.icon-reports::before { background: #ea580c; }
+.sidebar-link-active.icon-users::before { background: #0284c7; }
+.sidebar-link-active.icon-schools::before { background: #e11d48; }
+.sidebar-link-active.icon-register::before { background: #059669; }
+.sidebar-link-active.icon-announcements::before { background: #ca8a04; }
+.sidebar-link-active.icon-audit::before { background: #475569; }
+.sidebar-link-active.icon-ai::before { background: #7c3aed; }
+.sidebar-link-active.icon-lesson::before { background: #d97706; }
 
 .sidebar-section-header {
     display: flex;
@@ -78,6 +233,9 @@
 
 .sidebar-avatar-ring {
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15), 0 0 0 4px white;
+}
+.dark .sidebar-avatar-ring {
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.15), 0 0 0 4px #111827;
 }
 
 .sidebar-scroll::-webkit-scrollbar {
@@ -90,8 +248,14 @@
     background: #cbd5e1;
     border-radius: 2px;
 }
+.dark .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #374151;
+}
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+.dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
 }
 
 /* Dashboard right sidebar scrollbar */
@@ -107,4 +271,156 @@
 }
 .dashboard-sidebar-scroll::-webkit-scrollbar-thumb:hover {
     background: #cbd5e1;
+}
+
+/* ===== REFINED UI COMPONENTS ===== */
+
+/* Page card - standard card for content sections */
+.page-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.dark .page-card {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Stat card hover effect */
+.stat-card {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.stat-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    transform: translateY(-1px);
+}
+.dark .stat-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Progress bar animation */
+.progress-bar-fill {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Subtle table-like rows for lists */
+.list-row {
+    transition: background-color 0.15s ease;
+}
+.list-row:hover {
+    background-color: #f9fafb;
+}
+.dark .list-row:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Empty state container */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+/* Badge styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+}
+
+/* Smooth transitions for interactive elements */
+.interactive-card {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.interactive-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+.dark .interactive-card:hover {
+    border-color: #4b5563;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== DARK MODE FORM ELEMENTS ===== */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="url"],
+.dark textarea,
+.dark select {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #6b7280;
+}
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
+}
+.dark input[type="file"] {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+
+/* Profile tab navigation */
+.profile-tab {
+    transition: all 0.15s ease;
+    color: #4b5563;
+}
+.profile-tab:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+.profile-tab.active {
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-weight: 600;
+}
+.dark .profile-tab {
+    color: #9ca3af;
+}
+.dark .profile-tab:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #e5e7eb;
+}
+.dark .profile-tab.active {
+    background-color: rgba(79, 70, 229, 0.18);
+    color: #a5b4fc;
+}
+
+/* Dark mode select option text */
+.dark select option {
+    background-color: #1f2937;
+    color: #e5e7eb;
 }

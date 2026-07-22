@@ -7,21 +7,21 @@
     <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
             <a href="{{ route('admin.announcements.index') }}"
-               class="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-all">
+               class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:border-gray-300 transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Edit Announcement</h1>
-                <p class="text-gray-500 mt-1">Update the draft before sending.</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Announcement</h1>
+                <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Update the draft before sending.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-200">
             <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
-            <span class="text-xs font-medium text-yellow-800">Draft — not yet sent</span>
+            <span class="text-xs font-medium text-yellow-800">Draft â€” not yet sent</span>
         </div>
     </div>
 
@@ -29,158 +29,158 @@
         @csrf
         @method('PUT')
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
             <div class="flex items-center gap-2 mb-6">
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
                     </svg>
                 </div>
-                <h2 class="text-lg font-semibold text-gray-900">Announcement Details</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Announcement Details</h2>
             </div>
 
             <div class="space-y-5">
                 <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Title <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="title" name="title" value="{{ old('title', $announcement->title) }}" required
-                           class="w-full px-4 py-2.5 rounded-lg border text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow
+                           class="w-full px-4 py-2.5 rounded-lg border text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow
                            {{ $errors->has('title') ? 'border-red-400 ring-1 ring-red-100' : 'border-gray-300' }}"
                            placeholder="e.g., System Maintenance on Saturday"
                            maxlength="255">
                     @error('title')
-                        <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label for="message" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Message <span class="text-red-500">*</span>
                     </label>
                     <div class="relative" x-data="{ chars: {{ strlen(old('message', $announcement->message)) }} }">
                         <textarea id="message" name="message" rows="8" required
                                   x-on:input="chars = $el.value.length"
-                                  class="w-full px-4 py-3 rounded-lg border text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow resize-y
+                                  class="w-full px-4 py-3 rounded-lg border text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow resize-y
                                   {{ $errors->has('message') ? 'border-red-400 ring-1 ring-red-100' : 'border-gray-300' }}"
                                   placeholder="Write your announcement message here...">{{ old('message', $announcement->message) }}</textarea>
-                        <div class="absolute bottom-3 right-3 text-xs text-gray-400 bg-white px-1.5" x-text="chars + ' chars'"></div>
+                        <div class="absolute bottom-3 right-3 text-xs text-gray-400 dark:text-gray-500 bg-white px-1.5" x-text="chars + ' chars'"></div>
                     </div>
                     @error('message')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label for="link" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label for="link" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                         Link
-                        <span class="text-gray-400 font-normal">(optional)</span>
+                        <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
                     </label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 pointer-events-none">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 dark:text-gray-500 pointer-events-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                             </svg>
                         </span>
                         <input type="url" id="link" name="link" value="{{ old('link', $announcement->link) }}"
-                               class="w-full pl-10 pr-4 py-2.5 rounded-lg border text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow
+                               class="w-full pl-10 pr-4 py-2.5 rounded-lg border text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow
                                {{ $errors->has('link') ? 'border-red-400 ring-1 ring-red-100' : 'border-gray-300' }}"
                                placeholder="https://example.com/document">
                     </div>
                     @error('link')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
             <div class="flex items-center gap-2 mb-6">
-                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <h2 class="text-lg font-semibold text-gray-900">Delivery Settings</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Delivery Settings</h2>
             </div>
 
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                         Delivery Method <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" x-data="{ selected: '{{ old('type', $announcement->type) }}' }">
                         <label class="relative flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200"
-                               :class="selected === 'in_app' ? 'border-indigo-500 bg-indigo-50/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                               :class="selected === 'in_app' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20/30' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800'">
                             <input type="radio" name="type" value="in_app" class="sr-only"
                                    x-on:change="selected = 'in_app'"
                                    {{ old('type', $announcement->type) === 'in_app' ? 'checked' : '' }}>
-                            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-900">In-App Only</span>
-                                    <svg x-show="selected === 'in_app'" class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">In-App Only</span>
+                                    <svg x-show="selected === 'in_app'" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-0.5">Send as in-app notification</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Send as in-app notification</p>
                             </div>
                         </label>
 
                         <label class="relative flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200"
-                               :class="selected === 'email' ? 'border-indigo-500 bg-indigo-50/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                               :class="selected === 'email' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20/30' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800'">
                             <input type="radio" name="type" value="email" class="sr-only"
                                    x-on:change="selected = 'email'"
                                    {{ old('type', $announcement->type) === 'email' ? 'checked' : '' }}>
-                            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-900">Email Only</span>
-                                    <svg x-show="selected === 'email'" class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Email Only</span>
+                                    <svg x-show="selected === 'email'" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-0.5">Send as email only</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Send as email only</p>
                             </div>
                         </label>
 
                         <label class="relative flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200"
-                               :class="selected === 'both' ? 'border-indigo-500 bg-indigo-50/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                               :class="selected === 'both' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20/30' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800'">
                             <input type="radio" name="type" value="both" class="sr-only"
                                    x-on:change="selected = 'both'"
                                    {{ old('type', $announcement->type) === 'both' ? 'checked' : '' }}>
-                            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                                 </svg>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-900">Both</span>
-                                    <svg x-show="selected === 'both'" class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Both</span>
+                                    <svg x-show="selected === 'both'" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-0.5">Send as both notification and email</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Send as both notification and email</p>
                             </div>
                         </label>
                     </div>
                     @error('type')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Target Users</label>
-                    <p class="text-xs text-gray-400 mb-3">Select specific roles, or leave all unchecked to send to <strong>everyone</strong>.</p>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Target Users</label>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mb-3">Select specific roles, or leave all unchecked to send to <strong>everyone</strong>.</p>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" x-data="{ checked: {{ json_encode(old('target_roles', $announcement->target_roles ?? [])) }} }">
                         @php
                             $roles = [
@@ -193,7 +193,7 @@
                         @endphp
                         @foreach($roles as $value => $meta)
                         <label class="relative flex items-center gap-3 p-3.5 rounded-lg border-2 cursor-pointer transition-all duration-200"
-                               :class="checked.includes('{{ $value }}') ? 'border-{{ $meta['color'] }}-500 bg-{{ $meta['color'] }}-50/30' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'">
+                               :class="checked.includes('{{ $value }}') ? 'border-{{ $meta['color'] }}-500 bg-{{ $meta['color'] }}-50/30' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800'">
                             <input type="checkbox" name="target_roles[]" value="{{ $value }}"
                                    class="sr-only"
                                    x-on:change="if($el.checked) { if(!checked.includes('{{ $value }}')) checked.push('{{ $value }}') } else { checked = checked.filter(r => r !== '{{ $value }}') }"
@@ -204,7 +204,7 @@
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-sm font-medium text-gray-900">{{ $meta['label'] }}</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $meta['label'] }}</span>
                             </div>
                             <svg x-show="checked.includes('{{ $value }}')" class="w-4 h-4 text-{{ $meta['color'] }}-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -213,7 +213,7 @@
                         @endforeach
                     </div>
                     @error('target_roles')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -221,12 +221,12 @@
 
         <div class="flex items-center justify-between">
             <a href="{{ route('admin.announcements.index') }}"
-               class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+               class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-gray-100 transition-colors">
                 Cancel
             </a>
             <div class="flex items-center gap-3">
                 <button type="submit" name="send_now" value="0"
-                        class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 font-medium text-sm transition-all">
+                        class="px-5 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 hover:border-gray-400 font-medium text-sm transition-all">
                     Update Draft
                 </button>
                 <button type="submit" name="send_now" value="1"

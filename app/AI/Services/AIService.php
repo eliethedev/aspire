@@ -3,13 +3,12 @@
 namespace App\AI\Services;
 
 use App\AI\Contracts\AIServiceInterface;
-use App\AI\Exceptions\AIException;
 use App\AI\Exceptions\AIRateLimitException;
 use App\AI\RAG\PPSTRubricRepository;
-use App\Models\Observation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Smalot\PdfParser\Parser;
 
 abstract class AIService
 {
@@ -27,9 +26,10 @@ abstract class AIService
 
     public function isAvailable(): bool
     {
-        if (!config('ai.enabled', true)) {
+        if (! config('ai.enabled', true)) {
             return false;
         }
+
         return $this->provider->isAvailable();
     }
 
@@ -41,6 +41,7 @@ abstract class AIService
     protected function getOptions(): array
     {
         $stageConfig = config("ai.stages.{$this->stage}", []);
+
         return [
             'temperature' => $stageConfig['temperature'] ?? config('ai.generation.temperature', 0.5),
             'max_output_tokens' => $stageConfig['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024),
@@ -63,11 +64,14 @@ abstract class AIService
 
     protected function generate(string $prompt, array $overrideOptions = []): ?string
     {
-        if (!$this->isAvailable()) {
+        if (! $this->isAvailable()) {
             return null;
         }
 
         $this->checkRateLimit();
+
+        $stageModel = $this->getModelForStage();
+        $this->provider->setModel($stageModel);
 
         $options = array_merge($this->getOptions(), $overrideOptions);
 
@@ -80,11 +84,14 @@ abstract class AIService
 
     protected function generateJson(string $prompt, array $overrideOptions = []): ?array
     {
-        if (!$this->isAvailable()) {
+        if (! $this->isAvailable()) {
             return null;
         }
 
         $this->checkRateLimit();
+
+        $stageModel = $this->getModelForStage();
+        $this->provider->setModel($stageModel);
 
         $options = array_merge($this->getOptions(), $overrideOptions);
 
@@ -97,7 +104,7 @@ abstract class AIService
 
     protected function log(string $direction, ?string $content = null, array $metadata = []): void
     {
-        if (!config('ai.logging.enabled', true)) {
+        if (! config('ai.logging.enabled', true)) {
             return;
         }
 
@@ -113,7 +120,7 @@ abstract class AIService
 
     protected function extractText(string $fullPath): string
     {
-        if (!file_exists($fullPath) || !is_readable($fullPath)) {
+        if (! file_exists($fullPath) || ! is_readable($fullPath)) {
             return '';
         }
 
@@ -128,17 +135,18 @@ abstract class AIService
             };
         } catch (\Exception $e) {
             Log::warning("AIService: Failed to extract text from {$extension} file: {$e->getMessage()}");
+
             return '';
         }
     }
 
     protected function extractPdfText(string $fullPath): string
     {
-        if (!class_exists(\Smalot\PdfParser\Parser::class)) {
+        if (! class_exists(Parser::class)) {
             return '';
         }
 
-        $parser = new \Smalot\PdfParser\Parser();
+        $parser = new Parser;
         $pdf = $parser->parseFile($fullPath);
         $text = $pdf->getText();
 
@@ -147,7 +155,7 @@ abstract class AIService
 
     protected function extractDocxText(string $fullPath): string
     {
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
         if ($zip->open($fullPath) !== true) {
             return '';
         }
@@ -155,12 +163,12 @@ abstract class AIService
         $xml = $zip->getFromName('word/document.xml');
         $zip->close();
 
-        if (!$xml) {
+        if (! $xml) {
             return '';
         }
 
         $xml = simplexml_load_string($xml);
-        if (!$xml) {
+        if (! $xml) {
             return '';
         }
 
@@ -176,7 +184,7 @@ abstract class AIService
             foreach ($runs as $run) {
                 $t = $run->children($ns)->t ?? null;
                 if ($t !== null) {
-                    $parts[] = (string)$t;
+                    $parts[] = (string) $t;
                 }
             }
             if ($parts) {
@@ -185,6 +193,7 @@ abstract class AIService
         }
 
         $text = implode("\n", $textParts);
+
         return mb_substr($text, 0, 8000);
     }
 

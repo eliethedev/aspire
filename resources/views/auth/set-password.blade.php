@@ -14,39 +14,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* Light Theme Background - DepEd White Theme */
         .light-bg {
-            background-color: #ffffff;
-            background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.03) 0px, transparent 50%);
+            background-color: #f0f5ff;
         }
 
-        /* Glassmorphism Card - Light Theme */
         .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
         }
 
-        /* Light Input Styling */
         .light-input {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             color: #1f2937;
             transition: all 0.2s ease;
         }
 
         .light-input:hover {
-            border-color: rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.9);
+            border-color: #9ca3af;
         }
 
         .light-input:focus {
-            border-color: rgba(99, 102, 241, 0.5);
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
             outline: none;
         }
 
@@ -54,52 +45,59 @@
             color: rgba(0, 0, 0, 0.4);
         }
 
-        /* Gradient Button - DepEd Theme Style */
-        .btn-gradient {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        .btn-primary {
+            background-color: #2563eb;
             color: white;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.3);
         }
 
-        .btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        .btn-primary:hover {
+            background-color: #1d4ed8;
         }
 
-        .btn-gradient:active {
-            transform: translateY(0);
+        .btn-primary:active {
+            background-color: #1e40af;
         }
 
-        /* Decorative Elements */
-        .glow-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
+        @media (max-width: 380px) {
+            .card-padding {
+                padding: 1.25rem;
+            }
         }
     </style>
 </head>
-<body class="antialiased font-sans light-bg min-h-screen flex items-center justify-center p-4 relative">
+<body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
-    <!-- Background Glow Effects -->
-    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/10"></div>
-    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/5"></div>
+    <!-- Top Nav -->
+    <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            ASPIRE
+        </a>
+        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">
+            Homepage
+        </a>
+    </nav>
 
-    <div class="w-full max-w-md glass-card rounded-2xl p-8 md:p-10 relative z-10">
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-md glass-card rounded-2xl p-6 sm:p-8 md:p-10 card-padding">
 
         <!-- Header Section -->
         <div class="text-center mb-2">
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Set Your Password</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Set Your Password</h1>
             <p class="text-gray-500 text-sm">Hello, <span class="font-semibold text-gray-700">{{ $name }}</span></p>
-            <p class="text-sm text-gray-500 mt-1">
-                You've been invited as a <span class="font-medium text-gray-700">{{ ucfirst($role) }}</span>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                You've been invited as a <span class="font-medium text-gray-700">{{ ucwords(str_replace('_', ' ', $role)) }}</span>
                 @if($school)
                     at <span class="font-medium text-gray-700">{{ $school->name }}</span>
                 @endif
             </p>
         </div>
 
-        <form method="POST" action="{{ route('auth.set-password.store') }}" class="space-y-5">
+        <form method="POST" action="{{ route('auth.set-password.store') }}" class="space-y-4 sm:space-y-5">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
 
@@ -168,9 +166,9 @@
             </div>
 
             <!-- Password Requirements -->
-            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Password Requirements:</p>
-                <ul class="text-xs text-gray-600 space-y-2">
+            <div class="bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100">
+                <p class="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Password Requirements:</p>
+                <ul class="text-xs text-gray-600 space-y-1.5 sm:space-y-2">
                     <li class="flex items-center">
                         <svg id="req-length" class="w-3 h-3 mr-2 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                             <circle cx="10" cy="10" r="3"/>
@@ -206,7 +204,7 @@
 
             <!-- Submit Button -->
             <button type="submit" id="submit-btn"
-                    class="btn-gradient w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
+                    class="btn-primary w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
@@ -224,6 +222,7 @@
             </p>
         </div>
     </div>
+    </main>
 
     <script>
         function togglePasswordVisibility(inputId, iconId) {
