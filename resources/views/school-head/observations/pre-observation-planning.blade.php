@@ -1,4 +1,4 @@
-@extends('layouts.supervisor')
+@extends('layouts.teacher')
 
 @section('title', 'Pre-Observation Planning')
 
@@ -20,10 +20,10 @@
         'post_conference' => 'Post-Conference',
     ];
     $stageRoutes = [
-        'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
-        'pre_conference' => 'supervisor.observations.preConference',
-        'observation' => 'supervisor.observations.observation',
-        'post_conference' => 'supervisor.observations.postConference',
+        'pre_observation_planning' => 'school-head.observations.preObservationPlanning',
+        'pre_conference' => 'school-head.observations.preConference',
+        'observation' => 'school-head.observations.observation',
+        'post_conference' => 'school-head.observations.postConference',
     ];
     $currentStage = $observation->stage;
     $currentIdx = array_search($currentStage, $stageKeys);
@@ -34,9 +34,9 @@
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
+            <li><a href="{{ route('school-head.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
+            <li><a href="{{ route('school-head.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li class="text-gray-900 dark:text-gray-100 font-medium">Pre-Observation Planning</li>
         </ol>
@@ -86,7 +86,7 @@
         </span>
     </div>
 
-    <form method="POST" action="{{ route('supervisor.observations.storePreObservationPlanning', $observation) }}"
+    <form method="POST" action="{{ route('school-head.observations.storePreObservationPlanning', $observation) }}"
           x-data="{ submitting: false }" @submit="setTimeout(() => submitting = true, 100)">
         @csrf
 
@@ -355,6 +355,7 @@
                         <select name="observation_tool"
                                 class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                             <option value="">Select tool...</option>
+                            {{-- PPST is hidden for school heads — they use COT only --}}
                             @if(!isset($observerRole) || $observerRole !== 'school_head')
                                 <option value="ppst" {{ old('observation_tool', $planning?->observation_tool) === 'ppst' ? 'selected' : '' }}>PPST</option>
                             @endif
@@ -462,7 +463,7 @@
                     Continue to Pre-Conference
                 </button>
                 @if($observation->canCancel())
-                <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"
+                <a href="{{ route('school-head.observations.cancel-form', $observation) }}"
                    class="inline-flex items-center gap-3 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all hover:shadow-xl hover:shadow-red-600/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     Cancel Observation
@@ -477,12 +478,12 @@
     <!-- Bottom Navigation -->
     <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
-            <a href="{{ route('supervisor.observations.show', $observation) }}"
+            <a href="{{ route('school-head.observations.show', $observation) }}"
                class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 Back to Details
             </a>
-            <a href="{{ route('supervisor.observations.index') }}"
+            <a href="{{ route('school-head.observations.index') }}"
                class="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 transition-colors">
                 All Evaluations
             </a>
@@ -494,7 +495,7 @@
 function requestLessonPlan(btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Sending...';
-    fetch('{{ route("supervisor.observations.request-lesson-plan", $observation) }}', {
+    fetch('{{ route("school-head.observations.request-lesson-plan", $observation) }}', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -523,7 +524,7 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
     spinner.classList.remove('hidden');
     btnText.textContent = 'Generating...';
 
-    fetch('{{ route("supervisor.observations.generate-ai-insights", $observation) }}', {
+    fetch('{{ route("school-head.observations.generate-ai-insights", $observation) }}', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -562,7 +563,7 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
 document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
     if (!confirm('Clear AI insights? This cannot be undone.')) return;
 
-    fetch('{{ route("supervisor.observations.clear-ai-insights", $observation) }}', {
+    fetch('{{ route("school-head.observations.clear-ai-insights", $observation) }}', {
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

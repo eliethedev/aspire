@@ -170,6 +170,12 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 
     // Post-Observation Report
     Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->name('observations.report');
+    Route::get('/observations/{observation}/report/pdf', [SupervisorController::class, 'downloadReportPDF'])->name('observations.report-pdf');
+
+    // Indicator Trends & Progress Comparison
+    Route::get('/observations/{observation}/indicator-trends', [SupervisorController::class, 'indicatorTrends'])->name('observations.indicator-trends');
+    Route::get('/observations/{observation}/progress-comparison', [SupervisorController::class, 'progressComparison'])->name('observations.progress-comparison');
+    Route::get('/observations/{observation}/pd-recommendations', [SupervisorController::class, 'pdRecommendations'])->name('observations.pd-recommendations');
 
     // Feedback Management
     Route::get('/feedback', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'center'])->name('feedback.center');
@@ -207,10 +213,41 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
 
     // Observations (My Performance)
     Route::get('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations/create', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'createObservation'])->name('observations.create');
+    Route::post('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
     Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');
     Route::post('/observations/{observation}/upload-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->name('observations.upload-plan');
+
+    // Observation workflow stages (school head as observer)
+    Route::get('/observations/{observation}/pre-observation-planning', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
+    Route::post('/observations/{observation}/pre-observation-planning', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
+    Route::post('/observations/{observation}/request-lesson-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
+    Route::get('/observations/{observation}/pre-conference', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'preConference'])->name('observations.preConference');
+    Route::post('/observations/{observation}/pre-conference', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storePreConference'])->name('observations.storePreConference');
+    Route::get('/observations/{observation}/observation', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'observation'])->name('observations.observation');
+    Route::post('/observations/{observation}/observation', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservationData'])->name('observations.storeObservationData');
+    Route::get('/observations/{observation}/post-conference', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'postConference'])->name('observations.postConference');
+    Route::post('/observations/{observation}/post-conference', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storePostConference'])->name('observations.storePostConference');
+
+    // AI-powered insights (school head as observer)
+    Route::post('/observations/{observation}/generate-ai-insights', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
+    Route::delete('/observations/{observation}/clear-ai-insights', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
+    Route::post('/observations/{observation}/generate-ai-comparison', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
+
+    // Cancellation (school head as observer)
+    Route::get('/observations/{observation}/cancel', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'showCancelForm'])->name('observations.cancel-form');
+    Route::post('/observations/{observation}/cancel', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'cancel'])->name('observations.cancel');
+
+    // Report download
+    Route::get('/observations/{observation}/report', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReport'])->name('observations.report');
+    Route::get('/observations/{observation}/report/pdf', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReportPDF'])->name('observations.report-pdf');
+
+    // Indicator Trends & Progress Comparison
+    Route::get('/observations/{observation}/indicator-trends', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'indicatorTrends'])->name('observations.indicator-trends');
+    Route::get('/observations/{observation}/progress-comparison', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'progressComparison'])->name('observations.progress-comparison');
+    Route::get('/observations/{observation}/pd-recommendations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'pdRecommendations'])->name('observations.pd-recommendations');
 
     // Teacher management
     Route::get('/teachers', [\App\Http\Controllers\SchoolHead\TeacherController::class, 'index'])->name('teachers.index');

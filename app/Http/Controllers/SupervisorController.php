@@ -445,8 +445,10 @@ class SupervisorController extends Controller
 
         $preConference = $observation->preConference;
 
+        $observerRole = Auth::user()->role;
+
         return view('supervisor.observations.pre-observation-planning', compact(
-            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'preConference'
+            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'preConference', 'observerRole'
         ));
     }
 
@@ -971,6 +973,88 @@ class SupervisorController extends Controller
             echo $markdown;
         }, $filename, [
             'Content-Type' => 'text/markdown; charset=utf-8',
+        ]);
+    }
+
+    /**
+     * Download Post-Observation Report as PDF
+     */
+    public function downloadReportPDF(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $pdfService = app(\App\Services\PDFReportService::class);
+        return $pdfService->downloadPDF($observation);
+    }
+
+    /**
+     * View indicator trends for an observee
+     */
+    public function indicatorTrends(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $trendService = app(\App\Services\IndicatorTrendService::class);
+        $trends = $trendService->getIndicatorTrends(
+            $observation->observee_id,
+            $observation->observee_type
+        );
+
+        return view('supervisor.observations.indicator-trends', [
+            'observation' => $observation,
+            'trends' => $trends,
+        ]);
+    }
+
+    /**
+     * View progress comparison between current and previous observation
+     */
+    public function progressComparison(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $comparisonService = app(\App\Services\ObservationComparisonService::class);
+        $comparison = $comparisonService->compareWithPrevious($observation);
+
+        $trendService = app(\App\Services\IndicatorTrendService::class);
+        $lowIndicators = $trendService->getConsistentlyLowIndicators(
+            $observation->observee_id,
+            $observation->observee_type
+        );
+
+        $pdService = app(\App\Services\ProfessionalDevelopmentService::class);
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+
+        return view('supervisor.observations.progress-comparison', [
+            'observation' => $observation,
+            'comparison' => $comparison,
+            'lowIndicators' => $lowIndicators,
+            'pdPlan' => $pdPlan,
+        ]);
+    }
+
+    /**
+     * View PD recommendations for an observee
+     */
+    public function pdRecommendations(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $trendService = app(\App\Services\IndicatorTrendService::class);
+        $lowIndicators = $trendService->getConsistentlyLowIndicators(
+            $observation->observee_id,
+            $observation->observee_type
+        );
+
+        $pdService = app(\App\Services\ProfessionalDevelopmentService::class);
+        $recommendations = $pdService->getRecommendations($lowIndicators->toArray());
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+
+        return view('supervisor.observations.pd-recommendations', [
+            'observation' => $observation,
+            'recommendations' => $recommendations,
+            'pdPlan' => $pdPlan,
+            'lowIndicators' => $lowIndicators,
         ]);
     }
 

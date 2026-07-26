@@ -368,8 +368,20 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('school-head.observations.create') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-register" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">Schedule Observation</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('school-head.observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.index') || request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
