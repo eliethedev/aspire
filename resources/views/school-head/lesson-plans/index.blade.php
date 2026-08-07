@@ -4,12 +4,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Lesson Plans</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Browse lesson plans submitted by teachers.</p>
-        </div>
-    </div>
+    <x-page-header title="Lesson Plans" subtitle="Browse lesson plans submitted by teachers." />
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
         <form method="GET" action="{{ route('school-head.lesson-plans.index') }}">

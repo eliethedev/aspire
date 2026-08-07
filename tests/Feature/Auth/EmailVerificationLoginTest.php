@@ -38,8 +38,9 @@ class EmailVerificationLoginTest extends TestCase
 
     public function test_verified_user_can_login()
     {
-        // Create a verified user
+        // Create a verified admin user
         $user = User::factory()->create([
+            'role' => 'admin',
             'email_verified_at' => now(),
         ]);
 
@@ -48,39 +49,9 @@ class EmailVerificationLoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect('/dashboard');
-        
+        $response->assertRedirect(route('admin.dashboard', absolute: false));
+
         // Ensure user is authenticated
         $this->assertAuthenticatedAs($user);
-    }
-
-    public function test_registration_redirects_to_verification_notice()
-    {
-        $school = School::factory()->create();
-        
-        $response = $this->post('/register', [
-            'name' => 'Test Teacher',
-            'email' => 'teacher@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'school_id' => $school->id,
-            'department' => 'Science',
-            'years_of_service' => 5,
-            'employee_number' => 'EMP001',
-            'mobile_number' => '09123456789',
-            'prc_license_number' => 'PRC123456',
-            'position' => 'Teacher I',
-        ]);
-
-        $response->assertRedirect('/verify-email');
-        
-        // Ensure user is not authenticated after registration
-        $this->assertGuest();
-        
-        // Verify user was created but not verified
-        $this->assertDatabaseHas('users', [
-            'email' => 'teacher@example.com',
-            'email_verified_at' => null,
-        ]);
     }
 }

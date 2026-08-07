@@ -185,6 +185,63 @@
         </div>
     </div>
 
+    <!-- Continue Where You Left Off -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Continue Where You Left Off</h2>
+            </div>
+            @if($todoObservations->count() > 0)
+                <a href="{{ route('supervisor.observations.index') }}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">View All &rarr;</a>
+            @endif
+        </div>
+        @if($todoObservations->count() > 0)
+            <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                @foreach($todoObservations as $observation)
+                    @php
+                        $continueRoute = match($observation->stage) {
+                            'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
+                            'pre_conference' => 'supervisor.observations.preConference',
+                            'observation' => 'supervisor.observations.observation',
+                            'post_conference' => 'supervisor.observations.postConference',
+                            default => null,
+                        };
+                        $stageShort = match($observation->stage) {
+                            'pre_observation_planning' => 'Pre-Observation Planning',
+                            'pre_conference' => 'Pre-Conference',
+                            'observation' => 'Observation',
+                            'post_conference' => 'Post-Conference',
+                        };
+                    @endphp
+                    <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
+                                <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">{{ strtoupper(substr($observation->observee->user->name ?? '?', 0, 1)) }}</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $stageShort }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+                            </div>
+                        </div>
+                        @if($continueRoute)
+                            <a href="{{ route($continueRoute, $observation) }}"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0">
+                                Continue
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                            </a>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="flex flex-col items-center py-12 text-center">
+                <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm text-gray-400 dark:text-gray-500">You're all caught up. No pending evaluations need your attention.</p>
+            </div>
+        @endif
+    </div>
+
     <!-- Recent Activity -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
         <div class="flex items-center justify-between mb-4">

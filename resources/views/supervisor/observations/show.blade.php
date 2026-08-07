@@ -67,7 +67,10 @@
         ];
         $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageKeys);
+        $currentStage = $observation->stage;
     @endphp
+
+    @include('partials.observation-progress')
 
     <!-- Clickable Progress Steps -->
     <div class="mb-8">

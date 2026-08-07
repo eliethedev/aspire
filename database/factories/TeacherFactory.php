@@ -17,16 +17,16 @@ class TeacherFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'tenant_id' => null,
+            'school_id' => null,
             'department' => $this->faker->randomElement(['Mathematics', 'Science', 'English', 'History', 'Arts', 'Physical Education']),
             'years_of_service' => $this->faker->numberBetween(1, 30),
         ];
     }
 
-    public function forTenant($tenantId): static
+    public function forSchool($schoolId): static
     {
         return $this->state(fn (array $attributes) => [
-            'tenant_id' => $tenantId,
+            'school_id' => $schoolId,
         ]);
     }
 }

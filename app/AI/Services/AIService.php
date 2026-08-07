@@ -35,7 +35,13 @@ abstract class AIService
 
     protected function getModelForStage(): string
     {
-        return config("ai.models.{$this->stage}", config('ai.models.default', 'gemini-2.0-flash'));
+        $model = config("ai.models.{$this->stage}", config('ai.models.default', 'gemini-2.0-flash'));
+
+        if (is_array($model)) {
+            $model = $model['model'] ?? config('ai.models.default', 'gemini-2.0-flash');
+        }
+
+        return $model;
     }
 
     protected function getOptions(): array

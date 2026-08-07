@@ -4,12 +4,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">AI Feedback & Coaching</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">View AI-generated feedback and coaching insights for your teachers.</p>
-        </div>
-    </div>
+    <x-page-header title="AI Feedback & Coaching" subtitle="View AI-generated feedback and coaching insights for your teachers." />
 
     <div class="grid grid-cols-2 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">

@@ -9,6 +9,64 @@
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
     }
+
+    /* ===== READABILITY: base type scale ===== */
+    /* Older users benefit from a comfortable 16px base, higher line-height,
+       and larger headings. Tailwind utilities still override per-element. */
+    html {
+        font-size: 16px;
+    }
+
+    body {
+        font-size: 1rem;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Provide a comfortable default for inputs/selects/textarea */
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 0.9375rem;
+    }
+
+    /* ===== ACCESSIBILITY: focus visibility ===== */
+    :focus {
+        outline: none;
+    }
+
+    :focus-visible {
+        outline: 3px solid #6366f1;
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    /* Keep custom-drawn focus for radio/checkbox-friendly rows */
+    .sidebar-link-active {
+        outline: none;
+    }
+
+    /* ===== ACCESSIBILITY: reduced motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    /* ===== PLACEHOLDER CONTRAST ===== */
+    ::placeholder {
+        color: #6b7280;
+        opacity: 1;
+    }
+    .dark ::placeholder {
+        color: #9ca3af;
+    }
 }
 
 /* Clean card style (replaces glass-card) */
@@ -423,4 +481,182 @@
 .dark select option {
     background-color: #1f2937;
     color: #e5e7eb;
+}
+
+/* ===== ACCESSIBILITY / USABILITY COMPONENTS ===== */
+
+/* Skip-to-content link (keyboard users) */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 0.75rem 1.25rem;
+    background: #4f46e5;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 0 0 0.5rem 0;
+}
+.skip-link:focus {
+    left: 0;
+}
+
+/* Touch-friendly interactive elements */
+.btn-lg,
+.btn-lg-ghost {
+    min-height: 2.75rem; /* 44px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.btn-md {
+    min-height: 2.5rem; /* 40px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Workflow progress indicator */
+.progress-track {
+    width: 100%;
+    height: 0.625rem;
+    background: #e5e7eb;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+.dark .progress-track {
+    background: #374151;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    border-radius: 9999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== FLASH MESSAGES ===== */
+.flash-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    border-width: 1px;
+    border-style: solid;
+}
+.flash-alert svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.flash-success {
+    background: #ecfdf5;
+    border-color: #6ee7b7;
+    color: #065f46;
+}
+.dark .flash-success {
+    background: rgba(6, 78, 59, 0.25);
+    border-color: #065f46;
+    color: #6ee7b7;
+}
+.flash-error {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+.dark .flash-error {
+    background: rgba(127, 29, 29, 0.3);
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+.flash-info {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+.dark .flash-info {
+    background: rgba(30, 58, 138, 0.25);
+    border-color: #1e40af;
+    color: #93c5fd;
+}
+.flash-warning {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
+}
+.dark .flash-warning {
+    background: rgba(120, 53, 15, 0.3);
+    border-color: #92400e;
+    color: #fcd34d;
+}
+
+/* ===== AI DRAFT BANNER ===== */
+.ai-draft-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    color: #5b21b6;
+}
+.dark .ai-draft-banner {
+    background: rgba(76, 29, 149, 0.3);
+    border-color: #5b21b6;
+    color: #c4b5fd;
+}
+
+/* ===== AUTOSAVE STATUS ===== */
+.autosave-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+.dark .autosave-status {
+    color: #9ca3af;
+}
+.autosave-status .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #d1d5db;
+}
+.autosave-status.is-saving .dot {
+    background: #f59e0b;
+    animation: pulse-dot 1s ease-in-out infinite;
+}
+.autosave-status.is-saved .dot {
+    background: #22c55e;
+}
+.autosave-status.is-error .dot {
+    background: #ef4444;
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+.dark .empty-state-title {
+    color: #f3f4f6;
+}
+.empty-state-hint {
+    font-size: 0.9375rem;
+    color: #6b7280;
+}
+.dark .empty-state-hint {
+    color: #9ca3af;
 }

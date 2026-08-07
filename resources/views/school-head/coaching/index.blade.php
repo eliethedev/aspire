@@ -4,12 +4,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Coaching Agreements</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">View coaching agreements for teachers in your school.</p>
-        </div>
-    </div>
+    <x-page-header title="Coaching Agreements" subtitle="View coaching agreements for teachers in your school." />
 
     <div class="grid grid-cols-3 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">

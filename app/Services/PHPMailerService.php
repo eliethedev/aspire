@@ -17,6 +17,11 @@ class PHPMailerService
         $this->configure();
     }
 
+    private function shouldSend(): bool
+    {
+        return !app()->environment('testing') && config('mail.default') !== 'array';
+    }
+
     private function configure(): void
     {
         try {
@@ -69,6 +74,10 @@ class PHPMailerService
 
     public function sendVerificationEmail($user, $verificationUrl): bool
     {
+        if (!$this->shouldSend()) {
+            return true;
+        }
+
         try {
             $this->mailer->addAddress($user->email, $user->name);
             $this->mailer->Subject = 'ASPIRE - Verify Your Email';
@@ -86,6 +95,10 @@ class PHPMailerService
 
     public function sendPasswordResetEmail($user, $resetUrl): bool
     {
+        if (!$this->shouldSend()) {
+            return true;
+        }
+
         try {
             $this->mailer->addAddress($user->email, $user->name);
             $this->mailer->Subject = 'Reset Your ASPIRE Password';
@@ -103,6 +116,10 @@ class PHPMailerService
 
     public function sendInvitationEmail($invitation, $subject, $body): bool
     {
+        if (!$this->shouldSend()) {
+            return true;
+        }
+
         try {
             $this->mailer->addAddress($invitation->email, $invitation->user->name);
             $this->mailer->Subject = $subject;
@@ -119,6 +136,10 @@ class PHPMailerService
 
     public function sendGenericEmail($email, $name, $subject, $body): bool
     {
+        if (!$this->shouldSend()) {
+            return true;
+        }
+
         try {
             $this->mailer->addAddress($email, $name);
             $this->mailer->Subject = $subject;
@@ -223,6 +244,10 @@ class PHPMailerService
 
     public function testConnection(): bool
     {
+        if (!$this->shouldSend()) {
+            return true;
+        }
+
         try {
             return $this->mailer->SMTP->connect();
         } catch (Exception $e) {

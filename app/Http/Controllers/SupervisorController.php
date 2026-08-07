@@ -68,6 +68,14 @@ class SupervisorController extends Controller
             ->take(5)
             ->get();
 
+        // Active observations awaiting the supervisor's next action.
+        $todoObservations = (clone $observationsQuery)
+            ->with('observee.user')
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
+
         $cotScores = (clone $observationsQuery)
             ->whereNotNull('overall_score')
             ->orderBy('observation_date')
@@ -90,7 +98,7 @@ class SupervisorController extends Controller
         $trend = $prevAvg ? ($stats['average_score'] - round($prevAvg, 2)) : 0;
 
         return view('supervisor.dashboard', compact(
-            'stats', 'recentObservations', 'cotScores', 'cotLabels', 'trend'
+            'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend'
         ));
     }
 
@@ -1114,7 +1122,7 @@ class SupervisorController extends Controller
             ? ($validated['cancellation_other_reason'] ?? 'Other')
             : $validated['cancellation_reason'];
 
-        $observation->cancel($reason, $validated['internal_note']);
+        $observation->cancel($reason, $validated['internal_note'] ?? null);
 
         app(AuditLogService::class)->log(
             'cancelled', 'observations', (string) $observation->getKey(),
@@ -1591,5 +1599,117 @@ PROMPT;
         }
 
         return response()->json(['suggestions' => $suggestions]);
+    }
+
+    /**
+     * Lightweight JSON autosave endpoint for workflow stages.
+     * Mirrors the store methods but never advances the stage or triggers AI.
+     */
+    public function autosave(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $stage = $request->input('stage', 'observation');
+        $savedFields = [];
+
+        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
+        $obsType = $observation->observation_type;
+
+        if ($stage === 'observation') {
+            if ($request->has('ratings') && is_array($request->input('ratings'))) {
+                foreach ($request->input('ratings') as $item) {
+                    if (empty($item['indicator_code'])) {
+                        continue;
+                    }
+
+                    // Untouched rows carry no rating or not_observed value; do not
+                    // overwrite previously saved data with a null rating.
+                    $hasRating = array_key_exists('rating', $item) && $item['rating'] !== null && $item['rating'] !== '';
+                    $hasNo = !empty($item['not_observed']);
+                    if (!$hasRating && !$hasNo) {
+                        continue;
+                    }
+
+                    CotRating::updateOrCreate(
+                        ['observation_id' => $observation->id, 'indicator_code' => $item['indicator_code']],
+                        [
+                            'domain' => $item['domain'] ?? null,
+                            'indicator' => $item['indicator'] ?? null,
+                            'rating' => $hasNo ? null : $item['rating'],
+                            'not_observed' => $hasNo,
+                            'comments' => $item['comments'] ?? null,
+                        ]
+                    );
+                }
+                $savedFields[] = 'ratings';
+            }
+
+            if ($request->has('other_comments')) {
+                $observation->notes = $request->input('other_comments');
+                $savedFields[] = 'other_comments';
+            }
+
+            $starNotes = $request->input('star_notes');
+            $supervisorNotes = $request->input('supervisor_notes');
+            if ($request->has('star_notes') || $request->has('supervisor_notes')) {
+                $observation->postConference()->updateOrCreate(
+                    ['observation_id' => $observation->id],
+                    [
+                        'star_notes' => $starNotes ?: null,
+                        'supervisor_notes' => $supervisorNotes ?: null,
+                    ]
+                );
+                $savedFields = array_merge($savedFields, ['star_notes', 'supervisor_notes']);
+            }
+
+            $observation->save();
+        } else {
+            $configs = [
+                'pre_observation_planning' => [
+                    'relation' => 'preObservationPlanning',
+                    'fillable' => ['ai_insights', 'suggested_focus', 'supervisor_notes', 'observation_tool'],
+                ],
+                'pre_conference' => [
+                    'relation' => 'preConference',
+                    'fillable' => ['discussion_notes', 'finalized_focus', 'teacher_reflection', 'lesson_plan_review', 'instructional_materials', 'conference_date'],
+                ],
+                'post_conference' => [
+                    'relation' => 'postConference',
+                    'fillable' => ['ai_comparison', 'feedback', 'star_notes', 'areas_for_improvement', 'challenges_facing_teacher', 'ideas_for_addressing_challenges', 'prioritized_next_steps', 'teacher_reflection', 'supervisor_notes', 'conference_date'],
+                ],
+            ];
+
+            if (!isset($configs[$stage])) {
+                return response()->json(['ok' => false, 'message' => 'Unknown autosave stage.'], 422);
+            }
+
+            $save = [];
+            foreach ($configs[$stage]['fillable'] as $field) {
+                if ($request->has($field)) {
+                    $save[$field] = $request->input($field);
+                    $savedFields[] = $field;
+                }
+            }
+
+            // Persist any form-template driven fields via the standard parser.
+            $save = array_merge(
+                $save,
+                $this->formTemplateService->parseFormData($schoolYear, $stage, $request->all(), $obsType)
+            );
+
+            if (!empty($save)) {
+                $observation->{$configs[$stage]['relation']}()->updateOrCreate(
+                    ['observation_id' => $observation->id],
+                    $save
+                );
+            }
+        }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Draft saved.',
+            'saved_fields' => array_values(array_unique($savedFields)),
+            'saved_at' => now()->format('g:i:s A'),
+        ]);
     }
 }

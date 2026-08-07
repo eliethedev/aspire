@@ -13,12 +13,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Improvement Plan</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Coaching agreements and action plans from your observations.</p>
-        </div>
-    </div>
+    <x-page-header title="Improvement Plan" subtitle="Coaching agreements and action plans from your observations." />
 
     @if(session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"

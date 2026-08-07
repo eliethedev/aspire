@@ -52,9 +52,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('users/{user}/send-password-reset', [UserController::class, 'sendPasswordReset'])->name('users.sendPasswordReset');
     
     // User invitation routes
-    Route::resource('invitations', UserInvitationController::class);
-    Route::post('invitations/{invitation}/resend', [UserInvitationController::class, 'resend'])->name('invitations.resend');
+    Route::get('invitations', [UserInvitationController::class, 'index'])->name('invitations.index');
+    Route::get('invitations/create', [UserInvitationController::class, 'create'])->name('invitations.create');
+    Route::post('invitations', [UserInvitationController::class, 'store'])->middleware('throttle:invitations')->name('invitations.store');
+    Route::get('invitations/{invitation}', [UserInvitationController::class, 'show'])->name('invitations.show');
+    Route::post('invitations/{invitation}/resend', [UserInvitationController::class, 'resend'])->middleware('throttle:invitations')->name('invitations.resend');
     Route::post('invitations/{invitation}/cancel', [UserInvitationController::class, 'cancel'])->name('invitations.cancel');
+    Route::delete('invitations/{invitation}', [UserInvitationController::class, 'destroy'])->name('invitations.destroy');
     
     // Supervisor management routes
     Route::resource('supervisors', \App\Http\Controllers\Admin\SupervisorController::class);
@@ -69,7 +73,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/audit-logs/{auditLog}', [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('audit-logs.show');
 
     // Observation management
-    Route::get('/observations', [\App\Http\Controllers\Admin\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations', [\App\Http\Controllers\Admin\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [\App\Http\Controllers\Admin\ObservationController::class, 'show'])->name('observations.show');
 
     // Announcement management
@@ -108,9 +112,9 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
     Route::get('/profile', [\App\Http\Controllers\Profile\TeacherProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [\App\Http\Controllers\Profile\TeacherProfileController::class, 'update'])->name('profile.update');
 
-    Route::get('/observations', [\App\Http\Controllers\Teacher\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations', [\App\Http\Controllers\Teacher\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [\App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
-    Route::post('/observations/{observation}/upload-lesson-plan', [\App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->name('observations.upload-lesson-plan');
+    Route::post('/observations/{observation}/upload-lesson-plan', [\App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->middleware('throttle:uploads')->name('observations.upload-lesson-plan');
     Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\Teacher\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [\App\Http\Controllers\Teacher\ObservationController::class, 'reject'])->name('observations.reject');
 
@@ -137,7 +141,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
     Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
-    Route::get('/observations', [SupervisorController::class, 'observations'])->name('observations.index');
+    Route::get('/observations', [SupervisorController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [SupervisorController::class, 'showObservation'])->name('observations.show');
@@ -152,11 +156,12 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::post('/observations/{observation}/pre-conference', [SupervisorController::class, 'storePreConference'])->name('observations.storePreConference');
     Route::get('/observations/{observation}/observation', [SupervisorController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [SupervisorController::class, 'storeObservationData'])->name('observations.storeObservationData');
+    Route::post('/observations/{observation}/autosave', [SupervisorController::class, 'autosave'])->name('observations.autosave');
     Route::get('/observations/{observation}/post-conference', [SupervisorController::class, 'postConference'])->name('observations.postConference');
     Route::post('/observations/{observation}/post-conference', [SupervisorController::class, 'storePostConference'])->name('observations.storePostConference');
     
     Route::get('/reports', [SupervisorController::class, 'reports'])->name('reports.index');
-    Route::get('/reports/export', [SupervisorController::class, 'exportReports'])->name('reports.export');
+    Route::get('/reports/export', [SupervisorController::class, 'exportReports'])->middleware('throttle:exports')->name('reports.export');
 
     // Teacher observation history
     Route::get('/teachers/{observeeId}/observations', [SupervisorController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
@@ -169,8 +174,8 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
 
     // Post-Observation Report
-    Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->name('observations.report');
-    Route::get('/observations/{observation}/report/pdf', [SupervisorController::class, 'downloadReportPDF'])->name('observations.report-pdf');
+    Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
+    Route::get('/observations/{observation}/report/pdf', [SupervisorController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
 
     // Indicator Trends & Progress Comparison
     Route::get('/observations/{observation}/indicator-trends', [SupervisorController::class, 'indicatorTrends'])->name('observations.indicator-trends');
@@ -187,7 +192,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
         Route::get('/{feedback}/edit', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'edit'])->name('edit');
         Route::patch('/{feedback}', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'update'])->name('update');
         Route::post('/{feedback}/publish', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'publish'])->name('publish');
-        Route::get('/{feedback}/export', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'export'])->name('export');
+        Route::get('/{feedback}/export', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'export'])->middleware('throttle:exports')->name('export');
         Route::delete('/{feedback}', [\App\Http\Controllers\Supervisor\FeedbackController::class, 'destroy'])->name('destroy');
     });
 
@@ -199,7 +204,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/coaching/{agreement}/edit', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'edit'])->name('coaching.edit');
     Route::patch('/coaching/{agreement}', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'update'])->name('coaching.update');
     Route::post('/coaching/{agreement}/sign', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'sign'])->name('coaching.sign');
-    Route::get('/coaching/{agreement}/export', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'export'])->name('coaching.export');
+    Route::get('/coaching/{agreement}/export', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'export'])->middleware('throttle:exports')->name('coaching.export');
     Route::delete('/coaching/{agreement}', [\App\Http\Controllers\Supervisor\CoachingAgreementController::class, 'destroy'])->name('coaching.destroy');
 });
 
@@ -212,13 +217,13 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     Route::patch('/profile', [\App\Http\Controllers\Profile\SchoolHeadProfileController::class, 'update'])->name('profile.update');
 
     // Observations (My Performance)
-    Route::get('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'index'])->name('observations.index');
+    Route::get('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/create', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
     Route::post('/observations/{observation}/confirm', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');
-    Route::post('/observations/{observation}/upload-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->name('observations.upload-plan');
+    Route::post('/observations/{observation}/upload-plan', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->middleware('throttle:uploads')->name('observations.upload-plan');
 
     // Observation workflow stages (school head as observer)
     Route::get('/observations/{observation}/pre-observation-planning', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
@@ -241,8 +246,8 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     Route::post('/observations/{observation}/cancel', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'cancel'])->name('observations.cancel');
 
     // Report download
-    Route::get('/observations/{observation}/report', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReport'])->name('observations.report');
-    Route::get('/observations/{observation}/report/pdf', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReportPDF'])->name('observations.report-pdf');
+    Route::get('/observations/{observation}/report', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
+    Route::get('/observations/{observation}/report/pdf', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
 
     // Indicator Trends & Progress Comparison
     Route::get('/observations/{observation}/indicator-trends', [\App\Http\Controllers\SchoolHead\ObservationController::class, 'indicatorTrends'])->name('observations.indicator-trends');

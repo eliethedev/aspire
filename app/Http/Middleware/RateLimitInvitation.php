@@ -17,7 +17,7 @@ class RateLimitInvitation
      * @param  int  $maxAttempts   Default: 5 attempts
      * @param  int  $decayMinutes  Default: 1 minute
      */
-    public function handle(Request $request, Closure $next, int $maxAttempts = 5, int $decayMinutes = 1): Response
+    public function handle(Request $request, Closure $next, int $maxAttempts = 5, int $decayMinutes = 1): Response //decay minutes is eqal to 1
     {
         $key = $this->resolveRequestSignature($request);
 

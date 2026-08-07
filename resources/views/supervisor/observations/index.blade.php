@@ -26,6 +26,7 @@
 @endpush
 
 @section('content')
+@php $hasFilters = request()->anyFilled(['search', 'observation_type', 'status', 'stage']); @endphp
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -245,7 +246,7 @@
                     @endif
 
                     <a href="{{ route('supervisor.observations.show', $observation) }}"
-                       class="px-3 py-1.5 text-sm font-medium text-dark-600 hover:text-dark-900 hover:bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors">
+                       class="px-4 py-2 text-sm font-medium text-dark-600 hover:text-dark-900 hover:bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors min-h-[44px] inline-flex items-center">
                         View
                     </a>
 
@@ -260,14 +261,14 @@
                     @endphp
                     @if($continueRoute && $observation->status !== 'cancelled')
                         <a href="{{ route($continueRoute, $observation) }}"
-                           class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                           class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors min-h-[44px] inline-flex items-center">
                             Continue
                         </a>
                     @endif
 
                     @if($observation->canCancel())
                         <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"
-                           class="px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:text-red-300 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                           class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:text-red-300 hover:bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors min-h-[44px] inline-flex items-center">
                             Cancel
                         </a>
                     @endif
@@ -280,13 +281,22 @@
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-dark-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
-            <h3 class="text-lg font-semibold text-dark-900 mb-1">No evaluations yet</h3>
-            <p class="text-sm text-dark-500 mb-6">Create your first observation to get started.</p>
-            <a href="{{ route('supervisor.observations.create') }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                Create Evaluation
-            </a>
+            @if($hasFilters)
+                <h3 class="text-lg font-semibold text-dark-900 mb-1">No evaluations match your filters</h3>
+                <p class="text-sm text-dark-500 mb-6">Try adjusting your search or clearing the filters to see more evaluations.</p>
+                <a href="{{ route('supervisor.observations.index') }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-dark-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                    Clear Filters
+                </a>
+            @else
+                <h3 class="text-lg font-semibold text-dark-900 mb-1">No evaluations yet</h3>
+                <p class="text-sm text-dark-500 mb-6">Create your first evaluation to get started.</p>
+                <a href="{{ route('supervisor.observations.create') }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Create Evaluation
+                </a>
+            @endif
         </div>
     @endforelse
 

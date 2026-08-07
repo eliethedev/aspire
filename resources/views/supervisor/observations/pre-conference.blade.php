@@ -55,6 +55,10 @@
         </ol>
     </nav>
 
+    @include('partials.observation-progress')
+
+    @include('partials.draft-banner')
+
     <!-- Progress Steps -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
@@ -104,7 +108,7 @@
     </div>
     @endif
 
-    <form method="POST" action="{{ route('supervisor.observations.storePreConference', $observation) }}" id="pre-conference-form" class="space-y-6"
+    <form method="POST" action="{{ route('supervisor.observations.storePreConference', $observation) }}" id="pre-conference-form" class="space-y-6" data-autosave-form
           x-data="{ submitting: false }" x-on:submit="submitting = true">
     @csrf
     <input type="hidden" name="ai_insights_reviewed" id="ai_insights_reviewed_input" value="{{ $aiReviewed ? '1' : '0' }}">
@@ -349,9 +353,12 @@
 
             <!-- Actions -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center gap-2 mb-4">
-                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Observation stage when the pre-conference is complete.</span>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Observation stage when the pre-conference is complete.</span>
+                    </div>
+                    <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="submit" name="save_draft" value="1" :disabled="submitting"
@@ -798,6 +805,16 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 500);
     }, 3000);
 }
+</script>
+@include('partials.autosave')
+<script>
+    (function () {
+        var form = document.getElementById('pre-conference-form');
+        var status = document.getElementById('autosave-status');
+        if (form && window.asAutoSave) {
+            asAutoSave(form, 'pre_conference', status, { wait: 1200 });
+        }
+    })();
 </script>
 @endpush
 @endsection

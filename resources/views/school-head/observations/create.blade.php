@@ -44,10 +44,7 @@
         </ol>
     </nav>
 
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Schedule Teacher Observation</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">Schedule a COT classroom observation for a teacher in your school.</p>
-    </div>
+    <x-page-header title="Schedule Teacher Observation" subtitle="Schedule a COT classroom observation for a teacher in your school." />
 
     <form method="POST" action="{{ route('school-head.observations.store') }}" @submit="submitting = true">
         @csrf

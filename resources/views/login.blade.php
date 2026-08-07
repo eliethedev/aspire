@@ -70,10 +70,7 @@
 
     <!-- Top Nav -->
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
-            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">        
             ASPIRE
         </a>
         <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">

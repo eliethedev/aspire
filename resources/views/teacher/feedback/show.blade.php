@@ -20,19 +20,14 @@
     </nav>
 
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $feedback->feedbackTypeLabel() }}</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">
-                {{ $feedback->observation->observation_date->format('M d, Y') }}
-                &middot; {{ $feedback->observation->observer?->name ?? 'Supervisor' }}
-            </p>
-        </div>
-        <a href="{{ route('teacher.feedback.index') }}"
-           class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
-            Back to List
-        </a>
-    </div>
+    <x-page-header title="{{ $feedback->feedbackTypeLabel() }}" subtitle="{{ $feedback->observation->observation_date->format('M d, Y') }} · {{ $feedback->observation->observer?->name ?? 'Supervisor' }}">
+        <x-slot name="actions">
+            <a href="{{ route('teacher.feedback.index') }}"
+               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
+                Back to List
+            </a>
+        </x-slot>
+    </x-page-header>
 
     <!-- Feedback Content -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">

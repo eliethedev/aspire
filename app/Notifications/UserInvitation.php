@@ -51,7 +51,7 @@ class UserInvitation extends Notification
             ->line('You have been invited to join ASPIRE, the Department of Education\'s school supervision platform.')
             ->line('**Your Role:** ' . ucfirst($this->invitation->role))
             ->line('**School:** ' . ($this->invitation->school?->name ?? 'Not assigned'))
-            ->line('**Invited by:** ' . $this->invitation->invitedBy->name)
+            ->line('**Invited by:** ' . ($this->invitation->invitedBy?->name ?? 'The Administrator'))
             ->line('**Expires:** ' . $expiresAt)
             ->line('To get started, please click the button below to set your password and activate your account.')
             ->action('Set Your Password', $setPasswordUrl)

@@ -5,12 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">My Observations</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">View all your classroom observations and evaluation results.</p>
-        </div>
-    </div>
+    <x-page-header title="My Observations" subtitle="View all your classroom observations and evaluation results." />
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-3 gap-4 mb-8">

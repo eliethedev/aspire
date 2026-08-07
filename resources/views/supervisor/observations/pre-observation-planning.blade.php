@@ -42,6 +42,10 @@
         </ol>
     </nav>
 
+    @include('partials.observation-progress')
+
+    @include('partials.draft-banner')
+
     <!-- Progress Steps -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
@@ -87,7 +91,8 @@
     </div>
 
     <form method="POST" action="{{ route('supervisor.observations.storePreObservationPlanning', $observation) }}"
-          x-data="{ submitting: false }" @submit="setTimeout(() => submitting = true, 100)">
+          x-data="{ submitting: false }" @submit="setTimeout(() => submitting = true, 100)"
+          id="planning-form" data-autosave-form>
         @csrf
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -434,9 +439,12 @@
                 <!-- Action Buttons -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="space-y-3">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="text-xs text-gray-500 dark:text-gray-400">You can save notes and continue later.</span>
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">You can save notes and continue later.</span>
+                            </div>
+                            <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
                         </div>
                         <button type="submit"
                                 class="block w-full px-4 py-2.5 bg-white dark:bg-gray-900 border-2 border-indigo-600 text-indigo-700 hover:bg-indigo-50 dark:bg-indigo-900/20 rounded-lg font-semibold text-sm transition-colors">
@@ -594,6 +602,16 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
         console.error(err);
     });
 });
+</script>
+@include('partials.autosave')
+<script>
+    (function () {
+        var form = document.getElementById('planning-form');
+        var status = document.getElementById('autosave-status');
+        if (form && window.asAutoSave) {
+            asAutoSave(form, 'pre_observation_planning', status, { wait: 1200 });
+        }
+    })();
 </script>
 @endpush
 @endsection

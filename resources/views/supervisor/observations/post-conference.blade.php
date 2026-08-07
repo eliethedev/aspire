@@ -43,6 +43,10 @@
         </ol>
     </nav>
 
+    @include('partials.observation-progress')
+
+    @include('partials.draft-banner')
+
     <!-- Progress Steps -->
     <div class="mb-8">
         <div class="flex items-center justify-between">
@@ -169,7 +173,8 @@
             @endif
 
             <form method="POST" action="{{ route('supervisor.observations.storePostConference', $observation) }}" class="space-y-6"
-                  x-data="{ submitting: false }" x-on:submit="submitting = true">
+                  x-data="{ submitting: false }" x-on:submit="submitting = true"
+                  id="post-conference-form" data-autosave-form>
                 @csrf
 
                 <!-- Section 1: Conference Schedule -->
@@ -333,9 +338,12 @@
 
                 <!-- Actions -->
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-                        <span class="text-xs text-gray-600 dark:text-gray-400">Completing the observation will finalize all ratings and notify the teacher.</span>
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Completing the observation will finalize all ratings and notify the teacher.</span>
+                        </div>
+                        <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <a href="{{ route('supervisor.observations.observation', $observation) }}" 
@@ -487,6 +495,16 @@ document.getElementById('generate-ai-comparison-btn')?.addEventListener('click',
         btnText.textContent = 'Generate AI Comparison';
     });
 });
+</script>
+@include('partials.autosave')
+<script>
+    (function () {
+        var form = document.getElementById('post-conference-form');
+        var status = document.getElementById('autosave-status');
+        if (form && window.asAutoSave) {
+            asAutoSave(form, 'post_conference', status, { wait: 1200 });
+        }
+    })();
 </script>
 @endpush
 @endsection

@@ -26,6 +26,56 @@
         </div>
     </div>
 
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-5">Teacher Details</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Employee Number</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->employee_number ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Position</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->position ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Department</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->department ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Subject</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->subject ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Grade Level</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->grade_level ? 'Grade ' . $teacher->grade_level : '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Years of Service</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->years_of_service ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Mobile Number</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->mobile_number ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">PRC License</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->prc_license_number ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">School</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->school?->name ?? $teacher->user->school?->name ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Email Address</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->user->email ?? '--' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">User Since</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->user->created_at?->format('M d, Y') ?? '--' }}</dd>
+            </div>
+        </dl>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">

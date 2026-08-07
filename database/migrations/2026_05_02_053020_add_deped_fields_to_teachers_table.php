@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('teachers', function (Blueprint $table) {
             $table->string('employee_number')->nullable()->unique()->after('years_of_service');
-            $table->string('mobile_number')->after('employee_number');
+            $table->string('mobile_number')->nullable()->after('employee_number');
             $table->string('prc_license_number')->nullable()->unique()->after('mobile_number');
             $table->string('position')->nullable()->after('prc_license_number');
         });
