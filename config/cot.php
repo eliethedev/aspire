@@ -11,11 +11,23 @@ return [
     | The system uses the observation's school_year to determine
     | which set of indicators to display.
     |
+    | Each version may carry optional keys (all nullable):
+    |   - ratee_role    : 'teacher' (default) or 'school_head'
+    |   - career_stage  : one of config('career_stages.stages') keys, or null
+    |                     for a stage-agnostic instrument (applies to all
+    |                     teacher stages). e.g. 'master_teacher_i_ii'
+    |   - rating_scale  : per-version rating scale (value => label). Falls
+    |                     back to the global 'rating_scale' below when omitted.
+    |   - rating_scale_css : per-version Tailwind classes per rating value.
+    |
+    | Versions without a career_stage remain the fallback instrument used for
+    | every teacher, preserving the current app-wide Teacher I-III behaviour.
+    |
     */
 
     'versions' => [
         '2025-2026' => [
-            'label' => 'PPST COT 2025-2026',
+            'label' => 'COT 2025-2026',
             'indicators' => [
                 [
                     'code' => '1.1.2',
@@ -35,7 +47,7 @@ return [
                 [
                     'code' => '1.4.2',
                     'description' => 'Plan and teach using standard- and competence-based learning',
-                    'domain' => 'Domain 1: Content Knowledge and Pedagogy',
+                    'domain' => 'Dom ain 1: Content Knowledge and Pedagogy',
                 ],
                 [
                     'code' => '1.5.2',
@@ -156,7 +168,7 @@ return [
         ],
 
         '2026-2027' => [
-            'label' => 'PPST COT 2026-2027',
+            'label' => 'COT 2026-2027',
             'indicators' => [
                 [
                     'code' => '1.1.2',
@@ -297,7 +309,7 @@ return [
         ],
 
         '2027-2028' => [
-            'label' => 'PPST COT 2027-2028',
+            'label' => 'COT 2027-2028',
             'indicators' => [
                 [
                     'code' => '1.1.2',

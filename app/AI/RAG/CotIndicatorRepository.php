@@ -2,25 +2,32 @@
 
 namespace App\AI\RAG;
 
+use App\Services\CotIndicatorService;
 use Illuminate\Support\Facades\Cache;
 
 class CotIndicatorRepository
 {
+    protected CotIndicatorService $service;
+
+    public function __construct(CotIndicatorService $service)
+    {
+        $this->service = $service;
+    }
+
     public function getAllDomains(): array
     {
         $cacheKey = config('ai.cache.key_prefix', 'ai_rag_') . 'all_domains';
         $ttl = config('ai.cache.ttl', 3600);
 
         return Cache::remember($cacheKey, $ttl, function () {
-            $versions = config('cot.versions', []);
-            $latestVersion = end($versions);
+            $version = $this->service->getLatestVersion();
 
-            if (!$latestVersion || !isset($latestVersion['indicators'])) {
+            if (!$version || !isset($version['indicators'])) {
                 return [];
             }
 
             $domains = [];
-            foreach ($latestVersion['indicators'] as $indicator) {
+            foreach ($version['indicators'] as $indicator) {
                 $domain = $indicator['domain'];
                 if (!isset($domains[$domain])) {
                     $domains[$domain] = [];
@@ -60,20 +67,33 @@ class CotIndicatorRepository
 
     public function getLatestVersionLabel(): string
     {
-        $versions = config('cot.versions', []);
-        $latest = end($versions);
-        return $latest['label'] ?? 'PPST COT';
+        $version = $this->service->getLatestVersion();
+        return $version['label'] ?? 'PPST COT';
     }
 
     public function getSchoolYearVersions(): array
     {
-        $versions = config('cot.versions', []);
+        $versions = $this->service->getAllVersions();
         $result = [];
 
-        foreach ($versions as $schoolYear => $config) {
-            $result[$schoolYear] = $config['label'];
+        foreach ($versions as $version) {
+            $result[$version->school_year] = $version->label;
+        }
+
+        if (empty($result)) {
+            foreach (config('cot.versions', []) as $schoolYear => $config) {
+                $result[$schoolYear] = $config['label'];
+            }
         }
 
         return $result;
+    }
+
+    /**
+     * Clear the cached RAG context so admin edits take effect immediately.
+     */
+    public function clearCache(): void
+    {
+        $this->service->clearCache();
     }
 }

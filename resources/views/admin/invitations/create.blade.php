@@ -29,32 +29,6 @@
         </div>
     </div>
 
-    <!-- Success Message -->
-    @if(session('success'))
-    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-start">
-        <svg class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div class="flex-1">
-            <p class="text-green-800 dark:text-green-300 font-medium">{{ session('success') }}</p>
-            <div class="mt-3 flex space-x-3">
-                <a href="{{ route('admin.invitations.create') }}" class="text-sm text-green-700 dark:text-green-400 hover:text-green-800 dark:text-green-300 font-medium">
-                    Send Another Invitation
-                </a>
-                <span class="text-green-300">|</span>
-                <a href="{{ route('admin.users.index') }}" class="text-sm text-green-700 dark:text-green-400 hover:text-green-800 dark:text-green-300 font-medium">
-                    View Users
-                </a>
-            </div>
-        </div>
-        <button onclick="this.parentElement.remove()" class="text-green-400 hover:text-green-600 dark:text-green-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-    @endif
-
     <!-- Form -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card">
         <form method="POST" action="{{ route('admin.invitations.store') }}" id="invitationForm" class="space-y-0">

@@ -1,5 +1,5 @@
 <!-- Admin Sidebar -->
-<aside class="sidebar-glass h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
+<aside class="sidebar-glass h-screen fixed left-0 top-0 z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" x-data="{ registrationOpen: $persist(false), managementOpen: $persist(true), templatesOpen: $persist(true), otherOpen: $persist(true) }" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
 
     <!-- Logo - fixed at top -->
     <div class="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
@@ -107,8 +107,47 @@
                             <span x-show="!$store.sidebar.collapsed" class="font-medium">Supervisors</span>
                         </a>
                     </li>
+
                 </ul>
             </li>
+            <!-- Standards & Instruments Section -->
+            <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">
+                <button x-show="!$store.sidebar.collapsed" @click="templatesOpen = !templatesOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors">
+                    <span>Standards &amp; Instruments</span>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': templatesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <ul x-show="!$store.sidebar.collapsed ? templatesOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
+                    <li>
+                        <a href="{{ route('admin.cot-indicators.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.cot-indicators.*') ? 'sidebar-link-active icon-reports' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-reports" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">COT Templates</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('admin.ppst-standards.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.ppst-standards.*') ? 'sidebar-link-active icon-reports' : '' }}"
+                           :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-reports" :class="$store.sidebar.collapsed ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.collapsed" class="font-medium">PPST Standards</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
 
             <!-- Registration Section -->
             <li :class="$store.sidebar.collapsed ? 'mb-1' : 'mb-3'">

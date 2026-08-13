@@ -593,6 +593,37 @@
     color: #fcd34d;
 }
 
+/* ===== TOAST MESSAGES ===== */
+.toast-card {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+    backdrop-filter: blur(4px);
+}
+.toast-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    color: inherit;
+    opacity: 0.65;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.toast-close:hover,
+.toast-close:focus-visible {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.08);
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast-card {
+        transition: none;
+    }
+}
+
+
 /* ===== AI DRAFT BANNER ===== */
 .ai-draft-banner {
     display: flex;

@@ -46,6 +46,7 @@
         @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-50 dark:bg-gray-950 transition-colors" x-data>
+        <x-flash-messages />
         <a href="#main-content" class="skip-link">Skip to main content</a>
         <div class="flex min-h-screen">
             <!-- Sidebar -->
@@ -68,7 +69,6 @@
                 <!-- Page Content -->
                 <main id="main-content" class="p-6">
                     <div class="mx-auto">
-                        @include('partials.flash-messages')
                         @yield('content')
                     </div>
                 </main>

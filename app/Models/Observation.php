@@ -32,6 +32,7 @@ class Observation extends Model
         'observation_mode',
         'evidence_files',
         'form_template_id',
+        'cot_indicator_version_id',
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',
@@ -57,6 +58,15 @@ class Observation extends Model
     public function formTemplate(): BelongsTo
     {
         return $this->belongsTo(FormTemplate::class, 'form_template_id');
+    }
+
+    /**
+     * The COT indicator version pinned when this observation was created.
+     * Kept as a historical reference even if the version is later archived.
+     */
+    public function cotIndicatorVersion(): BelongsTo
+    {
+        return $this->belongsTo(CotIndicatorVersion::class, 'cot_indicator_version_id');
     }
 
     /**

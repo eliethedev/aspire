@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TeacherCareerStage;
 use App\Models\Traits\SchoolAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ class Teacher extends Model
         'mobile_number',
         'prc_license_number',
         'position',
+        'career_stage',
         'subject',
         'grade_level',
     ];
@@ -35,5 +37,39 @@ class Teacher extends Model
     public function observations(): HasMany
     {
         return $this->hasMany(Observation::class);
+    }
+
+    /**
+     * The career stage resolved from the teacher's position, if any.
+     */
+    public function careerStage(): ?TeacherCareerStage
+    {
+        return $this->career_stage
+            ? TeacherCareerStage::tryFrom($this->career_stage)
+            : null;
+    }
+
+    /**
+     * Normalise the current free-text position into a career stage.
+     * Returns the stage (or null) without persisting it.
+     */
+    public function inferCareerStage(): ?TeacherCareerStage
+    {
+        return TeacherCareerStage::fromPosition($this->position);
+    }
+
+    /**
+     * Normalise and persist the career stage derived from the current position.
+     */
+    public function normalizeCareerStage(): ?TeacherCareerStage
+    {
+        $stage = $this->inferCareerStage();
+
+        if ($stage !== null && $this->career_stage !== $stage->value) {
+            $this->career_stage = $stage->value;
+            $this->save();
+        }
+
+        return $stage;
     }
 }

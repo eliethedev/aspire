@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TeacherCareerStage;
 use App\Http\Controllers\Controller;
-use App\Models\Teacher;
-use App\Models\User;
-use App\Models\School;
-use App\Services\AuditLogService;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Models\CareerProgressionAssessment;
+use App\Models\School;
+use App\Models\Teacher;
+use App\Models\User;
+use App\Services\AuditLogService;
+use App\Services\CareerProgressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class TeacherController extends Controller
 {
@@ -23,7 +27,7 @@ class TeacherController extends Controller
             ->when($request->search, function ($query, $search) {
                 return $query->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             })
             ->paginate(10);
@@ -36,6 +40,7 @@ class TeacherController extends Controller
     public function create()
     {
         $schools = School::all();
+
         return view('admin.teachers.create', compact('schools'));
     }
 
@@ -59,6 +64,7 @@ class TeacherController extends Controller
             'mobile_number' => $validated['mobile_number'] ?? null,
             'prc_license_number' => $validated['prc_license_number'] ?? null,
             'position' => $validated['position'] ?? null,
+            'career_stage' => $this->resolveCareerStage($validated),
         ]);
 
         app(AuditLogService::class)->logCreate(
@@ -73,13 +79,23 @@ class TeacherController extends Controller
     public function show(Teacher $teacher)
     {
         $teacher->load('user.school');
-        return view('admin.teachers.show', compact('teacher'));
+
+        $service = app(CareerProgressionService::class);
+        $careerContext = $service->contextFor($teacher);
+        $careerEvidence = $service->evidenceFor($teacher);
+        $careerReadiness = $service->readinessFor($teacher);
+
+        return view('admin.teachers.show', compact(
+            'teacher', 'careerContext', 'careerEvidence', 'careerReadiness'
+        ))->with('careerRoute', route('admin.teachers.career-assessment', $teacher))
+            ->with('canAssess', true);
     }
 
     public function edit(Teacher $teacher)
     {
         $teacher->load('user');
         $schools = School::all();
+
         return view('admin.teachers.edit', compact('teacher', 'schools'));
     }
 
@@ -93,7 +109,7 @@ class TeacherController extends Controller
             'school_id' => $validated['school_id'],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $teacher->user->update([
                 'password' => Hash::make($validated['password']),
             ]);
@@ -106,6 +122,7 @@ class TeacherController extends Controller
             'mobile_number' => $validated['mobile_number'] ?? null,
             'prc_license_number' => $validated['prc_license_number'] ?? null,
             'position' => $validated['position'] ?? null,
+            'career_stage' => $this->resolveCareerStage($validated),
         ]);
 
         app(AuditLogService::class)->logUpdate(
@@ -117,6 +134,25 @@ class TeacherController extends Controller
 
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher updated successfully.');
+    }
+
+    /**
+     * Record a career progression readiness assessment for a teacher.
+     *
+     * Support-only action: never changes the teacher's position or career
+     * stage. Each save is appended to the assessment history.
+     */
+    public function storeCareerAssessment(Teacher $teacher, Request $request)
+    {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(CareerProgressionAssessment::STATUSES)],
+            'remarks' => ['nullable', 'string', 'max:1000'],
+            'assessed_at' => ['nullable', 'date'],
+        ]);
+
+        app(CareerProgressionService::class)->recordAssessment($teacher, $request->user(), $validated);
+
+        return back()->with('success', 'Career progression readiness assessment saved.');
     }
 
     public function destroy(Teacher $teacher)
@@ -136,5 +172,18 @@ class TeacherController extends Controller
 
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher deleted successfully.');
+    }
+
+    /**
+     * Prefer the explicitly selected career stage; fall back to inferring
+     * it from the free-text position when the stage is left blank.
+     */
+    private function resolveCareerStage(array $validated): ?string
+    {
+        if (! empty($validated['career_stage'])) {
+            return $validated['career_stage'];
+        }
+
+        return TeacherCareerStage::fromPosition($validated['position'] ?? null)?->value;
     }
 }

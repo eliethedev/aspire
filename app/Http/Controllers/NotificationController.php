@@ -2,69 +2,132 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationPriority;
+use App\Enums\NotificationType;
 use App\Models\Notification;
-use Illuminate\Http\Request;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function __construct(protected NotificationService $notificationService)
     {
-        $user = auth()->user();
-        $notifications = $user->notifications()->take(10)->get();
-        $unreadCount = $user->unreadNotifications()->count();
+    }
 
-        return response()->json([
+    /**
+     * Full "view all" page with filters and pagination.
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $status = $request->query('status', 'all');
+        $status = in_array($status, ['all', 'unread', 'read'], true) ? $status : 'all';
+
+        $type = NotificationType::tryFrom((string) $request->query('type', ''));
+        $priority = NotificationPriority::tryFrom((string) $request->query('priority', ''));
+
+        $notifications = $this->notificationService->paginate($user, 15, $status, $type, $priority);
+
+        return view('notifications.index', [
             'notifications' => $notifications,
-            'unread_count' => $unreadCount,
+            'types' => NotificationType::cases(),
+            'priorities' => NotificationPriority::cases(),
+            'status' => $status,
+            'activeType' => $type,
+            'activePriority' => $priority,
         ]);
     }
 
-    public function markAsRead(Request $request, $id): RedirectResponse
+    /**
+     * JSON feed used by the header dropdown (unread first).
+     */
+    public function recent(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $notifications = $this->notificationService->getRecent($user, 8);
+
+        return response()->json([
+            'notifications' => $notifications->map(fn (Notification $n) => $this->toArray($n)),
+            'unread_count' => $this->notificationService->unreadCount($user),
+        ]);
+    }
+
+    public function markAsRead(Request $request, int $id): JsonResponse|RedirectResponse
     {
         $notification = Notification::findOrFail($id);
-        
-        if ($notification->user_id !== auth()->id()) {
+        $user = $request->user();
+
+        if (! $this->notificationService->markAsRead($notification, $user)) {
             abort(403, 'Unauthorized');
         }
 
-        $notification->markAsRead();
-
-        return redirect()->back();
+        return $this->stateResponse($request);
     }
 
-    public function markAllAsRead(Request $request): RedirectResponse
+    public function markAsUnread(Request $request, int $id): JsonResponse|RedirectResponse
     {
-        $user = auth()->user();
-        $user->unreadNotifications()->update([
-            'is_read' => true,
-            'read_at' => now(),
-        ]);
+        $notification = Notification::findOrFail($id);
+        $user = $request->user();
 
-        return redirect()->back();
+        if (! $this->notificationService->markAsUnread($notification, $user)) {
+            abort(403, 'Unauthorized');
+        }
+
+        return $this->stateResponse($request);
     }
 
-    public function show($role)
+    public function markAllAsRead(Request $request): JsonResponse|RedirectResponse
     {
-        $user = auth()->user();
-        
-        // Validate that the user has the requested role
+        $user = $request->user();
+        $this->notificationService->markAllAsRead($user);
+
+        return $this->stateResponse($request);
+    }
+
+    /**
+     * Legacy per-role route — kept so old "view all" links keep working.
+     */
+    public function show(Request $request, string $role): RedirectResponse
+    {
+        $user = $request->user();
+
         if ($user->role !== $role) {
             abort(403, 'Unauthorized access to notifications for this role');
         }
-        
-        $notifications = $user->notifications()->paginate(20);
-        
-        $viewMap = [
-            'admin' => 'notifications.admin',
-            'teacher' => 'notifications.teacher',
-            'supervisor' => 'notifications.supervisor',
-            'school_head' => 'notifications.school_head',
-        ];
-        
-        $view = $viewMap[$role] ?? 'notifications.index';
 
-        return view($view, compact('notifications'));
+        return redirect()->route('notifications.index');
+    }
+
+    protected function stateResponse(Request $request): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'unread_count' => $this->notificationService->unreadCount($request->user()),
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    protected function toArray(Notification $notification): array
+    {
+        return [
+            'id' => $notification->id,
+            'type' => $notification->type,
+            'type_label' => $notification->typeLabel(),
+            'title' => $notification->title,
+            'message' => $notification->message,
+            'priority' => $notification->priorityEnum()?->value,
+            'priority_label' => $notification->priorityEnum()?->label(),
+            'link' => $notification->link,
+            'is_read' => $notification->isRead(),
+            'read_at' => $notification->read_at?->toIso8601String(),
+            'created_at' => $notification->created_at?->toIso8601String(),
+            'human_time' => optional($notification->created_at)->diffForHumans(),
+        ];
     }
 }

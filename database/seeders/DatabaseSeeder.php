@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SchoolSeeder::class,
             SchoolHeadProfileSeeder::class,
+            PpstStandardSeeder::class,
+            CotIndicatorSeeder::class,
             FormTemplateSeeder::class,
         ]);
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Enums\TeacherCareerStage;
 
 class UpdateTeacherRequest extends FormRequest
 {
@@ -31,6 +32,7 @@ class UpdateTeacherRequest extends FormRequest
             'mobile_number' => 'nullable|string|max:20|regex:/^[+]?[0-9\s\-\(\)]+$/',
             'prc_license_number' => 'nullable|string|max:50',
             'position' => 'nullable|string|max:255',
+            'career_stage' => ['nullable', Rule::enum(TeacherCareerStage::class)],
             'password' => 'nullable|string|min:8|confirmed',
         ];
     }

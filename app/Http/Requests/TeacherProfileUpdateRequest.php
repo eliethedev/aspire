@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TeacherCareerStage;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TeacherProfileUpdateRequest extends FormRequest
 {
@@ -33,6 +35,7 @@ class TeacherProfileUpdateRequest extends FormRequest
             'subject' => ['nullable', 'string', 'max:255'],
             'grade_level' => ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
+            'career_stage' => ['nullable', Rule::enum(TeacherCareerStage::class)],
             'subject_area_taught' => ['nullable', 'string', 'max:255'],
             'teaching_position' => ['nullable', 'string', 'max:255'],
             'strand_specialization' => ['nullable', 'string', 'max:255'],

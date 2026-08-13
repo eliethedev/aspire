@@ -2,218 +2,324 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationPriority;
+use App\Enums\NotificationType;
 use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
+use InvalidArgumentException;
 
 class NotificationService
 {
-    public function createNotification(User $user, string $type, string $title, string $message, ?string $link = null): Notification
-    {
+    /**
+     * Create a single notification.
+     *
+     * @param  NotificationType|string  $type  canonical type (enum or its ->value)
+     * @param  NotificationPriority|string|null  $priority  defaults to the type's default priority
+     * @param  string|null  $actionUrl  where clicking the notification navigates the user
+     */
+    public function notify(
+        User $user,
+        NotificationType|string $type,
+        string $title,
+        string $message,
+        NotificationPriority|string|null $priority = null,
+        ?string $actionUrl = null,
+    ): Notification {
+        $typeEnum = $type instanceof NotificationType
+            ? $type
+            : NotificationType::tryFrom($type);
+
+        if (! $typeEnum) {
+            throw new InvalidArgumentException("Unknown notification type [{$type}].");
+        }
+
+        $priorityEnum = match (true) {
+            $priority === null => $typeEnum->defaultPriority(),
+            $priority instanceof NotificationPriority => $priority,
+            default => NotificationPriority::tryFrom($priority),
+        };
+
+        if (! $priorityEnum) {
+            throw new InvalidArgumentException("Unknown notification priority [{$priority}].");
+        }
+
         return Notification::create([
             'user_id' => $user->id,
-            'type' => $type,
+            'type' => $typeEnum->value,
+            'priority' => $priorityEnum->value,
             'title' => $title,
             'message' => $message,
-            'link' => $link,
+            'link' => $actionUrl,
             'is_read' => false,
         ]);
     }
 
-    public function notifyUserInvitation(User $user, string $invitationLink): void
-    {
-        $this->createNotification(
-            $user,
-            'user_invitation',
-            'New User Invitation',
-            'You have been invited to join the ASPIRE platform.',
-            $invitationLink
+    /**
+     * Notify many users at once.
+     */
+    public function notifyUsers(
+        iterable $users,
+        NotificationType|string $type,
+        string $title,
+        string $message,
+        NotificationPriority|string|null $priority = null,
+        ?string $actionUrl = null,
+    ): SupportCollection {
+        return collect($users)
+            ->map(fn (User $user) => $this->notify($user, $type, $title, $message, $priority, $actionUrl));
+    }
+
+    /**
+     * Notify every user holding the given role.
+     */
+    public function notifyByRole(
+        string $role,
+        NotificationType|string $type,
+        string $title,
+        string $message,
+        NotificationPriority|string|null $priority = null,
+        ?string $actionUrl = null,
+    ): SupportCollection {
+        return $this->notifyUsers(
+            User::query()->where('role', $role)->get(),
+            $type,
+            $title,
+            $message,
+            $priority,
+            $actionUrl
         );
     }
 
-    public function notifySchoolCreated(User $admin, string $schoolName, string $schoolLink): void
+    /**
+     * Legacy wrapper kept for existing call sites (e.g. AnnouncementController).
+     */
+    public function createNotification(User $user, string $type, string $title, string $message, ?string $link = null): Notification
     {
-        $this->createNotification(
-            $admin,
-            'school_created',
-            'School Created',
-            "School '{$schoolName}' has been successfully created.",
-            $schoolLink
-        );
+        return $this->notify($user, $type, $title, $message, null, $link);
     }
 
-    public function notifyObservationAssigned(User $supervisor, string $teacherName, string $observationLink): void
-    {
-        $this->createNotification(
-            $supervisor,
-            'observation_assigned',
-            'Observation Assigned',
-            "You have been assigned to observe teacher {$teacherName}.",
-            $observationLink
-        );
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Convenience wrappers used across the app
+    |--------------------------------------------------------------------------
+    */
 
     public function notifyObservationScheduled(User $teacher, string $date, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $teacher,
-            'observation_scheduled',
+            NotificationType::OBSERVATION,
             'Observation Scheduled',
             "Your classroom observation has been scheduled for {$date}.",
+            null,
             $observationLink
         );
     }
 
     public function notifyObservationCompleted(User $teacher, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $teacher,
-            'observation_completed',
+            NotificationType::OBSERVATION_COMPLETED,
             'Observation Completed',
             'Your classroom observation has been completed. View the feedback.',
+            null,
             $observationLink
         );
     }
 
     public function notifyFeedbackReceived(User $teacher, string $feedbackLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $teacher,
-            'feedback_received',
+            NotificationType::FEEDBACK,
             'New Feedback Received',
             'You have received new feedback on your observation.',
+            null,
             $feedbackLink
-        );
-    }
-
-    public function notifyPreConferenceScheduled(User $supervisor, string $date, string $conferenceLink): void
-    {
-        $this->createNotification(
-            $supervisor,
-            'pre_conference_scheduled',
-            'Pre-Conference Scheduled',
-            "Pre-conference meeting scheduled for {$date}.",
-            $conferenceLink
-        );
-    }
-
-    public function notifyPostConferenceScheduled(User $supervisor, string $date, string $conferenceLink): void
-    {
-        $this->createNotification(
-            $supervisor,
-            'post_conference_scheduled',
-            'Post-Conference Scheduled',
-            "Post-conference meeting scheduled for {$date}.",
-            $conferenceLink
-        );
-    }
-
-    public function notifyObservationReady(User $supervisor, string $observationLink): void
-    {
-        $this->createNotification(
-            $supervisor,
-            'observation_ready',
-            'Observation Ready for Review',
-            'The observation is ready for your review.',
-            $observationLink
-        );
-    }
-
-    public function notifyTeacherAdded(User $schoolHead, string $teacherName, string $teacherLink): void
-    {
-        $this->createNotification(
-            $schoolHead,
-            'teacher_added',
-            'Teacher Added',
-            "Teacher {$teacherName} has been added to your school.",
-            $teacherLink
-        );
-    }
-
-    public function notifyObservationReport(User $schoolHead, string $reportLink): void
-    {
-        $this->createNotification(
-            $schoolHead,
-            'observation_report',
-            'New Observation Report',
-            'A new observation report is available for review.',
-            $reportLink
-        );
-    }
-
-    public function notifySchoolUpdate(User $schoolHead, string $updateMessage, ?string $link = null): void
-    {
-        $this->createNotification(
-            $schoolHead,
-            'school_update',
-            'School Update',
-            $updateMessage,
-            $link
         );
     }
 
     public function notifyObservationCancelled(User $observee, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $observee,
-            'observation_cancelled',
+            NotificationType::OBSERVATION,
             'Observation Cancelled',
             'Your classroom observation has been cancelled. Please contact your supervisor for details.',
+            null,
             $observationLink
         );
     }
 
     public function notifyLessonPlanUploaded(User $recipient, string $teacherName, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $recipient,
-            'lesson_plan_uploaded',
+            NotificationType::LESSON_PLAN,
             'Lesson Plan Uploaded',
             "{$teacherName} has uploaded a lesson plan for review.",
+            null,
             $observationLink
         );
     }
 
     public function notifyLessonPlanRequested(User $teacher, string $requesterName, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $teacher,
-            'lesson_plan_requested',
+            NotificationType::LESSON_PLAN,
             'Lesson Plan Requested',
             "{$requesterName} has requested you to submit a lesson plan for an upcoming observation.",
+            null,
             $observationLink
         );
     }
 
     public function notifyLessonPlanRequestedToSupervisor(User $supervisor, string $teacherName, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $supervisor,
-            'lesson_plan_requested',
+            NotificationType::LESSON_PLAN,
             'Lesson Plan Requested',
             "You requested {$teacherName} to submit a lesson plan.",
+            null,
             $observationLink
         );
     }
 
     public function notifyObservationConfirmed(User $supervisor, string $teacherName, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $supervisor,
-            'observation_confirmed',
+            NotificationType::OBSERVATION,
             'Observation Confirmed',
             "{$teacherName} has confirmed the scheduled observation.",
+            null,
             $observationLink
         );
     }
 
     public function notifyObservationRejected(User $supervisor, string $teacherName, string $reason, string $observationLink): void
     {
-        $this->createNotification(
+        $this->notify(
             $supervisor,
-            'observation_rejected',
+            NotificationType::OBSERVATION,
             'Observation Rejected',
             "{$teacherName} has rejected the scheduled observation. Reason: {$reason}.",
+            null,
             $observationLink
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Read / unread state
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Mark a single notification as read. Returns false when the notification
+     * does not belong to the given user.
+     */
+    public function markAsRead(Notification $notification, User $user): bool
+    {
+        if (! $this->belongsTo($notification, $user)) {
+            return false;
+        }
+
+        $notification->markAsRead();
+
+        return true;
+    }
+
+    public function markAsUnread(Notification $notification, User $user): bool
+    {
+        if (! $this->belongsTo($notification, $user)) {
+            return false;
+        }
+
+        $notification->markAsUnread();
+
+        return true;
+    }
+
+    public function markAllAsRead(User $user): int
+    {
+        return $this->baseQuery($user)->unread()->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+    }
+
+    public function unreadCount(User $user): int
+    {
+        return $this->baseQuery($user)->unread()->count();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Retrieval
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Recent notifications for the header dropdown: unread first, then the
+     * newest of the rest.
+     */
+    public function getRecent(User $user, int $limit = 8): SupportCollection
+    {
+        return $this->baseQuery($user)
+            ->orderByDesc('is_read')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getUnread(User $user, int $limit = 20): Collection
+    {
+        return $this->baseQuery($user)->unread()->latest()->limit($limit)->get();
+    }
+
+    /**
+     * Paginated, filterable list for the "view all" page.
+     */
+    public function paginate(
+        User $user,
+        int $perPage = 15,
+        string $status = 'all',
+        ?NotificationType $type = null,
+        ?NotificationPriority $priority = null,
+    ): Paginator {
+        $query = $this->baseQuery($user)->latest();
+
+        if ($status === 'unread') {
+            $query->unread();
+        } elseif ($status === 'read') {
+            $query->read();
+        }
+
+        if ($type) {
+            $query->ofType($type);
+        }
+
+        if ($priority) {
+            $query->ofPriority($priority);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    protected function belongsTo(Notification $notification, User $user): bool
+    {
+        return (int) $notification->user_id === (int) $user->id;
+    }
+
+    protected function baseQuery(User $user)
+    {
+        return Notification::query()->forUser($user);
     }
 }

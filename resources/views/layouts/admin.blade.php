@@ -45,6 +45,7 @@
         @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-50 dark:bg-gray-950 transition-colors" x-data>
+        <x-flash-messages />
         <div class="flex min-h-screen">
             <!-- Sidebar -->
             @include('partials.admin.sidebar')

@@ -56,9 +56,12 @@ class TeacherProfileController extends Controller
 
         // Update teacher record
         if ($user->teacher) {
+            $careerStage = $validated['career_stage'] ?? \App\Enums\TeacherCareerStage::fromPosition($validated['position'] ?? null)?->value;
+
             $user->teacher->update([
                 'department' => $validated['department'] ?? $user->teacher->department,
                 'position' => $validated['position'] ?? $user->teacher->position,
+                'career_stage' => $careerStage,
                 'subject' => $validated['subject'] ?? $user->teacher->subject,
                 'grade_level' => $validated['grade_level'] ?? $user->teacher->grade_level,
             ]);

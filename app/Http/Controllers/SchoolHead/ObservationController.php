@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SchoolHead;
 
 use App\Http\Controllers\Controller;
+use App\Enums\NotificationType;
 use App\Models\Teacher;
 use App\Models\Observation;
 use App\Models\SchoolHeadProfile;
@@ -13,8 +14,10 @@ use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use App\Services\AIFeedbackService;
 use App\Services\FormTemplateService;
+use App\Services\CotIndicatorService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ObservationController extends Controller
 {
@@ -22,13 +25,15 @@ class ObservationController extends Controller
     protected PHPMailerService $mailer;
     protected AIFeedbackService $aiFeedback;
     protected FormTemplateService $formTemplateService;
+    protected CotIndicatorService $cotIndicatorService;
 
-    public function __construct(NotificationService $notificationService, PHPMailerService $mailer, AIFeedbackService $aiFeedback, FormTemplateService $formTemplateService)
+    public function __construct(NotificationService $notificationService, PHPMailerService $mailer, AIFeedbackService $aiFeedback, FormTemplateService $formTemplateService, CotIndicatorService $cotIndicatorService)
     {
         $this->notificationService = $notificationService;
         $this->mailer = $mailer;
         $this->aiFeedback = $aiFeedback;
         $this->formTemplateService = $formTemplateService;
+        $this->cotIndicatorService = $cotIndicatorService;
     }
 
     /**
@@ -181,6 +186,16 @@ class ObservationController extends Controller
         $schoolYear = $validated['school_year'] ?? $this->getCurrentSchoolYear();
         $activeTemplate = $this->formTemplateService->getActiveTemplate($schoolYear, 'teacher_observation');
 
+        $observee = Teacher::find($validated['observee_id']);
+        $cotIndicatorVersion = $this->cotIndicatorService->getVersionModel($schoolYear);
+        if ($observee) {
+            $cotIndicatorVersion = $this->cotIndicatorService->resolveVersionForObservee(
+                $schoolYear,
+                'teacher',
+                $observee->career_stage,
+            ) ?? $cotIndicatorVersion;
+        }
+
         $observation = Observation::create([
             'observer_id' => Auth::id(),
             'observer_type' => User::class,
@@ -198,6 +213,7 @@ class ObservationController extends Controller
             'grade_level' => $validated['grade_level'] ?? null,
             'observation_mode' => $validated['observation_mode'] ?? 'in_person',
             'form_template_id' => $activeTemplate?->id,
+            'cot_indicator_version_id' => $cotIndicatorVersion?->id,
         ]);
 
         app(AuditLogService::class)->log(
@@ -491,10 +507,10 @@ class ObservationController extends Controller
         $observation->loadMissing(['preObservationPlanning', 'observee']);
 
         $schoolYear = $observation->school_year ?? config('cot.default_version', '2025-2026');
-        $cotVersion = config("cot.versions.{$schoolYear}", config('cot.versions.' . config('cot.default_version')));
+        $cotVersion = $this->cotIndicatorService->getVersionForObservation($observation);
         $cotIndicators = $cotVersion['indicators'] ?? [];
-        $ratingScale = config('cot.rating_scale', []);
-        $ratingScaleCss = config('cot.rating_scale_css', []);
+        $ratingScale = $cotVersion['rating_scale'] ?? config('cot.rating_scale', []);
+        $ratingScaleCss = $cotVersion['rating_scale_css'] ?? config('cot.rating_scale_css', []);
         $existingSuggestions = $observation->preObservationPlanning?->ai_insights;
 
         return view('school-head.observations.observation', compact(
@@ -511,12 +527,15 @@ class ObservationController extends Controller
     {
         $this->authorizeObservation($observation);
 
+        $cotVersion = $this->cotIndicatorService->getVersionForObservation($observation);
+        $scaleValues = array_keys($cotVersion['rating_scale'] ?? config('cot.rating_scale', []));
+
         $validated = $request->validate([
             'ratings' => ['required', 'array'],
             'ratings.*.indicator_code' => ['required', 'string'],
             'ratings.*.domain' => ['required', 'string'],
             'ratings.*.indicator' => ['required', 'string'],
-            'ratings.*.rating' => ['nullable', 'integer', 'in:2,3,4,5,6'],
+            'ratings.*.rating' => ['nullable', 'integer', Rule::in($scaleValues)],
             'ratings.*.not_observed' => ['nullable', 'boolean'],
             'ratings.*.has_rating' => ['nullable', 'string'],
             'ratings.*.comments' => ['nullable', 'string'],
@@ -784,6 +803,18 @@ class ObservationController extends Controller
             ['ai_insights' => $insights]
         );
 
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notify(
+                $observee->user,
+                NotificationType::AI_SUGGESTION,
+                'AI insights are ready',
+                'AI has prepared insights for your upcoming observation. Please review them with your supervisor.',
+                null,
+                route('teacher.observations.show', $observation),
+            );
+        }
+
         $source = $this->aiFeedback->isGeminiConfigured() ? 'gemini' : 'rule-based';
         return response()->json(['ai_insights' => $insights, 'source' => $source]);
     }
@@ -825,6 +856,18 @@ class ObservationController extends Controller
             ['observation_id' => $observation->id],
             ['ai_comparison' => $comparison]
         );
+
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notify(
+                $observee->user,
+                NotificationType::AI_SUGGESTION,
+                'AI comparison is ready',
+                'AI has compared your pre- and post-conference responses. Please review them with your supervisor.',
+                null,
+                route('teacher.observations.show', $observation),
+            );
+        }
 
         return response()->json(['ai_comparison' => $comparison]);
     }

@@ -39,7 +39,8 @@
         $groupedIndicators[$indicator['domain']][] = $indicator;
     }
 
-    $ratingValues = [6, 5, 4, 3, 2];
+    $ratingValues = array_keys($ratingScale ?? config('cot.rating_scale', []));
+    $ratingColspan = 2 + count($ratingValues) + 1;
 @endphp
 
 @section('content')
@@ -185,11 +186,9 @@
                         <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicator</th>
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">6</th>
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">5</th>
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">4</th>
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">3</th>
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">2</th>
+                            @foreach($ratingValues as $val)
+                                <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">{{ $val }}</th>
+                            @endforeach
                             <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">NO</th>
                         </tr>
                     </thead>
@@ -197,7 +196,7 @@
                         @php $indicatorIndex = 0; @endphp
                         @foreach($groupedIndicators as $domain => $indicators)
                             <tr class="bg-indigo-50/50 border-b border-indigo-100">
-                                <td colspan="8" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200">{{ $domain }}</td>
+                                <td colspan="{{ $ratingColspan }}" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200">{{ $domain }}</td>
                             </tr>
                             @foreach($indicators as $indicator)
                                 @php

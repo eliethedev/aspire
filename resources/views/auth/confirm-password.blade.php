@@ -12,7 +12,6 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         .light-bg {
             background-color: #f0f5ff;

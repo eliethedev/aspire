@@ -1,6 +1,12 @@
 <header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-colors">
   <div class="max-w-full mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
     <!-- Left: Sidebar toggle (aligned with sidebar edge) -->
+        <!-- Logo - fixed at top -->
+    <div class="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
+        <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.collapsed ? 'mx-auto' : ''" class="flex items-center space-x-2.5">
+            <span class="text-lg font-bold text-indigo-600">ASPIRE Admin</span>
+        </a>
+    </div>
     <div class="flex items-center justify-between -ml-4 sm:-ml-6 transition-all duration-300" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
         <button @click="$store.sidebar.toggle()" 
                 class="p-2 focus:outline-none hover:bg-indigo-50 rounded-lg transition-colors text-gray-400 hover:text-indigo-600" 
@@ -92,109 +98,7 @@
       </x-dropdown>
 
       <!-- Notifications -->
-      <div x-data="notificationDropdown()" x-init="fetchNotifications()">
-      <x-dropdown align="right" width="w-96">
-        <x-slot name="trigger">
-          <button type="button" class="relative h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors" aria-label="Notifications">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span x-text="unreadCount" x-show="unreadCount > 0" class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">0</span>
-          </button>
-        </x-slot>
-        <x-slot name="content">
-          <div>
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center">
-              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-              <button x-show="unreadCount > 0" @click="markAllAsRead()" class="ms-auto text-xs font-medium text-indigo-600 hover:text-indigo-800">Mark all as read</button>
-            </div>
-            <div class="max-h-96 overflow-y-auto">
-              <template x-if="notifications.length === 0">
-                <div class="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">No notifications</div>
-              </template>
-              <template x-for="notification in notifications" :key="notification.id">
-                <a :href="notification.link || '#'" @click="markAsRead(notification.id)" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-b-0" :class="{'bg-blue-50 dark:bg-blue-900/20': !notification.is_read}">
-                  <div class="flex items-start">
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" x-text="notification.title"></p>
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2" x-text="notification.message"></p>
-                      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" x-text="formatDate(notification.created_at)"></p>
-                    </div>
-                    <div x-show="!notification.is_read" class="w-2 h-2 bg-blue-600 rounded-full mt-2 shrink-0"></div>
-                  </div>
-                </a>
-              </template>
-            </div>
-            <div class="p-3 border-t border-gray-200 dark:border-gray-700">
-              <a href="{{ route('notifications.show', ['role' => $user->role ?? 'admin']) }}" class="block text-center text-sm font-medium text-indigo-600 hover:text-indigo-800">View all notifications →</a>
-            </div>
-          </div>
-        </x-slot>
-      </x-dropdown>
-      </div>
+      <x-notification-bell />
     </div>
   </div>
 </header>
-
-@push('scripts')
-<script>
-    function notificationDropdown() {
-        return {
-            notifications: [],
-            unreadCount: 0,
-
-            async fetchNotifications() {
-                try {
-                    const response = await fetch('/notifications');
-                    const data = await response.json();
-                    this.notifications = data.notifications;
-                    this.unreadCount = data.unread_count;
-                } catch (error) {
-                    console.error('Error fetching notifications:', error);
-                }
-            },
-
-            async markAsRead(id) {
-                try {
-                    await fetch(`/notifications/${id}/mark-read`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    this.fetchNotifications();
-                } catch (error) {
-                    console.error('Error marking notification as read:', error);
-                }
-            },
-
-            async markAllAsRead() {
-                try {
-                    await fetch('/notifications/mark-all-read', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    this.fetchNotifications();
-                } catch (error) {
-                    console.error('Error marking all notifications as read:', error);
-                }
-            },
-
-            formatDate(dateString) {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diff = now - date;
-
-                if (diff < 60000) return 'Just now';
-                if (diff < 3600000) return Math.floor(diff / 60000) + ' minutes ago';
-                if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
-                if (diff < 604800000) return Math.floor(diff / 86400000) + ' days ago';
-
-                return date.toLocaleDateString();
-            }
-        };
-    }
-</script>
-@endpush

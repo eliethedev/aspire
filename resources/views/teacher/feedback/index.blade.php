@@ -15,14 +15,6 @@
     <!-- Header -->
     <x-page-header title="Feedback & Coaching" subtitle="View published feedback from your observations." />
 
-    @if(session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-             class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl p-4 flex items-center gap-3">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ session('success') }}
-        </div>
-    @endif
-
     @if($feedbacks->isEmpty())
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">

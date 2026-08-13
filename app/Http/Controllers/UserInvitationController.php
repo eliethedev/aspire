@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NotificationType;
 use App\Services\AuditLogService;
 use App\Services\InvitationService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -12,9 +14,12 @@ class UserInvitationController extends Controller
 {
     protected InvitationService $invitationService;
 
-    public function __construct(InvitationService $invitationService)
+    protected NotificationService $notificationService;
+
+    public function __construct(InvitationService $invitationService, NotificationService $notificationService)
     {
         $this->invitationService = $invitationService;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -151,6 +156,16 @@ class UserInvitationController extends Controller
             // Send invitation email
             $invitation->user->notify(new \App\Notifications\UserInvitation($invitation));
 
+            // In-app notification so the invited user sees it once they log in.
+            $this->notificationService->notify(
+                $invitation->user,
+                NotificationType::INVITATION,
+                'You have been invited to ASPIRE',
+                'Your ' . ucfirst(str_replace('_', ' ', $invitation->role)) . ' account is ready. Set your password to get started.',
+                null,
+                route('auth.set-password', $invitation->token),
+            );
+
             app(AuditLogService::class)->log(
                 'invitation_created', 'invitations', (string) $invitation->id,
                 "Invitation sent to {$invitation->email} for role {$invitation->role}",
@@ -189,6 +204,16 @@ class UserInvitationController extends Controller
 
             // Send new invitation email
             $invitation->user->notify(new \App\Notifications\UserInvitation($invitation));
+
+            // Refresh the in-app notification for the invited user.
+            $this->notificationService->notify(
+                $invitation->user,
+                NotificationType::INVITATION,
+                'Your ASPIRE invitation was resent',
+                'Your ' . ucfirst(str_replace('_', ' ', $invitation->role)) . ' account is ready. Set your password to get started.',
+                null,
+                route('auth.set-password', $invitation->token),
+            );
 
             app(AuditLogService::class)->log(
                 'invitation_resent', 'invitations', (string) $invitation->id,

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Controller;
+use App\Enums\NotificationType;
 use App\Models\AiFeedback;
 use App\Models\Observation;
 use App\Models\Teacher;
 use App\Services\AIFeedbackService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,9 +16,12 @@ class FeedbackController extends Controller
 {
     protected AIFeedbackService $aiFeedback;
 
-    public function __construct(AIFeedbackService $aiFeedback)
+    protected NotificationService $notificationService;
+
+    public function __construct(AIFeedbackService $aiFeedback, NotificationService $notificationService)
     {
         $this->aiFeedback = $aiFeedback;
+        $this->notificationService = $notificationService;
     }
 
     public function center(Request $request)
@@ -166,6 +171,18 @@ class FeedbackController extends Controller
         }
 
         $feedback->publish();
+
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notify(
+                $observee->user,
+                NotificationType::FEEDBACK,
+                'Your observation feedback is ready',
+                'Your ' . $feedback->feedbackTypeLabel() . ' feedback for the ' . ($observation->subject ?? 'recent') . ' observation has been published.',
+                null,
+                route('teacher.feedback.index'),
+            );
+        }
 
         return redirect()->route('supervisor.feedback.index', $observation)
             ->with('success', 'Feedback published and is now visible to the teacher.');

@@ -5,24 +5,6 @@
 @section('content')
 <div x-data="aiSettings()" class="max-w-7xl mx-auto px-6 space-y-6">
 
-    @if(session('success'))
-        <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-lg p-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('warning'))
-        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-lg p-4">
-            {{ session('warning') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-lg p-4">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>

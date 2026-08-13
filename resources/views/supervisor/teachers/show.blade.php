@@ -193,5 +193,15 @@
             </div>
         </div>
     </div>
+
+    <!-- Career Progression Readiness -->
+    @include('partials.career-readiness', [
+        'ratee' => $teacher,
+        'careerContext' => $careerContext,
+        'careerEvidence' => $careerEvidence,
+        'careerReadiness' => $careerReadiness,
+        'careerRoute' => $careerRoute,
+        'canAssess' => $canAssess,
+    ])
 </div>
 @endsection

@@ -443,7 +443,7 @@
 
                 <ul x-show="!$store.sidebar.collapsed ? othersOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-1">
                     <li>
-                        <a href="{{ route('notifications.show', 'school_head') }}"
+                        <a href="{{ route('notifications.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
                            :class="$store.sidebar.collapsed ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-announcements" :class="$store.sidebar.collapsed ? '' : 'mr-3'">

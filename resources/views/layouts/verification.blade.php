@@ -14,9 +14,6 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
-        <!-- Tailwind CSS for verification page -->
-        <script src="https://cdn.tailwindcss.com"></script>
-        
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

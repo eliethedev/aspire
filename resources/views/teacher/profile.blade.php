@@ -239,6 +239,18 @@
                             <x-input-error class="mt-2" :messages="$errors->get('position')" />
                         </div>
                         <div>
+                            <x-input-label for="career_stage" :value="__('Career Stage')" />
+                            <select id="career_stage" name="career_stage"
+                                    class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Auto-detect from position</option>
+                                @foreach(App\Enums\TeacherCareerStage::options() as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('career_stage', $user->teacher?->career_stage) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines which COT instrument applies to your observations.</p>
+                            <x-input-error class="mt-2" :messages="$errors->get('career_stage')" />
+                        </div>
+                        <div>
                             <x-input-label for="grade_level" :value="__('Grade Level')" />
                             <select id="grade_level" name="grade_level" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Select Grade Level</option>

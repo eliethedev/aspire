@@ -155,6 +155,16 @@
         </div>
     </div>
 
+    <!-- Career Progression Readiness -->
+    @include('partials.career-readiness', [
+        'ratee' => $teacher,
+        'careerContext' => $careerContext,
+        'careerEvidence' => $careerEvidence,
+        'careerReadiness' => $careerReadiness,
+        'careerRoute' => $careerRoute,
+        'canAssess' => $canAssess,
+    ])
+
     <!-- System Information -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex items-center mb-4">

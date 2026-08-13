@@ -162,8 +162,28 @@
                                value="{{ old('position', $teacher->position) }}"
                                class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                {{ $errors->has('position') ? 'border-red-500' : '' }}"
-                               placeholder="e.g., Senior Teacher">
+                               placeholder="e.g., Teacher II">
                         @error('position')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="career_stage" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">
+                            Career Stage
+                        </label>
+                        <select id="career_stage" name="career_stage"
+                                class="w-full px-3 py-2 border bg-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                {{ $errors->has('career_stage') ? 'border-red-500' : '' }}">
+                            <option value="">Auto-detect from position</option>
+                            @foreach(App\Enums\TeacherCareerStage::options() as $value => $label)
+                            <option value="{{ $value }}" {{ old('career_stage', $teacher->career_stage) === $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines which COT instrument applies to this teacher.</p>
+                        @error('career_stage')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>

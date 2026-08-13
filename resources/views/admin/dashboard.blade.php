@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Welcome Section -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
