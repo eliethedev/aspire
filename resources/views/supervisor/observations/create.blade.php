@@ -1,6 +1,6 @@
 @extends('layouts.supervisor')
 
-@section('title', 'Create Observation')
+@section('title', 'Schedule Observation')
 
 @push('styles')
 <style>
@@ -53,7 +53,7 @@
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Create New Observation</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">Set up a classroom observation or leadership evaluation.</p>
     </div>
 
@@ -61,7 +61,7 @@
         @csrf
 
         <!-- Progress Steps -->
-        <div class="flex items-center gap-2 mb-8 text-sm">
+        <div class="flex items-center gap-2 mb-8 text-sm overflow-x-auto pb-2">
             <template x-for="(step, i) in steps" :key="i">
                 <div class="flex items-center gap-2">
                     <div class="flex items-center gap-1.5">
@@ -70,19 +70,19 @@
                             <svg x-show="step.status === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span x-show="step.status !== 'complete'" x-text="i + 1"></span>
                         </div>
-                        <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors" x-text="step.label"></span>
+                        <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors whitespace-nowrap" x-text="step.label"></span>
                     </div>
                     <div x-show="i < steps.length - 1"
                          :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200'"
-                         class="w-6 sm:w-10 h-0.5 rounded transition-colors"></div>
+                         class="w-6 sm:w-8 h-0.5 rounded transition-colors shrink-0"></div>
                 </div>
             </template>
         </div>
 
-        <!-- ===== STEP 1: OBSERVATION TYPE ===== -->
+        <!-- ===== STEP 1: WHO WILL BE OBSERVED? ===== -->
         <div x-show="currentStep === 1" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Who would you like to observe?</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Who will be observed?</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Choose the type of observation you want to conduct.</p>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -132,8 +132,73 @@
             </div>
         </div>
 
-        <!-- ===== STEP 2: BROWSE & SELECT OBSERVEE ===== -->
+        <!-- ===== STEP 2: SELECT OBSERVATION TEMPLATE ===== -->
         <div x-show="currentStep === 2" class="fade-in">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Select Observation Template</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">
+                    These templates determine the indicators used for the
+                    <template x-if="selectedType === 'teacher_observation'">teacher observation.</template>
+                    <template x-if="selectedType === 'school_head_observation'">school head observation.</template>
+                </p>
+
+                <div x-show="templateOptions.length === 0" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                    <p class="text-sm">No active templates are available for the current school year.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <template x-for="template in templateOptions" :key="template.id">
+                        <label class="type-card block rounded-xl p-5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer hover:shadow-md"
+                               :class="selectedTemplateId === template.id ? 'selected' : ''">
+                            <input type="radio" name="form_template_id" :value="template.id"
+                                   x-model="selectedTemplateId" @change="onTemplateChange()" class="sr-only">
+                            <div class="flex items-start gap-4">
+                                <div class="w-11 h-11 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.name"></h3>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                            v<span x-text="template.version"></span>
+                                        </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                            <span x-text="template.sections_count"></span> sections
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2" x-text="template.description || 'No description provided.'"></p>
+                                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5">
+                                        School Year: <span x-text="template.school_year"></span>
+                                        <template x-if="template.observation_type">
+                                            &middot; <span x-text="template.observation_type === 'teacher_observation' ? 'Teacher' : 'School Head'"></span>
+                                        </template>
+                                        <template x-if="!template.observation_type">&middot; All types</template>
+                                    </p>
+                                </div>
+                            </div>
+                        </label>
+                    </template>
+                </div>
+
+                @error('form_template_id')
+                    <p class="mt-3 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="flex justify-between mt-6">
+                <button type="button" @click="currentStep = 1"
+                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
+                    ← Back
+                </button>
+                <button type="button" @click="currentStep = 3" :disabled="!selectedTemplateId"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    Continue →
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== STEP 3: BROWSE & SELECT OBSERVEE ===== -->
+        <div x-show="currentStep === 3" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                     <template x-if="selectedType === 'teacher_observation'">Select a Teacher</template>
@@ -265,22 +330,22 @@
             </div>
 
             <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 1; selectedObservee = null"
+                <button type="button" @click="currentStep = 2; selectedObservee = null"
                         class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
                     ← Back
                 </button>
-                <button type="button" @click="autoFillDetails(); currentStep = 3" :disabled="!selectedObservee"
+                <button type="button" @click="autoFillDetails(); currentStep = 4" :disabled="!selectedObservee"
                         class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     Continue →
                 </button>
             </div>
         </div>
 
-        <!-- ===== STEP 3: OBSERVATION DETAILS ===== -->
-        <div x-show="currentStep === 3" class="fade-in">
+        <!-- ===== STEP 4: OBSERVATION SCHEDULE ===== -->
+        <div x-show="currentStep === 4" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Details</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Configure the schedule and observation parameters.</p>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Schedule</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Set the date, time, and location for the observation.</p>
 
                 <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                     <!-- School Year -->
@@ -357,70 +422,38 @@
                         <input type="date" name="observation_date" x-model="form.observation_date" required
                                class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
-                </div>
-            </div>
 
-            <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 2"
-                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
-                    ← Back
-                </button>
-                <button type="button" @click="currentStep = 4"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                    Continue →
-                </button>
-            </div>
-        </div>
-
-        <!-- ===== STEP 4: SCHEDULE TYPE & NOTES ===== -->
-        <div x-show="currentStep === 4" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule & Notes</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Choose when to conduct the observation and add notes.</p>
-
-                <div class="space-y-6">
-                    <!-- Schedule Type -->
+                    <!-- Start Time -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Schedule Type</label>
-                        <div class="grid sm:grid-cols-2 gap-3">
-                            <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'scheduled' ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
-                                <input type="radio" name="schedule_type" value="scheduled"
-                                       x-model="form.schedule_type" class="sr-only">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
-                                         :class="form.schedule_type === 'scheduled' ? 'border-indigo-600' : 'border-gray-300 dark:border-gray-600'">
-                                        <div x-show="form.schedule_type === 'scheduled'" class="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-gray-100 text-sm">Scheduled</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Teacher will be notified. You can prepare in advance.</p>
-                                    </div>
-                                </div>
-                            </label>
-                            <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'immediate' ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
-                                <input type="radio" name="schedule_type" value="immediate"
-                                       x-model="form.schedule_type" class="sr-only">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
-                                         :class="form.schedule_type === 'immediate' ? 'border-indigo-600' : 'border-gray-300 dark:border-gray-600'">
-                                        <div x-show="form.schedule_type === 'immediate'" class="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-gray-100 text-sm">Immediate</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Start the COT evaluation right away.</p>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                        @error('schedule_type')
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
+                        <input type="time" name="start_time" x-model="form.start_time"
+                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+
+                    <!-- End Time -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
+                        <input type="time" name="end_time" x-model="form.end_time"
+                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+
+                    <!-- Location -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+                        <input type="text" name="location" x-model="form.location"
+                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               placeholder="e.g., Room 204, Learning Resource Center, or Online link">
+
+                        @error('start_time')
+                            <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        @error('end_time')
                             <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Notes -->
-                    <div>
+                    <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
                         <textarea name="notes" x-model="form.notes" rows="3"
                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
@@ -431,6 +464,90 @@
 
             <div class="flex justify-between mt-6">
                 <button type="button" @click="currentStep = 3"
+                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
+                    ← Back
+                </button>
+                <button type="button" @click="currentStep = 5"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                    Continue →
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE (OPTIONAL) ===== -->
+        <div x-show="currentStep === 5" class="fade-in">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Post-Observation Conference</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Optionally schedule a feedback conference after the observation.</p>
+
+                <!-- Toggle -->
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl border-2 p-4 transition-all mb-6"
+                       :class="scheduleConference ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300'">
+                    <input type="checkbox" name="schedule_conference" value="1" x-model="scheduleConference" class="sr-only">
+                    <span class="w-5 h-5 rounded border-2 mt-0.5 flex items-center justify-center shrink-0 transition-colors"
+                          :class="scheduleConference ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 dark:border-gray-600'">
+                        <svg x-show="scheduleConference" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </span>
+                    <span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100 text-sm block">Schedule a Post-Observation Conference</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 block">The ratee will be notified with the conference schedule. You can skip this and schedule later.</span>
+                    </span>
+                </label>
+
+                <div x-show="scheduleConference" class="fade-in">
+                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                        <!-- Conference Date -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Date</label>
+                            <input type="date" name="conference_date" x-model="form.conference_date"
+                                   class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Conference Start Time -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
+                            <input type="time" name="conference_start_time" x-model="form.conference_start_time"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Conference End Time -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
+                            <input type="time" name="conference_end_time" x-model="form.conference_end_time"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Conference Mode -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Mode</label>
+                            <select name="conference_mode" x-model="form.conference_mode"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="in_person">In-Person</option>
+                                <option value="virtual">Virtual</option>
+                                <option value="hybrid">Hybrid</option>
+                            </select>
+                        </div>
+
+                        <!-- Conference Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
+                            <input type="text" name="conference_location" x-model="form.conference_location"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   placeholder="e.g., Office, Meeting Room, or Online link">
+
+                            @error('conference_start_time')
+                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                            @error('conference_end_time')
+                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between mt-6">
+                <button type="button" @click="currentStep = 4"
                         class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
                     ← Back
                 </button>
@@ -455,7 +572,7 @@
                                 <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Confirm Observation</h2>
+                                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Review & Confirm</h2>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Please review before creating.</p>
                             </div>
                         </div>
@@ -484,6 +601,8 @@
                             <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                 <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800"><template x-if="selectedType === 'teacher_observation'">Teacher Observation</template><template x-if="selectedType !== 'teacher_observation'">School Head Observation</template></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800" x-text="form.observation_date"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Time</span><p class="font-medium text-gray-800" x-text="timeLabel || '—'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Location</span><p class="font-medium text-gray-800" x-text="form.location || '—'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">School Year</span><p class="font-medium text-gray-800" x-text="form.school_year"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Quarter</span><p class="font-medium text-gray-800" x-text="'Quarter ' + form.quarter"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800" x-text="form.subject || 'Not set'"></p></div>
@@ -493,23 +612,24 @@
                             </div>
                         </div>
 
-                        <!-- Schedule Type -->
+                        <!-- Template -->
                         <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Schedule</p>
-                            <div class="flex items-center gap-2">
-                                <template x-if="form.schedule_type === 'scheduled'">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        Scheduled
-                                    </span>
-                                </template>
-                                <template x-if="form.schedule_type === 'immediate'">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                        Immediate
-                                    </span>
-                                </template>
-                                <span class="text-sm text-gray-600 dark:text-gray-400" x-text="form.schedule_type === 'scheduled' ? 'Teacher will be notified in advance' : 'Start evaluation right away'"></span>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Observation Template</p>
+                            <p class="text-sm font-medium text-gray-800" x-text="selectedTemplate?.name || 'Active template (auto-selected)'"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                School Year <span x-text="selectedTemplate?.school_year || form.school_year"></span>
+                                <span x-text="selectedTemplate ? ' · v' + selectedTemplate.version : ''"></span>
+                            </p>
+                        </div>
+
+                        <!-- Post-Conference -->
+                        <div x-show="scheduleConference" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Post-Observation Conference</p>
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800" x-text="form.conference_date || '—'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Time</span><p class="font-medium text-gray-800" x-text="conferenceTimeLabel || '—'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Mode</span><p class="font-medium text-gray-800 capitalize" x-text="form.conference_mode?.replace('_', ' ')"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Location</span><p class="font-medium text-gray-800" x-text="form.conference_location || '—'"></p></div>
                             </div>
                         </div>
 
@@ -529,10 +649,10 @@
                         <button type="submit" :disabled="submitting"
                                 :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                                 class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                            <span x-show="!submitting">Confirm &amp; Create</span>
+                            <span x-show="!submitting">Confirm &amp; Schedule</span>
                             <span x-show="submitting" class="flex items-center gap-2">
                                 <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                Creating...
+                                Scheduling...
                             </span>
                         </button>
                     </div>
@@ -550,32 +670,55 @@
     function observationForm() {
         return {
             steps: [
-                { label: 'Type', status: 'active' },
+                { label: 'Who', status: 'active' },
+                { label: 'Template', status: 'pending' },
                 { label: 'Observee', status: 'pending' },
-                { label: 'Details', status: 'pending' },
                 { label: 'Schedule', status: 'pending' },
+                { label: 'Conference', status: 'pending' },
+                { label: 'Review', status: 'pending' },
             ],
             currentStep: 1,
             selectedType: @json(old('observation_type')),
+            selectedTemplateId: @json(old('form_template_id')),
             selectedObservee: null,
             observeeId: @json(old('observee_id')),
             searchQuery: '',
             showConfirmModal: false,
             submitting: false,
+            scheduleConference: @json(old('schedule_conference') ? true : false),
 
             teacherData: @json($teacherData),
             schoolHeadData: @json($schoolHeadData),
+            templates: @json($templates),
 
             form: {
-                school_year: @json(old('school_year', now()->year . '-' . (now()->year + 1))),
+                school_year: @json(old('school_year', $schoolYear)),
                 quarter: @json(old('quarter')),
                 observation_number: @json(old('observation_number', '1')),
                 observation_mode: @json(old('observation_mode', 'in_person')),
                 subject: @json(old('subject')),
                 grade_level: @json(old('grade_level')),
                 observation_date: @json(old('observation_date', now()->format('Y-m-d'))),
-                schedule_type: @json(old('schedule_type', 'scheduled')),
+                start_time: @json(old('start_time')),
+                end_time: @json(old('end_time')),
+                location: @json(old('location')),
                 notes: @json(old('notes')),
+                conference_date: @json(old('conference_date')),
+                conference_start_time: @json(old('conference_start_time')),
+                conference_end_time: @json(old('conference_end_time')),
+                conference_location: @json(old('conference_location')),
+                conference_mode: @json(old('conference_mode', 'in_person')),
+            },
+
+            get templateOptions() {
+                if (!this.selectedType) return [];
+                return (this.templates || []).filter(t =>
+                    !t.observation_type || t.observation_type === this.selectedType
+                );
+            },
+
+            get selectedTemplate() {
+                return (this.templates || []).find(t => String(t.id) === String(this.selectedTemplateId)) || null;
             },
 
             get observeeList() {
@@ -595,10 +738,42 @@
                 );
             },
 
+            get timeLabel() {
+                return this.formatTimeRange(this.form.start_time, this.form.end_time);
+            },
+
+            get conferenceTimeLabel() {
+                return this.formatTimeRange(this.form.conference_start_time, this.form.conference_end_time);
+            },
+
+            formatTimeRange(start, end) {
+                if (!start && !end) return '';
+                const s = this.formatTime(start);
+                const e = this.formatTime(end);
+                if (s && e) return `${s} – ${e}`;
+                return s || e || '';
+            },
+
+            formatTime(t) {
+                if (!t) return '';
+                const parts = t.split(':');
+                if (parts.length < 2) return t;
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const hr = h % 12 || 12;
+                return `${hr}:${String(m).padStart(2, '0')} ${ampm}`;
+            },
+
             onTypeChange() {
                 this.selectedObservee = null;
                 this.observeeId = '';
                 this.searchQuery = '';
+                this.selectedTemplateId = '';
+                this.updateSteps();
+            },
+
+            onTemplateChange() {
                 this.updateSteps();
             },
 
@@ -625,11 +800,14 @@
 
             updateSteps() {
                 const hasType = !!this.selectedType;
+                const hasTemplate = !!this.selectedTemplateId;
                 const hasObservee = !!this.selectedObservee;
                 this.steps[0].status = hasType ? 'complete' : 'active';
-                this.steps[1].status = hasObservee ? 'complete' : (hasType ? 'active' : 'pending');
-                this.steps[2].status = hasObservee ? 'pending' : 'pending';
-                this.steps[3].status = 'pending';
+                this.steps[1].status = hasTemplate ? 'complete' : (hasType ? 'active' : 'pending');
+                this.steps[2].status = hasObservee ? 'complete' : (hasTemplate ? 'active' : 'pending');
+                this.steps[3].status = hasObservee ? 'pending' : 'pending';
+                this.steps[4].status = 'pending';
+                this.steps[5].status = 'pending';
             },
 
             init() {
@@ -647,7 +825,13 @@
 
                 // Restore the correct step when re-rendering after validation error
                 if (this.selectedType) {
-                    this.currentStep = this.selectedObservee ? 3 : 2;
+                    if (this.selectedTemplateId && this.selectedObservee) {
+                        this.currentStep = 5;
+                    } else if (this.selectedTemplateId) {
+                        this.currentStep = 3;
+                    } else {
+                        this.currentStep = 2;
+                    }
                 }
             }
         };

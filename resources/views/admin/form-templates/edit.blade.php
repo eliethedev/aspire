@@ -151,7 +151,7 @@
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
                                         </span>
                                         <div class="flex-1 space-y-2">
-                                            <div class="grid grid-cols-3 gap-2">
+                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                                 <div>
                                                     <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Key</label>
                                                     <input type="text" x-model="field.key" :name="`sections[${sIdx}][fields][${fIdx}][key]`"
@@ -193,7 +193,7 @@
                                                           placeholder="value1|Option 1&#10;value2|Option 2&#10;value3|Option 3"></textarea>
                                             </div>
 
-                                            <div class="grid grid-cols-3 gap-2" x-show="!['heading','paragraph','hr'].includes(field.type)">
+                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" x-show="!['heading','paragraph','hr'].includes(field.type)">
                                                 <div>
                                                     <label class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Validation Rules</label>
                                                     <input type="text" x-model="field.validation_rules_text" :name="`sections[${sIdx}][fields][${fIdx}][validation_rules]`"

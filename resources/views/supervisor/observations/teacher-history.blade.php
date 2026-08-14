@@ -17,7 +17,7 @@
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <p class="text-2xl font-bold text-dark-900">{{ $stats['total'] }}</p>
             <p class="text-xs text-dark-500">Total Observations</p>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CotIndicator;
-use App\Models\CotIndicatorVersion;
+use App\Models\CotRating;
 use App\Models\PpstStandard;
 use App\Services\CotIndicatorService;
 use Illuminate\Http\Request;
@@ -29,15 +29,8 @@ class PpstStandardController extends Controller
         $this->cotIndicatorService = $cotIndicatorService;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $schoolYears = $this->getSchoolYearOptions();
-
-        $selectedSchoolYear = $request->query('school_year');
-        if (!in_array($selectedSchoolYear, $schoolYears, true)) {
-            $selectedSchoolYear = $this->cotIndicatorService->defaultSchoolYear();
-        }
-
         $standards = PpstStandard::orderBy('sort_order')->orderBy('indicator_code')->get();
 
         $domains = $standards
@@ -50,18 +43,28 @@ class PpstStandardController extends Controller
             'indicators' => $standards->count(),
         ];
 
-        $referencedIds = CotIndicator::query()
+        $usageByStandard = CotIndicator::query()
             ->whereNotNull('ppst_standard_id')
-            ->pluck('ppst_standard_id')
-            ->unique()
-            ->toArray();
+            ->with('version:id,school_year,label')
+            ->get()
+            ->groupBy('ppst_standard_id')
+            ->map(function ($indicators) {
+                return $indicators
+                    ->pluck('version')
+                    ->filter()
+                    ->unique('id')
+                    ->map(fn ($version) => [
+                        'label' => $version->label,
+                        'school_year' => $version->school_year,
+                    ])
+                    ->values()
+                    ->toArray();
+            });
 
         return view('admin.ppst-standards.index', compact(
-            'schoolYears',
-            'selectedSchoolYear',
             'domains',
             'totals',
-            'referencedIds'
+            'usageByStandard'
         ));
     }
 
@@ -143,14 +146,20 @@ class PpstStandardController extends Controller
     }
 
     /**
-     * Only unreferenced standards can be deleted. Referenced standards must be
-     * deactivated instead so linked COT indicators / observations stay intact.
+     * Only unreferenced standards can be deleted. Standards referenced by a COT
+     * template or by historical observation ratings must be deactivated instead
+     * so linked COT indicators / observation snapshots stay intact.
      */
     public function destroy(PpstStandard $ppstStandard)
     {
         if ($ppstStandard->cotIndicators()->exists()) {
             return redirect()->route('admin.ppst-standards.index')
                 ->with('error', "PPST indicator {$ppstStandard->indicator_code} is referenced by COT indicators. Deactivate it instead of deleting.");
+        }
+
+        if (CotRating::where('indicator_code', $ppstStandard->indicator_code)->exists()) {
+            return redirect()->route('admin.ppst-standards.index')
+                ->with('error', "PPST indicator {$ppstStandard->indicator_code} appears in historical observation records. Deactivate it instead of deleting.");
         }
 
         $code = $ppstStandard->indicator_code;
@@ -192,28 +201,5 @@ class PpstStandardController extends Controller
             ->unique()
             ->values()
             ->toArray();
-    }
-
-    /**
-     * School years known to the system. PPST is a shared library that applies
-     * across every school year; COT instruments assemble per-year subsets.
-     */
-    private function getSchoolYearOptions(): array
-    {
-        $schoolYears = CotIndicatorVersion::query()
-            ->distinct()
-            ->orderBy('school_year', 'desc')
-            ->pluck('school_year')
-            ->toArray();
-
-        if (empty($schoolYears)) {
-            $currentYear = (int) date('Y');
-            for ($i = 0; $i < 4; $i++) {
-                $start = $currentYear - 1 + $i;
-                $schoolYears[] = "{$start}-" . ($start + 1);
-            }
-        }
-
-        return $schoolYears;
     }
 }

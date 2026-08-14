@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Audit Log Details</h1>
             <p class="text-gray-500 dark:text-gray-400 mt-1">Complete record of the action performed.</p>
@@ -16,7 +16,7 @@
     </div>
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Action</p>
                 <p class="text-gray-900 dark:text-gray-100 font-semibold capitalize">{{ str_replace('_', ' ', $auditLog->action) }}</p>
@@ -85,7 +85,7 @@
             $allKeys = array_unique(array_merge(array_keys($auditLog->old_values ?? []), array_keys($auditLog->new_values ?? [])));
             $ignoreKeys = ['updated_at', 'created_at', 'password', 'remember_token'];
         @endphp
-        <div class="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl">
+        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

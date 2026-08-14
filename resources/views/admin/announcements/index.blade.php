@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 space-y-4">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Announcements</h1>
                 <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Create and send announcements to users.</p>

@@ -14,7 +14,7 @@
             <h1 class="text-2xl font-bold text-dark-900">{{ $teacher->user->name }}</h1>
             <p class="text-dark-500 mt-1">{{ $teacher->position ?? 'Teacher' }} &middot; {{ $teacher->user->email }}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <a href="{{ route('supervisor.observations.teacher-history', ['observeeId' => $teacher->id, 'type' => 'App\\Models\\Teacher']) }}"
                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-dark-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:bg-gray-800 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>

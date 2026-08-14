@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
     <div class="bg-dark rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-dark">User Management</h1>
                 <p class="text-dark mt-1">Manage system users and their roles.</p>

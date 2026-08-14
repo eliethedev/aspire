@@ -15,7 +15,7 @@
     @if($comparison)
     <!-- Overall Score Comparison -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-6 mb-8">
-        <div class="grid grid-cols-3 gap-6 text-center">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             <div>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Previous ({{ $comparison['previous_date'] }})</p>
                 <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($comparison['previous_overall'], 2) }}%</p>

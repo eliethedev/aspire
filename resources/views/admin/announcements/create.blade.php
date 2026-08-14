@@ -247,12 +247,12 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('admin.announcements.index') }}"
                class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-gray-100 transition-colors">
                 Cancel
             </a>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" name="send_now" value="0"
                         class="px-5 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 hover:border-gray-400 font-medium text-sm transition-all">
                     Save as Draft

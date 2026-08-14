@@ -6,7 +6,7 @@
 <div class="max-w-5xl mx-auto px-6 space-y-6">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+                <div class="flex items-center flex-wrap gap-y-2">
             <div class="flex items-center">
                 <a href="{{ route('admin.invitations.index') }}" class="mr-4 text-dark hover:text-dark">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,13 +36,13 @@
 
             <!-- Step Indicator -->
             <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center">
                         <div id="step-1-indicator" class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">1</div>
                             <span class="ml-2 text-sm font-medium text-blue-600 dark:text-blue-400">Basic Info</span>
                         </div>
-                        <div class="w-16 h-0.5 bg-gray-200 mx-4"></div>
+                        <div class="w-16 h-0.5 bg-gray-200 mx-4 hidden sm:block"></div>
                         <div id="step-2-indicator" class="flex items-center">
                             <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500 flex items-center justify-center text-sm font-medium">2</div>
                             <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Role Details</span>
@@ -356,7 +356,7 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-b-xl flex items-center justify-between">
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-b-xl flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center space-x-3">
                     <a href="{{ route('admin.invitations.index') }}"
                        class="px-4 py-2 text-dark bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors">

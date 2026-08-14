@@ -9,7 +9,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage PPST Standards</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">The Philippine Professional Standards for Teachers library, organised by Domain → Strand → Indicator.</p>
+                <p class="text-gray-500 dark:text-gray-400 mt-1">The Philippine Professional Standards for Teachers library, organized by Domain → Strand → Indicator.</p>
             </div>
             <a href="{{ route('admin.ppst-standards.create') }}"
                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors self-start">
@@ -18,18 +18,9 @@
             </a>
         </div>
 
-        <div class="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
-            <form method="GET" action="{{ route('admin.ppst-standards.index') }}" class="flex items-center gap-3">
-                <label for="school_year" class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">School Year</label>
-                <select name="school_year" id="school_year" onchange="this.form.submit()"
-                        class="px-3 py-2 rounded-lg border border-gray-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    @foreach($schoolYears as $schoolYear)
-                        <option value="{{ $schoolYear }}" {{ $selectedSchoolYear === $schoolYear ? 'selected' : '' }}>{{ $schoolYear }}</option>
-                    @endforeach
-                </select>
-            </form>
-            <p class="text-xs text-gray-400 dark:text-gray-500">
-                PPST standards are a shared library and apply across all school years. COT instruments assemble per-year subsets for observations.
+        <div class="mt-5">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                PPST standards are maintained as a shared library. COT Templates select the applicable indicators for a specific school year, ratee position, and career stage.
             </p>
         </div>
 
@@ -80,11 +71,24 @@
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-2 flex-wrap">
                                                 <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 rounded">{{ $standard->indicator_code }}</span>
-                                                @if(!$standard->is_active)
+                                                @if($standard->is_active)
+                                                    <span class="text-xs px-1.5 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded">Active</span>
+                                                @else
                                                     <span class="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded">Inactive</span>
                                                 @endif
-                                                @if(in_array($standard->id, $referencedIds))
-                                                    <span class="text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded" title="Referenced by a COT instrument">In COT</span>
+                                                @php($usage = $usageByStandard[$standard->id] ?? [])
+                                                @if(count($usage) > 0)
+                                                    <span class="relative group inline-flex">
+                                                        <span class="text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded cursor-help">
+                                                            Used in {{ count($usage) }} COT {{ Str::plural('Template', count($usage)) }}
+                                                        </span>
+                                                        <span class="absolute left-0 top-full z-10 mt-1 hidden group-hover:block w-64 rounded-lg bg-gray-900 dark:bg-gray-800 text-white text-xs shadow-lg p-3">
+                                                            <span class="block font-semibold mb-1 text-gray-300">Used in COT:</span>
+                                                            @foreach($usage as $template)
+                                                                <span class="block py-0.5">{{ $template['label'] }} — {{ $template['school_year'] }}</span>
+                                                            @endforeach
+                                                        </span>
+                                                    </span>
                                                 @endif
                                             </div>
                                             <p class="mt-2 text-sm text-gray-800 dark:text-gray-200">{{ $standard->description }}</p>
@@ -100,7 +104,7 @@
                                                     {{ $standard->is_active ? 'Deactivate' : 'Activate' }}
                                                 </button>
                                             </form>
-                                            @if(!in_array($standard->id, $referencedIds))
+                                            @if(count($usage) === 0)
                                                 <form method="POST" action="{{ route('admin.ppst-standards.destroy', $standard) }}" class="inline">
                                                     @csrf @method('DELETE')
                                                     <button type="submit"

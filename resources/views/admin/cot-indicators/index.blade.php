@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 space-y-4">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">COT / PPST Indicators</h1>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">Manage versioned indicator sets used by classroom observations, AI feedback, and reports.</p>

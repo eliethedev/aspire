@@ -28,7 +28,7 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             <div>
                 <p class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Teacher</p>
                 <p class="text-sm text-gray-900 dark:text-gray-100 mt-1">{{ $agreement->teacher->user->name }}</p>
@@ -91,7 +91,7 @@
         @endif
 
         @if($agreement->supervisor_notes || $agreement->teacher_notes)
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-6 grid grid-cols-2 gap-6">
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             @if($agreement->supervisor_notes)
             <div>
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Supervisor Notes</h3>
@@ -108,7 +108,7 @@
         @endif
 
         @if($agreement->teacher_signed_at || $agreement->supervisor_signed_at)
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6 grid grid-cols-2 gap-6">
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             @if($agreement->teacher_signed_at)
             <div class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

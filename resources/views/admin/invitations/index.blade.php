@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-dark">User Invitations</h1>
                 <p class="text-dark mt-1">Manage user invitations and track their status.</p>
@@ -106,7 +106,7 @@
     </div>
 
     <!-- Invitations Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card overflow-hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-50 dark:bg-gray-800">
                 <tr>

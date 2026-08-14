@@ -6,7 +6,7 @@
 <div x-data="aiSettings()" class="max-w-7xl mx-auto px-6 space-y-6">
 
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">AI Settings</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure AI providers, per-task model routing, and view usage.</p>
@@ -23,7 +23,7 @@
 
     <!-- Tabs -->
     <div class="border-b border-gray-200 dark:border-gray-700">
-        <nav class="flex gap-6 -mb-px">
+        <nav class="flex gap-6 -mb-px overflow-x-auto">
             <button @click="activeTab = 'providers'" :class="activeTab === 'providers' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'" class="py-3 px-1 border-b-2 text-sm font-medium transition-colors">
                 Providers
             </button>

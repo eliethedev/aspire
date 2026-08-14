@@ -27,7 +27,12 @@
                     </span>
                 @endif
             </div>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observer?->name ?? 'Unknown Supervisor' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observer?->name ?? 'Unknown Supervisor' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
+                @if($observation->start_time_label)
+                    @ {{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif
+                @endif
+                @if($observation->location) &middot; {{ $observation->location }} @endif
+            </p>
             @if($observation->subject)
                 <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- Grade {{ $observation->grade_level }} @endif</p>
             @endif
@@ -511,6 +516,24 @@
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                     <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conference Date</span>
                     <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->postConference->conference_date->format('M d, Y') }}</p>
+                </div>
+                @endif
+                @if($observation->postConference->start_time_label || $observation->postConference->location)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conference Schedule</span>
+                    <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">
+                        @if($observation->postConference->start_time_label)
+                            {{ $observation->postConference->start_time_label }}
+                            @if($observation->postConference->end_time_label) - {{ $observation->postConference->end_time_label }} @endif
+                        @endif
+                        @if($observation->postConference->location)
+                            @if($observation->postConference->start_time_label) &middot; @endif
+                            {{ $observation->postConference->location }}
+                        @endif
+                    </p>
+                    @if($observation->postConference->mode)
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 capitalize">{{ str_replace('_', ' ', $observation->postConference->mode) }}</p>
+                    @endif
                 </div>
                 @endif
                 @if($observation->postConference->feedback)

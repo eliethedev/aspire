@@ -32,7 +32,12 @@
                     </span>
                 @endif
             </div>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
+                @if($observation->start_time_label)
+                    @ {{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif
+                @endif
+                @if($observation->location) &middot; {{ $observation->location }} @endif
+            </p>
             <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
                 {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
                 @if($observation->isTeacherObservation() && $observation->subject)
@@ -107,7 +112,7 @@
     </div>
 
     <!-- Stage Navigation Cards -->
-    <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         @foreach($stageKeys as $i => $key)
             @php
                 $done = $stageCompleted[$key];

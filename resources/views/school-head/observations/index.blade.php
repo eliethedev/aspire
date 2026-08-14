@@ -136,6 +136,14 @@
                                     <span>{{ $observation->school_year ?? 'N/A' }}</span>
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</span>
+                                    @if($observation->has_time_schedule)
+                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span>{{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif</span>
+                                    @endif
+                                    @if($observation->location)
+                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span>{{ $observation->location }}</span>
+                                    @endif
                                 </div>
                                 @if(isset($stageLabels[$observation->stage]))
                                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Stage: {{ $stageLabels[$observation->stage] }}</p>

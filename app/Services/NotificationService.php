@@ -107,13 +107,23 @@ class NotificationService
     |--------------------------------------------------------------------------
     */
 
-    public function notifyObservationScheduled(User $teacher, string $date, string $observationLink): void
+    public function notifyObservationScheduled(User $teacher, string $date, string $observationLink, ?string $time = null, ?string $location = null): void
     {
+        $message = "Your observation has been scheduled for {$date}.";
+
+        if ($time) {
+            $message .= " Time: {$time}.";
+        }
+
+        if ($location) {
+            $message .= " Location: {$location}.";
+        }
+
         $this->notify(
             $teacher,
             NotificationType::OBSERVATION,
             'Observation Scheduled',
-            "Your classroom observation has been scheduled for {$date}.",
+            $message,
             null,
             $observationLink
         );

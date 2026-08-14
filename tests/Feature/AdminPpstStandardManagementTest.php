@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
+use App\Models\CotRating;
+use App\Models\Observation;
 use App\Models\PpstStandard;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -64,6 +66,78 @@ class AdminPpstStandardManagementTest extends TestCase
             ->assertSee($second->domain)
             ->assertSee($second->indicator_code)
             ->assertSee($second->description);
+    }
+
+    public function test_ppst_index_has_no_school_year_selector(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('admin.ppst-standards.index'))
+            ->assertOk()
+            ->assertDontSee('name="school_year"', false)
+            ->assertDontSee('id="school_year"', false);
+    }
+
+    public function test_ppst_index_shows_active_and_inactive_badges(): void
+    {
+        PpstStandard::factory()->create(['indicator_code' => '1.1.1', 'is_active' => true]);
+        PpstStandard::factory()->create(['indicator_code' => '1.1.2', 'is_active' => false]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.ppst-standards.index'))
+            ->assertOk()
+            ->assertSee('Active')
+            ->assertSee('Inactive');
+    }
+
+    public function test_ppst_index_shows_cot_usage_count_and_templates(): void
+    {
+        $standard = PpstStandard::factory()->create(['indicator_code' => '1.1.2']);
+
+        $first = CotIndicatorVersion::factory()->create([
+            'school_year' => '2026-2027',
+            'label' => 'Teacher I-III COT',
+        ]);
+        $second = CotIndicatorVersion::factory()->create([
+            'school_year' => '2027-2028',
+            'label' => 'Teacher I-III COT',
+        ]);
+
+        CotIndicator::factory()->create([
+            'version_id' => $first->id,
+            'ppst_standard_id' => $standard->id,
+            'code' => '1.1.2',
+        ]);
+        CotIndicator::factory()->create([
+            'version_id' => $second->id,
+            'ppst_standard_id' => $standard->id,
+            'code' => '1.1.2',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.ppst-standards.index'))
+            ->assertOk()
+            ->assertSee('Used in 2 COT Templates')
+            ->assertSee('Teacher I-III COT — 2026-2027')
+            ->assertSee('Teacher I-III COT — 2027-2028');
+    }
+
+    public function test_standard_used_in_historical_observation_cannot_be_deleted(): void
+    {
+        $standard = PpstStandard::factory()->create(['indicator_code' => '1.1.2']);
+
+        $observation = Observation::factory()->create();
+        CotRating::factory()->create([
+            'observation_id' => $observation->id,
+            'indicator_code' => '1.1.2',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->from(route('admin.ppst-standards.index'))
+            ->delete(route('admin.ppst-standards.destroy', $standard))
+            ->assertRedirect(route('admin.ppst-standards.index'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('ppst_standards', ['id' => $standard->id]);
     }
 
     public function test_admin_can_view_the_create_page(): void

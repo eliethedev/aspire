@@ -99,8 +99,8 @@
 <body class="antialiased font-sans light-bg min-h-screen flex items-center justify-center p-4 relative overflow-none">
     
     <!-- Background Glow Effects -->
-    <div class="glow-orb w-96 h-96 top-20 left-20 bg-indigo-500/10"></div>
-    <div class="glow-orb w-96 h-96 bottom-20 right-20 bg-rose-500/5"></div>
+    <div class="glow-orb w-48 h-48 sm:w-96 sm:h-96 top-20 left-20 bg-indigo-500/10"></div>
+    <div class="glow-orb w-48 h-48 sm:w-96 sm:h-96 bottom-20 right-20 bg-rose-500/5"></div>
 
     <div class="w-full max-w-md glass-card rounded-2xl p-8 md:p-10 relative z-10">
         

@@ -8,7 +8,7 @@
     <x-page-header title="My Observations" subtitle="View all your classroom observations and evaluation results." />
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
@@ -142,6 +142,23 @@
                         @if($observation->grade_level) &middot; Grade {{ $observation->grade_level }} @endif
                         &middot; <span class="capitalize">{{ str_replace('_', ' ', $observation->observation_mode) }}</span>
                     </p>
+                    @if($observation->has_time_schedule || $observation->location)
+                    <div class="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        @if($observation->has_time_schedule)
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $observation->start_time_label }}
+                            @if($observation->end_time_label) - {{ $observation->end_time_label }} @endif
+                        </span>
+                        @endif
+                        @if($observation->location)
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            {{ $observation->location }}
+                        </span>
+                        @endif
+                    </div>
+                    @endif
                     <div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                         <span class="flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>

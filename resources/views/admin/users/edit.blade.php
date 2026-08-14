@@ -169,7 +169,7 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="flex items-center justify-between pt-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-6">
                 
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('admin.users.show', $user) }}" 

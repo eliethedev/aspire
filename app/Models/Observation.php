@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Traits\SchoolAware;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +22,9 @@ class Observation extends Model
         'observee_type',
         'observation_type',
         'observation_date',
+        'start_time',
+        'end_time',
+        'location',
         'stage',
         'overall_score',
         'notes',
@@ -51,6 +56,21 @@ class Observation extends Model
         'confirmed_at' => 'datetime',
         'rejected_at' => 'datetime',
     ];
+
+    public function startTimeLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->start_time ? Carbon::parse($this->start_time)->format('h:i A') : null);
+    }
+
+    public function endTimeLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->end_time ? Carbon::parse($this->end_time)->format('h:i A') : null);
+    }
+
+    public function hasTimeSchedule(): Attribute
+    {
+        return Attribute::get(fn () => $this->start_time !== null || $this->end_time !== null);
+    }
 
     /**
      * The form template used for this observation

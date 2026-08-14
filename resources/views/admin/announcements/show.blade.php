@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-6 py-8 space-y-8">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center">
                 <a href="{{ route('admin.announcements.index') }}" class="mr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

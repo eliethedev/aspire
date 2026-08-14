@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +17,10 @@ class PostConference extends Model
         'ai_comparison',
         'feedback',
         'conference_date',
+        'start_time',
+        'end_time',
+        'location',
+        'mode',
         'star_notes',
         'areas_for_improvement',
         'challenges_facing_teacher',
@@ -30,6 +36,16 @@ class PostConference extends Model
         'conference_date' => 'datetime',
         'form_responses' => 'array',
     ];
+
+    public function startTimeLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->start_time ? Carbon::parse($this->start_time)->format('h:i A') : null);
+    }
+
+    public function endTimeLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->end_time ? Carbon::parse($this->end_time)->format('h:i A') : null);
+    }
 
     public function observation(): BelongsTo
     {

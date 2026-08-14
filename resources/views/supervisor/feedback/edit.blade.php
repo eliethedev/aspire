@@ -25,7 +25,7 @@
     </nav>
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-wrap items-center justify-between mb-8">
         <div>
             <h1 class="text-2xl font-bold text-dark-900">Edit Feedback</h1>
             <p class="text-dark-500 mt-1">

@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-6 space-y-8">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center">
                 <a href="{{ route('admin.users.index') }}" class="mr-4 text-slate-600 hover:text-slate-800">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -8,6 +8,7 @@ use App\Enums\NotificationType;
 use App\Jobs\GeneratePostObservationFeedback;
 use App\Models\CareerProgressionAssessment;
 use App\Models\CotRating;
+use App\Models\FormTemplate;
 use App\Models\Observation;
 use App\Models\SchoolHeadProfile;
 use App\Models\Teacher;
@@ -265,6 +266,8 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
 
+        $schoolYear = $this->getCurrentSchoolYear();
+
         // Get teachers from the same school (using teacher's school_id directly)
         $teachers = Teacher::query()
             ->with(['user'])
@@ -338,7 +341,17 @@ class SupervisorController extends Controller
             ];
         })->values();
 
-        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData'));
+        // Active form templates for the current school year (the "template"
+        // selection step of the scheduling wizard). Null observation_type
+        // templates apply to both teacher and school head observations.
+        $templates = FormTemplate::withCount('sections')
+            ->where('is_active', true)
+            ->where('school_year', $schoolYear)
+            ->orderByRaw('CASE observation_type WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END', ['teacher_observation', 'school_head_observation'])
+            ->orderBy('version', 'desc')
+            ->get();
+
+        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData', 'schoolYear', 'templates'));
     }
 
     /**
@@ -346,7 +359,7 @@ class SupervisorController extends Controller
      */
     public function storeObservation(Request $request)
     {
-        $validated = $request->validate([
+        $validator = validator($request->all(), [
             'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
             'observee_id' => ['required'],
             'observation_date' => ['required', 'date'],
@@ -358,7 +371,60 @@ class SupervisorController extends Controller
             'grade_level' => ['nullable', 'string'],
             'observation_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
             'schedule_type' => ['required', 'in:scheduled,immediate'],
+            'form_template_id' => ['nullable', 'integer'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'schedule_conference' => ['nullable', 'boolean'],
+            'conference_date' => ['nullable', 'date'],
+            'conference_start_time' => ['nullable', 'date_format:H:i'],
+            'conference_end_time' => ['nullable', 'date_format:H:i', 'after:conference_start_time'],
+            'conference_location' => ['nullable', 'string', 'max:255'],
+            'conference_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $schoolYear = $request->input('school_year') ?? $this->getCurrentSchoolYear();
+
+            // The chosen observation template must belong to the school year
+            // and apply to the selected observation type.
+            if ($request->filled('form_template_id')) {
+                $template = FormTemplate::find($request->input('form_template_id'));
+
+                if (! $template) {
+                    $validator->errors()->add('form_template_id', 'The selected observation template does not exist.');
+                } elseif ($template->school_year !== $schoolYear) {
+                    $validator->errors()->add('form_template_id', "The selected template is not available for the {$schoolYear} school year.");
+                } elseif ($template->observation_type && $template->observation_type !== $request->input('observation_type')) {
+                    $validator->errors()->add('form_template_id', 'The selected template does not apply to the chosen observation type.');
+                }
+            }
+
+            // Simple duplicate check: the same supervisor must not schedule the
+            // same ratee twice on the same date at the same start time.
+            if ($request->input('schedule_type') === 'scheduled'
+                && $request->filled('start_time')
+                && $request->filled('observation_date')
+                && $request->filled('observee_id')) {
+                $observeeType = $request->input('observation_type') === 'teacher_observation'
+                    ? Teacher::class
+                    : SchoolHeadProfile::class;
+
+                $conflict = Observation::where('observer_id', Auth::id())
+                    ->where('observee_id', $request->input('observee_id'))
+                    ->where('observee_type', $observeeType)
+                    ->whereDate('observation_date', $request->input('observation_date'))
+                    ->where('start_time', $request->input('start_time'))
+                    ->where('status', '!=', 'cancelled')
+                    ->exists();
+
+                if ($conflict) {
+                    $validator->errors()->add('start_time', 'You already have an observation scheduled for this ratee at this time.');
+                }
+            }
+        });
+
+        $validated = $validator->validated();
 
         // Determine observee type and ID based on observation type
         $observeeType = $validated['observation_type'] === 'teacher_observation'
@@ -370,7 +436,13 @@ class SupervisorController extends Controller
         $stage = $validated['schedule_type'] === 'scheduled' ? 'pre_observation_planning' : 'observation';
 
         $schoolYear = $validated['school_year'] ?? $this->getCurrentSchoolYear();
-        $activeTemplate = $this->formTemplateService->getActiveTemplate($schoolYear, $validated['observation_type']);
+
+        // Use the supervisor-selected template when provided; otherwise fall
+        // back to the active template for the school year / observation type.
+        $activeTemplate = ! empty($validated['form_template_id'])
+            ? FormTemplate::find($validated['form_template_id'])
+            : $this->formTemplateService->getActiveTemplate($schoolYear, $validated['observation_type']);
+
         $cotIndicatorVersion = $this->cotIndicatorService->getVersionModel($schoolYear);
 
         if ($observeeType === Teacher::class) {
@@ -397,6 +469,9 @@ class SupervisorController extends Controller
             'observee_type' => $observeeType,
             'observation_type' => $validated['observation_type'],
             'observation_date' => $validated['observation_date'],
+            'start_time' => $validated['start_time'] ?? null,
+            'end_time' => $validated['end_time'] ?? null,
+            'location' => $validated['location'] ?? null,
             'stage' => $stage,
             'notes' => $validated['notes'] ?? null,
             'status' => $status,
@@ -409,6 +484,22 @@ class SupervisorController extends Controller
             'form_template_id' => $activeTemplate?->id,
             'cot_indicator_version_id' => $cotIndicatorVersion?->id,
         ]);
+
+        // Attach the Post-Observation Conference schedule when requested.
+        $scheduleConference = $request->boolean('schedule_conference')
+            || $request->filled('conference_date')
+            || $request->filled('conference_start_time')
+            || $request->filled('conference_location');
+
+        if ($scheduleConference) {
+            $observation->postConference()->create([
+                'conference_date' => $validated['conference_date'] ?? null,
+                'start_time' => $validated['conference_start_time'] ?? null,
+                'end_time' => $validated['conference_end_time'] ?? null,
+                'location' => $validated['conference_location'] ?? null,
+                'mode' => $validated['conference_mode'] ?? 'in_person',
+            ]);
+        }
 
         app(AuditLogService::class)->log(
             'created', 'observations', (string) $observation->getKey(),
@@ -428,17 +519,25 @@ class SupervisorController extends Controller
                     default => route('supervisor.observations.show', $observation->id),
                 };
 
+                $timeLabel = $observation->start_time_label;
+                if ($timeLabel && $observation->end_time_label) {
+                    $timeLabel .= ' - '.$observation->end_time_label;
+                }
+                $locationLabel = $observation->location;
+
                 // In-app notification
                 $this->notificationService->notifyObservationScheduled(
                     $observeeUser,
                     $formattedDate,
-                    $observationLink
+                    $observationLink,
+                    $timeLabel,
+                    $locationLabel
                 );
 
                 // Email notification
                 $observerName = Auth::user()->name;
                 $subject = 'ASPIRE - Classroom Observation Scheduled';
-                $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink);
+                $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink, $timeLabel, $locationLabel);
                 $this->mailerService->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
             }
         }
@@ -1255,7 +1354,7 @@ class SupervisorController extends Controller
         $user = Auth::user();
 
         $query = Observation::query()
-            ->with(['observee.user'])
+            ->with(['observee.user', 'postConference'])
             ->where('observer_id', $user->id);
 
         // Search
@@ -1300,6 +1399,12 @@ class SupervisorController extends Controller
             })
             ->when($request->observation_type, function ($q, $type) {
                 $q->where('observation_type', $type);
+            })
+            ->when($request->date_from, function ($q, $dateFrom) {
+                $q->whereDate('observation_date', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($q, $dateTo) {
+                $q->whereDate('observation_date', '<=', $dateTo);
             })
             ->latest()
             ->paginate($request->per_page ?? 10)
@@ -1442,7 +1547,7 @@ class SupervisorController extends Controller
         return view('supervisor.observations.teacher-history', compact('observations', 'observeeName', 'observeeId', 'observeeType', 'stats'));
     }
 
-    private function buildObservationScheduledEmail(string $observeeName, string $observerName, string $date, string $observationType, string $link): string
+    private function buildObservationScheduledEmail(string $observeeName, string $observerName, string $date, string $observationType, string $link, ?string $time = null, ?string $location = null): string
     {
         $typeLabel = $observationType === 'teacher_observation' ? 'Teacher Observation' : 'School Head Observation';
 
@@ -1474,6 +1579,8 @@ class SupervisorController extends Controller
                         <tr><td class='detail-label'>Type:</td><td>{$typeLabel}</td></tr>
                         <tr><td class='detail-label'>Scheduled By:</td><td>{$observerName}</td></tr>
                         <tr><td class='detail-label'>Observation Date:</td><td>{$date}</td></tr>
+                        " . ($time ? "<tr><td class='detail-label'>Time:</td><td>{$time}</td></tr>" : '') . "
+                        " . ($location ? "<tr><td class='detail-label'>Location:</td><td>{$location}</td></tr>" : '') . "
                     </table>
                     <p style='margin-top: 20px;'><strong>What to expect:</strong></p>
                     <ul>

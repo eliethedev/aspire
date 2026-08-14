@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <x-page-header title="Coaching Agreements" subtitle="View coaching agreements for teachers in your school." />
 
-    <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">

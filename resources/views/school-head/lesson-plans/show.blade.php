@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             <div>
                 <p class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Teacher</p>
                 <p class="text-sm text-gray-900 dark:text-gray-100 mt-1">{{ $observation->observee?->user?->name ?? 'N/A' }}</p>

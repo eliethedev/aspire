@@ -6,12 +6,12 @@
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-gray-900 dark:text-gray-100 font-bold text-xl">Teacher Details</h1>
                 <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">View teacher profile and information.</p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('admin.teachers.edit', $teacher) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white nded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +41,7 @@
             <div>
                 <h2 class="text-gray-900 dark:text-gray-100 font-semibold text-xl">{{ $teacher->user->name }}</h2>
                 <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500">{{ $teacher->user->email }}</p>
-                <div class="mt-3 flex items-center space-x-4">
+                <div class="mt-3 flex flex-wrap items-center gap-4">
                     <span class="inline-flex items-center px-3 dark:text-gray-300 py-1 rounded-full text-dark medium bg-blue-100 dark:bg-blue-900/30 text-dark ">
                         {{ $teacher->department ?? 'No Department' }}
                     </span>
@@ -201,12 +201,12 @@
 
     <!-- Actions -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h3 class="text-gray-900 dark:text-gray-100 font-semibold text-lg">Quick Actions</h3>
                 <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-1">Common actions for this teacher.</p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('admin.teachers.edit', $teacher) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white nded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

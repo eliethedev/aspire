@@ -25,7 +25,7 @@
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Details</h2>
-        <dl class="grid grid-cols-2 gap-4 text-sm">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
                 <dt class="text-gray-500 dark:text-gray-400 dark:text-gray-500">Observee</dt>
                 <dd class="font-medium text-gray-900 dark:text-gray-100 mt-0.5">{{ $observation->observee?->user?->name ?? 'Unknown' }}</dd>

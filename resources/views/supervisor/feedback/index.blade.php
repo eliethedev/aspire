@@ -112,14 +112,14 @@
                 @foreach($typeFeedbacks as $feedback)
                     <div class="feedback-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                         <!-- Header -->
-                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <div class="flex flex-wrap items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold
                                     {{ $feedback->generated_by === 'ai' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' }}">
                                     {{ $feedback->generated_by === 'ai' ? 'AI' : 'ME' }}
                                 </div>
                                 <div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex flex-wrap items-center gap-2">
                                         <span class="font-semibold text-dark-900 text-sm">
                                             {{ $feedback->feedbackTypeLabel() }}
                                         </span>
@@ -141,7 +141,7 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 @if($feedback->status === 'draft')
                                     <form method="POST" action="{{ route('supervisor.feedback.publish', [$observation, $feedback]) }}" class="inline">
                                         @csrf

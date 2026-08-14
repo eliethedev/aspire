@@ -6,7 +6,7 @@
 <div class="max-w-7xl mx-auto px-4 space-y-6">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-4">
                 <a href="{{ route('admin.schools.index') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +33,7 @@
                 </a>
             </div>
         </div>
-        <div class="flex items-center gap-4 mt-4 pl-16">
+        <div class="flex flex-wrap items-center gap-4 mt-4 pl-0 sm:pl-16">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                 @if($school->is_active)
                     bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
@@ -185,7 +185,7 @@
 
     <!-- User Management -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">User Management</h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Manage users assigned to this school.</p>
@@ -219,7 +219,7 @@
         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h2>
         </div>
-        <div class="p-4 flex items-center gap-3">
+        <div class="p-4 flex flex-wrap items-center gap-3">
             <a href="{{ route('admin.schools.edit', $school) }}" 
                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

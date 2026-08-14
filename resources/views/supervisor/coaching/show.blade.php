@@ -27,7 +27,7 @@
                 &middot; {{ $agreement->observation->observation_date->format('M d, Y') }}
             </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             @if($agreement->isDraft())
                 <a href="{{ route('supervisor.coaching.edit', $agreement) }}"
                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-medium transition-colors">

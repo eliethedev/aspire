@@ -122,7 +122,7 @@
     <!-- Stage Progress -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">Observation Cycle Progress</h2>
-        <div class="grid grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             @foreach($stageStatus as $key => $stage)
                 <div class="relative flex flex-col items-center text-center p-3 rounded-lg {{ $stage['done'] ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700' }}">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2 {{ $stage['done'] ? 'bg-green-100 dark:bg-green-800/40 text-green-600 dark:text-green-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500' }}">

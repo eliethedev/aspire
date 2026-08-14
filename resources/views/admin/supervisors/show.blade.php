@@ -6,12 +6,12 @@
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-dark dark:text-gray-300">Supervisor Details</h1>
                 <p class="text-dark dark:text-gray-300 mt-1">View supervisor profile and information.</p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('admin.supervisors.edit', $supervisor) }}" 
                    class="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/200 text-white dark:text-dark rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +41,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-dark dark:text-gray-300 ">{{ $supervisor->user->name }}</h2>
                 <p class="text-dark">{{ $supervisor->user->email }}</p>
-                <div class="mt-3 flex items-center space-x-4">
+                <div class="mt-3 flex flex-wrap items-center gap-4">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/200 text-white dark:text-dark ">
                         {{ $supervisor->position ?? 'No Position' }}
                     </span>
@@ -181,12 +181,12 @@
 
     <!-- Actions -->
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h3 class="text-lg font-medium text-dark">Quick Actions</h3>
                 <p class="text-dark mt-1">Common actions for this supervisor.</p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('admin.supervisors.edit', $supervisor) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

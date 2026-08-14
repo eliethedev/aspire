@@ -75,7 +75,7 @@
                         </div>
                         @endif
 
-                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                        <div class="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                             @if($agreement->teacher_signed_at)
                                 <span class="flex items-center gap-1 text-green-600 dark:text-green-400"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg> Teacher Signed</span>
                             @endif

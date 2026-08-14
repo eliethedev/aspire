@@ -15,7 +15,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-6">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <div class="flex items-center gap-3">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Observation Details</h1>
@@ -81,7 +81,7 @@
     </div>
 
     {{-- Stage Navigation Cards --}}
-    <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         @foreach($stageKeys as $i => $key)
             @php
                 $done = $stageCompleted[$key];

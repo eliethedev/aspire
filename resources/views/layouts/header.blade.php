@@ -1,27 +1,19 @@
-<header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-colors">
-  <div class="max-w-full mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-    <!-- Left: Sidebar toggle (aligned with sidebar edge) -->
-        <!-- Logo - fixed at top -->
-    <div class="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
-        <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.collapsed ? 'mx-auto' : ''" class="flex items-center space-x-2.5">
-            <span class="text-lg font-bold text-indigo-600">ASPIRE Admin</span>
-        </a>
+<header class="fixed top-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:left-16' : 'lg:left-56'">
+  <div class="max-w-full mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
+    <!-- Left side: mobile menu button + brand -->
+    <div class="flex items-center gap-2 lg:hidden shrink-0">
+      <button @click="$store.sidebar.openMobile()"
+              class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
+              title="Open menu" aria-label="Open menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <span class="text-lg font-bold text-slate-900 dark:text-gray-100 tracking-tight">ASPIRE</span>
     </div>
-    <div class="flex items-center justify-between -ml-4 sm:-ml-6 transition-all duration-300" :class="$store.sidebar.collapsed ? 'w-16' : 'w-56'">
-        <button @click="$store.sidebar.toggle()" 
-                class="p-2 focus:outline-none hover:bg-indigo-50 rounded-lg transition-colors text-gray-400 hover:text-indigo-600" 
-                title="Toggle sidebar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-            </svg>
-        </button>
-    </div>
-
-    <!-- Spacer -->
-    <div class="flex-1"></div>
 
     <!-- Right side: user menu, notifications -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-3 ml-auto">
       <!-- Theme toggle -->
       <button @click="$store.theme.toggle()" 
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
