@@ -4,7 +4,7 @@
     <!-- Logo - fixed at top -->
     <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100 shrink-0">
         <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.isCollapsed() ? 'hidden' : ''" class="flex items-center space-x-2.5">
-            <x-deped-logo class="w-6 h-6 shrink-0" />
+            <x-deped-logo class="w-16 h-auto shrink-0" />
             <span class="text-lg font-bold text-indigo-600">ASPIRE Admin</span>
         </a>
         <button @click="$store.sidebar.toggle()" 
