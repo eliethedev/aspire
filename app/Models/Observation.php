@@ -36,6 +36,8 @@ class Observation extends Model
         'grade_level',
         'observation_mode',
         'evidence_files',
+        'cot_document_path',
+        'cot_document_generated_at',
         'form_template_id',
         'cot_indicator_version_id',
         'cancellation_reason',

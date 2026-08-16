@@ -10,8 +10,8 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 Back to School Heads
             </a>
-            <h1 class="text-2xl font-bold text-dark-900">{{ $schoolHead->user->name }}</h1>
-            <p class="text-dark-500 mt-1">Observation history for this school head.</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $schoolHead->user->name }}</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Observation history for this school head.</p>
         </div>
         <a href="{{ route('supervisor.observations.create') }}?school_head={{ $schoolHead->id }}"
            class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shrink-0">
@@ -28,10 +28,10 @@
                         {{ strtoupper(substr($obs->observer->name ?? '?', 0, 1)) }}
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-dark-900">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                             Observed by {{ $obs->observer->name ?? 'Unknown' }}
                         </p>
-                        <p class="text-xs text-dark-500 mt-0.5">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {{ $obs->observation_date ? \Carbon\Carbon::parse($obs->observation_date)->format('M d, Y') : 'No date set' }}
                             @if($obs->observation_time)
                                 &middot; {{ \Carbon\Carbon::parse($obs->observation_time)->format('h:i A') }}
@@ -86,8 +86,8 @@
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
-            <h3 class="text-lg font-semibold text-dark-900 mb-1">No observations yet</h3>
-            <p class="text-sm text-dark-500">This school head has not been observed yet.</p>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">No observations yet</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">This school head has not been observed yet.</p>
             <a href="{{ route('supervisor.observations.create') }}?school_head={{ $schoolHead->id }}"
                class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>

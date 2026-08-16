@@ -47,6 +47,11 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.cot-indicators.template', $version) }}"
+                           title="Download a blank COT template for this version"
+                           class="flex-1 text-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:bg-blue-900/30 rounded-lg transition-colors">
+                            Download Template
+                        </a>
                         <a href="{{ route('admin.cot-indicators.edit', $version) }}"
                            class="flex-1 text-center px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:bg-indigo-900/30 rounded-lg transition-colors">Manage</a>
                         @if($version->isDraft())

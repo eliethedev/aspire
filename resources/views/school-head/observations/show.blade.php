@@ -136,15 +136,15 @@
                 <a href="{{ route($stageRoutes[$key], $observation) }}"
                    class="bg-white dark:bg-gray-900 rounded-xl border {{ $active ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100' }} shadow-sm p-4 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-9 h-9 rounded-lg {{ $done ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700' : 'bg-gray-50 dark:bg-gray-800 text-dark-400') }} flex items-center justify-center">
+                        <div class="w-9 h-9 rounded-lg {{ $done ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500') }} flex items-center justify-center">
                             {!! $icon !!}
                         </div>
-                        <span class="text-xs font-semibold {{ $done ? 'text-green-600 dark:text-green-400' : ($active ? 'text-indigo-600 dark:text-indigo-400' : 'text-dark-400') }} uppercase tracking-wide">
+                        <span class="text-xs font-semibold {{ $done ? 'text-green-600 dark:text-green-400' : ($active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500') }} uppercase tracking-wide">
                             {{ $done ? 'Completed' : ($active ? 'Current' : 'Available') }}
                         </span>
                     </div>
-                    <h4 class="font-semibold text-dark-900 text-sm mb-0.5">{{ $stageLabels[$key] }}</h4>
-                    <p class="text-xs text-dark-400">{{ $desc }}</p>
+                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-0.5">{{ $stageLabels[$key] }}</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ $desc }}</p>
                 </a>
             @else
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 opacity-60">

@@ -7,6 +7,7 @@ use App\AI\Services\DocumentExtractorService;
 use App\Enums\NotificationType;
 use App\Jobs\GeneratePostObservationFeedback;
 use App\Models\CareerProgressionAssessment;
+use App\Models\CotIndicatorVersion;
 use App\Models\CotRating;
 use App\Models\FormTemplate;
 use App\Models\Observation;
@@ -17,6 +18,7 @@ use App\Services\AIFeedbackService;
 use App\Services\AISuggestionService;
 use App\Services\AuditLogService;
 use App\Services\CareerProgressionService;
+use App\Services\CotDocumentService;
 use App\Services\CotIndicatorService;
 use App\Services\FormTemplateService;
 use App\Services\GeminiService;
@@ -27,6 +29,7 @@ use App\Services\ObservationReportService;
 use App\Services\PDFReportService;
 use App\Services\PHPMailerService;
 use App\Services\ProfessionalDevelopmentService;
+use App\Services\RateeProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -159,7 +162,7 @@ class SupervisorController extends Controller
 
         $teacher->load(['user', 'school']);
 
-        $observations = Observation::with(['preObservationPlanning', 'preConference', 'postConference', 'cotRatings'])
+        $observations = Observation::with(['preObservationPlanning', 'preConference', 'postConference', 'cotRatings', 'cotIndicatorVersion'])
             ->where('observee_id', $teacher->id)
             ->where('observee_type', Teacher::class)
             ->latest()
@@ -188,8 +191,9 @@ class SupervisorController extends Controller
         ];
 
         $careerService = app(CareerProgressionService::class);
+        $rateeProfile = app(RateeProfileService::class)->for($teacher);
 
-        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats'))
+        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile'))
             ->with('careerContext', $careerService->contextFor($teacher))
             ->with('careerEvidence', $careerService->evidenceFor($teacher))
             ->with('careerReadiness', $careerService->readinessFor($teacher))
@@ -250,6 +254,8 @@ class SupervisorController extends Controller
      */
     public function schoolHeadObservationHistory(SchoolHeadProfile $schoolHead)
     {
+        $this->assertSchoolHeadBelongsToSupervisorSchool($schoolHead);
+
         $observations = Observation::where('observee_id', $schoolHead->id)
             ->where('observee_type', SchoolHeadProfile::class)
             ->with(['observer', 'preObservationPlanning'])
@@ -257,6 +263,46 @@ class SupervisorController extends Controller
             ->paginate(10);
 
         return view('supervisor.teachers.school-head-observations', compact('schoolHead', 'observations'));
+    }
+
+    /**
+     * Display the ratee profile for a school head.
+     *
+     * Read-only decision support: it summarises existing observation data and
+     * never modifies the school head's status, position or career stage.
+     */
+    public function schoolHeadProfile(SchoolHeadProfile $schoolHead)
+    {
+        $this->assertSchoolHeadBelongsToSupervisorSchool($schoolHead);
+
+        $schoolHead->load(['user', 'school']);
+
+        $observations = Observation::where('observee_id', $schoolHead->id)
+            ->where('observee_type', SchoolHeadProfile::class)
+            ->with(['observer', 'preObservationPlanning', 'cotIndicatorVersion'])
+            ->latest()
+            ->paginate(10);
+
+        $rateeProfile = app(RateeProfileService::class)->for($schoolHead);
+
+        return view('supervisor.teachers.school-head-profile', compact('schoolHead', 'observations', 'rateeProfile'));
+    }
+
+    /**
+     * A supervisor may only view school heads of the school they belong to.
+     * Supervisors without a school are unrestricted.
+     */
+    private function assertSchoolHeadBelongsToSupervisorSchool(SchoolHeadProfile $schoolHead): void
+    {
+        $user = Auth::user();
+
+        if (! $user->school_id) {
+            return;
+        }
+
+        if ($schoolHead->school_id !== $user->school_id && $schoolHead->user?->school_id !== $user->school_id) {
+            abort(403, 'This school head does not belong to your school.');
+        }
     }
 
     /**
@@ -341,17 +387,33 @@ class SupervisorController extends Controller
             ];
         })->values();
 
-        // Active form templates for the current school year (the "template"
-        // selection step of the scheduling wizard). Null observation_type
-        // templates apply to both teacher and school head observations.
-        $templates = FormTemplate::withCount('sections')
-            ->where('is_active', true)
+        // Published COT instruments for the current school year (the
+        // "template" selection step of the scheduling wizard). The ratee role
+        // determines whether a template appears for teacher or school head
+        // observations; a career stage only narrows the auto-resolve, so all
+        // published templates for the school year are listed.
+        $cotTemplates = CotIndicatorVersion::withCount('indicators')
             ->where('school_year', $schoolYear)
-            ->orderByRaw('CASE observation_type WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END', ['teacher_observation', 'school_head_observation'])
-            ->orderBy('version', 'desc')
-            ->get();
+            ->published()
+            ->orderByDesc('is_default')
+            ->orderBy('ratee_role')
+            ->orderBy('label')
+            ->get()
+            ->map(fn (CotIndicatorVersion $version) => [
+                'id' => $version->id,
+                'label' => $version->label,
+                'school_year' => $version->school_year,
+                'is_default' => $version->is_default,
+                'ratee_role' => $version->rateeRole(),
+                'ratee_role_label' => $version->rateeRoleLabel(),
+                'career_stage_label' => $version->careerStageLabel(),
+                'framework_label' => $version->frameworkLabel(),
+                'instrument_label' => $version->instrumentLabel(),
+                'indicators_count' => $version->indicators_count,
+            ])
+            ->values();
 
-        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData', 'schoolYear', 'templates'));
+        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData', 'schoolYear', 'cotTemplates'));
     }
 
     /**
@@ -372,6 +434,7 @@ class SupervisorController extends Controller
             'observation_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
             'schedule_type' => ['required', 'in:scheduled,immediate'],
             'form_template_id' => ['nullable', 'integer'],
+            'cot_indicator_version_id' => ['nullable', 'integer'],
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
             'location' => ['nullable', 'string', 'max:255'],
@@ -397,6 +460,25 @@ class SupervisorController extends Controller
                     $validator->errors()->add('form_template_id', "The selected template is not available for the {$schoolYear} school year.");
                 } elseif ($template->observation_type && $template->observation_type !== $request->input('observation_type')) {
                     $validator->errors()->add('form_template_id', 'The selected template does not apply to the chosen observation type.');
+                }
+            }
+
+            // The chosen COT template must be published, belong to the school
+            // year, and apply to the selected observation type.
+            if ($request->filled('cot_indicator_version_id')) {
+                $cotTemplate = CotIndicatorVersion::find($request->input('cot_indicator_version_id'));
+
+                if (! $cotTemplate) {
+                    $validator->errors()->add('cot_indicator_version_id', 'The selected COT template does not exist.');
+                } elseif (! $cotTemplate->isPublished()) {
+                    $validator->errors()->add('cot_indicator_version_id', 'The selected COT template is not published.');
+                } elseif ($cotTemplate->school_year !== $schoolYear) {
+                    $validator->errors()->add('cot_indicator_version_id', "The selected COT template is not available for the {$schoolYear} school year.");
+                } else {
+                    $expectedRole = $request->input('observation_type') === 'teacher_observation' ? 'teacher' : 'school_head';
+                    if ($cotTemplate->rateeRole() !== $expectedRole) {
+                        $validator->errors()->add('cot_indicator_version_id', 'The selected COT template does not apply to the chosen observation type.');
+                    }
                 }
             }
 
@@ -443,7 +525,11 @@ class SupervisorController extends Controller
             ? FormTemplate::find($validated['form_template_id'])
             : $this->formTemplateService->getActiveTemplate($schoolYear, $validated['observation_type']);
 
-        $cotIndicatorVersion = $this->cotIndicatorService->getVersionModel($schoolYear);
+        // Use the supervisor-selected COT template when provided; otherwise
+        // resolve the published version for the school year / observee.
+        $cotIndicatorVersion = ! empty($validated['cot_indicator_version_id'])
+            ? CotIndicatorVersion::find($validated['cot_indicator_version_id'])
+            : $this->cotIndicatorService->getVersionModel($schoolYear);
 
         if ($observeeType === Teacher::class) {
             $observee = Teacher::find($validated['observee_id']);
@@ -1166,6 +1252,88 @@ class SupervisorController extends Controller
         $pdfService = app(PDFReportService::class);
 
         return $pdfService->downloadPDF($observation);
+    }
+
+    /**
+     * Generate (or regenerate) the completed COT document for an observation.
+     */
+    public function generateCotDocument(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $service = app(CotDocumentService::class);
+        $errors = $service->canGenerate($observation);
+
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot generate the COT document: '.implode(' ', $errors));
+        }
+
+        try {
+            $service->generateDocument($observation);
+        } catch (\Throwable $e) {
+            Log::error('COT document generation failed', ['observation_id' => $observation->id, 'error' => $e->getMessage()]);
+
+            return redirect()->back()->with('error', 'Failed to generate the COT document. Please try again.');
+        }
+
+        return redirect()->back()->with('success', 'COT document generated successfully.');
+    }
+
+    /**
+     * Preview the completed COT document in the browser.
+     */
+    public function previewCotDocument(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $service = app(CotDocumentService::class);
+        $errors = $service->canGenerate($observation);
+
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot preview the COT document: '.implode(' ', $errors));
+        }
+
+        return response(view('reports.cot-document', $service->viewData($observation)))
+            ->header('Content-Type', 'text/html');
+    }
+
+    /**
+     * Download the generated COT document (DOCX).
+     */
+    public function downloadCotDocument(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $service = app(CotDocumentService::class);
+        $path = $service->documentPath($observation);
+
+        if (!$path) {
+            return redirect()->back()->with('error', 'No COT document has been generated for this observation yet. Generate it first.');
+        }
+
+        return Storage::disk(CotDocumentService::DISK)->download(
+            $path,
+            basename($path)
+        );
+    }
+
+    /**
+     * Download the COT document as PDF.
+     */
+    public function downloadCotPdf(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $service = app(CotDocumentService::class);
+        $errors = $service->canGenerate($observation);
+
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot generate the COT document PDF: '.implode(' ', $errors));
+        }
+
+        $filename = $service->filenameFor($observation).'.pdf';
+
+        return $service->generatePdf($observation)->download($filename);
     }
 
     /**

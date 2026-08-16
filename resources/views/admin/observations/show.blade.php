@@ -34,10 +34,19 @@
                 @endif
             </p>
         </div>
-        <a href="{{ route('admin.observations.index') }}"
-           class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-            Back to List
-        </a>
+        <div class="flex items-center gap-3">
+            @if($observation->status === 'completed')
+            <a href="{{ route('admin.observations.cot-document', $observation) }}"
+               class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                Download COT Document
+            </a>
+            @endif
+            <a href="{{ route('admin.observations.index') }}"
+               class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors">
+                Back to List
+            </a>
+        </div>
     </div>
 
     @php

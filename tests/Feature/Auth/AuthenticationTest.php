@@ -51,4 +51,42 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_remember_me_sets_persistent_remember_cookie(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => '1',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('admin.dashboard', absolute: false));
+
+        $cookies = collect($response->headers->getCookies());
+        $rememberCookie = $cookies->first(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_web_'));
+
+        $this->assertNotNull($rememberCookie, 'No remember-me cookie was set when "Remember me" was checked.');
+
+        $this->assertNotSame('1', $rememberCookie->getValue());
+    }
+
+    public function test_login_without_remember_me_does_not_set_remember_cookie(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+
+        $cookies = collect($response->headers->getCookies());
+        $rememberCookie = $cookies->first(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_web_'));
+
+        $this->assertNull($rememberCookie, 'A remember-me cookie was set even though "Remember me" was not checked.');
+    }
 }

@@ -27,8 +27,8 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-dark-900">Edit Feedback</h1>
-            <p class="text-dark-500 mt-1">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Feedback</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">
                 {{ $observation->observee->user->name ?? 'Unknown' }}
                 &middot; {{ $feedback->feedbackTypeLabel() }}
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium {{ $feedback->statusBadgeClass() }}">

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\FormTemplateController;
 use App\Http\Controllers\Admin\ObservationController;
 use App\Http\Controllers\Admin\PpstStandardController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SupportMessageController as AdminSupportMessageController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Profile\TeacherProfileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SchoolHead\LessonPlanController;
 use App\Http\Controllers\SetPasswordController;
+use App\Http\Controllers\SupportMessageController;
 use App\Http\Controllers\Supervisor\CoachingAgreementController;
 use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\Teacher\CoachingController;
@@ -49,6 +51,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->middleware('throttle:10,1')->name('notifications.mark-all-read');
     // Legacy per-role URL — kept for older links, redirects to the unified page.
     Route::get('/notifications/{role}', [NotificationController::class, 'show'])->name('notifications.show');
+
+    // Support messages (bug reports / feedback to the admin team)
+    Route::get('/support', [SupportMessageController::class, 'index'])->name('support.index');
+    Route::get('/support/create', [SupportMessageController::class, 'create'])->name('support.create');
+    Route::post('/support', [SupportMessageController::class, 'store'])->middleware('throttle:10,1')->name('support.store');
+    Route::get('/support/{supportMessage}', [SupportMessageController::class, 'show'])->name('support.show');
 });
 
 // School management routes (admin only)
@@ -94,6 +102,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Observation management
     Route::get('/observations', [ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [ObservationController::class, 'show'])->name('observations.show');
+    Route::get('/observations/{observation}/cot-document', [ObservationController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document');
 
     // Announcement management
     Route::resource('announcements', AnnouncementController::class);
@@ -144,6 +153,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{cotIndicatorVersion}/publish', [CotIndicatorController::class, 'publish'])->name('publish');
         Route::post('/{cotIndicatorVersion}/unpublish', [CotIndicatorController::class, 'unpublish'])->name('unpublish');
         Route::post('/{cotIndicatorVersion}/archive', [CotIndicatorController::class, 'archive'])->name('archive');
+        Route::get('/{cotIndicatorVersion}/template', [CotIndicatorController::class, 'downloadTemplate'])
+            ->middleware('throttle:exports')->name('template');
 
         Route::post('/{cotIndicatorVersion}/indicators', [CotIndicatorController::class, 'storeIndicator'])->name('indicators.store');
         Route::put('/{cotIndicatorVersion}/indicators', [CotIndicatorController::class, 'updateIndicator'])->name('indicators.update');
@@ -151,6 +162,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{cotIndicatorVersion}/indicators/reorder', [CotIndicatorController::class, 'reorderIndicators'])->name('indicators.reorder');
         Route::post('/{cotIndicatorVersion}/indicators/{cotIndicator}/move', [CotIndicatorController::class, 'moveIndicator'])->name('indicators.move');
     });
+
+    // Support messages from users (bug reports / feedback)
+    Route::get('/support-messages', [AdminSupportMessageController::class, 'index'])->name('support-messages.index');
+    Route::get('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'show'])->name('support-messages.show');
+    Route::patch('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'update'])->name('support-messages.update');
+    Route::delete('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'destroy'])->name('support-messages.destroy');
 });
 
 // Teacher routes
@@ -190,6 +207,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
     Route::post('/teachers/{teacher}/career-assessment', [SupervisorController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
     Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
+    Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
     Route::get('/observations', [SupervisorController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
@@ -226,6 +244,12 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     // Post-Observation Report
     Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
     Route::get('/observations/{observation}/report/pdf', [SupervisorController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
+
+    // Completed COT Document
+    Route::post('/observations/{observation}/cot-document/generate', [SupervisorController::class, 'generateCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.generate');
+    Route::get('/observations/{observation}/cot-document/preview', [SupervisorController::class, 'previewCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.preview');
+    Route::get('/observations/{observation}/cot-document/download', [SupervisorController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.download');
+    Route::get('/observations/{observation}/cot-document/pdf', [SupervisorController::class, 'downloadCotPdf'])->middleware('throttle:exports')->name('observations.cot-document.pdf');
 
     // Indicator Trends & Progress Comparison
     Route::get('/observations/{observation}/indicator-trends', [SupervisorController::class, 'indicatorTrends'])->name('observations.indicator-trends');

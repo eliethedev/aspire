@@ -126,6 +126,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->notifications()->where('is_read', false);
     }
 
+    public function supportMessages(): HasMany
+    {
+        return $this->hasMany(SupportMessage::class);
+    }
+
     // Role-based methods
     public function isTeacher(): bool
     {

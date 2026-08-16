@@ -272,7 +272,8 @@ class ObservationSchedulingTest extends TestCase
         $this->actingAs($this->supervisor)
             ->get(route('supervisor.observations.create'))
             ->assertOk()
-            ->assertSee('Schedule Observation');
+            ->assertSee('Schedule Observation')
+            ->assertSee('name="schedule_type" value="scheduled"', false);
     }
 
     public function test_teacher_cannot_schedule_an_observation(): void

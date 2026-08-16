@@ -134,15 +134,15 @@
                 <a href="{{ route($stageRoutes[$key], $observation) }}"
                    class="bg-white dark:bg-gray-900 rounded-xl border {{ $active ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100' }} shadow-sm p-4 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-9 h-9 rounded-lg {{ $done ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700' : 'bg-gray-50 dark:bg-gray-800 text-dark-400') }} flex items-center justify-center">
+                        <div class="w-9 h-9 rounded-lg {{ $done ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500') }} flex items-center justify-center">
                             {!! $icon !!}
                         </div>
-                        <span class="text-xs font-semibold {{ $done ? 'text-green-600 dark:text-green-400' : ($active ? 'text-indigo-600 dark:text-indigo-400' : 'text-dark-400') }} uppercase tracking-wide">
+                        <span class="text-xs font-semibold {{ $done ? 'text-green-600 dark:text-green-400' : ($active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500') }} uppercase tracking-wide">
                             {{ $done ? 'Completed' : ($active ? 'Current' : 'Available') }}
                         </span>
                     </div>
-                    <h4 class="font-semibold text-dark-900 text-sm mb-0.5">{{ $stageLabels[$key] }}</h4>
-                    <p class="text-xs text-dark-400">{{ $desc }}</p>
+                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-0.5">{{ $stageLabels[$key] }}</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ $desc }}</p>
                 </a>
             @else
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 opacity-60">
@@ -491,6 +491,50 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             PD Recommendations
         </a>
+    </div>
+
+    <!-- Completed COT Document -->
+    <div class="mt-8 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Completed COT Document</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Generates an official COT form (DOCX/PDF) populated from this observation's recorded ratings.
+                </p>
+                @if($observation->cot_document_generated_at)
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Generated on {{ $observation->cot_document_generated_at->format('M d, Y \a\t h:i A') }}
+                </p>
+                @endif
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <form method="POST" action="{{ route('supervisor.observations.cot-document.generate', $observation) }}">
+                    @csrf
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.5 3.75V6h-3V3.75m4.5 0a1.5 1.5 0 00-1.5-1.5h-6a1.5 1.5 0 00-1.5 1.5V6h9V3.75zM8.25 6H5.625A1.125 1.125 0 004.5 7.125v12.75A1.125 1.125 0 005.625 21h12.75a1.125 1.125 0 001.125-1.125V7.125A1.125 1.125 0 0018.375 6H8.25z"/></svg>
+                        {{ $observation->cot_document_path ? 'Regenerate COT Document' : 'Generate COT Document' }}
+                    </button>
+                </form>
+                @if($observation->cot_document_path)
+                <a href="{{ route('supervisor.observations.cot-document.preview', $observation) }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-sm shadow-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Preview
+                </a>
+                <a href="{{ route('supervisor.observations.cot-document.download', $observation) }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    Download DOCX
+                </a>
+                <a href="{{ route('supervisor.observations.cot-document.pdf', $observation) }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Download PDF
+                </a>
+                @endif
+            </div>
+        </div>
     </div>
     @endif
 

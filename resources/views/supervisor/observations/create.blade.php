@@ -51,27 +51,46 @@
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
+<div class="max-w-7xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">Set up a classroom observation or leadership evaluation.</p>
+
+        <!-- Live context chips -->
+        <div x-show="selectedObservee" x-cloak class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Observing</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 text-xs font-semibold">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span x-text="selectedObservee?.name"></span>
+            </span>
+            <template x-if="selectedCotTemplate">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 text-xs font-semibold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span x-text="selectedCotTemplate.label"></span>
+                </span>
+            </template>
+        </div>
     </div>
 
-    <form method="POST" action="{{ route('supervisor.observations.store') }}" @submit="submitting = true">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <form method="POST" action="{{ route('supervisor.observations.store') }}" @submit="submitting = true" class="lg:col-span-2">
         @csrf
 
         <!-- Progress Steps -->
         <div class="flex items-center gap-2 mb-8 text-sm overflow-x-auto pb-2">
             <template x-for="(step, i) in steps" :key="i">
                 <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1.5">
+                    <button type="button" @click="jumpToStep(i + 1)"
+                            :disabled="!(step.status === 'complete' || step.status === 'active')"
+                            :class="step.status === 'complete' || step.status === 'active' ? 'cursor-pointer' : 'cursor-default'"
+                            class="flex items-center gap-1.5 group" :title="step.status === 'complete' ? 'Back to ' + step.label : step.label">
                         <div :class="step.status === 'complete' ? 'bg-indigo-600 text-white' : step.status === 'active' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 border-2 border-indigo-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'"
                              class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors">
                             <svg x-show="step.status === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span x-show="step.status !== 'complete'" x-text="i + 1"></span>
                         </div>
-                        <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors whitespace-nowrap" x-text="step.label"></span>
-                    </div>
+                        <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors whitespace-nowrap" x-text="step.label"></span>
+                    </button>
                     <div x-show="i < steps.length - 1"
                          :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200'"
                          class="w-6 sm:w-8 h-0.5 rounded transition-colors shrink-0"></div>
@@ -125,54 +144,60 @@
             </div>
 
             <div class="flex justify-end mt-6">
-                <button type="button" @click="currentStep = 2" :disabled="!selectedType"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                    Continue →
+                <button type="button" @click="goToStep(2)" :disabled="!selectedType"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
+                    Continue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- ===== STEP 2: SELECT OBSERVATION TEMPLATE ===== -->
+        <!-- ===== STEP 2: SELECT COT TEMPLATE ===== -->
         <div x-show="currentStep === 2" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Select Observation Template</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Select COT Template</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">
-                    These templates determine the indicators used for the
+                    The selected template determines the indicators used for the
                     <template x-if="selectedType === 'teacher_observation'">teacher observation.</template>
                     <template x-if="selectedType === 'school_head_observation'">school head observation.</template>
+                    Only published templates for the current school year are shown.
                 </p>
 
                 <div x-show="templateOptions.length === 0" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                    <p class="text-sm">No active templates are available for the current school year.</p>
+                    <p class="text-sm">No published COT templates are available for the current school year ({{ $schoolYear }}).</p>
+                    <p class="text-xs mt-1">Ask an admin to publish a COT template for this school year.</p>
                 </div>
 
                 <div class="space-y-3">
                     <template x-for="template in templateOptions" :key="template.id">
                         <label class="type-card block rounded-xl p-5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer hover:shadow-md"
-                               :class="selectedTemplateId === template.id ? 'selected' : ''">
-                            <input type="radio" name="form_template_id" :value="template.id"
-                                   x-model="selectedTemplateId" @change="onTemplateChange()" class="sr-only">
+                               :class="selectedCotTemplateId === template.id ? 'selected' : ''">
+                            <input type="radio" name="cot_indicator_version_id" :value="template.id"
+                                   x-model="selectedCotTemplateId" @change="onTemplateChange()" class="sr-only">
                             <div class="flex items-start gap-4">
                                 <div class="w-11 h-11 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.name"></h3>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
-                                            v<span x-text="template.version"></span>
+                                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.label"></h3>
+                                        <span x-show="template.is_default" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                                            Default
                                         </span>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                                            <span x-text="template.sections_count"></span> sections
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                            <span x-text="template.indicators_count"></span> indicators
                                         </span>
                                     </div>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2" x-text="template.description || 'No description provided.'"></p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <span x-text="template.framework_label"></span>
+                                        <span x-text="' · ' + template.instrument_label"></span>
+                                        <template x-if="template.career_stage_label">
+                                            <span x-text="' · ' + template.career_stage_label"></span>
+                                        </template>
+                                    </p>
                                     <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5">
                                         School Year: <span x-text="template.school_year"></span>
-                                        <template x-if="template.observation_type">
-                                            &middot; <span x-text="template.observation_type === 'teacher_observation' ? 'Teacher' : 'School Head'"></span>
-                                        </template>
-                                        <template x-if="!template.observation_type">&middot; All types</template>
+                                        &middot; Ratee: <span x-text="template.ratee_role_label"></span>
                                     </p>
                                 </div>
                             </div>
@@ -180,19 +205,21 @@
                     </template>
                 </div>
 
-                @error('form_template_id')
+                @error('cot_indicator_version_id')
                     <p class="mt-3 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 1"
-                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
-                    ← Back
+            <div class="flex justify-between items-center mt-6">
+                <button type="button" @click="goToStep(1)"
+                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Back
                 </button>
-                <button type="button" @click="currentStep = 3" :disabled="!selectedTemplateId"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                    Continue →
+                <button type="button" @click="goToStep(3)" :disabled="!selectedCotTemplateId"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
+                    Continue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -329,14 +356,16 @@
                 @enderror
             </div>
 
-            <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 2; selectedObservee = null"
-                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
-                    ← Back
+            <div class="flex justify-between items-center mt-6">
+                <button type="button" @click="selectedObservee = null; goToStep(2)"
+                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Back
                 </button>
-                <button type="button" @click="autoFillDetails(); currentStep = 4" :disabled="!selectedObservee"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                    Continue →
+                <button type="button" @click="autoFillDetails(); goToStep(4)" :disabled="!selectedObservee"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
+                    Continue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -347,129 +376,148 @@
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Schedule</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Set the date, time, and location for the observation.</p>
 
-                <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
-                    <!-- School Year -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School Year</label>
-                        <input type="text" name="school_year" x-model="form.school_year"
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                               placeholder="e.g., 2024-2025">
-                    </div>
-
-                    <!-- Quarter -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quarter</label>
-                        <select name="quarter" x-model="form.quarter"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="">Select quarter</option>
-                            <option value="1">1st Quarter</option>
-                            <option value="2">2nd Quarter</option>
-                            <option value="3">3rd Quarter</option>
-                            <option value="4">4th Quarter</option>
-                        </select>
-                    </div>
-
-                    <!-- Observation Number -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Number</label>
-                        <select name="observation_number" x-model="form.observation_number"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="1">1st Observation</option>
-                            <option value="2">2nd Observation</option>
-                        </select>
-                    </div>
-
-                    <!-- Observation Mode -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Mode</label>
-                        <select name="observation_mode" x-model="form.observation_mode"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="in_person">In-Person</option>
-                            <option value="virtual">Virtual</option>
-                            <option value="hybrid">Hybrid</option>
-                        </select>
-                    </div>
-
-                    <!-- Subject (auto-filled) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
-                        <div class="relative">
-                            <input type="text" name="subject" x-model="form.subject"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                   placeholder="Auto-filled from profile">
-                            <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
-                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Grade Level (auto-filled) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Grade Level</label>
-                        <div class="relative">
-                            <input type="text" name="grade_level" x-model="form.grade_level"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                   placeholder="Auto-filled from profile">
-                            <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
-                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
-                            </template>
-                        </div>
+                <!-- Section: When & Where -->
+                <div class="mb-7">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">When &amp; Where</h3>
                     </div>
 
                     <!-- Observation Date -->
-                    <div class="sm:col-span-2">
+                    <div class="sm:col-span-2 mb-5">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Date</label>
-                        <input type="date" name="observation_date" x-model="form.observation_date" required
+                        <input type="date" name="observation_date" x-model="form.observation_date" required :min="today"
                                class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
 
-                    <!-- Start Time -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
-                        <input type="time" name="start_time" x-model="form.start_time"
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                        <!-- Start Time -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
+                            <input type="time" name="start_time" x-model="form.start_time"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            @error('start_time')
+                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- End Time -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
+                            <input type="time" name="end_time" x-model="form.end_time"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            @error('end_time')
+                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Observation Mode -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Mode</label>
+                            <select name="observation_mode" x-model="form.observation_mode"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="in_person">In-Person</option>
+                                <option value="virtual">Virtual</option>
+                                <option value="hybrid">Hybrid</option>
+                            </select>
+                        </div>
+
+                        <!-- Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+                            <input type="text" name="location" x-model="form.location"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   placeholder="e.g., Room 204, LRC, or Online link">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 dark:border-gray-800 pt-6 mb-7">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Academic Context</h3>
+                        <span class="text-[11px] text-gray-400 dark:text-gray-500 font-normal">Auto-filled from the ratee's profile — edit if needed</span>
                     </div>
 
-                    <!-- End Time -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
-                        <input type="time" name="end_time" x-model="form.end_time"
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    </div>
+                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                        <!-- School Year -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School Year</label>
+                            <input type="text" name="school_year" x-model="form.school_year"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   placeholder="e.g., 2024-2025">
+                        </div>
 
-                    <!-- Location -->
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
-                        <input type="text" name="location" x-model="form.location"
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                               placeholder="e.g., Room 204, Learning Resource Center, or Online link">
+                        <!-- Quarter -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quarter</label>
+                            <select name="quarter" x-model="form.quarter"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="">Select quarter</option>
+                                <option value="1">1st Quarter</option>
+                                <option value="2">2nd Quarter</option>
+                                <option value="3">3rd Quarter</option>
+                                <option value="4">4th Quarter</option>
+                            </select>
+                        </div>
 
-                        @error('start_time')
-                            <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                        @error('end_time')
-                            <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                        <!-- Observation Number -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Number</label>
+                            <select name="observation_number" x-model="form.observation_number"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="1">1st Observation</option>
+                                <option value="2">2nd Observation</option>
+                            </select>
+                        </div>
 
-                    <!-- Notes -->
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
-                        <textarea name="notes" x-model="form.notes" rows="3"
-                                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                  placeholder="Add any additional notes or context..."></textarea>
+                        <!-- Subject (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
+                            <div class="relative">
+                                <input type="text" name="subject" x-model="form.subject"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                       placeholder="Auto-filled from profile">
+                                <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
+                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Grade Level (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Grade Level</label>
+                            <div class="relative">
+                                <input type="text" name="grade_level" x-model="form.grade_level"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                       placeholder="Auto-filled from profile">
+                                <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
+                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+                            <textarea name="notes" x-model="form.notes" rows="3"
+                                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                      placeholder="Add any additional notes or context..."></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 3"
-                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
-                    ← Back
+            <div class="flex justify-between items-center mt-6">
+                <button type="button" @click="goToStep(3)"
+                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Back
                 </button>
-                <button type="button" @click="currentStep = 5"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                    Continue →
+                <button type="button" @click="goToStep(5)"
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
+                    Continue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -546,14 +594,16 @@
                 </div>
             </div>
 
-            <div class="flex justify-between mt-6">
-                <button type="button" @click="currentStep = 4"
-                        class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 font-medium transition-colors">
-                    ← Back
+            <div class="flex justify-between items-center mt-6">
+                <button type="button" @click="goToStep(4)"
+                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Back
                 </button>
                 <button type="button" @click="openConfirmModal()"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                    Review & Confirm
+                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
+                    Review &amp; Confirm
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
@@ -614,11 +664,16 @@
 
                         <!-- Template -->
                         <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Observation Template</p>
-                            <p class="text-sm font-medium text-gray-800" x-text="selectedTemplate?.name || 'Active template (auto-selected)'"></p>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">COT Template</p>
+                            <p class="text-sm font-medium text-gray-800" x-text="selectedCotTemplate?.label || 'Default COT template (auto-selected)'"></p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                School Year <span x-text="selectedTemplate?.school_year || form.school_year"></span>
-                                <span x-text="selectedTemplate ? ' · v' + selectedTemplate.version : ''"></span>
+                                School Year <span x-text="selectedCotTemplate?.school_year || form.school_year"></span>
+                                <template x-if="selectedCotTemplate">
+                                    <span x-text="' · ' + selectedCotTemplate.indicators_count + ' indicators'"></span>
+                                </template>
+                                <template x-if="!selectedCotTemplate">
+                                    <span> · resolved from the teacher's career stage</span>
+                                </template>
                             </p>
                         </div>
 
@@ -662,7 +717,96 @@
 
         <!-- Always-rendered hidden field for observee_id -->
         <input type="hidden" name="observee_id" x-model="observeeId">
+        <!-- Always-rendered hidden field for the selected COT template -->
+        <input type="hidden" name="cot_indicator_version_id" x-model="selectedCotTemplateId">
+        <!-- This wizard only schedules observations (no immediate option) -->
+        <input type="hidden" name="schedule_type" value="scheduled">
     </form>
+
+    <!-- Sticky Summary Sidebar -->
+    <aside class="lg:col-span-1">
+        <div class="lg:sticky lg:top-24 space-y-4">
+            <!-- Progress -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progress</p>
+                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400" x-text="'Step ' + currentStep + ' of ' + steps.length"></span>
+                </div>
+                <div class="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                    <div class="h-full bg-indigo-600 rounded-full transition-all duration-300" :style="'width: ' + progressPercent + '%'"></div>
+                </div>
+            </div>
+
+            <!-- Live Summary -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Summary</p>
+
+                <div x-show="selectedObservee" class="flex items-center gap-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/40 p-3">
+                    <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0" x-text="selectedObservee?.name?.charAt(0)?.toUpperCase() || '?'"></div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedObservee?.name"></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="selectedObservee?.position"></p>
+                    </div>
+                </div>
+                <div x-show="!selectedObservee" class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 p-4 text-center">
+                    <p class="text-xs text-gray-400 dark:text-gray-500">No ratee selected yet.</p>
+                </div>
+
+                <dl class="mt-4 space-y-3 text-sm">
+                    <div class="flex items-center justify-between gap-3">
+                        <dt class="text-xs text-gray-400 dark:text-gray-500">Type</dt>
+                        <dd class="font-medium text-gray-800 dark:text-gray-200 text-right" x-text="selectedTypeLabel"></dd>
+                    </div>
+                    <template x-if="selectedCotTemplate">
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-xs text-gray-400 dark:text-gray-500">Template</dt>
+                            <dd class="font-medium text-gray-800 dark:text-gray-200 text-right truncate" x-text="selectedCotTemplate.label"></dd>
+                        </div>
+                    </template>
+                    <template x-if="form.observation_date">
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-xs text-gray-400 dark:text-gray-500">Date</dt>
+                            <dd class="font-medium text-gray-800 dark:text-gray-200 text-right" x-text="form.observation_date"></dd>
+                        </div>
+                    </template>
+                    <template x-if="timeLabel">
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-xs text-gray-400 dark:text-gray-500">Time</dt>
+                            <dd class="font-medium text-gray-800 dark:text-gray-200 text-right" x-text="timeLabel"></dd>
+                        </div>
+                    </template>
+                    <template x-if="form.location">
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-xs text-gray-400 dark:text-gray-500">Location</dt>
+                            <dd class="font-medium text-gray-800 dark:text-gray-200 text-right truncate" x-text="form.location"></dd>
+                        </div>
+                    </template>
+                    <template x-if="form.subject">
+                        <div class="flex items-center justify-between gap-3">
+                            <dt class="text-xs text-gray-400 dark:text-gray-500">Subject</dt>
+                            <dd class="font-medium text-gray-800 dark:text-gray-200 text-right truncate" x-text="form.subject"></dd>
+                        </div>
+                    </template>
+                    <div x-show="scheduleConference" class="flex items-center justify-between gap-3">
+                        <dt class="text-xs text-gray-400 dark:text-gray-500">Conference</dt>
+                        <dd class="font-medium text-emerald-600 dark:text-emerald-400 text-right">Scheduled</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Tip -->
+            <div class="hidden lg:block rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100 dark:border-indigo-900/40 p-5">
+                <p class="text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Tip
+                </p>
+                <p class="text-xs text-indigo-700/80 dark:text-indigo-300/80 leading-relaxed">
+                    Details like subject and grade level are auto-filled from the ratee's profile.
+                    The summary updates live as you fill in the schedule.
+                </p>
+            </div>
+        </div>
+    </aside>
 </div>
 
 @push('scripts')
@@ -679,17 +823,23 @@
             ],
             currentStep: 1,
             selectedType: @json(old('observation_type')),
-            selectedTemplateId: @json(old('form_template_id')),
+            selectedCotTemplateId: @json(old('cot_indicator_version_id')),
             selectedObservee: null,
             observeeId: @json(old('observee_id')),
             searchQuery: '',
             showConfirmModal: false,
             submitting: false,
             scheduleConference: @json(old('schedule_conference') ? true : false),
+            today: (() => {
+                const d = new Date();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${d.getFullYear()}-${m}-${day}`;
+            })(),
 
             teacherData: @json($teacherData),
             schoolHeadData: @json($schoolHeadData),
-            templates: @json($templates),
+            cotTemplates: @json($cotTemplates),
 
             form: {
                 school_year: @json(old('school_year', $schoolYear)),
@@ -712,13 +862,22 @@
 
             get templateOptions() {
                 if (!this.selectedType) return [];
-                return (this.templates || []).filter(t =>
-                    !t.observation_type || t.observation_type === this.selectedType
-                );
+                const role = this.selectedType === 'teacher_observation' ? 'teacher' : 'school_head';
+                return (this.cotTemplates || []).filter(t => t.ratee_role === role);
             },
 
-            get selectedTemplate() {
-                return (this.templates || []).find(t => String(t.id) === String(this.selectedTemplateId)) || null;
+            get selectedCotTemplate() {
+                return (this.cotTemplates || []).find(t => String(t.id) === String(this.selectedCotTemplateId)) || null;
+            },
+
+            get selectedTypeLabel() {
+                if (this.selectedType === 'teacher_observation') return 'Teacher Observation';
+                if (this.selectedType === 'school_head_observation') return 'School Head Observation';
+                return '—';
+            },
+
+            get progressPercent() {
+                return Math.min(100, Math.max(0, Math.round(((this.currentStep - 1) / (this.steps.length - 1)) * 100)));
             },
 
             get observeeList() {
@@ -769,7 +928,7 @@
                 this.selectedObservee = null;
                 this.observeeId = '';
                 this.searchQuery = '';
-                this.selectedTemplateId = '';
+                this.selectedCotTemplateId = '';
                 this.updateSteps();
             },
 
@@ -798,39 +957,85 @@
                 this.showConfirmModal = true;
             },
 
+            goToStep(n) {
+                if (n >= 1 && n <= this.steps.length) {
+                    this.currentStep = n;
+                    this.updateSteps();
+                }
+            },
+
+            jumpToStep(n) {
+                const target = this.steps[n - 1];
+                if (target && n <= this.currentStep && (target.status === 'complete' || target.status === 'active')) {
+                    this.goToStep(n);
+                }
+            },
+
             updateSteps() {
                 const hasType = !!this.selectedType;
-                const hasTemplate = !!this.selectedTemplateId;
+                const hasTemplate = !!this.selectedCotTemplateId;
                 const hasObservee = !!this.selectedObservee;
                 this.steps[0].status = hasType ? 'complete' : 'active';
                 this.steps[1].status = hasTemplate ? 'complete' : (hasType ? 'active' : 'pending');
                 this.steps[2].status = hasObservee ? 'complete' : (hasTemplate ? 'active' : 'pending');
-                this.steps[3].status = hasObservee ? 'pending' : 'pending';
+                this.steps[3].status = hasObservee ? 'active' : 'pending';
                 this.steps[4].status = 'pending';
                 this.steps[5].status = 'pending';
+
+                // Exactly one step is highlighted at a time: the one on screen.
+                for (let i = 0; i < this.steps.length; i++) {
+                    if (this.steps[i].status === 'active') this.steps[i].status = 'pending';
+                }
+                const idx = this.currentStep - 1;
+                if (this.steps[idx]) this.steps[idx].status = 'active';
             },
 
             init() {
-                this.updateSteps();
+                const params = new URLSearchParams(window.location.search);
+                const preselectTeacherId = params.get('teacher_id');
+                const preselectSchoolHeadId = params.get('school_head');
+                const preselected = preselectTeacherId || preselectSchoolHeadId;
+
                 const oldObserveeId = @json(old('observee_id'));
+
                 if (oldObserveeId && this.observeeList.length) {
                     const match = this.observeeList.find(item => item.id == oldObserveeId);
                     if (match) {
                         this.selectObservee(match);
                         this.autoFillDetails();
                     }
-                } else if (this.selectedType && this.observeeList.length === 1) {
-                    this.selectObservee(this.observeeList[0]);
+                } else if (preselected) {
+                    const isTeacher = !!preselectTeacherId;
+                    this.selectedType = isTeacher ? 'teacher_observation' : 'school_head_observation';
+
+                    const list = isTeacher ? this.teacherData : this.schoolHeadData;
+                    const match = (list || []).find(item => String(item.id) === String(isTeacher ? preselectTeacherId : preselectSchoolHeadId));
+                    if (match) {
+                        this.selectObservee(match);
+                        this.autoFillDetails();
+                    }
+
+                    // Auto-select the default template when it is the only option
+                    // so the schedule step can be reached without extra clicks.
+                    if (this.selectedObservee && this.templateOptions.length === 1) {
+                        this.selectedCotTemplateId = this.templateOptions[0].id;
+                    }
                 }
 
-                // Restore the correct step when re-rendering after validation error
-                if (this.selectedType) {
-                    if (this.selectedTemplateId && this.selectedObservee) {
-                        this.currentStep = 5;
-                    } else if (this.selectedTemplateId) {
-                        this.currentStep = 3;
+                this.updateSteps();
+
+                if (preselected && this.selectedObservee && ! oldObserveeId) {
+                    // Skip the "Who" and "Observee" steps: land on the next
+                    // step that still needs input.
+                    this.goToStep(this.selectedCotTemplateId ? 4 : 2);
+                } else if (this.selectedType) {
+                    // Restore the correct step when re-rendering after validation error
+                    if (this.selectedCotTemplateId && this.selectedObservee) {
+                        this.goToStep(5);
+                    } else if (this.selectedCotTemplateId) {
+                        this.goToStep(3);
                     } else {
-                        this.currentStep = 2;
+                        this.goToStep(2);
                     }
                 }
             }

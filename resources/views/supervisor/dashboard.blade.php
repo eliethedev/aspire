@@ -160,7 +160,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Teachers</p>
-                        <p class="text-xs text-emerald-500 dark:text-emerald-400">Manage your teachers</p>
+                        <p class="text-xs text-emerald-500 dark:text-emerald-400">View teachers</p>
                     </div>
                 </a>
                 <a href="{{ route('supervisor.reports.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors group">

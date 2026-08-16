@@ -26,8 +26,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-dark-900">Feedback Management</h1>
-            <p class="text-dark-500 mt-1">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Feedback Management</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">
                 {{ $observation->observee->user->name ?? 'Unknown' }}
                 &middot; {{ $observation->observation_date->format('M d, Y') }}
                 @if($observation->subject) &middot; {{ $observation->subject }} @endif
@@ -91,8 +91,8 @@
                     <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                         {!! $icons[$selectedType] !!}
                     </div>
-                    <h3 class="text-lg font-semibold text-dark-900 mb-1">No {{ $feedbackTypes[$selectedType] }} Feedback Yet</h3>
-                    <p class="text-sm text-dark-500 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">No {{ $feedbackTypes[$selectedType] }} Feedback Yet</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
                         Generate AI feedback or create a manual entry to get started.
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-3">
@@ -120,7 +120,7 @@
                                 </div>
                                 <div>
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="font-semibold text-dark-900 text-sm">
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100 text-sm">
                                             {{ $feedback->feedbackTypeLabel() }}
                                         </span>
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium {{ $feedback->statusBadgeClass() }}">
@@ -132,7 +132,7 @@
                                             {{ ucfirst($feedback->generated_by) }}
                                         </span>
                                     </div>
-                                    <p class="text-[11px] text-dark-400">
+                                    <p class="text-[11px] text-gray-400 dark:text-gray-500">
                                         Confidence: {{ number_format($feedback->confidence_score * 100, 0) }}%
                                         &middot; {{ $feedback->created_at->format('M d, Y h:i A') }}
                                         @if($feedback->model_version)

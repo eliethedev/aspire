@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Observation;
+use App\Services\CotDocumentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ObservationController extends Controller
 {
@@ -57,5 +59,35 @@ class ObservationController extends Controller
         ]);
 
         return view('admin.observations.show', compact('observation'));
+    }
+
+    /**
+     * Download the completed COT document (DOCX) for an observation.
+     *
+     * Generates it on demand when it does not exist yet, reusing the exact
+     * document the supervisor workflow produces.
+     */
+    public function downloadCotDocument(Observation $observation)
+    {
+        $service = app(CotDocumentService::class);
+
+        $errors = $service->canGenerate($observation);
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot download the COT document: '.implode(' ', $errors));
+        }
+
+        $path = $service->documentPath($observation);
+
+        if (!$path) {
+            try {
+                $path = $service->generateDocument($observation);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Admin COT document generation failed', ['observation_id' => $observation->id, 'error' => $e->getMessage()]);
+
+                return redirect()->back()->with('error', 'Failed to generate the COT document. Please try again.');
+            }
+        }
+
+        return Storage::disk(CotDocumentService::DISK)->download($path, basename($path));
     }
 }

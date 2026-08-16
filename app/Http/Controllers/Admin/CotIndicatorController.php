@@ -8,8 +8,10 @@ use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
 use App\Services\CareerStageResolver;
 use App\Services\CotIndicatorService;
+use App\Services\CotDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use PhpOffice\PhpWord\IOFactory;
 
 class CotIndicatorController extends Controller
 {
@@ -31,6 +33,19 @@ class CotIndicatorController extends Controller
             ->get();
 
         return view('admin.cot-indicators.index', compact('versions'));
+    }
+
+    public function downloadTemplate(CotIndicatorVersion $cotIndicatorVersion)
+    {
+        $service = app(CotDocumentService::class);
+
+        $phpWord = $service->buildTemplateDocx($cotIndicatorVersion);
+        $filename = $service->templateFilename($cotIndicatorVersion) . '.docx';
+
+        $temp = tempnam(sys_get_temp_dir(), 'cot_tpl_');
+        IOFactory::createWriter($phpWord, 'Word2007')->save($temp);
+
+        return response()->download($temp, $filename)->deleteFileAfterSend(true);
     }
 
     public function create()

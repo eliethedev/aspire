@@ -56,7 +56,7 @@
                 </div>
                 
                 <div class="flex items-end">
-                    <button type="submit" class="w-full px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-dark-700 transition-colors">
+                    <button type="submit" class="w-full px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                         Filter
                     </button>
                 </div>

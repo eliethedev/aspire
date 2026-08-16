@@ -5,7 +5,7 @@
     <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100 shrink-0">
         <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.isCollapsed() ? 'hidden' : ''" class="flex items-center space-x-2.5">
             <x-deped-logo class="w-16 h-auto shrink-0" />
-            <span class="text-lg font-bold text-indigo-600">ASPIRE Admin</span>
+            <span class="text-md font-bold text-indigo-600">ASPIRE Admin</span>
         </a>
         <button @click="$store.sidebar.toggle()" 
                 :class="$store.sidebar.isCollapsed() ? 'mx-auto' : ''"
@@ -227,6 +227,26 @@
                                 </svg>
                             </span>
                             <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Announcements</span>
+                        </a>
+                    </li>
+
+                    @php($openSupportCount = \App\Models\SupportMessage::query()->open()->count())
+                    <li>
+                        <a href="{{ route('admin.support-messages.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 {{ request()->routeIs('admin.support-messages.*') ? 'sidebar-link-active icon-support' : '' }}"
+                           :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-support" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Support Messages</span>
+                            @if($openSupportCount > 0)
+                                <span x-show="!$store.sidebar.isCollapsed()"
+                                      class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-semibold">
+                                    {{ $openSupportCount }}
+                                </span>
+                            @endif
                         </a>
                     </li>
 
