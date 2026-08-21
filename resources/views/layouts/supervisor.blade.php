@@ -21,6 +21,9 @@
                 if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                     document.documentElement.classList.add('dark');
                 }
+                if (localStorage.getItem('app_text_large') === '1') {
+                    document.documentElement.classList.add('text-large');
+                }
             })();
         </script>
         <script>
@@ -48,6 +51,19 @@
                         this.dark = !this.dark;
                         document.documentElement.classList.toggle('dark', this.dark);
                         localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+                    }
+                });
+                Alpine.store('accessibility', {
+                    large: localStorage.getItem('app_text_large') === '1',
+                    toggle() {
+                        this.large = !this.large;
+                        document.documentElement.classList.toggle('text-large', this.large);
+                        localStorage.setItem('app_text_large', this.large ? '1' : '0');
+                    },
+                    setLarge(v) {
+                        this.large = v;
+                        document.documentElement.classList.toggle('text-large', v);
+                        localStorage.setItem('app_text_large', v ? '1' : '0');
                     }
                 });
             });

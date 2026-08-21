@@ -16,6 +16,9 @@ return [
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
     'username' => env('MAIL_USERNAME'),
     'password' => env('MAIL_PASSWORD'),
+
+    // Seconds a single SMTP operation may block before giving up.
+    'timeout' => env('MAIL_TIMEOUT', 15),
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'noreply@aspire.edu'),
         'name' => env('MAIL_FROM_NAME', 'ASPIRE System'),

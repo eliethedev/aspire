@@ -470,33 +470,33 @@
             <!-- Agenda Checklist -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Pre-Conference Agenda</h3>
-                <ul class="space-y-2.5" id="agenda-checklist">
+                <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="0" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Review lesson plan objectives and alignment</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="1" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss teaching strategies and methodologies</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="2" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Address learner diversity considerations</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="3" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Review instructional materials and resources</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="4" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss assessment methods and feedback</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="5" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Agree on observation focus areas</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <input type="checkbox" data-index="6" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
                         <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Address teacher concerns and questions</label>
                     </li>
                 </ul>
@@ -798,6 +798,48 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 500);
     }, 3000);
 }
+</script>
+<script>
+    (function () {
+        var list = document.getElementById('agenda-checklist');
+        if (!list) return;
+
+        var saved = [];
+        try { saved = JSON.parse(list.dataset.saved || '[]'); } catch (e) {}
+
+        var checkboxes = list.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function (cb) {
+            var idx = parseInt(cb.dataset.index, 10);
+            if (saved.indexOf(idx) !== -1) cb.checked = true;
+        });
+
+        var token = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+        var url = '{{ route("school-head.observations.agenda-checklist", $observation) }}';
+        var timer = null;
+
+        function collectChecked() {
+            var checked = [];
+            checkboxes.forEach(function (cb) {
+                if (cb.checked) checked.push(parseInt(cb.dataset.index, 10));
+            });
+            return checked;
+        }
+
+        function save() {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+                    body: JSON.stringify({ checked: collectChecked() }),
+                });
+            }, 400);
+        }
+
+        list.addEventListener('change', function (e) {
+            if (e.target.type === 'checkbox') save();
+        });
+    })();
 </script>
 @endpush
 @endsection

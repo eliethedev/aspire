@@ -13,7 +13,17 @@
     </div>
 
     <!-- Right side: user menu, notifications -->
-    <div class="flex items-center space-x-3 ml-auto">
+    <div class="flex items-center space-x-2 sm:space-x-3 ml-auto">
+      <!-- System setting: Text size (global, for senior-friendly readability) -->
+      <div class="hidden sm:flex items-center gap-1 p-1 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700" role="group" aria-label="Text size - system setting. Applies to all pages">
+        <span class="px-1.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Text Size</span>
+        <button type="button" @click="$store.accessibility.setLarge(false)"
+                :class="!$store.accessibility.large ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'"
+                class="px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors" title="Standard text size" aria-label="Standard text size" :aria-pressed="(!$store.accessibility.large).toString()">A</button>
+        <button type="button" @click="$store.accessibility.setLarge(true)"
+                :class="$store.accessibility.large ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'"
+                class="px-2.5 py-1.5 rounded-md text-sm font-extrabold transition-colors" title="Large text - easier to read" aria-label="Large text for easier reading" :aria-pressed="$store.accessibility.large.toString()">A+</button>
+      </div>
       <!-- Theme toggle -->
       <button @click="$store.theme.toggle()" 
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
@@ -83,6 +93,17 @@
               {{ __('Report a Bug / Feedback') }}
             </div>
           </x-dropdown-link>
+          <!-- System-wide display setting (also available in header) -->
+          <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+            <p class="text-xs font-bold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-2">Display • Text size</p>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="$store.accessibility.setLarge(false)" :class="!$store.accessibility.large ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300'"
+                      class="flex-1 py-2 rounded-lg text-xs font-bold border transition-colors" aria-label="Standard size">A Standard</button>
+              <button type="button" @click="$store.accessibility.setLarge(true)" :class="$store.accessibility.large ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300'"
+                      class="flex-1 py-2 rounded-lg text-sm font-extrabold border transition-colors" aria-label="Large size">A+ Large</button>
+            </div>
+            <p class="mt-1.5 text-[11px] leading-snug text-gray-500 dark:text-gray-400">Large makes text easier to read. Saved for all pages.</p>
+          </div>
           <form method="POST" action="{{ route('logout') }}">
             @csrf
             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">

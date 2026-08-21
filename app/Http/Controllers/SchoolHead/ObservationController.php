@@ -48,7 +48,7 @@ class ObservationController extends Controller
             return redirect()->route('school-head.dashboard')->with('error', 'School head profile not found.');
         }
 
-        $query = Observation::with(['observee.user', 'observer'])
+        $query = Observation::with(['observee.user', 'observer', 'schoolHead', 'epocEvaluation'])
             ->where(function ($q) use ($schoolHead, $user) {
                 $q->where(function ($q2) use ($schoolHead) {
                     $q2->where('observee_id', $schoolHead->id)
@@ -56,6 +56,8 @@ class ObservationController extends Controller
                 })->orWhere(function ($q2) use ($user) {
                     $q2->where('observer_id', $user->id)
                         ->where('observer_type', User::class);
+                })->orWhere(function ($q2) use ($user) {
+                    $q2->where('school_head_id', $user->id);
                 });
             });
 
@@ -96,7 +98,9 @@ class ObservationController extends Controller
             'preConference',
             'postConference',
             'cotRatings',
+            'epocEvaluation.ratings',
             'cancelledBy',
+            'schoolHead',
         ]);
 
         return view('school-head.observations.show', compact('observation'));
@@ -239,7 +243,7 @@ class ObservationController extends Controller
                 $observerName = Auth::user()->name;
                 $subject = 'ASPIRE - Classroom Observation Scheduled';
                 $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observationLink);
-                $this->mailer->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+                $this->mailer->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
             }
         }
 
@@ -496,15 +500,41 @@ class ObservationController extends Controller
     }
 
     /**
+     * Save the pre-conference agenda checklist state.
+     */
+    public function saveAgendaChecklist(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $validated = $request->validate([
+            'checked' => 'required|array',
+            'checked.*' => 'integer|min:0',
+        ]);
+
+        $existing = $observation->preConference;
+        $merged = array_merge(
+            $existing?->form_responses ?? [],
+            ['agenda_checklist' => $validated['checked']]
+        );
+
+        $observation->preConference()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            ['form_responses' => $merged]
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
      * Show Observation form (Digital COT).
      */
     public function observation(Observation $observation)
     {
         $this->authorizeObservation($observation);
 
-        $cotRatings = $observation->cotRatings;
+        $cotRatings = $observation->cotRatings()->get();
         $preConference = $observation->preConference;
-        $observation->loadMissing(['preObservationPlanning', 'observee']);
+        $observation->loadMissing(['preObservationPlanning', 'observee', 'schoolHead']);
 
         $schoolYear = $observation->school_year ?? config('cot.default_version', '2025-2026');
         $cotVersion = $this->cotIndicatorService->getVersionForObservation($observation);
@@ -544,6 +574,7 @@ class ObservationController extends Controller
             'supervisor_notes' => ['nullable', 'string'],
         ]);
 
+        // Delete only this user's existing ratings
         $observation->cotRatings()->delete();
 
         $createdRatings = [];
@@ -642,7 +673,7 @@ class ObservationController extends Controller
         $this->authorizeObservation($observation);
 
         $postConference = $observation->postConference;
-        $cotRatings = $observation->cotRatings;
+        $cotRatings = $observation->cotRatings()->get();
         $planning = $observation->preObservationPlanning;
         $preConference = $observation->preConference;
 
@@ -1087,7 +1118,9 @@ class ObservationController extends Controller
      */
     private function authorizeObservation(Observation $observation)
     {
-        if ($observation->observer_id !== Auth::id() && $observation->observee_id !== Auth::user()->schoolHeadProfile?->id) {
+        if ($observation->observer_id !== Auth::id()
+            && $observation->observee_id !== Auth::user()->schoolHeadProfile?->id
+            && $observation->school_head_id !== Auth::id()) {
             abort(403, 'You are not authorized to access this observation.');
         }
     }

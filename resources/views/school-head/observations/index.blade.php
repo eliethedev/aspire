@@ -107,6 +107,7 @@
                 @php
                     $observee = $observation->observee;
                     $isObserver = $observation->observer_id === Auth::id();
+                    $isCoObserver = $observation->school_head_id === Auth::id() && !$isObserver;
                     $statusColors = [
                         'scheduled' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
                         'in_progress' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -120,6 +121,10 @@
                         'observation' => 'Observation',
                         'post_conference' => 'Post-Conference',
                     ];
+                    $epocPending = $observation->schoolHead
+                        && !$observation->epocEvaluation
+                        && $observation->status !== 'cancelled'
+                        && !$observation->isFinalized();
                 @endphp
                 <a href="{{ $isObserver ? route('school-head.observations.show', $observation) : route('school-head.observations.show', $observation) }}"
                    class="obs-card block p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
@@ -133,6 +138,8 @@
                                     <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm">{{ $observee?->user?->name ?? 'Unknown' }}</p>
                                     @if($isObserver)
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">You scheduled</span>
+                                    @elseif($isCoObserver)
+                                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Assigned School Head</span>
                                     @endif
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 text-gray-600' }}">
                                         {{ ucfirst(str_replace('_', ' ', $observation->status)) }}
@@ -172,9 +179,19 @@
                                 </div>
                             @endif
                             <svg class="w-4 h-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </div>
                     </div>
-                </a>
+                </div>
+                @if($epocPending)
+                    <div class="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
+                        <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-xs text-amber-800 dark:text-amber-300">
+                            <span class="font-semibold">Enhanced Post-Observation Conference</span>
+                            (School Head Evaluation) is not yet completed.
+                        </p>
+                    </div>
+                @endif
+            </div>
+        </a>
             @empty
                 <div class="text-center py-16">
                     <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>

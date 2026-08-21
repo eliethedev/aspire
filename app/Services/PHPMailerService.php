@@ -42,6 +42,11 @@ class PHPMailerService
             
             $this->mailer->Port = config('phpmailer.port', 587);
 
+            // Bound how long a single SMTP operation may block the request.
+            // PHPMailer defaults to 300 seconds, which can exceed PHP's
+            // max_execution_time and make form submissions appear to hang.
+            $this->mailer->Timeout = max(5, (int) config('phpmailer.timeout', 15));
+
             // Recipients
             $this->mailer->setFrom(
                 config('phpmailer.from.address', 'noreply@aspire.edu'),
@@ -141,6 +146,7 @@ class PHPMailerService
         }
 
         try {
+            $this->mailer->clearAddresses();
             $this->mailer->addAddress($email, $name);
             $this->mailer->Subject = $subject;
             $this->mailer->Body = $body;
@@ -151,6 +157,54 @@ class PHPMailerService
         } catch (Exception $e) {
             Log::error('Failed to send generic email: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Hand a generic email off to a detached background process so slow or
+     * unreachable SMTP servers never delay the user's HTTP request.
+     * Falls back to sending synchronously if spawning fails.
+     */
+    public function sendGenericEmailLater($email, $name, $subject, $body): void
+    {
+        try {
+            $bodyPath = tempnam(sys_get_temp_dir(), 'aspire_mail_');
+            file_put_contents($bodyPath, $body);
+
+            // Some SAPI contexts (e.g. `php artisan serve`) expose a stripped
+            // $_SERVER, which Symfony Process would otherwise use as the child
+            // environment. Without SystemRoot etc., Windows networking (DNS)
+            // cannot initialize in the child, so pass the essentials explicitly.
+            $env = [];
+            foreach (['SystemRoot', 'windir', 'SystemDrive', 'COMSPEC', 'PATHEXT', 'PATH', 'TEMP', 'TMP'] as $key) {
+                $value = getenv($key);
+                if ($value !== false && $value !== '') {
+                    $env[$key] = $value;
+                }
+            }
+
+            $process = new \Symfony\Component\Process\Process(array_filter([
+                PHP_BINARY,
+                defined('ARTISAN_BINARY') ? ARTISAN_BINARY : base_path('artisan'),
+                'aspire:send-deferred-email',
+                '--to='.((string) $email),
+                '--name='.((string) $name),
+                '--subject='.((string) $subject),
+                '--body-path='.$bodyPath,
+            ]), base_path(), $env);
+            $process->setOptions(['create_new_console' => true]);
+            $process->start();
+
+            return;
+        } catch (\Throwable $e) {
+            Log::error('Could not spawn deferred email process, sending synchronously: '.$e->getMessage());
+        }
+
+        // Fallback: bounded synchronous send (PHPMailer Timeout applies).
+        try {
+            $this->sendGenericEmail($email, $name, $subject, $body);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send deferred generic email: ' . $e->getMessage());
         }
     }
 

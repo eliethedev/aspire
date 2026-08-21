@@ -4,16 +4,26 @@
 
 @push('styles')
 <style>
-    .rating-btn { transition: all 0.15s ease; min-width: 2.5rem; }
-    .rating-btn:hover { transform: scale(1.05); }
-    .rating-btn.active { transform: scale(1.1); }
-    .rating-btn-no { transition: all 0.15s ease; }
-    .rating-btn-no.active { background-color: #6b7280; color: white; border-color: #6b7280; }
+    .rating-btn { transition: all 0.15s ease; min-width: 2.75rem; cursor: pointer; }
+    .rating-btn:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .rating-btn.active { transform: scale(1.12); box-shadow: 0 2px 12px rgba(34,197,94,0.3); }
+    .rating-btn-no { transition: all 0.15s ease; cursor: pointer; }
+    .rating-btn-no:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .rating-btn-no.active { background-color: #6b7280; color: white; border-color: #6b7280; transform: scale(1.12); }
     .indicator-row { transition: background-color 0.15s ease; }
     .indicator-row:hover { background-color: #f9fafb; }
     .indicator-row.selected { background-color: #eef2ff; }
     .indicator-row.no-selected { background-color: #f9fafb; }
     .cot-table th { font-size: 0.7rem; letter-spacing: 0.05em; }
+    .cot-table td, .cot-table th { vertical-align: middle; }
+    .comment-toggle { transition: all 0.15s ease; cursor: pointer; }
+    .comment-toggle:hover { background-color: #e0e7ff; color: #4f46e5; border-color: #818cf8; }
+    .comment-toggle.has-comment { color: #4f46e5; background-color: #e0e7ff; border-color: #a5b4fc; }
+    .comment-row { display: none; }
+    .comment-row.open { display: table-row; }
+    .comment-row td { padding: 0 1rem 0.75rem 3rem; background-color: #fafbff; }
+    .comment-row textarea { width: 100%; font-size: 0.8rem; padding: 0.5rem; border: 1px solid #c7d2fe; border-radius: 0.5rem; resize: vertical; min-height: 3rem; outline: none; }
+    .comment-row textarea:focus { border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129,140,248,0.15); }
 </style>
 @endpush
 
@@ -39,7 +49,7 @@
         $groupedIndicators[$indicator['domain']][] = $indicator;
     }
 
-    $ratingValues = array_keys($ratingScale ?? config('cot.rating_scale', []));
+    $ratingValues = array_reverse(array_keys($ratingScale ?? config('cot.rating_scale', [])));
     $ratingColspan = 2 + count($ratingValues) + 1;
 @endphp
 
@@ -102,36 +112,6 @@
         </p>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-indigo-100 mb-6">
-        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-xl border-b border-indigo-100">
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Observation Suggestions</h2>
-                <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-0.5 rounded-full font-medium">AI-Powered</span>
-            </div>
-            <button type="button" id="generate-obs-suggestions-btn"
-                    class="px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 rounded-lg transition-colors inline-flex items-center gap-1.5 disabled:opacity-50">
-                <svg id="obs-suggestions-spinner" class="hidden w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span id="obs-suggestions-btn-text">Generate Suggestions</span>
-            </button>
-        </div>
-        <div class="p-4" id="obs-suggestions-container">
-            <div class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 mb-3">
-                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p>AI-powered suggestions based on pre-conference data. Use these as a guide during observation.</p>
-            </div>
-            <div id="obs-suggestions-content" class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                @if(isset($existingSuggestions) && $existingSuggestions)
-                    <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 italic">Pre-observation AI insights are available. Click "Generate Suggestions" for observation-specific guidance based on the pre-conference focus.</p>
-                    </div>
-                @else
-                    <p class="text-sm text-gray-400 dark:text-gray-500 italic">Generate AI suggestions to guide your observation focus areas and look-fors.</p>
-                @endif
-            </div>
-        </div>
-    </div>
-
     @if($preConference)
     <div x-data="{ open: true }" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
         <button type="button" @click="open = !open"
@@ -172,7 +152,7 @@
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">COT Rating Sheet</h2>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Annex E-2 &middot; SY {{ $schoolYear }} &middot; {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} Indicators</p>
                     </div>
-                    <button type="button" onclick="markAllNo()"
+                    <button type="button" data-action="mark-all-no"
                             class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                         Mark All as NO
@@ -185,11 +165,20 @@
                     <thead>
                         <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
-                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicator</th>
+                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">PPST Indicators</th>
                             @foreach($ratingValues as $val)
-                                <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">{{ $val }}</th>
+                                @php $label = $ratingScale[$val] ?? ''; @endphp
+                                <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-20">
+                                    <div class="text-xs font-bold">{{ $val }}</div>
+                                    @if($label)
+                                        <div class="text-[9px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">{{ Str::limit($label, 12) }}</div>
+                                    @endif
+                                </th>
                             @endforeach
-                            <th class="text-center px-2 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">NO</th>
+                            <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">
+                                <div class="text-xs font-bold">NO</div>
+                                <div class="text-[9px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">Not Obs.</div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -203,6 +192,7 @@
                                     $existingRating = $cotRatings->where('indicator_code', $indicator['code'])->first();
                                     $savedRating = $existingRating?->rating;
                                     $savedNo = $existingRating?->not_observed;
+                                    $savedComment = $existingRating?->comments ?? '';
                                 @endphp
                                 <tr class="indicator-row border-b border-gray-100" data-index="{{ $indicatorIndex }}" data-code="{{ $indicator['code'] }}">
                                     <td class="px-4 py-2.5 text-gray-400 dark:text-gray-500 text-xs align-top pt-3">{{ $indicatorIndex + 1 }}</td>
@@ -210,28 +200,39 @@
                                         <div class="flex items-start gap-2">
                                             <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5">{{ $indicator['code'] }}</span>
                                             <span class="text-gray-800 text-xs leading-relaxed">{{ $indicator['description'] }}</span>
+                                            <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
+                                                    class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                                    title="Add comment for this indicator">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                                {{ $savedComment ? 'View Comment' : 'Add Comment' }}
+                                            </button>
                                         </div>
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator_code]" value="{{ $indicator['code'] }}">
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][domain]" value="{{ $indicator['domain'] }}">
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator]" value="{{ $indicator['description'] }}">
                                     </td>
                                     @foreach($ratingValues as $val)
-                                        <td class="text-center px-2 py-2.5">
+                                        <td class="text-center px-1.5 py-2.5">
                                             <button type="button"
-                                                    onclick="selectRating({{ $indicatorIndex }}, {{ $val }})"
-                                                    class="rating-btn w-8 h-8 rounded-full text-xs font-bold border-2 {{ $savedRating === $val && !$savedNo ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-green-50 dark:bg-green-900/20' }}"
-                                                    data-index="{{ $indicatorIndex }}" data-value="{{ $val }}">
-                                                ✓
+                                                    data-action="select-rating" data-index="{{ $indicatorIndex }}" data-value="{{ $val }}"
+                                                    class="rating-btn w-10 h-10 rounded-full text-xs font-bold border-2 {{ $savedRating === $val && !$savedNo ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' }}">
+                                                {{ $val }}
                                             </button>
                                         </td>
                                     @endforeach
-                                    <td class="text-center px-2 py-2.5">
+                                    <td class="text-center px-1.5 py-2.5">
                                         <button type="button"
-                                                onclick="selectNo({{ $indicatorIndex }})"
-                                                class="rating-btn-no w-8 h-8 rounded-lg text-xs font-bold border {{ $savedNo ? 'active bg-gray-500 text-white border-gray-500' : 'bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:bg-gray-800' }}"
-                                                data-index="{{ $indicatorIndex }}">
+                                                data-action="select-no" data-index="{{ $indicatorIndex }}"
+                                                class="rating-btn-no w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNo ? 'active bg-gray-500 text-white border-gray-500' : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
                                             NO
                                         </button>
+                                    </td>
+                                </tr>
+                                <tr class="comment-row" id="comment-row-{{ $indicatorIndex }}" data-index="{{ $indicatorIndex }}">
+                                    <td colspan="{{ $ratingColspan }}">
+                                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Comment / Observation Note</label>
+                                        <textarea name="ratings[{{ $indicatorIndex }}][comments]" rows="2" data-comment-input="{{ $indicatorIndex }}"
+                                                  placeholder="Add specific observations for this indicator...">{{ $savedComment }}</textarea>
                                     </td>
                                 </tr>
                                 @php $indicatorIndex++; @endphp
@@ -344,78 +345,77 @@
     const selections = {};
 
     function selectRating(index, value) {
-        const row = document.querySelector(`.indicator-row[data-index="${index}"]`);
+        const row = document.querySelector('.indicator-row[data-index="' + index + '"]');
         if (!row) return;
 
-        row.querySelectorAll('.rating-btn').forEach(btn => {
+        row.querySelectorAll('.rating-btn').forEach(function(btn) {
             btn.classList.remove('active', 'bg-green-600', 'text-white', 'border-green-600');
-            btn.classList.add('bg-white dark:bg-gray-900', 'text-gray-500 dark:text-gray-400', 'border-gray-200 dark:border-gray-700');
+            btn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-600', 'dark:text-gray-400', 'border-gray-300', 'dark:border-gray-600');
         });
 
-        const btn = row.querySelector(`.rating-btn[data-index="${index}"][data-value="${value}"]`);
+        var btn = row.querySelector('.rating-btn[data-index="' + index + '"][data-value="' + value + '"]');
         if (btn) {
-            btn.classList.remove('bg-white dark:bg-gray-900', 'text-gray-500 dark:text-gray-400', 'border-gray-200 dark:border-gray-700');
+            btn.classList.remove('bg-white', 'dark:bg-gray-900', 'text-gray-600', 'dark:text-gray-400', 'border-gray-300', 'dark:border-gray-600');
             btn.classList.add('active', 'bg-green-600', 'text-white', 'border-green-600');
         }
 
-        const noBtn = row.querySelector('.rating-btn-no');
+        var noBtn = row.querySelector('.rating-btn-no');
         if (noBtn) {
             noBtn.classList.remove('active', 'bg-gray-500', 'text-white', 'border-gray-500');
-            noBtn.classList.add('bg-white dark:bg-gray-900', 'text-gray-400 dark:text-gray-500', 'border-gray-200 dark:border-gray-700');
+            noBtn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-500', 'dark:text-gray-500', 'border-gray-300', 'dark:border-gray-600');
         }
 
         row.classList.remove('no-selected');
         row.classList.add('selected');
 
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = `ratings[${index}][rating]`;
-        hidden.value = value;
-        hidden.id = `rating-input-${index}`;
-
-        const existing = document.getElementById(`rating-input-${index}`);
+        var existing = document.getElementById('rating-input-' + index);
         if (existing) existing.remove();
 
-        const noHidden = document.getElementById(`no-input-${index}`);
+        var noHidden = document.getElementById('no-input-' + index);
         if (noHidden) noHidden.remove();
 
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'ratings[' + index + '][rating]';
+        hidden.value = value;
+        hidden.id = 'rating-input-' + index;
         row.appendChild(hidden);
-        selections[index] = 'rating';
 
+        selections[index] = 'rating';
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
     }
 
     function selectNo(index) {
-        const row = document.querySelector(`.indicator-row[data-index="${index}"]`);
+        var row = document.querySelector('.indicator-row[data-index="' + index + '"]');
         if (!row) return;
 
-        row.querySelectorAll('.rating-btn').forEach(btn => {
+        row.querySelectorAll('.rating-btn').forEach(function(btn) {
             btn.classList.remove('active', 'bg-green-600', 'text-white', 'border-green-600');
-            btn.classList.add('bg-white dark:bg-gray-900', 'text-gray-500 dark:text-gray-400', 'border-gray-200 dark:border-gray-700');
+            btn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-600', 'dark:text-gray-400', 'border-gray-300', 'dark:border-gray-600');
         });
 
-        const noBtn = row.querySelector('.rating-btn-no');
+        var noBtn = row.querySelector('.rating-btn-no');
         if (noBtn) {
-            noBtn.classList.remove('bg-white dark:bg-gray-900', 'text-gray-400 dark:text-gray-500', 'border-gray-200 dark:border-gray-700');
+            noBtn.classList.remove('bg-white', 'dark:bg-gray-900', 'text-gray-500', 'dark:text-gray-500', 'border-gray-300', 'dark:border-gray-600');
             noBtn.classList.add('active', 'bg-gray-500', 'text-white', 'border-gray-500');
         }
 
         row.classList.remove('selected');
         row.classList.add('no-selected');
 
-        const existing = document.getElementById(`rating-input-${index}`);
+        var existing = document.getElementById('rating-input-' + index);
         if (existing) existing.remove();
 
-        const noHidden = document.createElement('input');
+        var noHidden = document.createElement('input');
         noHidden.type = 'hidden';
-        noHidden.name = `ratings[${index}][not_observed]`;
+        noHidden.name = 'ratings[' + index + '][not_observed]';
         noHidden.value = '1';
-        noHidden.id = `no-input-${index}`;
+        noHidden.id = 'no-input-' + index;
         row.appendChild(noHidden);
-        selections[index] = 'no';
 
+        selections[index] = 'no';
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
@@ -423,61 +423,75 @@
 
     function markAllNo() {
         if (!confirm('Mark all indicators as Not Observed (NO)?')) return;
-        for (let i = 0; i < totalIndicators; i++) {
+        for (var i = 0; i < totalIndicators; i++) {
             selectNo(i);
         }
     }
 
     function updateRowHidden(row, index) {
-        let hidden = document.getElementById(`rating-selection-${index}`);
+        var hidden = document.getElementById('rating-selection-' + index);
         if (!hidden) {
             hidden = document.createElement('input');
             hidden.type = 'hidden';
-            hidden.name = `ratings[${index}][has_rating]`;
-            hidden.id = `rating-selection-${index}`;
+            hidden.name = 'ratings[' + index + '][has_rating]';
+            hidden.id = 'rating-selection-' + index;
         }
         hidden.value = selections[index] || '';
-
-        const existingHidden = row.querySelector(`#rating-selection-${index}`);
+        var existingHidden = row.querySelector('#rating-selection-' + index);
         if (existingHidden) existingHidden.remove();
-
         row.appendChild(hidden);
     }
 
-    document.getElementById('generate-obs-suggestions-btn')?.addEventListener('click', function() {
-        const btn = this;
-        const spinner = document.getElementById('obs-suggestions-spinner');
-        const btnText = document.getElementById('obs-suggestions-btn-text');
-        const content = document.getElementById('obs-suggestions-content');
+    function toggleComment(index) {
+        var commentRow = document.getElementById('comment-row-' + index);
+        if (!commentRow) return;
+        var isOpen = commentRow.classList.contains('open');
+        if (isOpen) {
+            commentRow.classList.remove('open');
+        } else {
+            commentRow.classList.add('open');
+            var textarea = commentRow.querySelector('textarea');
+            if (textarea) textarea.focus();
+        }
+    }
 
-        btn.disabled = true;
-        spinner.classList.remove('hidden');
-        btnText.textContent = 'Generating...';
+    function updateCommentButtonState(index) {
+        var row = document.getElementById('comment-row-' + index);
+        if (!row) return;
+        var textarea = row.querySelector('textarea');
+        var btn = document.querySelector('.comment-toggle[data-index="' + index + '"]');
+        if (!textarea || !btn) return;
+        var hasText = textarea.value.trim().length > 0;
+        if (hasText) {
+            btn.classList.add('has-comment');
+            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> View Comment';
+        } else {
+            btn.classList.remove('has-comment');
+            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> Add Comment';
+        }
+    }
 
-        fetch('{{ route("supervisor.observations.generate-observation-suggestions", $observation) }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.suggestions) {
-                content.innerHTML = `<div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100">${data.suggestions.replace(/\n/g, '<br>')}</div>`;
-            } else if (data.error) {
-                content.innerHTML = `<div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-100 text-sm text-red-700">${data.error}</div>`;
-            }
-        })
-        .catch(err => {
-            content.innerHTML = `<div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-100 text-sm text-red-700">Failed to generate suggestions. Please try again.</div>`;
-            console.error(err);
-        })
-        .finally(() => {
-            btn.disabled = false;
-            spinner.classList.add('hidden');
-            btnText.textContent = 'Regenerate';
-        });
+    document.addEventListener('input', function(e) {
+        if (e.target.matches('[data-comment-input]')) {
+            var index = parseInt(e.target.getAttribute('data-comment-input'));
+            updateCommentButtonState(index);
+            if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        var action = btn.getAttribute('data-action');
+        if (action === 'select-rating') {
+            selectRating(parseInt(btn.getAttribute('data-index')), parseInt(btn.getAttribute('data-value')));
+        } else if (action === 'select-no') {
+            selectNo(parseInt(btn.getAttribute('data-index')));
+        } else if (action === 'mark-all-no') {
+            markAllNo();
+        } else if (action === 'toggle-comment') {
+            toggleComment(parseInt(btn.getAttribute('data-index')));
+        }
     });
 </script>
 @include('partials.autosave')

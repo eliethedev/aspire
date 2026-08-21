@@ -48,6 +48,9 @@ class Observation extends Model
         'rejection_notes',
         'confirmed_at',
         'rejected_at',
+        'school_head_id',
+        'finalized_at',
+        'finalized_by',
     ];
 
     protected $casts = [
@@ -57,6 +60,7 @@ class Observation extends Model
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'finalized_at' => 'datetime',
     ];
 
     public function startTimeLabel(): Attribute
@@ -165,6 +169,14 @@ class Observation extends Model
     }
 
     /**
+     * Observation has one EPOC Evaluation record
+     */
+    public function epocEvaluation()
+    {
+        return $this->hasOne(EpocEvaluation::class);
+    }
+
+    /**
      * Observation has many logs
      */
     public function logs()
@@ -220,6 +232,22 @@ class Observation extends Model
     }
 
     /**
+     * Observation is assigned to a School Head
+     */
+    public function schoolHead(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'school_head_id');
+    }
+
+    /**
+     * User who finalized the observation
+     */
+    public function finalizedBy()
+    {
+        return $this->belongsTo(User::class, 'finalized_by');
+    }
+
+    /**
      * User who cancelled the observation
      */
     public function cancelledBy()
@@ -256,6 +284,41 @@ class Observation extends Model
             'cancellation_reason' => $reason,
             'cancelled_by' => Auth::id(),
             'cancelled_at' => now(),
+        ]);
+    }
+
+    /**
+     * Check if the observation has been finalized by the supervisor
+     */
+    public function isFinalized(): bool
+    {
+        return $this->finalized_at !== null;
+    }
+
+    /**
+     * Check if the observation can be finalized.
+     * Only when status is cot_completed and not yet finalized.
+     */
+    public function canFinalize(): bool
+    {
+        return $this->status === 'cot_completed' && !$this->isFinalized();
+    }
+
+    /**
+     * Finalize the observation
+     */
+    public function finalize(): void
+    {
+        $this->logChange([
+            'from_status' => $this->status,
+            'to_status' => 'completed',
+            'notes' => 'Observation finalized by supervisor',
+        ]);
+
+        $this->update([
+            'status' => 'completed',
+            'finalized_at' => now(),
+            'finalized_by' => Auth::id(),
         ]);
     }
 

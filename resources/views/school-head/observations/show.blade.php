@@ -30,6 +30,11 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                         Cancelled
                     </span>
+                @elseif($observation->isFinalized())
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Finalized
+                    </span>
                 @endif
             </div>
             <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
@@ -44,12 +49,93 @@
                     | {{ $observation->subject }} - {{ $observation->grade_level }}
                 @endif
             </p>
+            @if($observation->schoolHead)
+            <p class="text-xs text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                School Head: {{ $observation->schoolHead->name }}
+            </p>
+            @endif
         </div>
-        <a href="{{ route('school-head.observations.index') }}" 
+        <a href="{{ route('school-head.observations.index') }}"
            class="px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors">
             Back to List
         </a>
     </div>
+
+    {{-- Current Evaluation / Conference Type Indicator --}}
+    @php
+        $stageConfig = [
+            'pre_observation_planning' => [
+                'label' => 'Pre-Observation Planning',
+                'desc'   => 'Lesson plan review & preparation',
+                'color'  => 'blue',
+                'bg'     => 'bg-blue-50 dark:bg-blue-900/20',
+                'border' => 'border-blue-200 dark:border-blue-800',
+                'text'   => 'text-blue-700 dark:text-blue-300',
+                'dot'    => 'bg-blue-500',
+                'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
+            ],
+            'pre_conference' => [
+                'label' => 'Pre-Conference',
+                'desc'   => 'Pre-observation discussion with teacher',
+                'color'  => 'amber',
+                'bg'     => 'bg-amber-50 dark:bg-amber-900/20',
+                'border' => 'border-amber-200 dark:border-amber-800',
+                'text'   => 'text-amber-700 dark:text-amber-300',
+                'dot'    => 'bg-amber-500',
+                'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>',
+            ],
+            'observation' => [
+                'label' => 'Classroom Observation',
+                'desc'   => 'Live classroom observation in progress',
+                'color'  => 'indigo',
+                'bg'     => 'bg-indigo-50 dark:bg-indigo-900/20',
+                'border' => 'border-indigo-200 dark:border-indigo-800',
+                'text'   => 'text-indigo-700 dark:text-indigo-300',
+                'dot'    => 'bg-indigo-500',
+                'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>',
+            ],
+            'post_conference' => [
+                'label' => 'Post-Conference',
+                'desc'   => 'Feedback discussion & action plan',
+                'color'  => 'green',
+                'bg'     => 'bg-green-50 dark:bg-green-900/20',
+                'border' => 'border-green-200 dark:border-green-800',
+                'text'   => 'text-green-700 dark:text-green-300',
+                'dot'    => 'bg-green-500',
+                'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+            ],
+        ];
+        $currentStage = $observation->stage;
+        $cfg = $stageConfig[$currentStage] ?? null;
+    @endphp
+
+    @if($cfg)
+    <div class="mb-6 flex justify-center">
+        <div class="w-full max-w-2xl {{ $cfg['bg'] }} border {{ $cfg['border'] }} rounded-xl px-4 py-3 sm:px-6 sm:py-4 flex items-center gap-3 sm:gap-4 shadow-sm">
+            <div class="shrink-0 {{ $cfg['text'] }}">
+                {!! $cfg['icon'] !!}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider {{ $cfg['text'] }}">
+                        <span class="w-2 h-2 rounded-full {{ $cfg['dot'] }} animate-pulse"></span>
+                        Current Stage
+                    </span>
+                </div>
+                <p class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $cfg['label'] }}</p>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{{ $cfg['desc'] }}</p>
+            </div>
+            @if($observation->observation_type)
+            <div class="shrink-0 hidden sm:block">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                    {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
+                </span>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
 
     @php
         $stageRoutes = [
@@ -362,6 +448,86 @@
                         @endif
                     </div>
                 @endforeach
+            </div>
+        </div>
+        @endif
+
+        <!-- EPOC Evaluation (School Head) -->
+        @if($observation->epocEvaluation)
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Evaluation</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">School Head Assessment &middot; DepEd CID Format</p>
+                    </div>
+                </div>
+                @if($observation->epocEvaluation->overall_score)
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Overall Score</p>
+                    <div class="flex items-end gap-1">
+                        <p class="text-gray-900 dark:text-gray-100 font-bold text-3xl tracking-tight">{{ number_format($observation->epocEvaluation->overall_score, 1) }}</p>
+                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ 5</p>
+                    </div>
+                </div>
+                @endif
+            </div>
+            @if($observation->epocEvaluation->school_head_name)
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">School Head: <span class="font-medium">{{ $observation->epocEvaluation->school_head_name }}</span></p>
+            @endif
+            <div class="space-y-2.5">
+                @php
+                    $groupedEpoc = $observation->epocEvaluation->ratings->groupBy('domain');
+                @endphp
+                @foreach($groupedEpoc as $domain => $ratings)
+                <div class="rounded-xl border border-purple-100 dark:border-purple-900/30 overflow-hidden">
+                    <div class="bg-purple-50 dark:bg-purple-900/20 px-4 py-2">
+                        <p class="text-sm font-semibold text-purple-800 dark:text-purple-300">{{ $domain }}</p>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach($ratings as $rating)
+                        <div class="px-4 py-2.5 flex items-center justify-between gap-4">
+                            <p class="text-sm text-gray-700 dark:text-gray-300">{{ $rating->indicator }}</p>
+                            @if($rating->rating)
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0
+                                {{ $rating->rating >= 4 ? 'bg-green-100 text-green-700' : ($rating->rating >= 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
+                                {{ $rating->rating }}
+                            </span>
+                            @else
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-gray-100 text-gray-400 shrink-0">—</span>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @if($observation->epocEvaluation->narrative_observation)
+            <div class="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Narrative Observation</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ $observation->epocEvaluation->narrative_observation }}</p>
+            </div>
+            @endif
+            @if($observation->epocEvaluation->agreement)
+            <div class="mt-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Agreement</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ $observation->epocEvaluation->agreement }}</p>
+            </div>
+            @endif
+        </div>
+        @elseif($observation->schoolHead && !$observation->isFinalized())
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-dashed border-purple-200 dark:border-purple-800 p-6">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Evaluation Not Yet Completed</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">The observer has not yet completed the Enhanced Post-Observation Conference evaluation for the School Head. This section will be updated once it becomes available.</p>
+                </div>
             </div>
         </div>
         @endif

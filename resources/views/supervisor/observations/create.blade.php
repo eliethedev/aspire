@@ -51,33 +51,33 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">Set up a classroom observation or leadership evaluation.</p>
+<div class="max-w-7xl mx-auto px-3 sm:px-6" x-data="observationForm()" x-cloak>
+    <div class="mb-4">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — 5 quick steps.</p>
 
-        <!-- Live context chips -->
-        <div x-show="selectedObservee" x-cloak class="mt-3 flex flex-wrap items-center gap-2">
-            <span class="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Observing</span>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 text-xs font-semibold">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <!-- Live context chips — compact -->
+        <div x-show="selectedObservee" x-cloak class="mt-2 flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Observing</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 text-xs font-medium">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span x-text="selectedObservee?.name"></span>
             </span>
             <template x-if="selectedCotTemplate">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 text-xs font-semibold">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 text-xs font-medium">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     <span x-text="selectedCotTemplate.label"></span>
                 </span>
             </template>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <form method="POST" action="{{ route('supervisor.observations.store') }}" @submit="submitting = true" class="lg:col-span-2">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <form method="POST" action="{{ route('supervisor.observations.store') }}" class="lg:col-span-2">
         @csrf
 
-        <!-- Progress Steps -->
-        <div class="flex items-center gap-2 mb-8 text-sm overflow-x-auto pb-2">
+        <!-- Progress Steps — minimized -->
+        <div class="flex items-center gap-1.5 mb-4 text-xs overflow-x-auto pb-1">
             <template x-for="(step, i) in steps" :key="i">
                 <div class="flex items-center gap-2">
                     <button type="button" @click="jumpToStep(i + 1)"
@@ -100,104 +100,102 @@
 
         <!-- ===== STEP 1: WHO WILL BE OBSERVED? ===== -->
         <div x-show="currentStep === 1" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Who will be observed?</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Choose the type of observation you want to conduct.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">1</span>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Who will be observed?</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Choose observation type</p>
+                    </div>
+                </div>
 
-                <div class="grid sm:grid-cols-2 gap-4">
+                <div class="grid sm:grid-cols-2 gap-3">
                     <!-- Teacher Card -->
-                    <label class="type-card rounded-xl p-5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer hover:shadow-md"
-                           :class="selectedType === 'teacher_observation' ? 'selected' : ''">
+                    <label class="type-card rounded-xl p-3.5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer"
+                           :class="selectedType === 'teacher_observation' ? 'selected ring-1 ring-indigo-200' : ''">
                         <input type="radio" name="observation_type" value="teacher_observation"
                                x-model="selectedType" @change="onTypeChange()" class="sr-only">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
                             </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100">Teacher (TI – TIII)</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Classroom observation using COT Rating Sheet (Annex E-2).</p>
+                            <div class="min-w-0">
+                                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Teacher <span class="text-xs font-normal text-gray-400">TI–TIII</span></h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">COT Rating Sheet (Annex E-2)</p>
+                                <span x-show="selectedType==='teacher_observation'" class="mt-1.5 inline-flex text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">Selected</span>
                             </div>
                         </div>
                     </label>
 
                     <!-- School Head Card -->
-                    <label class="type-card rounded-xl p-5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer hover:shadow-md"
-                           :class="selectedType === 'school_head_observation' ? 'selected' : ''">
+                    <label class="type-card rounded-xl p-3.5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 cursor-pointer"
+                           :class="selectedType === 'school_head_observation' ? 'selected ring-1 ring-emerald-200' : ''">
                         <input type="radio" name="observation_type" value="school_head_observation"
                                x-model="selectedType" @change="onTypeChange()" class="sr-only">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900 dark:text-gray-100">School Head / Principal</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Leadership & instructional leadership evaluation.</p>
+                            <div class="min-w-0">
+                                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">School Head/Principal</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">Leadership evaluation</p>
+                                <span x-show="selectedType==='school_head_observation'" class="mt-1.5 inline-flex text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Selected</span>
                             </div>
                         </div>
                     </label>
                 </div>
 
                 @error('observation_type')
-                    <p class="mt-3 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="flex justify-end mt-6">
+            <div class="flex justify-end mt-4">
                 <button type="button" @click="goToStep(2)" :disabled="!selectedType"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
-                    Continue
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
+                    Continue <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
         <!-- ===== STEP 2: SELECT COT TEMPLATE ===== -->
         <div x-show="currentStep === 2" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Select COT Template</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">
-                    The selected template determines the indicators used for the
-                    <template x-if="selectedType === 'teacher_observation'">teacher observation.</template>
-                    <template x-if="selectedType === 'school_head_observation'">school head observation.</template>
-                    Only published templates for the current school year are shown.
-                </p>
-
-                <div x-show="templateOptions.length === 0" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                    <p class="text-sm">No published COT templates are available for the current school year ({{ $schoolYear }}).</p>
-                    <p class="text-xs mt-1">Ask an admin to publish a COT template for this school year.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">2</span>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Select COT Template</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <template x-if="selectedType === 'teacher_observation'">For teacher observation</template>
+                            <template x-if="selectedType === 'school_head_observation'">For school head observation</template>
+                            · SY {{ $schoolYear }}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="space-y-3">
+                <div x-show="templateOptions.length === 0" class="text-center py-6 text-gray-400 dark:text-gray-500">
+                    <p class="text-xs">No published COT templates for SY {{ $schoolYear }}. Ask admin to publish one.</p>
+                </div>
+
+                <div class="space-y-2">
                     <template x-for="template in templateOptions" :key="template.id">
-                        <label class="type-card block rounded-xl p-5 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer hover:shadow-md"
-                               :class="selectedCotTemplateId === template.id ? 'selected' : ''">
+                        <label class="type-card block rounded-xl p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 cursor-pointer"
+                               :class="selectedCotTemplateId === template.id ? 'selected ring-1 ring-indigo-200' : ''">
                             <input type="radio" name="cot_indicator_version_id" :value="template.id"
                                    x-model="selectedCotTemplateId" @change="onTemplateChange()" class="sr-only">
-                            <div class="flex items-start gap-4">
-                                <div class="w-11 h-11 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
                                         <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.label"></h3>
-                                        <span x-show="template.is_default" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                                            Default
-                                        </span>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
-                                            <span x-text="template.indicators_count"></span> indicators
-                                        </span>
+                                        <span x-show="template.is_default" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700">Default</span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[13px] font-medium bg-indigo-100 text-indigo-700"><span x-text="template.indicators_count"></span>  - indicators</span>
                                     </div>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        <span x-text="template.framework_label"></span>
-                                        <span x-text="' · ' + template.instrument_label"></span>
-                                        <template x-if="template.career_stage_label">
-                                            <span x-text="' · ' + template.career_stage_label"></span>
-                                        </template>
-                                    </p>
-                                    <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5">
-                                        School Year: <span x-text="template.school_year"></span>
-                                        &middot; Ratee: <span x-text="template.ratee_role_label"></span>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                                        <span x-text="template.framework_label"></span> · <span x-text="template.instrument_label"></span>
+                                        <template x-if="template.career_stage_label"><span x-text="' · ' + template.career_stage_label"></span></template>
                                     </p>
                                 </div>
                             </div>
@@ -206,43 +204,47 @@
                 </div>
 
                 @error('cot_indicator_version_id')
-                    <p class="mt-3 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="flex justify-between items-center mt-6">
+            <div class="flex justify-between items-center mt-4">
                 <button type="button" @click="goToStep(1)"
-                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 font-medium inline-flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Back
                 </button>
                 <button type="button" @click="goToStep(3)" :disabled="!selectedCotTemplateId"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
-                    Continue
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
+                    Continue <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
         <!-- ===== STEP 3: BROWSE & SELECT OBSERVEE ===== -->
         <div x-show="currentStep === 3" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                    <template x-if="selectedType === 'teacher_observation'">Select a Teacher</template>
-                    <template x-if="selectedType === 'school_head_observation'">Select a School Head</template>
-                </h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">Search or browse to find the person you want to observe.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">3</span>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            <template x-if="selectedType === 'teacher_observation'">Select a Teacher</template>
+                            <template x-if="selectedType === 'school_head_observation'">Select a School Head</template>
+                        </h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Search or browse</p>
+                    </div>
+                </div>
 
                 <!-- Search -->
-                <div class="relative mb-5">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <div class="relative mb-3">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" x-model="searchQuery" @input="searchQuery = $event.target.value"
-                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                           placeholder="Type name, subject, grade level, or department...">
+                           class="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                           placeholder="Name, subject, grade...">
                 </div>
 
                 <!-- Results List -->
-                <div x-show="filteredList.length > 0 && !selectedObservee" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                <div x-show="filteredList.length > 0 && !selectedObservee" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
                     <template x-for="item in filteredList" :key="item.id">
                         <button type="button" @click="selectObservee(item)"
                                 class="observee-card w-full text-left rounded-lg px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 hover:bg-indigo-50/30 flex items-center gap-4">
@@ -270,48 +272,43 @@
                     <p class="text-sm">No matches found. Try a different search term.</p>
                 </div>
 
-                <!-- Selected Observee Card -->
+                <!-- Selected Observee Card — compact -->
                 <div x-show="selectedObservee" class="fade-in">
-                    <div class="rounded-xl border-2 border-indigo-200 bg-indigo-50/40 p-5">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-lg font-bold" x-text="selectedObservee.name.charAt(0).toUpperCase()"></div>
+                    <div class="rounded-xl border border-indigo-200 bg-indigo-50/40 p-3.5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold" x-text="selectedObservee.name.charAt(0).toUpperCase()"></div>
                                 <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-base" x-text="selectedObservee.name"></h3>
+                                    <div class="flex items-center gap-1.5">
+                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="selectedObservee.name"></h3>
                                         <template x-if="selectedObservee.profile_url">
-                                            <a :href="selectedObservee.profile_url" target="_blank"
-                                               class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full transition-colors">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-                                                View Profile
-                                            </a>
+                                            <a :href="selectedObservee.profile_url" target="_blank" class="text-xs font-medium text-indigo-600 hover:underline">View Profile →</a>
                                         </template>
                                     </div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee.position"></p>
+                                    <p class="text-xs text-gray-500" x-text="selectedObservee.position"></p>
                                 </div>
                             </div>
-                            <button type="button" @click="selectedObservee = null; searchQuery = ''"
-                                    class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 p-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <button type="button" @click="selectedObservee = null; searchQuery = ''" class="text-gray-400 hover:text-gray-600 p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2.5 text-sm">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
                             <template x-if="selectedType === 'teacher_observation'">
                                 <>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Department</span><p class="font-medium text-gray-800" x-text="selectedObservee.department"></p></div>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800" x-text="selectedObservee.subject"></p></div>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800" x-text="selectedObservee.grade_level"></p></div>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Employee No.</span><p class="font-medium text-gray-800" x-text="selectedObservee.employee_number"></p></div>
+                                    <div><span class="text-gray-400">Department</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.department"></p></div>
+                                    <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.subject"></p></div>
+                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.grade_level"></p></div>
+                                    <div><span class="text-gray-400">Employee No.</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.employee_number"></p></div>
                                 </>
                             </template>
                             <template x-if="selectedType !== 'teacher_observation'">
                                 <>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Position Level</span><p class="font-medium text-gray-800" x-text="selectedObservee.position_level"></p></div>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800" x-text="selectedObservee.subject"></p></div>
-                                    <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800" x-text="selectedObservee.grade_level"></p></div>
+                                    <div><span class="text-gray-400">Position Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.position_level"></p></div>
+                                    <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.subject"></p></div>
+                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.grade_level"></p></div>
                                 </>
                             </template>
-                            <div><span class="text-gray-500 dark:text-gray-400">Email</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.email"></p></div>
+                            <div><span class="text-gray-400">Email</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.email"></p></div>
                         </div>
 
                         <!-- Recent Observations -->
@@ -372,50 +369,55 @@
 
         <!-- ===== STEP 4: OBSERVATION SCHEDULE ===== -->
         <div x-show="currentStep === 4" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Schedule</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Set the date, time, and location for the observation.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">4</span>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Observation Schedule</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Date, time & location</p>
+                    </div>
+                </div>
 
-                <!-- Section: When & Where -->
-                <div class="mb-7">
-                    <div class="flex items-center gap-2 mb-4">
-                        <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">When &amp; Where</h3>
+                <!-- Section: When & Where — minimized -->
+                <div class="mb-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <h3 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">When &amp; Where</h3>
                     </div>
 
                     <!-- Observation Date -->
-                    <div class="sm:col-span-2 mb-5">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Date</label>
+                    <div class="sm:col-span-2 mb-3">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Date</label>
                         <input type="date" name="observation_date" x-model="form.observation_date" required :min="today"
-                               class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                               class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                         <!-- Start Time -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Start Time</label>
                             <input type="time" name="start_time" x-model="form.start_time"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             @error('start_time')
-                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- End Time -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">End Time</label>
                             <input type="time" name="end_time" x-model="form.end_time"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             @error('end_time')
-                                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Observation Mode -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Mode</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Mode</label>
                             <select name="observation_mode" x-model="form.observation_mode"
-                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                                 <option value="in_person">In-Person</option>
                                 <option value="virtual">Virtual</option>
                                 <option value="hybrid">Hybrid</option>
@@ -424,35 +426,36 @@
 
                         <!-- Location -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Location <span class="text-gray-400 font-normal">(optional)</span></label>
                             <input type="text" name="location" x-model="form.location"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                   placeholder="e.g., Room 204, LRC, or Online link">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                   placeholder="Room 204 / Online link">
                         </div>
                     </div>
                 </div>
 
-                <div class="border-t border-gray-100 dark:border-gray-800 pt-6 mb-7">
-                    <div class="flex items-center gap-2 mb-4">
-                        <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Academic Context</h3>
-                        <span class="text-[11px] text-gray-400 dark:text-gray-500 font-normal">Auto-filled from the ratee's profile — edit if needed</span>
+                <!-- Academic Context — minimized -->
+                <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
+                        <h3 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Academic Context</h3>
+                        <span class="text-[10px] text-gray-400 font-normal">Auto-filled — edit if needed</span>
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                         <!-- School Year -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School Year</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">School Year</label>
                             <input type="text" name="school_year" x-model="form.school_year"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                   placeholder="e.g., 2024-2025">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                   placeholder="2024-2025">
                         </div>
 
                         <!-- Quarter -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quarter</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Quarter</label>
                             <select name="quarter" x-model="form.quarter"
-                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                                 <option value="">Select quarter</option>
                                 <option value="1">1st Quarter</option>
                                 <option value="2">2nd Quarter</option>
@@ -463,9 +466,9 @@
 
                         <!-- Observation Number -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Number</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Number</label>
                             <select name="observation_number" x-model="form.observation_number"
-                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                                 <option value="1">1st Observation</option>
                                 <option value="2">2nd Observation</option>
                             </select>
@@ -473,63 +476,128 @@
 
                         <!-- Subject (auto-filled) -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                             <div class="relative">
                                 <input type="text" name="subject" x-model="form.subject"
-                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                       placeholder="Auto-filled from profile">
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                       placeholder="Auto-filled">
                                 <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
-                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
+                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">Auto</span>
                                 </template>
                             </div>
                         </div>
 
                         <!-- Grade Level (auto-filled) -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Grade Level</label>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Grade Level</label>
                             <div class="relative">
                                 <input type="text" name="grade_level" x-model="form.grade_level"
-                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                       placeholder="Auto-filled from profile">
+                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                       placeholder="Auto-filled">
                                 <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
-                                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
+                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">Auto</span>
                                 </template>
                             </div>
                         </div>
 
                         <!-- Notes -->
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
-                            <textarea name="notes" x-model="form.notes" rows="3"
-                                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                      placeholder="Add any additional notes or context..."></textarea>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Notes <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <textarea name="notes" x-model="form.notes" rows="2"
+                                      class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                      placeholder="Additional notes..."></textarea>
                         </div>
                     </div>
                 </div>
+
+                <!-- School Head Involvement — CLEAR FLOW, UX friendly -->
+                <div class="rounded-xl border-2 p-3.5" :class="form.school_head_id ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-900/10' : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30'">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">School Head involvement <span class="text-xs font-normal text-gray-400">— Optional</span></h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Invite a School Head to co-observe. They'll be notified and can submit separate ratings.</p>
+                        </div>
+                        <span class="text-[10px] font-medium px-2 py-1 rounded-full shrink-0" :class="form.school_head_id ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-600'"><span x-text="form.school_head_id ? 'Included' : 'Not included'"></span></span>
+                    </div>
+
+                    <!-- Clear choice — two cards -->
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                        <button type="button" @click="form.school_head_id=''" :class="!form.school_head_id ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'" class="rounded-xl border-2 p-3 text-left transition-all">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="!form.school_head_id ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'"><svg x-show="!form.school_head_id" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                                <div>
+                                    <p class="text-xs font-semibold" :class="!form.school_head_id ? 'text-indigo-700' : 'text-gray-700 dark:text-gray-300'">Supervisor only</p>
+                                    <p class="text-[11px] text-gray-400">You observe alone</p>
+                                </div>
+                            </div>
+                        </button>
+                        <button type="button" @click="if(!form.school_head_id) form.school_head_id='{{ $schoolHeadData[0]['user_id'] ?? '' }}'" :class="form.school_head_id ? 'border-amber-600 bg-amber-50 ring-1 ring-amber-200' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'" class="rounded-xl border-2 p-3 text-left transition-all">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="form.school_head_id ? 'border-amber-600 bg-amber-600' : 'border-gray-300'"><svg x-show="form.school_head_id" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                                <div>
+                                    <p class="text-xs font-semibold" :class="form.school_head_id ? 'text-amber-700' : 'text-gray-700 dark:text-gray-300'">With School Head</p>
+                                    <p class="text-[11px] text-gray-400">Co-observer</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Flow visualization -->
+                    <div class="mt-3 flex items-center justify-center gap-1.5 text-xs">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Supervisor</span>
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium" :class="form.school_head_id ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-gray-500 border border-dashed'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> <span x-text="form.school_head_id ? 'School Head' : '—'"></span></span>
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg> <span class="truncate max-w-[80px]" x-text="selectedObservee?.name?.split(' ')[0] || 'Teacher'"></span></span>
+                    </div>
+
+                    <div x-show="!!form.school_head_id" x-transition class="mt-3">
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Select School Head <span class="text-amber-600">*</span></label>
+                        <select name="school_head_id" x-model="form.school_head_id"
+                                class="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                            <option value="">— Choose School Head —</option>
+                            @foreach($schoolHeadData as $sh)
+                                <option value="{{ $sh['user_id'] }}">{{ $sh['name'] }} — {{ $sh['position'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('school_head_id')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1.5 text-xs text-emerald-600 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Will be notified and can co-rate this observation.</p>
+                    </div>
+                    <div x-show="!form.school_head_id" class="mt-2 text-xs text-gray-400">Supervisor-only observation — continue to next step.</div>
+                </div>
             </div>
 
-            <div class="flex justify-between items-center mt-6">
+            <div class="flex justify-between items-center mt-4">
                 <button type="button" @click="goToStep(3)"
-                        class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 font-medium inline-flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Back
                 </button>
                 <button type="button" @click="goToStep(5)"
-                        class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
-                    Continue
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 inline-flex items-center gap-1.5">
+                    Continue <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE (OPTIONAL) ===== -->
+        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE (OPTIONAL) — minimized -->
         <div x-show="currentStep === 5" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Post-Observation Conference</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Optionally schedule a feedback conference after the observation.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">5</span>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Optional — schedule feedback later if needed</p>
+                    </div>
+                </div>
 
                 <!-- Toggle -->
-                <label class="flex items-start gap-3 cursor-pointer rounded-xl border-2 p-4 transition-all mb-6"
+                <label class="flex items-start gap-3 cursor-pointer rounded-xl border-2 p-4 transition-all mb-3"
                        :class="scheduleConference ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300'">
                     <input type="checkbox" name="schedule_conference" value="1" x-model="scheduleConference" class="sr-only">
                     <span class="w-5 h-5 rounded border-2 mt-0.5 flex items-center justify-center shrink-0 transition-colors"
@@ -543,33 +611,33 @@
                 </label>
 
                 <div x-show="scheduleConference" class="fade-in">
-                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                         <!-- Conference Date -->
                         <div class="sm:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Date</label>
                             <input type="date" name="conference_date" x-model="form.conference_date"
-                                   class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                   class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         </div>
 
                         <!-- Conference Start Time -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Time</label>
                             <input type="time" name="conference_start_time" x-model="form.conference_start_time"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         </div>
 
                         <!-- Conference End Time -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">End Time</label>
                             <input type="time" name="conference_end_time" x-model="form.conference_end_time"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         </div>
 
                         <!-- Conference Mode -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Mode</label>
                             <select name="conference_mode" x-model="form.conference_mode"
-                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                                 <option value="in_person">In-Person</option>
                                 <option value="virtual">Virtual</option>
                                 <option value="hybrid">Hybrid</option>
@@ -580,7 +648,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
                             <input type="text" name="conference_location" x-model="form.conference_location"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="e.g., Office, Meeting Room, or Online link">
 
                             @error('conference_start_time')
@@ -611,12 +679,13 @@
         <!-- ===== CONFIRMATION MODAL ===== -->
         <div x-show="showConfirmModal" x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             @click.self="showConfirmModal = false"
              @keydown.escape.window="showConfirmModal = false">
-            <div class="modal-backdrop fixed inset-0 bg-black/40" @click="showConfirmModal = false"></div>
-            <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto fade-in">
+            <div class="modal-backdrop fixed inset-0 bg-black/40 pointer-events-none"></div>
+            <div class="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto fade-in">
                 <div class="p-6 sm:p-8">
                     <!-- Modal Header -->
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -693,6 +762,16 @@
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Notes</p>
                             <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" x-text="form.notes"></p>
                         </div>
+
+                        <!-- School Head (if selected) -->
+                        <div x-show="form.school_head_id" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">School Head</p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                @foreach($schoolHeadData as $sh)
+                                    <span x-show="form.school_head_id == '{{ $sh['user_id'] }}'">{{ $sh['name'] }}</span>
+                                @endforeach
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Modal Actions -->
@@ -701,8 +780,8 @@
                                 class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors">
                             Go Back
                         </button>
-                        <button type="submit" :disabled="submitting"
-                                :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
+                        <button type="submit"
+                                @click="submitting = true"
                                 class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
                             <span x-show="!submitting">Confirm &amp; Schedule</span>
                             <span x-show="submitting" class="flex items-center gap-2">
@@ -721,6 +800,8 @@
         <input type="hidden" name="cot_indicator_version_id" x-model="selectedCotTemplateId">
         <!-- This wizard only schedules observations (no immediate option) -->
         <input type="hidden" name="schedule_type" value="scheduled">
+        <!-- School Head (optional) -->
+        <input type="hidden" name="school_head_id" x-model="form.school_head_id">
     </form>
 
     <!-- Sticky Summary Sidebar -->
@@ -858,6 +939,7 @@
                 conference_end_time: @json(old('conference_end_time')),
                 conference_location: @json(old('conference_location')),
                 conference_mode: @json(old('conference_mode', 'in_person')),
+                school_head_id: @json(old('school_head_id')),
             },
 
             get templateOptions() {
@@ -1030,7 +1112,10 @@
                     this.goToStep(this.selectedCotTemplateId ? 4 : 2);
                 } else if (this.selectedType) {
                     // Restore the correct step when re-rendering after validation error
-                    if (this.selectedCotTemplateId && this.selectedObservee) {
+                    const scheduleErrors = @if($errors->hasAny(['observation_date', 'start_time', 'end_time', 'school_head_id'])) true @else false @endif;
+                    if (scheduleErrors) {
+                        this.goToStep(4);
+                    } else if (this.selectedCotTemplateId && this.selectedObservee) {
                         this.goToStep(5);
                     } else if (this.selectedCotTemplateId) {
                         this.goToStep(3);

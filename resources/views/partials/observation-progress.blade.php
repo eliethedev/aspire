@@ -5,6 +5,12 @@
     Renders "Step X of N" with a percentage progress bar.
 --}}
 @php
+    $stageKeys = $stageKeys ?? [];
+    $stageLabels = $stageLabels ?? [];
+    $currentStage = $currentStage ?? ($observation->stage ?? null);
+@endphp
+@if(!empty($stageKeys))
+@php
     $totalStages = count($stageKeys);
     $currentIdx = array_search($currentStage ?? '', $stageKeys ?? []);
     $completed = $currentIdx === false ? 0 : $currentIdx;
@@ -28,3 +34,4 @@
         <div class="progress-fill" style="width: {{ $percent }}%"></div>
     </div>
 </div>
+@endif

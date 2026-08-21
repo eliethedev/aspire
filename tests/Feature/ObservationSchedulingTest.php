@@ -155,6 +155,56 @@ class ObservationSchedulingTest extends TestCase
         $this->assertSame($version->id, $observation->cot_indicator_version_id);
     }
 
+    public function test_scheduling_with_an_assigned_school_head_proceeds_to_next_stage(): void
+    {
+        $this->publishedVersion();
+        $this->template('teacher_observation');
+
+        $school = School::factory()->create();
+        $schoolHeadUser = User::factory()->create(['role' => 'school_head']);
+        $schoolHead = SchoolHeadProfile::create([
+            'user_id' => $schoolHeadUser->id,
+            'school_id' => $school->id,
+            'position_level' => 'principal_i',
+            'current_designation' => 'principal',
+            'position' => 'Principal I',
+        ]);
+
+        // The wizard's School Head dropdown submits the school head's USER id.
+        $response = $this->actingAs($this->supervisor)
+            ->post(route('supervisor.observations.store'), $this->schedulePayload([
+                'school_head_id' => $schoolHeadUser->id,
+            ]));
+
+        $observation = Observation::where('observee_id', $this->teacher->id)->first();
+
+        $this->assertNotNull($observation, 'Observation was not created.');
+        $response->assertRedirect(route('supervisor.observations.preObservationPlanning', $observation->id));
+        $this->assertSame($schoolHeadUser->id, $observation->school_head_id);
+        $this->assertNotNull($schoolHead);
+    }
+
+    public function test_create_page_lists_school_heads_by_user_id_for_assignment(): void
+    {
+        $this->publishedVersion();
+
+        $school = School::factory()->create();
+        $schoolHeadUser = User::factory()->create(['role' => 'school_head', 'name' => 'Principal Rita']);
+        SchoolHeadProfile::create([
+            'user_id' => $schoolHeadUser->id,
+            'school_id' => $school->id,
+            'position_level' => 'principal_i',
+            'current_designation' => 'principal',
+            'position' => 'Principal I',
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->get(route('supervisor.observations.create'))
+            ->assertOk()
+            ->assertSee('name="school_head_id"', false)
+            ->assertSee('value="'.$schoolHeadUser->id.'"', false);
+    }
+
     public function test_template_for_another_observation_type_is_rejected(): void
     {
         $this->publishedVersion();

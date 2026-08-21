@@ -222,11 +222,16 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::post('/observations/{observation}/request-lesson-plan', [SupervisorController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
     Route::get('/observations/{observation}/pre-conference', [SupervisorController::class, 'preConference'])->name('observations.preConference');
     Route::post('/observations/{observation}/pre-conference', [SupervisorController::class, 'storePreConference'])->name('observations.storePreConference');
+    Route::post('/observations/{observation}/agenda-checklist', [SupervisorController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
     Route::get('/observations/{observation}/observation', [SupervisorController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [SupervisorController::class, 'storeObservationData'])->name('observations.storeObservationData');
     Route::post('/observations/{observation}/autosave', [SupervisorController::class, 'autosave'])->name('observations.autosave');
     Route::get('/observations/{observation}/post-conference', [SupervisorController::class, 'postConference'])->name('observations.postConference');
     Route::post('/observations/{observation}/post-conference', [SupervisorController::class, 'storePostConference'])->name('observations.storePostConference');
+    Route::post('/observations/{observation}/finalize', [SupervisorController::class, 'finalize'])->name('observations.finalize');
+    Route::get('/observations/{observation}/epoc', [SupervisorController::class, 'epocEvaluation'])->name('observations.epoc');
+    Route::post('/observations/{observation}/epoc', [SupervisorController::class, 'storeEPOC'])->name('observations.storeEPOC');
+    Route::get('/observations/{observation}/epoc/download', [SupervisorController::class, 'downloadEpoc'])->name('observations.epoc.download');
 
     Route::get('/reports', [SupervisorController::class, 'reports'])->name('reports.index');
     Route::get('/reports/export', [SupervisorController::class, 'exportReports'])->middleware('throttle:exports')->name('reports.export');
@@ -305,6 +310,7 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     Route::post('/observations/{observation}/request-lesson-plan', [App\Http\Controllers\SchoolHead\ObservationController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
     Route::get('/observations/{observation}/pre-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'preConference'])->name('observations.preConference');
     Route::post('/observations/{observation}/pre-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storePreConference'])->name('observations.storePreConference');
+    Route::post('/observations/{observation}/agenda-checklist', [App\Http\Controllers\SchoolHead\ObservationController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
     Route::get('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservationData'])->name('observations.storeObservationData');
     Route::get('/observations/{observation}/post-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'postConference'])->name('observations.postConference');

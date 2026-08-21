@@ -3,6 +3,7 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
+@php $recentAuditLogs = $recentAuditLogs ?? collect(); @endphp
 <div class="space-y-6">
     <!-- Welcome Section -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
@@ -339,7 +340,7 @@
                     <div class="flex items-center gap-2">
                         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h2>
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 dark:text-gray-400">{{ count($recentAuditLogs) }}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 dark:text-gray-400">{{ count($recentAuditLogs ?? []) }}</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="{{ route('admin.audit-logs.index') }}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">View All</a>

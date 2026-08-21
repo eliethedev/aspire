@@ -50,12 +50,12 @@
         @csrf
 
         <!-- Progress Steps -->
-        <div class="flex items-center gap-2 mb-8 text-sm">
+        <div class="flex items-center gap-2 mb-4 text-xs">
             <template x-for="(step, i) in steps" :key="i">
                 <div class="flex items-center gap-2">
                     <div class="flex items-center gap-1.5">
                         <div :class="step.status === 'complete' ? 'bg-indigo-600 text-white' : step.status === 'active' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 border-2 border-indigo-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'"
-                             class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors">
+                             class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors">
                             <svg x-show="step.status === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span x-show="step.status !== 'complete'" x-text="i + 1"></span>
                         </div>
@@ -70,9 +70,9 @@
 
         <!-- ===== STEP 1: SELECT TEACHER ===== -->
         <div x-show="currentStep === 1" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Select a Teacher</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-5">Search or browse to find the teacher you want to observe.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Select a Teacher</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Search or browse to find the teacher you want to observe.</p>
 
                 <!-- COT Badge -->
                 <div class="mb-5 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100 flex items-center gap-2">
@@ -188,16 +188,16 @@
 
         <!-- ===== STEP 2: OBSERVATION DETAILS ===== -->
         <div x-show="currentStep === 2" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Details</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Configure the schedule and observation parameters.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Details</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Configure the schedule and observation parameters.</p>
 
-                <div class="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                     <!-- School Year -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School Year</label>
                         <input type="text" name="school_year" x-model="form.school_year"
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                placeholder="e.g., 2024-2025">
                     </div>
 
@@ -205,7 +205,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quarter</label>
                         <select name="quarter" x-model="form.quarter"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="">Select quarter</option>
                             <option value="1">1st Quarter</option>
                             <option value="2">2nd Quarter</option>
@@ -218,7 +218,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Number</label>
                         <select name="observation_number" x-model="form.observation_number"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="1">1st Observation</option>
                             <option value="2">2nd Observation</option>
                         </select>
@@ -228,7 +228,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Mode</label>
                         <select name="observation_mode" x-model="form.observation_mode"
-                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="in_person">In-Person</option>
                             <option value="virtual">Virtual</option>
                             <option value="hybrid">Hybrid</option>
@@ -240,7 +240,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
                         <div class="relative">
                             <input type="text" name="subject" x-model="form.subject"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Auto-filled from profile">
                             <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
                                 <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
@@ -253,7 +253,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Grade Level</label>
                         <div class="relative">
                             <input type="text" name="grade_level" x-model="form.grade_level"
-                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Auto-filled from profile">
                             <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
                                 <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
@@ -265,7 +265,7 @@
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Date</label>
                         <input type="date" name="observation_date" x-model="form.observation_date" required
-                               class="w-full sm:max-w-xs px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                               class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
                 </div>
             </div>
@@ -284,9 +284,9 @@
 
         <!-- ===== STEP 3: SCHEDULE TYPE & NOTES ===== -->
         <div x-show="currentStep === 3" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule & Notes</h2>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Choose when to conduct the observation and add notes.</p>
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule & Notes</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Choose when to conduct the observation and add notes.</p>
 
                 <div class="space-y-6">
                     <!-- Schedule Type -->
@@ -333,7 +333,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
                         <textarea name="notes" x-model="form.notes" rows="3"
-                                  class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                   placeholder="Add any additional notes or context..."></textarea>
                     </div>
                 </div>

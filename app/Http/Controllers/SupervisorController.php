@@ -378,6 +378,10 @@ class SupervisorController extends Controller
         })->map(function ($schoolHead) {
             return [
                 'id' => $schoolHead->id,
+                // The observations.school_head_id column references users.id,
+                // so assignment dropdowns must submit the user id, not the
+                // profile id (which is used for observee selection).
+                'user_id' => $schoolHead->user->id,
                 'name' => $schoolHead->user->name,
                 'email' => $schoolHead->user->email,
                 'subject' => $schoolHead->subject ?? 'Not set',
@@ -444,6 +448,7 @@ class SupervisorController extends Controller
             'conference_end_time' => ['nullable', 'date_format:H:i', 'after:conference_start_time'],
             'conference_location' => ['nullable', 'string', 'max:255'],
             'conference_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
+            'school_head_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -569,6 +574,7 @@ class SupervisorController extends Controller
             'observation_mode' => $validated['observation_mode'] ?? 'in_person',
             'form_template_id' => $activeTemplate?->id,
             'cot_indicator_version_id' => $cotIndicatorVersion?->id,
+            'school_head_id' => $validated['school_head_id'] ?? null,
         ]);
 
         // Attach the Post-Observation Conference schedule when requested.
@@ -624,7 +630,23 @@ class SupervisorController extends Controller
                 $observerName = Auth::user()->name;
                 $subject = 'ASPIRE - Classroom Observation Scheduled';
                 $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink, $timeLabel, $locationLabel);
-                $this->mailerService->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+                $this->mailerService->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+            }
+
+            // Notify school head if assigned
+            if ($observation->school_head_id) {
+                $schoolHeadUser = \App\Models\User::find($observation->school_head_id);
+                if ($schoolHeadUser) {
+                    $shLink = route('school-head.observations.show', $observation->id);
+                    $this->notificationService->notify(
+                        $schoolHeadUser,
+                        \App\Enums\NotificationType::OBSERVATION,
+                        'Observation Assignment',
+                        'You have been assigned to be present during a '.($observation->observation_type === 'teacher_observation' ? 'teacher' : 'school head').' observation on '.($formattedDate ?? 'No date').'.',
+                        null,
+                        $shLink
+                    );
+                }
             }
         }
 
@@ -1028,7 +1050,7 @@ class SupervisorController extends Controller
             'supervisor_notes' => ['nullable', 'string'],
         ]);
 
-        // Delete existing ratings
+        // Delete only this user's existing ratings (preserve school head EPOC ratings)
         $observation->cotRatings()->delete();
 
         // Create new ratings
@@ -1130,6 +1152,114 @@ class SupervisorController extends Controller
 
         return redirect()->route('supervisor.observations.postConference', $observation->id)
             ->with('success', 'Observation ratings have been saved. AI analysis has been generated.');
+    }
+
+    /**
+     * Finalize the observation - marks it as completed
+     */
+    public function finalize(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if (!$observation->canFinalize()) {
+            return back()->with('error', 'This observation cannot be finalized yet.');
+        }
+
+        $observation->finalize();
+
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $link = match (true) {
+                $observee instanceof Teacher => route('teacher.observations.show', $observation->id),
+                $observee instanceof SchoolHeadProfile => route('school-head.observations.show', $observation->id),
+                default => route('supervisor.observations.show', $observation->id),
+            };
+            $this->notificationService->notifyObservationCompleted($observee->user, $link);
+        }
+
+        return redirect()->route('supervisor.observations.show', $observation->id)
+            ->with('success', 'Observation has been finalized. The teacher can now view the results.');
+    }
+
+    /**
+     * Show EPOC Evaluation form for School Head
+     */
+    public function epocEvaluation(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $epocEvaluation = $observation->epocEvaluation;
+        $schoolHead = $observation->schoolHead;
+
+        return view('supervisor.observations.epoc', compact('observation', 'epocEvaluation', 'schoolHead'));
+    }
+
+    /**
+     * Store EPOC Evaluation data
+     */
+    public function storeEPOC(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $validated = $request->validate([
+            'school_head_name' => ['nullable', 'string'],
+            'observation_date' => ['nullable', 'date'],
+            'ratings' => ['required', 'array'],
+            'ratings.*.domain' => ['required', 'string'],
+            'ratings.*.indicator' => ['required', 'string'],
+            'ratings.*.rating' => ['nullable', 'integer', 'in:1,2,3,4,5'],
+            'ratings.*.comments' => ['nullable', 'string'],
+            'narrative_observation' => ['nullable', 'string'],
+            'agreement' => ['nullable', 'string'],
+        ]);
+
+        // Delete existing EPOC evaluation if any
+        $observation->epocEvaluation()->delete();
+
+        // Create EPOC evaluation
+        $epocEvaluation = $observation->epocEvaluation()->create([
+            'school_head_name' => $validated['school_head_name'] ?? $observation->schoolHead?->name,
+            'observation_date' => $validated['observation_date'] ?? $observation->observation_date,
+            'narrative_observation' => $validated['narrative_observation'] ?? null,
+            'agreement' => $validated['agreement'] ?? null,
+        ]);
+
+        // Create EPOC ratings
+        foreach ($validated['ratings'] as $item) {
+            $epocEvaluation->ratings()->create([
+                'domain' => $item['domain'],
+                'indicator' => $item['indicator'],
+                'rating' => $item['rating'] ?? null,
+                'comments' => $item['comments'] ?? null,
+            ]);
+        }
+
+        // Calculate overall score (average of non-null ratings, scale 1-5)
+        $rated = $epocEvaluation->ratings()->whereNotNull('rating');
+        $avgRating = $rated->exists() ? $rated->avg('rating') : null;
+        $epocEvaluation->update(['overall_score' => $avgRating]);
+
+        return redirect()->route('supervisor.observations.show', $observation->id)
+            ->with('success', 'EPOC evaluation has been saved successfully.');
+    }
+
+    /**
+     * Download EPOC evaluation as DOCX document
+     */
+    public function downloadEpoc(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if (!$observation->epocEvaluation) {
+            return back()->with('error', 'No EPOC evaluation has been completed for this observation.');
+        }
+
+        $service = new \App\Services\CotDocumentService();
+        $path = $service->generateEpocDocument($observation);
+        $filename = basename($path);
+
+        return Storage::disk(CotDocumentService::DISK)
+            ->download($path, $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
     }
 
     /**
@@ -1337,6 +1467,32 @@ class SupervisorController extends Controller
     }
 
     /**
+     * Save the pre-conference agenda checklist state.
+     */
+    public function saveAgendaChecklist(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $validated = $request->validate([
+            'checked' => 'required|array',
+            'checked.*' => 'integer|min:0',
+        ]);
+
+        $existing = $observation->preConference;
+        $merged = array_merge(
+            $existing?->form_responses ?? [],
+            ['agenda_checklist' => $validated['checked']]
+        );
+
+        $observation->preConference()->updateOrCreate(
+            ['observation_id' => $observation->id],
+            ['form_responses' => $merged]
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
      * View indicator trends for an observee
      */
     public function indicatorTrends(Observation $observation)
@@ -1420,7 +1576,9 @@ class SupervisorController extends Controller
             'preConference',
             'postConference',
             'cotRatings',
+            'epocEvaluation.ratings',
             'cancelledBy',
+            'schoolHead',
         ]);
 
         return view('supervisor.observations.show', compact('observation'));
@@ -1522,7 +1680,7 @@ class SupervisorController extends Controller
         $user = Auth::user();
 
         $query = Observation::query()
-            ->with(['observee.user', 'postConference'])
+            ->with(['observee.user', 'postConference', 'schoolHead', 'epocEvaluation'])
             ->where('observer_id', $user->id);
 
         // Search

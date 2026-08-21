@@ -1,0 +1,225 @@
+ASPIRE — Implement Template-Based Document Generation
+
+Goal:
+Allow ASPIRE to use official DOCX/XLSX templates provided by the client and generate downloadable documents by filling the template with data from the system.
+
+IMPORTANT:
+- Do NOT rewrite the existing observation workflow.
+- Do NOT replace the current COT/PPST logic.
+- Reuse existing models, controllers, services, routes, and permissions where possible.
+- Keep the implementation lightweight and modular.
+- Inspect the existing codebase before making changes.
+
+TECHNOLOGY:
+- Laravel/PHP
+- DOCX: PHPWord
+- XLSX: PhpSpreadsheet
+- Keep existing PDF generation unless a template conversion step is actually required.
+
+1. TEMPLATE STORAGE
+
+Create a document template system that can store:
+
+- template name
+- template type
+- file path
+- file extension
+- description
+- active/inactive status
+
+Supported template types initially:
+
+- COT
+- PPST
+- Pre-Observation
+- Post-Observation
+- Other
+
+Supported files:
+
+- .docx
+- .xlsx
+
+Store uploaded templates safely under Laravel storage.
+
+2. ADMIN TEMPLATE MANAGEMENT
+
+Add an Admin page:
+
+Admin → Document Templates
+
+Allow admin to:
+
+- view templates
+- upload a template
+- edit template name/description
+- activate/deactivate template
+- replace a template file
+- delete a template when safe
+
+Do not expose storage paths directly.
+
+3. TEMPLATE PLACEHOLDERS
+
+Use simple placeholders inside templates.
+
+DOCX example:
+
+${teacher_name}
+${school_name}
+${observer_name}
+${observation_date}
+${school_year}
+${overall_rating}
+
+For XLSX, allow mapped cells to receive values.
+
+Create a small reusable service such as:
+
+DocumentTemplateService
+
+Responsibilities:
+
+- load template
+- replace placeholders
+- populate mapped fields
+- return generated file
+- handle DOCX/XLSX separately
+
+Do not put document-generation logic directly inside controllers.
+
+4. COT GENERATION
+
+Integrate the template system with the existing COT observation records.
+
+When generating a COT document, populate available information such as:
+
+- teacher
+- school
+- observer
+- observation date
+- school year
+- grade/subject
+- observation number
+- indicators
+- ratings
+- comments
+- overall score
+- conference information
+
+For repeated COT indicator rows, use the existing observation/rating data.
+
+IMPORTANT:
+Preserve the official template's structure and formatting as much as PHPWord/PhpSpreadsheet allows.
+
+Do NOT recreate the entire COT document using hardcoded HTML/PDF cells if an official template exists.
+
+5. DOWNLOAD
+
+After generation, provide:
+
+- Download DOCX
+- Download XLSX where applicable
+- Existing PDF export should remain functional
+
+Use appropriate filenames, for example:
+
+COT_TeacherName_2027-2028.docx
+
+6. FIELD MAPPING
+
+Do not build a complicated visual template editor yet.
+
+For MVP, use a simple field-mapping configuration.
+
+Example:
+
+teacher_name → observation.teacher.name
+school_name → observation.teacher.school.name
+observer_name → observation.observer.name
+observation_date → observation.date
+overall_rating → observation.overall_score
+
+For XLSX, allow configuration such as:
+
+teacher_name → B5
+school_name → B6
+observer_name → B7
+overall_rating → F25
+
+Keep the mapping architecture extensible for future templates.
+
+7. SECURITY
+
+- Only authorized admins can upload/manage templates.
+- Validate file type and size.
+- Never execute uploaded files.
+- Store files outside the public directory.
+- Use Laravel Storage.
+- Do not allow arbitrary filesystem paths from user input.
+- Sanitize generated filenames.
+
+8. BACKWARD COMPATIBILITY
+
+Existing COT generation must continue working.
+
+If no custom template is configured:
+
+→ use the existing ASPIRE document generation method.
+
+If an active template exists:
+
+→ use the template-based generation method.
+
+This allows gradual migration.
+
+9. TESTING
+
+Add focused tests for:
+
+- template upload validation
+- template activation/deactivation
+- DOCX placeholder replacement
+- XLSX cell mapping
+- COT data population
+- unauthorized template management
+- fallback to existing document generation when no template exists
+
+Run the relevant tests after implementation.
+
+10. IMPLEMENTATION ORDER
+
+Do this in small steps:
+
+Step 1:
+Inspect the existing document/PDF generation code and observation models.
+
+Step 2:
+Install/configure PHPWord and PhpSpreadsheet only if they are not already installed.
+
+Step 3:
+Create the document template model + migration.
+
+Step 4:
+Create admin template management.
+
+Step 5:
+Create DocumentTemplateService.
+
+Step 6:
+Implement DOCX placeholder replacement.
+
+Step 7:
+Implement XLSX cell mapping.
+
+Step 8:
+Connect COT generation.
+
+Step 9:
+Add downloads.
+
+Step 10:
+Run tests and fix only issues caused by this feature.
+
+Before modifying existing functionality, explain which existing files will be affected and why.
+Do not make unrelated refactors.
