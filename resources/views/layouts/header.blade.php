@@ -14,16 +14,6 @@
 
     <!-- Right side: user menu, notifications -->
     <div class="flex items-center space-x-2 sm:space-x-3 ml-auto">
-      <!-- System setting: Text size (global, for senior-friendly readability) -->
-      <div class="hidden sm:flex items-center gap-1 p-1 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700" role="group" aria-label="Text size - system setting. Applies to all pages">
-        <span class="px-1.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase">Text Size</span>
-        <button type="button" @click="$store.accessibility.setLarge(false)"
-                :class="!$store.accessibility.large ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'"
-                class="px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors" title="Standard text size" aria-label="Standard text size" :aria-pressed="(!$store.accessibility.large).toString()">A</button>
-        <button type="button" @click="$store.accessibility.setLarge(true)"
-                :class="$store.accessibility.large ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700'"
-                class="px-2.5 py-1.5 rounded-md text-sm font-extrabold transition-colors" title="Large text - easier to read" aria-label="Large text for easier reading" :aria-pressed="$store.accessibility.large.toString()">A+</button>
-      </div>
       <!-- Theme toggle -->
       <button @click="$store.theme.toggle()" 
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
@@ -50,8 +40,8 @@
               {{ $initials }}
             </div>
             <div class="hidden md:block text-left">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-200 leading-tight">{{ $user->first_name ?? $user->name }}</p>
-              <p class="text-[11px] text-gray-400 dark:text-gray-500 capitalize leading-tight">{{ str_replace('_', ' ', $user->role) }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white leading-tight">{{ $user->first_name ?? $user->name }}</p>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 capitalize leading-tight">{{ str_replace('_', ' ', $user->role) }}</p>
             </div>
             <svg class="hidden md:block w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
@@ -79,7 +69,7 @@
           </div>
           <x-dropdown-link :href="route($profileRoute)">
             <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
               {{ __('Profile') }}
@@ -87,7 +77,7 @@
           </x-dropdown-link>
           <x-dropdown-link :href="route('support.create')">
             <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
               </svg>
               {{ __('Report a Bug / Feedback') }}

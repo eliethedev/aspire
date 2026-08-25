@@ -51,6 +51,54 @@ class PPSTRubricRepository
         return implode("\n", $lines);
     }
 
+    /**
+     * Targeted RAG context: only the requested indicators (with their
+     * domain/strand grouping). Used to avoid sending the full rubric.
+     *
+     * @param  array<int, string>  $codes
+     */
+    public function getIndicatorsContext(array $codes): string
+    {
+        $indicators = $this->indicators->getIndicatorsByCodes($codes);
+
+        if ($indicators === []) {
+            return '';
+        }
+
+        $grouped = [];
+        foreach ($indicators as $indicator) {
+            $grouped[$indicator['domain']][] = $indicator;
+        }
+
+        $lines = ['Applicable PPST/COT Indicators:'];
+        foreach ($grouped as $domain => $items) {
+            $lines[] = "- {$domain}:";
+            foreach ($items as $item) {
+                $lines[] = "    {$item['code']}: {$item['description']}";
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Targeted RAG context for whole domains.
+     *
+     * @param  array<int, string>  $domains
+     */
+    public function getDomainsContext(array $domains): string
+    {
+        $parts = [];
+        foreach ($domains as $domain) {
+            $context = $this->getDomainContext($domain);
+            if ($context !== '') {
+                $parts[] = $context;
+            }
+        }
+
+        return implode("\n\n", $parts);
+    }
+
     public function getRatingScaleContext(): string
     {
         $scale = config('cot.rating_scale', []);

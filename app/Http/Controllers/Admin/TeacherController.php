@@ -88,6 +88,7 @@ class TeacherController extends Controller
         return view('admin.teachers.show', compact(
             'teacher', 'careerContext', 'careerEvidence', 'careerReadiness'
         ))->with('careerRoute', route('admin.teachers.career-assessment', $teacher))
+            ->with('careerNextStages', $service->nextStageOptions($careerContext['career_stage']))
             ->with('canAssess', true);
     }
 
@@ -146,6 +147,7 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(CareerProgressionAssessment::STATUSES)],
+            'target_career_stage' => ['nullable', 'string', 'max:50'],
             'remarks' => ['nullable', 'string', 'max:1000'],
             'assessed_at' => ['nullable', 'date'],
         ]);

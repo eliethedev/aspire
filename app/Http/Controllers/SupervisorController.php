@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\AI\Exceptions\AIRateLimitException;
-use App\AI\Services\DocumentExtractorService;
+use App\AI\Support\AIStatus;
 use App\Enums\NotificationType;
 use App\Jobs\GeneratePostObservationFeedback;
 use App\Models\CareerProgressionAssessment;
+use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
 use App\Models\CotRating;
 use App\Models\FormTemplate;
@@ -21,7 +22,6 @@ use App\Services\CareerProgressionService;
 use App\Services\CotDocumentService;
 use App\Services\CotIndicatorService;
 use App\Services\FormTemplateService;
-use App\Services\GeminiService;
 use App\Services\IndicatorTrendService;
 use App\Services\NotificationService;
 use App\Services\ObservationComparisonService;
@@ -192,9 +192,11 @@ class SupervisorController extends Controller
 
         $careerService = app(CareerProgressionService::class);
         $rateeProfile = app(RateeProfileService::class)->for($teacher);
+        $careerContext = $careerService->contextFor($teacher);
 
         return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile'))
-            ->with('careerContext', $careerService->contextFor($teacher))
+            ->with('careerContext', $careerContext)
+            ->with('careerNextStages', $careerService->nextStageOptions($careerContext['career_stage']))
             ->with('careerEvidence', $careerService->evidenceFor($teacher))
             ->with('careerReadiness', $careerService->readinessFor($teacher))
             ->with('careerRoute', route('supervisor.teachers.career-assessment', $teacher))
@@ -217,6 +219,7 @@ class SupervisorController extends Controller
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(CareerProgressionAssessment::STATUSES)],
+            'target_career_stage' => ['nullable', 'string', 'max:50'],
             'remarks' => ['nullable', 'string', 'max:1000'],
             'assessed_at' => ['nullable', 'date'],
         ]);
@@ -224,6 +227,100 @@ class SupervisorController extends Controller
         app(CareerProgressionService::class)->recordAssessment($teacher, $user, $validated);
 
         return back()->with('success', 'Career progression readiness assessment saved.');
+    }
+
+    /**
+     * Browse the career progression readiness of all ratees in the school.
+     *
+     * Lists every teacher with their current career stage, latest readiness
+     * assessment, target stage, and a compact COT evidence summary, with
+     * filters by readiness status.
+     */
+    public function careerProgression(Request $request)
+    {
+        $user = Auth::user();
+        $careerService = app(CareerProgressionService::class);
+
+        $teachers = Teacher::query()
+            ->with('user')
+            ->whereHas('user', fn ($query) => $query->where('school_id', $user->school_id))
+            ->when($request->search, function ($query, $search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('id')
+            ->get();
+
+        $latestAssessments = CareerProgressionAssessment::with('evaluator')
+            ->where('ratee_type', Teacher::class)
+            ->whereIn('ratee_id', $teachers->pluck('id'))
+            ->latest('assessed_at')
+            ->latest('id')
+            ->get()
+            ->groupBy('ratee_id')
+            ->map->first();
+
+        $evidenceStats = Observation::where('observee_type', Teacher::class)
+            ->whereIn('observee_id', $teachers->pluck('id'))
+            ->whereNotNull('overall_score')
+            ->groupBy('observee_id')
+            ->selectRaw('observee_id, count(*) as observations_count, avg(overall_score) as avg_score, max(observation_date) as last_observation_date')
+            ->get()
+            ->keyBy('observee_id');
+
+        $rows = $teachers->map(function (Teacher $teacher) use ($latestAssessments, $evidenceStats, $careerService) {
+            $context = $careerService->contextFor($teacher);
+            $assessment = $latestAssessments->get($teacher->id);
+            $stats = $evidenceStats->get($teacher->id);
+
+            return [
+                'teacher' => $teacher,
+                'current_stage_label' => $context['career_stage_label'],
+                'assessment' => $assessment,
+                'status' => $assessment->status ?? 'not_yet_assessed',
+                'target_stage_label' => $assessment?->targetStageLabel(),
+                'observations_count' => (int) ($stats->observations_count ?? 0),
+                'avg_score' => $stats ? round((float) $stats->avg_score, 2) : null,
+                'last_observation_date' => $stats?->last_observation_date,
+            ];
+        });
+
+        $statusCounts = $rows->countBy('status');
+        $statusFilter = $request->status;
+
+        if ($statusFilter && in_array($statusFilter, array_merge(CareerProgressionAssessment::STATUSES, ['not_yet_assessed']), true)) {
+            $filtered = $rows->filter(fn (array $row) => $row['status'] === $statusFilter)->values();
+        } else {
+            $statusFilter = null;
+            $filtered = $rows;
+        }
+
+        // Ready for consideration first, then for review, needs development,
+        // not-yet-assessed; alphabetical within each group.
+        $priority = array_flip(array_merge(
+            [CareerProgressionAssessment::STATUS_READY_FOR_CONSIDERATION, CareerProgressionAssessment::STATUS_FOR_REVIEW, CareerProgressionAssessment::STATUS_NEEDS_DEVELOPMENT],
+            ['not_yet_assessed']
+        ));
+        $sorted = $filtered->sort(function (array $a, array $b) use ($priority) {
+            return [$priority[$a['status']] ?? 99, strtolower($a['teacher']->user->name)]
+                <=> [$priority[$b['status']] ?? 99, strtolower($b['teacher']->user->name)];
+        })->values();
+
+        return view('supervisor.career.index', [
+            'rows' => $sorted,
+            'statusCounts' => [
+                'all' => $rows->count(),
+                CareerProgressionAssessment::STATUS_READY_FOR_CONSIDERATION => $statusCounts->get(CareerProgressionAssessment::STATUS_READY_FOR_CONSIDERATION, 0),
+                CareerProgressionAssessment::STATUS_FOR_REVIEW => $statusCounts->get(CareerProgressionAssessment::STATUS_FOR_REVIEW, 0),
+                CareerProgressionAssessment::STATUS_NEEDS_DEVELOPMENT => $statusCounts->get(CareerProgressionAssessment::STATUS_NEEDS_DEVELOPMENT, 0),
+                'not_yet_assessed' => $statusCounts->get('not_yet_assessed', 0),
+            ],
+            'statusFilter' => $statusFilter,
+            'statuses' => CareerProgressionAssessment::statusOptions(),
+            'search' => $request->search,
+        ]);
     }
 
     /**
@@ -316,7 +413,7 @@ class SupervisorController extends Controller
 
         // Get teachers from the same school (using teacher's school_id directly)
         $teachers = Teacher::query()
-            ->with(['user'])
+            ->with(['user', 'school'])
             ->where('school_id', $user->school_id)
             ->get();
 
@@ -362,6 +459,7 @@ class SupervisorController extends Controller
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
                 'employee_number' => $teacher->employee_number ?? '—',
+                'school_name' => $teacher->school?->name ?? 'No school assigned',
                 'profile_url' => route('supervisor.teachers.show', $teacher),
                 'recent_observations' => $observations,
                 'obs_stats' => [
@@ -388,6 +486,7 @@ class SupervisorController extends Controller
                 'grade_level' => $schoolHead->grade_level ?? 'Not set',
                 'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
                 'position_level' => $schoolHead->position_level ?? '—',
+                'school_name' => $schoolHead->school?->name ?? 'No school assigned',
             ];
         })->values();
 
@@ -396,7 +495,9 @@ class SupervisorController extends Controller
         // determines whether a template appears for teacher or school head
         // observations; a career stage only narrows the auto-resolve, so all
         // published templates for the school year are listed.
-        $cotTemplates = CotIndicatorVersion::withCount('indicators')
+        $cotTemplates = CotIndicatorVersion::query()
+            ->with(['indicators' => fn ($query) => $query->active()])
+            ->withCount('indicators')
             ->where('school_year', $schoolYear)
             ->published()
             ->orderByDesc('is_default')
@@ -413,7 +514,18 @@ class SupervisorController extends Controller
                 'career_stage_label' => $version->careerStageLabel(),
                 'framework_label' => $version->frameworkLabel(),
                 'instrument_label' => $version->instrumentLabel(),
-                'indicators_count' => $version->indicators_count,
+                // Reflects the active indicators loaded above, keeping the
+                // badge consistent with the preview modal contents.
+                'indicators_count' => $version->indicators->count(),
+                'requires_post_conference' => $version->requiresPostConference(),
+                // Indicators organized by domain for the preview modal.
+                'indicator_groups' => $version->indicators
+                    ->groupBy('domain')
+                    ->map(fn ($group) => $group->map(fn (CotIndicator $indicator) => [
+                        'code' => $indicator->code,
+                        'description' => $indicator->description,
+                    ])->values())
+                    ->toArray(),
             ])
             ->values();
 
@@ -425,6 +537,15 @@ class SupervisorController extends Controller
      */
     public function storeObservation(Request $request)
     {
+        // Normalize empty strings to null for nullable integer/enum fields so
+        // Laravel's nullable rule treats them as absent rather than failing
+        // the subsequent integer/in rules.
+        foreach (['school_head_id', 'quarter', 'observation_number', 'form_template_id', 'cot_indicator_version_id'] as $field) {
+            if ($request->input($field) === '' || $request->input($field) === null) {
+                $request->merge([$field => null]);
+            }
+        }
+
         $validator = validator($request->all(), [
             'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
             'observee_id' => ['required'],
@@ -440,12 +561,12 @@ class SupervisorController extends Controller
             'form_template_id' => ['nullable', 'integer'],
             'cot_indicator_version_id' => ['nullable', 'integer'],
             'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['nullable', 'date_format:H:i'],
             'location' => ['nullable', 'string', 'max:255'],
             'schedule_conference' => ['nullable', 'boolean'],
             'conference_date' => ['nullable', 'date'],
             'conference_start_time' => ['nullable', 'date_format:H:i'],
-            'conference_end_time' => ['nullable', 'date_format:H:i', 'after:conference_start_time'],
+            'conference_end_time' => ['nullable', 'date_format:H:i'],
             'conference_location' => ['nullable', 'string', 'max:255'],
             'conference_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
             'school_head_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -453,6 +574,20 @@ class SupervisorController extends Controller
 
         $validator->after(function ($validator) use ($request) {
             $schoolYear = $request->input('school_year') ?? $this->getCurrentSchoolYear();
+
+            // Only validate end_time > start_time when both values are present.
+            if ($request->filled('start_time') && $request->filled('end_time')) {
+                if ($request->input('end_time') <= $request->input('start_time')) {
+                    $validator->errors()->add('end_time', 'The end time must be after the start time.');
+                }
+            }
+
+            // Only validate conference_end_time > conference_start_time when both are present.
+            if ($request->filled('conference_start_time') && $request->filled('conference_end_time')) {
+                if ($request->input('conference_end_time') <= $request->input('conference_start_time')) {
+                    $validator->errors()->add('conference_end_time', 'The conference end time must be after the conference start time.');
+                }
+            }
 
             // The chosen observation template must belong to the school year
             // and apply to the selected observation type.
@@ -577,20 +712,37 @@ class SupervisorController extends Controller
             'school_head_id' => $validated['school_head_id'] ?? null,
         ]);
 
-        // Attach the Post-Observation Conference schedule when requested.
-        $scheduleConference = $request->boolean('schedule_conference')
-            || $request->filled('conference_date')
-            || $request->filled('conference_start_time')
-            || $request->filled('conference_location');
+        // Post-Observation Conference handling:
+        // - Teacher observations: manual decision via schedule_conference toggle (existing workflow).
+        // - School Head observations: driven by the selected PPSSH template's
+        //   requires_post_conference flag. No duplicate manual toggle.
+        $isSchoolHeadObs = $validated['observation_type'] === 'school_head_observation';
+        if ($isSchoolHeadObs) {
+            $requiresPostConference = $cotIndicatorVersion?->requiresPostConference() ?? true;
+            if ($requiresPostConference) {
+                $observation->postConference()->create([
+                    'conference_date' => $validated['conference_date'] ?? null,
+                    'start_time' => $validated['conference_start_time'] ?? null,
+                    'end_time' => $validated['conference_end_time'] ?? null,
+                    'location' => $validated['conference_location'] ?? null,
+                    'mode' => $validated['conference_mode'] ?? 'in_person',
+                ]);
+            }
+        } else {
+            $scheduleConference = $request->boolean('schedule_conference')
+                || $request->filled('conference_date')
+                || $request->filled('conference_start_time')
+                || $request->filled('conference_location');
 
-        if ($scheduleConference) {
-            $observation->postConference()->create([
-                'conference_date' => $validated['conference_date'] ?? null,
-                'start_time' => $validated['conference_start_time'] ?? null,
-                'end_time' => $validated['conference_end_time'] ?? null,
-                'location' => $validated['conference_location'] ?? null,
-                'mode' => $validated['conference_mode'] ?? 'in_person',
-            ]);
+            if ($scheduleConference) {
+                $observation->postConference()->create([
+                    'conference_date' => $validated['conference_date'] ?? null,
+                    'start_time' => $validated['conference_start_time'] ?? null,
+                    'end_time' => $validated['conference_end_time'] ?? null,
+                    'location' => $validated['conference_location'] ?? null,
+                    'mode' => $validated['conference_mode'] ?? 'in_person',
+                ]);
+            }
         }
 
         app(AuditLogService::class)->log(
@@ -626,11 +778,15 @@ class SupervisorController extends Controller
                     $locationLabel
                 );
 
-                // Email notification
-                $observerName = Auth::user()->name;
-                $subject = 'ASPIRE - Classroom Observation Scheduled';
-                $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink, $timeLabel, $locationLabel);
-                $this->mailerService->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+                // Email notification (non-blocking: failures must not prevent redirect)
+                try {
+                    $observerName = Auth::user()->name;
+                    $subject = 'ASPIRE - Classroom Observation Scheduled';
+                    $emailBody = $this->buildObservationScheduledEmail($observeeUser->name, $observerName, $formattedDate, $observation->observation_type, $observationLink, $timeLabel, $locationLabel);
+                    $this->mailerService->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to queue observation scheduled email: '.$e->getMessage());
+                }
             }
 
             // Notify school head if assigned
@@ -823,12 +979,16 @@ class SupervisorController extends Controller
 
         // Send email to the teacher
         $subject = "Lesson Plan Requested – {$observation->subject}";
-        $this->mailerService->sendGenericEmail(
-            $teacherUser->email,
-            $teacherUser->name,
-            $subject,
-            $this->buildLessonPlanRequestedEmail($requesterName, $observation, $observationLink)
-        );
+        try {
+            $this->mailerService->sendGenericEmailLater(
+                $teacherUser->email,
+                $teacherUser->name,
+                $subject,
+                $this->buildLessonPlanRequestedEmail($requesterName, $observation, $observationLink)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Failed to queue lesson plan email to teacher: '.$e->getMessage());
+        }
 
         // Notify the school head(s) of the teacher's school
         $school = $observation->observee?->school;
@@ -837,10 +997,14 @@ class SupervisorController extends Controller
             foreach ($schoolHeads as $schoolHead) {
                 $schoolHeadLink = route('supervisor.observations.show', $observation);
                 $this->notificationService->notifyLessonPlanUploaded($schoolHead, $teacherUser->name, $schoolHeadLink);
-                $this->mailerService->sendGenericEmail(
-                    $schoolHead->email, $schoolHead->name, $subject,
-                    $this->buildLessonPlanRequestedEmail($requesterName, $observation, $schoolHeadLink)
-                );
+                try {
+                    $this->mailerService->sendGenericEmailLater(
+                        $schoolHead->email, $schoolHead->name, $subject,
+                        $this->buildLessonPlanRequestedEmail($requesterName, $observation, $schoolHeadLink)
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Failed to queue lesson plan email to school head: '.$e->getMessage());
+                }
             }
         }
 
@@ -1110,13 +1274,20 @@ class SupervisorController extends Controller
         $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
         $avgRating = $rated->exists() ? $rated->avg('rating') : null;
 
-        // Only advance stage forward (prevent regression)
+        // Only advance stage forward (prevent regression).
+        // For school-head PPSSH templates that do NOT require post-conference,
+        // stay on observation stage — finalize can proceed directly.
+        $requiresPostConference = true;
+        if ($observation->isSchoolHeadObservation()) {
+            $pinned = $observation->cotIndicatorVersion;
+            $requiresPostConference = $pinned ? $pinned->requiresPostConference() : ($cotVersion['requires_post_conference'] ?? true);
+        }
         $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
         $updates = ['overall_score' => $avgRating, 'status' => 'cot_completed'];
-        if ($targetIdx === $currentIdx + 1) {
+        if ($requiresPostConference && $targetIdx === $currentIdx + 1) {
             $updates['stage'] = 'post_conference';
             $observation->logChange([
                 'to_stage' => 'post_conference',
@@ -1124,9 +1295,10 @@ class SupervisorController extends Controller
                 'notes' => 'COT Ratings completed',
             ]);
         } else {
+            $note = $requiresPostConference ? 'COT Ratings updated' : 'COT Ratings completed (no post-conference per PPSSH template)';
             $observation->logChange([
                 'to_status' => 'cot_completed',
-                'notes' => 'COT Ratings updated',
+                'notes' => $note,
             ]);
         }
         $observation->update($updates);
@@ -1655,7 +1827,11 @@ class SupervisorController extends Controller
                 str_replace('_', ' ', ucwords($reason)),
                 $observationLink
             );
-            $this->mailerService->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+            try {
+                $this->mailerService->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+            } catch (\Throwable $e) {
+                Log::error('Failed to queue observation cancelled email: '.$e->getMessage());
+            }
         }
 
         return redirect()->route('supervisor.observations.index')
@@ -1749,48 +1925,231 @@ class SupervisorController extends Controller
     }
 
     /**
-     * Display reports dashboard.
+     * Display reports hub. Three tabs share this route:
+     * overview (default), analytics, performance.
      */
     public function reports(Request $request)
     {
         $user = Auth::user();
 
-        // Get statistics
+        $view = $request->view ?? 'overview';
+        if (! in_array($view, ['overview', 'analytics', 'performance'], true)) {
+            $view = 'overview';
+        }
+
+        $data = match ($view) {
+            'analytics' => ['view' => $view] + $this->reportsAnalyticsData($user),
+            'performance' => ['view' => $view] + $this->reportsPerformanceData($user),
+            default => ['view' => 'overview'] + $this->reportsOverviewData($user),
+        };
+
+        return view('supervisor.reports.index', $data);
+    }
+
+    /**
+     * Data for the Overview tab: headline stats, recent activity, simple trends.
+     */
+    private function reportsOverviewData(User $user): array
+    {
+        $baseQuery = Observation::where('observer_id', $user->id);
+
         $stats = [
-            'total_teachers' => Teacher::whereHas('user', function ($query) use ($user) {
-                $query->where('school_id', $user->school_id);
-            })->count(),
-            'total_observations' => Observation::where('observer_id', $user->id)->count(),
-            'completed_observations' => Observation::where('observer_id', $user->id)
-                ->where('status', 'completed')->count(),
-            'pending_observations' => Observation::where('observer_id', $user->id)
-                ->where('status', 'pending')->count(),
+            'total_teachers' => Teacher::whereHas('user', fn ($query) => $query->where('school_id', $user->school_id))->count(),
+            'total_observations' => (clone $baseQuery)->count(),
+            'completed_observations' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'in_progress_observations' => (clone $baseQuery)
+                ->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])
+                ->where('status', '!=', 'cancelled')
+                ->count(),
         ];
 
-        // Get recent observations
-        $recentObservations = Observation::with(['observee'])
+        $recentObservations = Observation::with('observee.user')
             ->where('observer_id', $user->id)
             ->latest()
-            ->take(10)
+            ->take(8)
             ->get();
 
-        // Chart data - observations by month
-        $chartData = Observation::where('observer_id', $user->id)
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as total")
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month');
+        $chartData = (clone $baseQuery)
+            ->get(['created_at'])
+            ->groupBy(fn (Observation $observation) => $observation->created_at?->format('Y-m'))
+            ->sortKeys()
+            ->map->count();
 
-        // Scores trend
-        $scoresData = Observation::where('observer_id', $user->id)
+        $scoresData = (clone $baseQuery)
             ->whereNotNull('overall_score')
-            ->latest()
+            ->latest('observation_date')
             ->take(10)
             ->get()
             ->reverse()
             ->values();
 
-        return view('supervisor.reports.index', compact('stats', 'recentObservations', 'chartData', 'scoresData'));
+        return compact('stats', 'recentObservations', 'chartData', 'scoresData');
+    }
+
+    /**
+     * Data for the Analytics tab: monthly activity/score trends, COT rating
+     * distribution, domain averages, strongest/weakest indicators.
+     */
+    private function reportsAnalyticsData(User $user): array
+    {
+        $windowStart = now()->subMonths(11)->startOfMonth()->toDateString();
+        $windowEnd = now()->endOfMonth()->toDateString();
+
+        $months = collect(range(11, 0))->map(fn ($i) => now()->subMonths($i));
+
+        $monthlyLabels = $months->map(fn ($date) => $date->format('M Y'))->values();
+
+        $countRows = Observation::where('observer_id', $user->id)
+            ->where('status', '!=', 'cancelled')
+            ->whereBetween('observation_date', [$windowStart, $windowEnd])
+            ->get(['observation_date', 'created_at']);
+        $counts = $countRows
+            ->groupBy(fn (Observation $observation) => ($observation->observation_date ?? $observation->created_at)?->format('Y-m'))
+            ->map->count();
+        $monthlyCounts = $months->map(fn ($date) => (int) ($counts->get($date->format('Y-m'), 0)))->values();
+
+        $averageRows = Observation::where('observer_id', $user->id)
+            ->whereNotNull('overall_score')
+            ->whereBetween('observation_date', [$windowStart, $windowEnd])
+            ->get(['observation_date', 'overall_score']);
+        $averages = $averageRows
+            ->groupBy(fn (Observation $observation) => $observation->observation_date?->format('Y-m'))
+            ->map(fn ($group) => round((float) $group->avg('overall_score'), 2));
+        $monthlyAverages = $months->map(fn ($date) => $averages->get($date->format('Y-m')))->values();
+
+        $distributionRows = CotRating::whereHas('observation', fn ($query) => $query->where('observer_id', $user->id))
+            ->selectRaw('rating, not_observed, COUNT(*) as total')
+            ->groupBy('rating', 'not_observed')
+            ->get();
+        $distribution = [
+            'labels' => ['Poor (2)', 'Unsatisfactory (3)', 'Satisfactory (4)', 'Very Sat. (5)', 'Outstanding (6)', 'Not Observed'],
+            'counts' => [
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 2 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 3 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 4 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 5 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 6 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (bool) $row->not_observed)->total ?? 0),
+            ],
+        ];
+
+        $domainAverages = CotRating::whereHas('observation', fn ($query) => $query->where('observer_id', $user->id))
+            ->where('not_observed', false)
+            ->whereNotNull('domain')
+            ->selectRaw('domain, AVG(rating) as average, COUNT(*) as total')
+            ->groupBy('domain')
+            ->orderByDesc('average')
+            ->get()
+            ->map(fn ($row) => [
+                'domain' => $row->domain,
+                'average' => round((float) $row->average, 2),
+                'total' => (int) $row->total,
+            ]);
+
+        $indicatorStats = CotRating::whereHas('observation', fn ($query) => $query->where('observer_id', $user->id))
+            ->where('not_observed', false)
+            ->selectRaw('indicator_code, MAX(indicator) as indicator, AVG(rating) as average, COUNT(*) as total')
+            ->groupBy('indicator_code')
+            ->havingRaw('COUNT(*) > 0')
+            ->get()
+            ->map(fn ($row) => [
+                'code' => $row->indicator_code,
+                'indicator' => $row->indicator,
+                'average' => round((float) $row->average, 2),
+                'total' => (int) $row->total,
+            ]);
+
+        $strengths = $indicatorStats->filter(fn ($row) => $row['average'] >= 4.5)->sortByDesc('average')->take(5)->values();
+        $weaknesses = $indicatorStats->filter(fn ($row) => $row['average'] <= 3.5)->sortBy('average')->take(5)->values();
+
+        $statusCounts = Observation::where('observer_id', $user->id)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return compact('monthlyLabels', 'monthlyCounts', 'monthlyAverages', 'distribution', 'domainAverages', 'strengths', 'weaknesses', 'statusCounts');
+    }
+
+    /**
+     * Data for the Performance tab: per-teacher score summaries and trends
+     * across the supervisor's completed observations.
+     */
+    private function reportsPerformanceData(User $user): array
+    {
+        $teachers = Teacher::with('user')
+            ->whereHas('user', fn ($query) => $query->where('school_id', $user->school_id))
+            ->get();
+
+        $scoredObservations = Observation::where('observer_id', $user->id)
+            ->where('observee_type', Teacher::class)
+            ->whereIn('observee_id', $teachers->pluck('id'))
+            ->whereNotNull('overall_score')
+            ->orderBy('observation_date')
+            ->get(['observee_id', 'overall_score', 'observation_date'])
+            ->groupBy('observee_id');
+
+        $rows = $teachers->map(function (Teacher $teacher) use ($scoredObservations) {
+            $scores = $scoredObservations->get($teacher->id, collect());
+            $values = $scores->pluck('overall_score')->map(fn ($score) => (float) $score);
+            $latest = $scores->last();
+            $previous = $scores->count() >= 2 ? $scores[$scores->count() - 2]->overall_score : null;
+            $latestScore = $latest?->overall_score;
+            $average = $values->isNotEmpty() ? round($values->avg(), 2) : null;
+
+            return [
+                'teacher' => $teacher,
+                'position' => $teacher->position ?: 'Teacher',
+                'observations_count' => $scores->count(),
+                'average' => $average,
+                'band' => $this->performanceBand($average),
+                'trend' => $previous !== null && $latestScore !== null
+                    ? round((float) $latestScore - (float) $previous, 2)
+                    : null,
+                'last_observed' => $latest?->observation_date,
+            ];
+        });
+
+        $observed = $rows->filter(fn ($row) => $row['observations_count'] > 0);
+        $sorted = $observed
+            ->sort(function ($a, $b) {
+                return [$b['average'], strtolower($a['teacher']->user->name)] <=> [$a['average'], strtolower($b['teacher']->user->name)];
+            })
+            ->values()
+            ->concat(
+                $rows->filter(fn ($row) => $row['observations_count'] === 0)
+                    ->sortBy(fn ($row) => strtolower($row['teacher']->user->name))
+                    ->values()
+            );
+
+        return [
+            'performanceRows' => $sorted,
+            'performanceSummary' => [
+                'teachers_total' => $rows->count(),
+                'teachers_observed' => $observed->count(),
+                'school_average' => $observed->isNotEmpty() ? round($observed->avg('average'), 2) : null,
+                'improving' => $observed->where('trend', '>', 0)->count(),
+                'declining' => $observed->where('trend', '<', 0)->count(),
+                'needs_attention' => $observed->where('average', '<', 4)->count(),
+            ],
+        ];
+    }
+
+    /**
+     * DepEd descriptive band for an average COT score (2-6 scale).
+     */
+    private function performanceBand(?float $average): ?array
+    {
+        if ($average === null) {
+            return null;
+        }
+
+        return match (true) {
+            $average >= 5.5 => ['label' => 'Outstanding', 'class' => 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'],
+            $average >= 4.5 => ['label' => 'Very Satisfactory', 'class' => 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'],
+            $average >= 3.5 => ['label' => 'Satisfactory', 'class' => 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'],
+            $average >= 2.5 => ['label' => 'Unsatisfactory', 'class' => 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'],
+            default => ['label' => 'Poor', 'class' => 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'],
+        };
     }
 
     /**
@@ -1975,10 +2334,20 @@ class SupervisorController extends Controller
         $this->authorizeObservation($observation);
         $observation->load(['preObservationPlanning', 'observee']);
 
-        $insights = $this->aiFeedback->generatePreObservationInsights($observation);
+        try {
+            // No silent template substitution for supervisors: when AI is
+            // unavailable we say so and offer manual entry instead.
+            $insights = $this->aiFeedback->generatePreObservationInsights($observation, templateFallback: false);
+        } catch (AIRateLimitException $e) {
+            return response()->json(AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
+        }
 
         if ($insights === null) {
-            return response()->json(['error' => 'Failed to generate insights. Try again later.'], 500);
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
         $observation->preObservationPlanning()->updateOrCreate(
@@ -1986,9 +2355,7 @@ class SupervisorController extends Controller
             ['ai_insights' => $insights]
         );
 
-        $source = $this->aiFeedback->isGeminiConfigured() ? 'gemini' : 'rule-based';
-
-        return response()->json(['ai_insights' => $insights, 'source' => $source]);
+        return response()->json(['ai_insights' => $insights, 'source' => 'ai']);
     }
 
     public function clearAiInsights(Observation $observation)
@@ -2008,57 +2375,18 @@ class SupervisorController extends Controller
         $this->authorizeObservation($observation);
         $observation->loadMissing(['preObservationPlanning', 'observee']);
 
-        if (! $this->aiFeedback->isGeminiConfigured()) {
-            return response()->json(['error' => 'Gemini API is not configured.'], 400);
+        try {
+            $data = $this->aiFeedback->generatePreConferenceSuggestions($observation, templateFallback: false);
+        } catch (AIRateLimitException $e) {
+            return response()->json(AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
-        $planning = $observation->preObservationPlanning;
-        $teacherName = $observation->observee?->name ?? 'Unknown';
-        $subject = $observation->subject ?? 'N/A';
-        $gradeLevel = $observation->grade_level ?? 'N/A';
-        $objective = $planning?->objective ?? 'Not specified';
-        $strategies = $planning?->teaching_strategies ?? 'Not specified';
-        $materials = $planning?->materials ?? 'Not specified';
-        $assessment = $planning?->assessment_methods ?? 'Not specified';
-
-        $lessonPlanContent = '';
-        $lessonPlanFile = $planning?->lesson_plan_file;
-        if ($lessonPlanFile && Storage::disk('public')->exists($lessonPlanFile)) {
-            $fullPath = Storage::disk('public')->path($lessonPlanFile);
-            $lessonPlanContent = app(DocumentExtractorService::class)->extractText($fullPath);
-        }
-
-        $lessonPlanSection = $lessonPlanContent
-            ? "--- Lesson Plan Content ---\n{$lessonPlanContent}\n\n"
-            : '';
-
-        $prompt = <<<PROMPT
-You are an expert instructional coach. Based on the pre-observation data below, generate two concise text blocks for a pre-conference form.
-
-Teacher: {$teacherName}
-Subject: {$subject}
-Grade Level: {$gradeLevel}
-Objective: {$objective}
-Teaching Strategies: {$strategies}
-Materials: {$materials}
-Assessment Methods: {$assessment}
-
-{$lessonPlanSection}Return JSON with exactly two keys:
-
-1. "discussion_notes" — 3-4 bullet points covering key discussion topics: teaching strategies, learner diversity, assessment methods, and any support the teacher may need.
-
-2. "finalized_focus" — 2-3 concise focus areas agreed upon for the classroom observation, based on the objective and strategies.
-
-Keep both concise and actionable. No preamble.
-PROMPT;
-
-        $data = app(GeminiService::class)->generateJson($prompt, [
-            'temperature' => 0.3,
-            'max_output_tokens' => 1024,
-        ]);
-
-        if (! $data) {
-            return response()->json(['error' => 'Failed to generate suggestions.'], 500);
+        if ($data === null || (blank($data['discussion_notes'] ?? null) && blank($data['finalized_focus'] ?? null))) {
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
         $observee = $observation->observee;
@@ -2084,21 +2412,18 @@ PROMPT;
         $this->authorizeObservation($observation);
         $observation->load(['postConference', 'preObservationPlanning', 'observee']);
 
-        if (! $this->aiFeedback->isGeminiConfigured()) {
-            return response()->json(['error' => 'Gemini API is not configured. Set GEMINI_API_KEY in .env'], 400);
+        try {
+            $comparison = $this->aiFeedback->generatePostConferenceComparison($observation, templateFallback: false);
+        } catch (AIRateLimitException $e) {
+            return response()->json(AIStatus::unavailable('post_conference', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(AIStatus::unavailable('post_conference'), 503);
         }
 
-        $comparison = $this->aiFeedback->generatePostConferenceComparison($observation);
-
         if (! $comparison) {
-            $message = 'Failed to generate AI comparison. ';
-            if (! $this->aiFeedback->isGeminiConfigured()) {
-                $message .= 'Gemini API key is not set.';
-            } else {
-                $message .= 'The Gemini API quota may be exceeded or the service is unreachable. Check storage/logs/laravel.log for details.';
-            }
-
-            return response()->json(['error' => $message], 500);
+            return response()->json(AIStatus::unavailable('post_conference'), 503);
         }
 
         $observation->postConference()->updateOrCreate(

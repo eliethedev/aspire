@@ -3,10 +3,12 @@
 namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
+use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeminiProvider implements AIServiceInterface
+class GeminiProvider implements AIServiceInterface, TracksTokenUsage
 {
     protected string $apiKey;
 
@@ -16,10 +18,12 @@ class GeminiProvider implements AIServiceInterface
 
     protected string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
 
+    protected array $lastUsage = ['input' => 0, 'output' => 0];
+
     public function __construct()
     {
         $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-2.0-flash');
+        $this->model = config('services.gemini.model', 'gemini-3.6-flash');
         $this->verifySsl = config('services.gemini.verify_ssl', true);
     }
 
@@ -43,6 +47,11 @@ class GeminiProvider implements AIServiceInterface
         $this->model = $model;
     }
 
+    public function getLastUsage(): array
+    {
+        return $this->lastUsage;
+    }
+
     public function generate(string $prompt, array $options = []): ?string
     {
         if (! $this->isAvailable()) {
@@ -53,18 +62,27 @@ class GeminiProvider implements AIServiceInterface
 
         $temperature = $options['temperature'] ?? config('ai.generation.temperature', 0.5);
         $maxOutputTokens = $options['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024);
-        $timeout = $options['timeout'] ?? config('ai.generation.timeout', 30);
+
+        // Pro models need significantly more time — they run a "thinking"
+        // phase before producing any visible output.  Auto-scale the
+        // timeout when the caller doesn't provide an explicit override.
+        $defaultTimeout = config('ai.generation.timeout', 30);
+        $isProModel = (bool) preg_match('/pro/i', $this->model);
+        $timeout = $options['timeout']
+            ?? ($isProModel ? max($defaultTimeout, 90) : $defaultTimeout);
 
         try {
             $url = "{$this->baseUrl}/models/{$this->model}:generateContent?key={$this->apiKey}";
 
-            $http = Http::timeout($timeout);
+            // Separate connect timeout (fail fast on DNS/TLS issues) from the
+            // read timeout (allow Pro models time to "think").
+            $http = Http::timeout($timeout)->connectTimeout(10);
 
             if (! $this->verifySsl) {
                 $http = $http->withoutVerifying();
             }
 
-            $response = $http->post($url, [
+            $payload = [
                 'contents' => [
                     [
                         'parts' => [
@@ -76,7 +94,22 @@ class GeminiProvider implements AIServiceInterface
                     'temperature' => $temperature,
                     'maxOutputTokens' => $maxOutputTokens,
                 ],
-            ]);
+            ];
+
+            // Gemini 2.5+ "thinking" tokens silently consume up to half of the
+            // maxOutputTokens budget before any visible text is produced,
+            // causing mid-sentence truncations. Cap the thinking effort unless
+            // the caller explicitly overrides it.
+            $thinkingLevel = $options['thinking_level']
+                ?? config('ai.generation.thinking_level');
+
+            if ($thinkingLevel !== null && preg_match('/^gemini-/i', $this->model)) {
+                $payload['generationConfig']['thinkingConfig'] = [
+                    'thinkingLevel' => $thinkingLevel,
+                ];
+            }
+
+            $response = $http->post($url, $payload);
 
             if ($response->failed()) {
                 $status = $response->status();
@@ -93,10 +126,26 @@ class GeminiProvider implements AIServiceInterface
             $data = $response->json();
             $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
+            $finishReason = $data['candidates'][0]['finishReason'] ?? null;
+            if ($finishReason === 'MAX_TOKENS') {
+                Log::warning('Gemini API: response truncated at maxOutputTokens', [
+                    'model' => $this->model,
+                    'max_output_tokens' => $maxOutputTokens,
+                    'partial' => $text !== null,
+                ]);
+            }
+
             if (! $text) {
-                Log::warning('Gemini API: empty response', ['response' => $data]);
+                Log::warning('Gemini API: empty response', ['response' => $data, 'finish_reason' => $finishReason]);
 
                 return null;
+            }
+
+            if (isset($data['usageMetadata'])) {
+                $this->lastUsage = [
+                    'input' => (int) ($data['usageMetadata']['promptTokenCount'] ?? 0),
+                    'output' => (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0),
+                ];
             }
 
             return trim($text);
@@ -116,20 +165,6 @@ class GeminiProvider implements AIServiceInterface
             return null;
         }
 
-        $result = trim($result);
-        $result = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $result);
-
-        $decoded = json_decode($result, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::warning('GeminiProvider: failed to parse JSON response', [
-                'error' => json_last_error_msg(),
-                'raw' => $result,
-            ]);
-
-            return null;
-        }
-
-        return $decoded;
+        return JsonRecovery::decode($result, 'GeminiProvider');
     }
 }

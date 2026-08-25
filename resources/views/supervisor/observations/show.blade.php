@@ -568,6 +568,49 @@
             </div>
         </div>
         @endif
+
+        <!-- Evidence Files -->
+        @if(!empty($observation->evidence_files))
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Evidence Files</h2>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    {{ count($observation->evidence_files) }} {{ count($observation->evidence_files) === 1 ? 'file' : 'files' }}
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                @foreach($observation->evidence_files as $file)
+                    @php
+                        $mime = $file['mime_type'] ?? '';
+                        $isImage = str_starts_with($mime, 'image/');
+                        $isVideo = str_starts_with($mime, 'video/');
+                        $isPdf = $mime === 'application/pdf';
+                        $iconColor = $isImage ? 'text-emerald-500' : ($isVideo ? 'text-purple-500' : ($isPdf ? 'text-red-500' : 'text-gray-400'));
+                        $typeLabel = $isImage ? 'Image' : ($isVideo ? 'Video' : ($isPdf ? 'PDF' : 'Document'));
+                    @endphp
+                    <a href="{{ asset('storage/' . $file['path']) }}" target="_blank" rel="noopener"
+                       class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors group">
+                        <span class="w-9 h-9 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                @if($isImage)
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                @elseif($isVideo)
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                @else
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                @endif
+                            </svg>
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-indigo-600 transition-colors">{{ $file['original_name'] ?? basename($file['path']) }}</span>
+                            <span class="block text-xs text-gray-500 dark:text-gray-400">{{ $typeLabel }}@if(isset($file['size'])) · {{ number_format($file['size'] / 1024, 1) }} KB @endif</span>
+                        </span>
+                        <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Cancellation Info -->

@@ -3,14 +3,18 @@
 namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
+use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class OpenAIProvider implements AIServiceInterface
+class OpenAIProvider implements AIServiceInterface, TracksTokenUsage
 {
     protected string $apiKey;
 
     protected string $model;
+
+    protected array $lastUsage = ['input' => 0, 'output' => 0];
 
     protected string $baseUrl = 'https://api.openai.com/v1';
 
@@ -38,6 +42,11 @@ class OpenAIProvider implements AIServiceInterface
     public function setModel(string $model): void
     {
         $this->model = $model;
+    }
+
+    public function getLastUsage(): array
+    {
+        return $this->lastUsage;
     }
 
     public function generate(string $prompt, array $options = []): ?string
@@ -86,6 +95,13 @@ class OpenAIProvider implements AIServiceInterface
                 return null;
             }
 
+            if (isset($data['usage'])) {
+                $this->lastUsage = [
+                    'input' => (int) ($data['usage']['prompt_tokens'] ?? 0),
+                    'output' => (int) ($data['usage']['completion_tokens'] ?? 0),
+                ];
+            }
+
             return trim($text);
         } catch (\Exception $e) {
             Log::error('OpenAIProvider exception: '.$e->getMessage());
@@ -103,20 +119,6 @@ class OpenAIProvider implements AIServiceInterface
             return null;
         }
 
-        $result = trim($result);
-        $result = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $result);
-
-        $decoded = json_decode($result, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::warning('OpenAIProvider: failed to parse JSON response', [
-                'error' => json_last_error_msg(),
-                'raw' => $result,
-            ]);
-
-            return null;
-        }
-
-        return $decoded;
+        return JsonRecovery::decode($result, 'OpenAIProvider');
     }
 }

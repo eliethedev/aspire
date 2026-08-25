@@ -5,13 +5,19 @@
     $canAssess = $canAssess ?? false;
 @endphp
 
-<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+<div id="readiness" class="scroll-mt-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
     <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
             <h3 class="text-gray-900 dark:text-gray-100 font-semibold text-lg">Career Progression Readiness</h3>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ \App\Models\CareerProgressionAssessment::statusBadgeFor($status) }}">
                 {{ \App\Models\CareerProgressionAssessment::statusLabelFor($status) }}
             </span>
+            @if($assessment?->target_career_stage)
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    Target: {{ $assessment->targetStageLabel() }}
+                </span>
+            @endif
         </div>
         <p class="text-xs text-gray-500 dark:text-gray-400">Assessment &amp; support tool &middot; no automatic promotion</p>
     </div>
@@ -94,6 +100,24 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Career Stage</label>
+                        @php $selectedTarget = old('target_career_stage', $assessment?->target_career_stage); @endphp
+                        <select name="target_career_stage"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm px-3 py-2">
+                            <option value="">Auto &mdash; next career stage</option>
+                            @foreach($careerNextStages ?? [] as $value => $label)
+                                <option value="{{ $value }}" @selected($selectedTarget === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                            @if(empty($careerNextStages))
+                                This ratee is already at the top of the current track.
+                            @else
+                                Defaults to the next stage after the ratee's current one.
+                            @endif
+                        </p>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assessment Date</label>
                         <input type="date" name="assessed_at"
                                value="{{ old('assessed_at', $assessment?->assessed_at?->toDateString() ?? now()->toDateString()) }}"
@@ -117,6 +141,9 @@
                 @error('status')
                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
+                @error('target_career_stage')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </form>
         </div>
     @endif
@@ -131,6 +158,7 @@
                         <tr class="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                             <th class="py-2 pr-4 font-medium">Date</th>
                             <th class="py-2 pr-4 font-medium">Status</th>
+                            <th class="py-2 pr-4 font-medium">Target Stage</th>
                             <th class="py-2 pr-4 font-medium">Position at Assessment</th>
                             <th class="py-2 pr-4 font-medium">Evaluator</th>
                             <th class="py-2 font-medium">Remarks</th>
@@ -143,6 +171,7 @@
                                 <td class="py-2 pr-4">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span>
                                 </td>
+                                <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ $entry->targetStageLabel() ?: '—' }}</td>
                                 <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">
                                     {{ $entry->position ?: 'N/A' }}@if($entry->career_stage)<span class="text-gray-400"> &middot; {{ $entry->career_stage }}</span>@endif
                                 </td>

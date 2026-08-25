@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TeacherCareerStage;
 use App\Models\CareerProgressionAssessment;
 use App\Models\Observation;
 use App\Models\Teacher;
@@ -23,6 +24,79 @@ use Illuminate\Support\Collection;
 class CareerProgressionService
 {
     public const RATING_SCALE_MAX = 6;
+
+    /**
+     * Official progression order of teacher career stages (PPST).
+     */
+    private const TEACHER_STAGE_ORDER = [
+        'teacher_i_iii',
+        'teacher_iv_vii',
+        'master_teacher_i_ii',
+        'master_teacher_iii_v',
+    ];
+
+    /**
+     * Official progression order of school-head career stages (PPSSH).
+     */
+    private const SCHOOL_HEAD_STAGE_ORDER = [
+        'career_stage_i',
+        'career_stage_ii',
+        'career_stage_iii',
+        'career_stage_iv',
+    ];
+
+    /**
+     * The career stage immediately after the given one, or null when the
+     * stage is unknown or already at the top of its track.
+     */
+    public function nextStageKey(?string $stageKey): ?string
+    {
+        if ($stageKey === null) {
+            return null;
+        }
+
+        foreach ([self::TEACHER_STAGE_ORDER, self::SCHOOL_HEAD_STAGE_ORDER] as $order) {
+            $index = array_search($stageKey, $order, true);
+            if ($index !== false && isset($order[$index + 1])) {
+                return $order[$index + 1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Select options of all stages after the current one: key => label.
+     * Empty when the stage is unknown or already at the top of its track.
+     */
+    public function nextStageOptions(?string $stageKey): array
+    {
+        if ($stageKey === null) {
+            return [];
+        }
+
+        foreach ([self::TEACHER_STAGE_ORDER, self::SCHOOL_HEAD_STAGE_ORDER] as $order) {
+            $index = array_search($stageKey, $order, true);
+            if ($index !== false) {
+                return collect(array_slice($order, $index + 1))
+                    ->mapWithKeys(fn ($key) => [$key => $this->stageOptionLabel($key)])
+                    ->all();
+            }
+        }
+
+        return [];
+    }
+
+    private function stageOptionLabel(string $stageKey): string
+    {
+        $stageLabel = app(CareerStageResolver::class)->stageLabel($stageKey)
+            ?: ucwords(str_replace('_', ' ', $stageKey));
+        $enum = TeacherCareerStage::tryFrom($stageKey);
+
+        return $enum !== null && $enum->label() !== $stageLabel
+            ? "{$enum->label()} · {$stageLabel}"
+            : $stageLabel;
+    }
 
     /**
      * Current framework + career track + position + career stage for a ratee.
@@ -115,12 +189,21 @@ class CareerProgressionService
     public function recordAssessment(Model $ratee, User $evaluator, array $data): CareerProgressionAssessment
     {
         $context = $this->contextFor($ratee);
+        $allowedTargets = $this->nextStageOptions($context['career_stage']);
+
+        $targetStage = $data['target_career_stage'] ?? null;
+        if ($targetStage === '' || ! array_key_exists($targetStage, $allowedTargets)) {
+            // Empty or out-of-track target falls back to the auto-suggested
+            // next stage (null when the ratee is already at the top).
+            $targetStage = $this->nextStageKey($context['career_stage']);
+        }
 
         return CareerProgressionAssessment::create([
             'ratee_type' => $ratee->getMorphClass(),
             'ratee_id' => $ratee->getKey(),
             'evaluator_id' => $evaluator->id,
             'status' => $data['status'],
+            'target_career_stage' => $targetStage,
             'remarks' => $data['remarks'] ?? null,
             'assessed_at' => $data['assessed_at'] ?? now()->toDateString(),
             'position' => $context['position'],

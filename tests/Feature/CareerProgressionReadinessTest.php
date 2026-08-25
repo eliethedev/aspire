@@ -228,4 +228,94 @@ class CareerProgressionReadinessTest extends TestCase
         $this->assertSame($ratingBefore, $observation->cotRatings()->orderBy('id')->first()->rating);
         $this->assertSame(1, Observation::count());
     }
+
+    public function test_target_career_stage_defaults_to_the_next_stage(): void
+    {
+        // Teacher is on teacher_i_iii, so the auto-suggested target is teacher_iv_vii.
+        $this->actingAs($this->supervisor)->post(
+            route('supervisor.teachers.career-assessment', $this->teacher),
+            ['status' => 'for_review', 'assessed_at' => '2026-08-01']
+        )->assertSessionHasNoErrors();
+
+        $latest = CareerProgressionAssessment::latest('assessed_at')->first();
+        $this->assertSame('teacher_iv_vii', $latest->target_career_stage);
+        $this->assertSame('Teacher IV-VII · Career Stage II', $latest->targetStageLabel());
+    }
+
+    public function test_explicit_target_is_respected_and_out_of_track_targets_fall_back(): void
+    {
+        $this->actingAs($this->supervisor)->post(
+            route('supervisor.teachers.career-assessment', $this->teacher),
+            ['status' => 'for_review', 'target_career_stage' => 'master_teacher_i_ii']
+        )->assertSessionHasNoErrors();
+
+        $explicit = CareerProgressionAssessment::latest('id')->first();
+        $this->assertSame('master_teacher_i_ii', $explicit->target_career_stage);
+
+        // A PPSSH stage key is out of track for a PPST teacher: falls back
+        // to the auto-suggested next stage instead of being stored.
+        $this->actingAs($this->supervisor)->post(
+            route('supervisor.teachers.career-assessment', $this->teacher),
+            ['status' => 'for_review', 'target_career_stage' => 'career_stage_iv']
+        )->assertSessionHasNoErrors();
+
+        $fallback = CareerProgressionAssessment::latest('id')->first();
+        $this->assertSame('teacher_iv_vii', $fallback->target_career_stage);
+    }
+
+    public function test_top_of_track_ratees_have_no_target_stage(): void
+    {
+        $this->teacher->update([
+            'position' => 'Master Teacher V',
+            'career_stage' => 'master_teacher_iii_v',
+        ]);
+
+        $this->actingAs($this->supervisor)->post(
+            route('supervisor.teachers.career-assessment', $this->teacher),
+            ['status' => 'for_review']
+        )->assertSessionHasNoErrors();
+
+        $latest = CareerProgressionAssessment::latest('id')->first();
+        $this->assertNull($latest->target_career_stage);
+        $this->assertSame('', $latest->targetStageLabel());
+    }
+
+    public function test_supervisor_can_browse_career_progression_of_all_ratees(): void
+    {
+        $this->get(route('supervisor.career.index'))->assertRedirect(); // guest guard
+
+        $this->actingAs($this->supervisor)
+            ->get(route('supervisor.career.index'))
+            ->assertOk()
+            ->assertSee($this->teacher->user->name)
+            ->assertSee('Career Stage I')
+            ->assertSee('Not Yet Assessed');
+
+        $this->actingAs($this->supervisor)->post(
+            route('supervisor.teachers.career-assessment', $this->teacher),
+            ['status' => 'ready_for_consideration']
+        )->assertSessionHasNoErrors();
+
+        $this->actingAs($this->supervisor)
+            ->get(route('supervisor.career.index', ['status' => 'ready_for_consideration']))
+            ->assertOk()
+            ->assertSee($this->teacher->user->name)
+            ->assertSee('Ready for Consideration')
+            ->assertSee('Teacher IV-VII · Career Stage II');
+
+        // Other schools' ratees never appear.
+        $otherSchool = School::factory()->create();
+        $otherSchoolTeacher = Teacher::factory()->forSchool($otherSchool->id)->create([
+            'position' => 'Teacher I',
+            'career_stage' => 'teacher_i_iii',
+            'user_id' => User::factory()->create([
+                'role' => 'teacher',
+                'school_id' => $otherSchool->id,
+            ])->id,
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->get(route('supervisor.career.index'));
+        $response->assertOk();
+        $this->assertStringNotContainsString($otherSchoolTeacher->user->name, $response->getContent());
+    }
 }

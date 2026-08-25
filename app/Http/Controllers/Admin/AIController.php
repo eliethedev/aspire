@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\AI\Providers\ClaudeProvider;
-use App\AI\Providers\GeminiProvider;
-use App\AI\Providers\OllamaProvider;
-use App\AI\Providers\OpenAIProvider;
+use App\AI\Providers\AIProviderManager;
 use App\Http\Controllers\Controller;
 use App\Models\AiUsageLog;
 use Illuminate\Http\Request;
@@ -37,11 +34,11 @@ class AIController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'ai_enabled' => 'boolean',
             'ai_fallback_enabled' => 'boolean',
             'ai_logging_enabled' => 'boolean',
-            'ai_provider' => 'in:gemini,openai,claude,ollama',
+            'ai_provider' => 'in:gemini,openai,claude,deepseek,openrouter,ollama',
 
             'ai_gemini_enabled' => 'boolean',
             'ai_gemini_api_key' => 'nullable|string|max:500',
@@ -55,25 +52,54 @@ class AIController extends Controller
             'ai_claude_api_key' => 'nullable|string|max:500',
             'ai_claude_model' => 'nullable|string|max:100',
 
+            'ai_deepseek_enabled' => 'boolean',
+            'ai_deepseek_api_key' => 'nullable|string|max:500',
+            'ai_deepseek_model' => 'nullable|string|max:100',
+
+            'ai_openrouter_enabled' => 'boolean',
+            'ai_openrouter_api_key' => 'nullable|string|max:500',
+            'ai_openrouter_model' => 'nullable|string|max:100',
+
             'ai_ollama_enabled' => 'boolean',
             'ai_ollama_url' => 'nullable|string|max:255',
             'ai_ollama_model' => 'nullable|string|max:100',
 
-            'ai_model_default' => 'string|max:100',
+            'ai_model_default' => 'nullable|string|max:100',
 
             'ai_model_pre_observation_provider' => 'nullable|string|max:50',
-            'ai_model_pre_observation' => 'string|max:100',
+            'ai_model_pre_observation' => 'nullable|string|max:100',
             'ai_model_observation_guidance_provider' => 'nullable|string|max:50',
-            'ai_model_observation_guidance' => 'string|max:100',
+            'ai_model_observation_guidance' => 'nullable|string|max:100',
             'ai_model_feedback_provider' => 'nullable|string|max:50',
-            'ai_model_feedback' => 'string|max:100',
+            'ai_model_feedback' => 'nullable|string|max:100',
             'ai_model_post_conference_provider' => 'nullable|string|max:50',
-            'ai_model_post_conference' => 'string|max:100',
+            'ai_model_post_conference' => 'nullable|string|max:100',
             'ai_model_final_report_provider' => 'nullable|string|max:50',
-            'ai_model_final_report' => 'string|max:100',
+            'ai_model_final_report' => 'nullable|string|max:100',
 
             'ai_python_bridge_enabled' => 'boolean',
-        ]);
+        ];
+
+        // Free-text inputs revealed by the "Custom model…" dropdown option.
+        $modelEnvKeys = [
+            'ai_gemini_model' => 'GEMINI_MODEL',
+            'ai_openai_model' => 'OPENAI_MODEL',
+            'ai_claude_model' => 'CLAUDE_MODEL',
+            'ai_deepseek_model' => 'DEEPSEEK_MODEL',
+            'ai_openrouter_model' => 'OPENROUTER_MODEL',
+            'ai_ollama_model' => 'OLLAMA_MODEL',
+            'ai_model_default' => 'AI_MODEL_DEFAULT',
+            'ai_model_pre_observation' => 'AI_MODEL_PRE_OBSERVATION',
+            'ai_model_observation_guidance' => 'AI_MODEL_OBSERVATION_GUIDANCE',
+            'ai_model_feedback' => 'AI_MODEL_FEEDBACK',
+            'ai_model_post_conference' => 'AI_MODEL_POST_CONFERENCE',
+            'ai_model_final_report' => 'AI_MODEL_FINAL_REPORT',
+        ];
+        foreach (array_keys($modelEnvKeys) as $field) {
+            $rules[$field.'_custom'] = 'nullable|string|max:100';
+        }
+
+        $validated = $request->validate($rules);
 
         $envFile = base_path('.env');
         if (! file_exists($envFile)) {
@@ -96,6 +122,12 @@ class AIController extends Controller
             'ai_claude_enabled' => 'AI_CLAUDE_ENABLED',
             'ai_claude_api_key' => 'CLAUDE_API_KEY',
             'ai_claude_model' => 'CLAUDE_MODEL',
+            'ai_deepseek_enabled' => 'AI_DEEPSEEK_ENABLED',
+            'ai_deepseek_api_key' => 'DEEPSEEK_API_KEY',
+            'ai_deepseek_model' => 'DEEPSEEK_MODEL',
+            'ai_openrouter_enabled' => 'AI_OPENROUTER_ENABLED',
+            'ai_openrouter_api_key' => 'OPENROUTER_API_KEY',
+            'ai_openrouter_model' => 'OPENROUTER_MODEL',
             'ai_ollama_enabled' => 'AI_OLLAMA_ENABLED',
             'ai_ollama_url' => 'OLLAMA_URL',
             'ai_ollama_model' => 'OLLAMA_MODEL',
@@ -118,9 +150,23 @@ class AIController extends Controller
         foreach ($mappings as $field => $envKey) {
             if ($request->has($field)) {
                 $value = $request->input($field);
-                $emptyApiKeys = ['ai_gemini_api_key', 'ai_openai_api_key', 'ai_claude_api_key'];
+                $emptyApiKeys = ['ai_gemini_api_key', 'ai_openai_api_key', 'ai_claude_api_key', 'ai_deepseek_api_key', 'ai_openrouter_api_key'];
                 if (in_array($field, $emptyApiKeys) && empty($value)) {
                     continue;
+                }
+                // Model dropdowns: never persist the "Custom model…" sentinel or
+                // an untouched empty choice over the existing configuration.
+                if (array_key_exists($field, $modelEnvKeys)) {
+                    $value = is_string($value) ? trim($value) : $value;
+                    if ($value === '__custom__') {
+                        $custom = trim((string) $request->input($field.'_custom', ''));
+                        if ($custom === '') {
+                            continue;
+                        }
+                        $value = $custom;
+                    } elseif ($value === null || $value === '') {
+                        continue;
+                    }
                 }
                 if (is_bool($value)) {
                     $value = $value ? 'true' : 'false';
@@ -135,9 +181,16 @@ class AIController extends Controller
             $this->setEnvValue($envContent, 'GOOGLE_GEMINI_API_KEY', $request->input('ai_gemini_api_key'));
         }
 
-        file_put_contents($envFile, $envContent);
+        $written = file_put_contents($envFile, $envContent);
+        if ($written === false) {
+            return back()->with('error', 'Failed to write environment file. Check file permissions.');
+        }
 
-        Artisan::call('config:clear');
+        try {
+            Artisan::call('config:clear');
+        } catch (\Throwable) {
+            // Config clear may fail in shared environments; proceed gracefully.
+        }
 
         return back()->with('success', 'AI settings updated successfully.');
     }
@@ -161,18 +214,13 @@ class AIController extends Controller
     public function testProvider(Request $request)
     {
         $request->validate([
-            'provider' => 'required|in:gemini,openai,claude,ollama',
+            'provider' => 'required|in:gemini,openai,claude,deepseek,ollama',
         ]);
 
         $provider = $request->input('provider');
 
         try {
-            $instance = match ($provider) {
-                'gemini' => new GeminiProvider,
-                'openai' => new OpenAIProvider,
-                'claude' => new ClaudeProvider,
-                'ollama' => new OllamaProvider,
-            };
+            $instance = app(AIProviderManager::class)->createProvider($provider);
 
             if (! $instance->isAvailable()) {
                 return back()->with('error', ucfirst($provider).' is not configured or unavailable. Check API key/connection.');
@@ -203,12 +251,7 @@ class AIController extends Controller
             $instance = null;
 
             try {
-                $instance = match ($key) {
-                    'gemini' => new GeminiProvider,
-                    'openai' => new OpenAIProvider,
-                    'claude' => new ClaudeProvider,
-                    'ollama' => new OllamaProvider,
-                };
+                $instance = app(AIProviderManager::class)->createProvider($key);
                 $configured = $instance->isAvailable();
             } catch (\Exception $e) {
                 $configured = false;
@@ -237,15 +280,19 @@ class AIController extends Controller
         return round(($successful / $total) * 100, 1);
     }
 
-    private function setEnvValue(string &$content, string $key, string $value): void
+    private function setEnvValue(string &$content, string $key, ?string $value): void
     {
-        $pattern = "/^{$key}=.*/m";
-        $replacement = "{$key}={$value}";
+        // ConvertEmptyStringsToNull middleware can turn empty inputs into null.
+        $value = $value ?? '';
+
+        $escapedKey = preg_quote($key, '/');
+        $pattern = "/^{$escapedKey}=.*/m";
+        $replacement = "{$key}=" . str_replace(['\\', '$'], ['\\\\', '\\$'], $value);
 
         if (preg_match($pattern, $content)) {
             $content = preg_replace($pattern, $replacement, $content);
         } else {
-            $content .= PHP_EOL.$replacement;
+            $content .= PHP_EOL.$key.'='.$value;
         }
     }
 }

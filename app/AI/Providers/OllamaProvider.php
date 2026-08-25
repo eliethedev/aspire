@@ -3,14 +3,18 @@
 namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
+use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class OllamaProvider implements AIServiceInterface
+class OllamaProvider implements AIServiceInterface, TracksTokenUsage
 {
     protected string $model;
 
     protected string $baseUrl;
+
+    protected array $lastUsage = ['input' => 0, 'output' => 0];
 
     public function __construct(?string $model = null, ?string $baseUrl = null)
     {
@@ -42,6 +46,11 @@ class OllamaProvider implements AIServiceInterface
     public function setModel(string $model): void
     {
         $this->model = $model;
+    }
+
+    public function getLastUsage(): array
+    {
+        return $this->lastUsage;
     }
 
     public function generate(string $prompt, array $options = []): ?string
@@ -78,6 +87,11 @@ class OllamaProvider implements AIServiceInterface
                 return null;
             }
 
+            $this->lastUsage = [
+                'input' => (int) ($data['prompt_eval_count'] ?? 0),
+                'output' => (int) ($data['eval_count'] ?? 0),
+            ];
+
             return trim($text);
         } catch (\Exception $e) {
             Log::error('OllamaProvider exception: '.$e->getMessage());
@@ -95,20 +109,6 @@ class OllamaProvider implements AIServiceInterface
             return null;
         }
 
-        $result = trim($result);
-        $result = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $result);
-
-        $decoded = json_decode($result, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::warning('OllamaProvider: failed to parse JSON response', [
-                'error' => json_last_error_msg(),
-                'raw' => $result,
-            ]);
-
-            return null;
-        }
-
-        return $decoded;
+        return JsonRecovery::decode($result, 'OllamaProvider');
     }
 }

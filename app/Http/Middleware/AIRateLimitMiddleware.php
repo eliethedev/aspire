@@ -9,31 +9,56 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AIRateLimitMiddleware
 {
+    /**
+     * Global per-user AI limits. Task-specific limits are enforced
+     * separately in AIService::checkRateLimit() using dedicated keys,
+     * so one task never blocks unrelated tasks.
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
         $userId = $user?->id ?? 'guest';
-        $key = "ai:global:{$userId}";
+
+        $perMinuteKey = "ai:global:{$userId}";
+        $perHourKey = "ai:global-hourly:{$userId}";
 
         $perMinute = config('ai.rate_limits.per_minute', 30);
+        $perHour = config('ai.rate_limits.per_hour', 200);
 
-        if (RateLimiter::tooManyAttempts($key, $perMinute)) {
-            $availableIn = RateLimiter::availableIn($key);
+        $blockedKey = null;
+        $availableIn = 0;
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'AI service is busy. Please try again in a moment.',
-                    'retry_after' => $availableIn,
-                ], 429);
-            }
+        if (RateLimiter::tooManyAttempts($perMinuteKey, $perMinute)) {
+            $blockedKey = $perMinuteKey;
+            $availableIn = RateLimiter::availableIn($perMinuteKey);
+        } elseif (RateLimiter::tooManyAttempts($perHourKey, $perHour)) {
+            $blockedKey = $perHourKey;
+            $availableIn = RateLimiter::availableIn($perHourKey);
+        }
 
-            return back()->withErrors([
-                'rate_limit' => "AI service is busy. Please try again in {$availableIn} seconds.",
+        if ($blockedKey !== null) {
+            return $this->reject($request, $availableIn);
+        }
+
+        RateLimiter::hit($perMinuteKey, 60);
+        RateLimiter::hit($perHourKey, 3600);
+
+        return $next($request);
+    }
+
+    protected function reject(Request $request, int $availableIn): Response
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'error' => 'AI service is busy. Please try again in a moment.',
+                'retry_after' => $availableIn,
+            ], 429)->withHeaders([
+                'Retry-After' => (string) $availableIn,
             ]);
         }
 
-        RateLimiter::hit($key, 60);
-
-        return $next($request);
+        return back()->withErrors([
+            'rate_limit' => "AI service is busy. Please try again in {$availableIn} seconds.",
+        ]);
     }
 }

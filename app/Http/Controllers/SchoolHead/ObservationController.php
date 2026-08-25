@@ -628,12 +628,17 @@ class ObservationController extends Controller
         $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
         $avgRating = $rated->exists() ? $rated->avg('rating') : null;
 
+        $requiresPostConference = true;
+        if ($observation->isSchoolHeadObservation()) {
+            $pinned = $observation->cotIndicatorVersion;
+            $requiresPostConference = $pinned ? $pinned->requiresPostConference() : ($cotVersion['requires_post_conference'] ?? true);
+        }
         $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
         $updates = ['overall_score' => $avgRating, 'status' => 'cot_completed'];
-        if ($targetIdx === $currentIdx + 1) {
+        if ($requiresPostConference && $targetIdx === $currentIdx + 1) {
             $updates['stage'] = 'post_conference';
             $observation->logChange([
                 'to_stage' => 'post_conference',
@@ -641,9 +646,10 @@ class ObservationController extends Controller
                 'notes' => 'COT Ratings completed',
             ]);
         } else {
+            $note = $requiresPostConference ? 'COT Ratings updated' : 'COT Ratings completed (no post-conference per PPSSH template)';
             $observation->logChange([
                 'to_status' => 'cot_completed',
-                'notes' => 'COT Ratings updated',
+                'notes' => $note,
             ]);
         }
         $observation->update($updates);

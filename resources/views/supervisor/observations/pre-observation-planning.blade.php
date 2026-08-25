@@ -226,6 +226,7 @@
                     </span>
                 </div>
 
+                <div id="ai-notice-slot" class="mb-3"></div>
                 <div id="ai-insights-container">
                     @if($planning && $planning->ai_insights)
                         <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
@@ -242,12 +243,34 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                                 </svg>
                             </div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">No AI insights available yet</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations based on previous observation data.</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">No insights yet</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">Use "Generate AI Insights" for an instant analysis, or click "Write Manually" to add your own — both are saved the same way.</p>
                         </div>
                     @endif
                 </div>
                 <input type="hidden" name="ai_insights" id="ai_insights_input" value="{{ $planning?->ai_insights ?? '' }}">
+
+                <!-- Manual entry (supervisor-only alternative to AI) -->
+                <div id="manual-insights-box" class="hidden mt-4 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 p-4">
+                    <label for="manual-insights-textarea" class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                        Write your own insights
+                    </label>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">No AI needed — note down what you want to focus on during the observation based on the lesson plan and the teacher's history.</p>
+                    <textarea id="manual-insights-textarea" rows="8"
+                              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                              placeholder="e.g. Focus on questioning techniques and learner engagement. Previous observation showed..."></textarea>
+                    <div class="flex items-center gap-2 mt-3">
+                        <button type="button" id="save-manual-insights-btn"
+                                class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors inline-flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            Use These Notes
+                        </button>
+                        <button type="button" id="cancel-manual-insights-btn"
+                                class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
+                        <span id="manual-saved-flash" class="hidden text-xs font-medium text-green-600 ml-1">Saved ✓</span>
+                    </div>
+                </div>
+
                 <div class="mt-4 flex items-center gap-2">
                     <button type="button" id="generate-ai-insights-btn"
                             class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-300 disabled:to-indigo-300 text-white text-sm rounded-xl font-semibold transition-all shadow-sm shadow-purple-600/20 hover:shadow-md hover:shadow-purple-600/30 inline-flex items-center gap-2">
@@ -255,6 +278,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                         <span id="ai-btn-text">Generate AI Insights</span>
+                    </button>
+                    <button type="button" id="write-manual-insights-btn"
+                            class="px-4 py-2.5 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:text-white bg-white dark:bg-gray-900 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Write Manually
                     </button>
                     <button type="button" id="clear-ai-insights-btn"
                             class="px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:text-white bg-red-50 dark:bg-red-900/20 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all inline-flex items-center gap-1.5 {{ $planning?->ai_insights ? '' : 'hidden' }}">
@@ -353,41 +381,6 @@
                 <!-- Observation Preparation -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Preparation</h2>
-
-                    <!-- Observation Tool -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Observation Tool / Rubric</label>
-                        <select name="observation_tool"
-                                class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select tool...</option>
-                            @if(!isset($observerRole) || $observerRole !== 'school_head')
-                                <option value="ppst" {{ old('observation_tool', $planning?->observation_tool) === 'ppst' ? 'selected' : '' }}>PPST</option>
-                            @endif
-                            <option value="classroom_observation_tool" {{ old('observation_tool', $planning?->observation_tool) === 'classroom_observation_tool' ? 'selected' : '' }}>Classroom Observation Tool (COT)</option>
-                            <option value="tisuyon" {{ old('observation_tool', $planning?->observation_tool) === 'tisuyon' ? 'selected' : '' }}>Tisuyon (Peer Observation)</option>
-                        </select>
-                        @error('observation_tool')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Selected Tool Preview -->
-                    @if($planning?->observation_tool === 'ppst')
-                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-100 mb-4">
-                        <p class="text-xs font-semibold text-blue-800 mb-1">PPST - 5 Domains</p>
-                        <p class="text-xs text-blue-600">Content Knowledge, Learning Environment, Diversity of Learners, Curriculum & Planning, Assessment & Reporting</p>
-                    </div>
-                    @elseif($planning?->observation_tool === 'tisuyon')
-                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 mb-4">
-                        <p class="text-xs font-semibold text-green-800 dark:text-green-300 mb-1">Tisuyon - Peer Observation</p>
-                        <p class="text-xs text-green-600 dark:text-green-400">Collaborative peer observation focused on professional dialogue and shared learning.</p>
-                    </div>
-                    @elseif($planning?->observation_tool === 'classroom_observation_tool')
-                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100 mb-4">
-                        <p class="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1">COT - 9 Indicators</p>
-                        <p class="text-xs text-purple-600 dark:text-purple-400">Standard classroom observation tool with 9 performance indicators.</p>
-                    </div>
-                    @endif
 
                     <!-- Supervisor's Notes -->
                     <div class="mb-4">
@@ -498,6 +491,7 @@
     </div>
 </div>
 @push('scripts')
+@include('partials.ai-notice')
 <script>
 function requestLessonPlan(btn) {
     btn.disabled = true;
@@ -519,17 +513,78 @@ function requestLessonPlan(btn) {
     });
 }
 
+var aiNoticeSlot = document.getElementById('ai-notice-slot');
+var insightsContainer = document.getElementById('ai-insights-container');
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function removeEmptyState() {
+    const empty = document.getElementById('ai-insights-empty');
+    if (empty) empty.remove();
+}
+
+function renderInsightsCard(text, badgeText, badgeClass) {
+    removeEmptyState();
+    let existing = document.getElementById('ai-insights-card');
+    if (!existing) {
+        existing = document.createElement('div');
+        existing.id = 'ai-insights-card';
+        insightsContainer.appendChild(existing);
+    }
+    existing.innerHTML =
+        '<div class="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-xl p-5 border border-purple-100 dark:border-purple-900/40">' +
+            '<div class="flex items-center gap-2 mb-3">' +
+                '<div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>' +
+                '<span class="text-xs font-semibold uppercase tracking-wider ' + badgeClass + '">' + escapeHtml(badgeText) + '</span>' +
+            '</div>' +
+            '<div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap" id="ai-insights-text"></div>' +
+        '</div>';
+    existing.querySelector('#ai-insights-text').textContent = text;
+    document.getElementById('clear-ai-insights-btn')?.classList.remove('hidden');
+}
+
+function openManualInsights() {
+    AINotice.hide(aiNoticeSlot);
+    const box = document.getElementById('manual-insights-box');
+    const ta = document.getElementById('manual-insights-textarea');
+    if (!ta.value.trim()) {
+        ta.value = document.getElementById('ai_insights_input').value || '';
+    }
+    document.getElementById('manual-saved-flash').classList.add('hidden');
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    ta.focus();
+}
+
+function closeManualInsights() {
+    document.getElementById('manual-insights-box').classList.add('hidden');
+}
+
+document.getElementById('write-manual-insights-btn')?.addEventListener('click', openManualInsights);
+document.getElementById('cancel-manual-insights-btn')?.addEventListener('click', closeManualInsights);
+
+document.getElementById('save-manual-insights-btn')?.addEventListener('click', function() {
+    const value = document.getElementById('manual-insights-textarea').value.trim();
+    if (!value) return;
+    document.getElementById('ai_insights_input').value = value;
+    renderInsightsCard(value, 'Written by you', 'text-indigo-700 dark:text-indigo-300');
+    closeManualInsights();
+    const flash = document.getElementById('manual-saved-flash');
+    flash.classList.remove('hidden');
+    setTimeout(() => flash.classList.add('hidden'), 2500);
+});
+
 document.getElementById('generate-ai-insights-btn')?.addEventListener('click', function() {
     const btn = this;
     const spinner = document.getElementById('ai-spinner');
     const btnText = document.getElementById('ai-btn-text');
-    const input = document.getElementById('ai_insights_input');
-    const container = document.getElementById('ai-insights-container');
-    const empty = document.getElementById('ai-insights-empty');
 
     btn.disabled = true;
     spinner.classList.remove('hidden');
     btnText.textContent = 'Generating...';
+    AINotice.hide(aiNoticeSlot);
 
     fetch('{{ route("supervisor.observations.generate-ai-insights", $observation) }}', {
         method: 'POST',
@@ -538,27 +593,21 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
             'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ai_insights) {
-            input.value = data.ai_insights;
-            if (empty) empty.remove();
-            let existingText = document.getElementById('ai-insights-text');
-            if (existingText) {
-                existingText.textContent = data.ai_insights;
-            } else {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
-                div.innerHTML = '<p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" id="ai-insights-text">' + data.ai_insights.replace(/\n/g, '<br>') + '</p>';
-                container.appendChild(div);
-            }
-        } else if (data.error) {
-            alert(data.error);
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, data };
+    })
+    .then(({ ok, data }) => {
+        if (ok && data.ai_insights) {
+            closeManualInsights();
+            document.getElementById('ai_insights_input').value = data.ai_insights;
+            renderInsightsCard(data.ai_insights, 'AI Analysis Complete', 'text-purple-700 dark:text-purple-300');
+        } else {
+            AINotice.show(aiNoticeSlot, data, { onManual: openManualInsights });
         }
     })
-    .catch(err => {
-        alert('Failed to generate AI insights. Please try again.');
-        console.error(err);
+    .catch(() => {
+        AINotice.show(aiNoticeSlot, { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, { onManual: openManualInsights });
     })
     .finally(() => {
         btn.disabled = false;
@@ -568,7 +617,7 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
 });
 
 document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
-    if (!confirm('Clear AI insights? This cannot be undone.')) return;
+    if (!confirm('Clear these insights? This cannot be undone.')) return;
 
     fetch('{{ route("supervisor.observations.clear-ai-insights", $observation) }}', {
         method: 'DELETE',
@@ -581,24 +630,21 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
     .then(data => {
         if (data.success) {
             document.getElementById('ai_insights_input').value = '';
-            const textEl = document.getElementById('ai-insights-text');
-            if (textEl) {
-                const container = textEl.closest('.bg-gray-50 dark:bg-gray-800');
-                if (container) container.remove();
-            }
-            const container = document.getElementById('ai-insights-container');
+            document.getElementById('manual-insights-textarea').value = '';
+            const card = document.getElementById('ai-insights-card');
+            if (card) card.remove();
             if (!document.getElementById('ai-insights-empty')) {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-600 text-center';
+                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 text-center';
                 div.id = 'ai-insights-empty';
-                div.innerHTML = '<svg class="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><p class="text-sm text-gray-500 dark:text-gray-400">No AI insights available yet.</p><p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations.</p>';
-                container.appendChild(div);
+                div.innerHTML = '<svg class="w-8 h-8 text-purple-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><p class="text-sm font-medium text-gray-600 dark:text-gray-400">No insights yet</p><p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">Generate AI Insights or write them yourself — both work equally well.</p>';
+                insightsContainer.appendChild(div);
             }
-            document.getElementById('clear-ai-insights-btn').classList.add('hidden');
+            this.classList.add('hidden');
         }
     })
     .catch(err => {
-        alert('Failed to clear AI insights.');
+        alert('Failed to clear insights.');
         console.error(err);
     });
 });

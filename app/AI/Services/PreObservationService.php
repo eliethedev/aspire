@@ -19,7 +19,7 @@ class PreObservationService extends AIService
         parent::__construct($provider, $rubrics);
     }
 
-    public function generateInsights(Observation $observation): ?string
+    public function generateInsights(Observation $observation, bool $templateFallback = true): ?string
     {
         $observation->loadMissing(['observee.user', 'preObservationPlanning']);
         $teacherName = $observation->observee?->user?->name ?? 'Unknown';
@@ -59,7 +59,7 @@ class PreObservationService extends AIService
             return $result;
         }
 
-        if (config('ai.fallback', true)) {
+        if ($templateFallback && config('ai.fallback', true)) {
             return $this->buildFallbackInsights(
                 $teacherName, $planning, $lessonPlanContent,
                 $observation->subject ?? '', $observation->grade_level ?? ''
@@ -69,7 +69,7 @@ class PreObservationService extends AIService
         return null;
     }
 
-    public function generatePreConferenceSuggestions(Observation $observation): ?array
+    public function generatePreConferenceSuggestions(Observation $observation, bool $templateFallback = true): ?array
     {
         $observation->loadMissing(['observee.user', 'preObservationPlanning']);
         $planning = $observation->preObservationPlanning;
@@ -82,6 +82,17 @@ class PreObservationService extends AIService
         $assessment = $planning?->assessment_methods ?? 'Not specified';
 
         if ($this->isAvailable()) {
+            $lessonPlanContent = '';
+            $lessonPlanFile = $planning?->lesson_plan_file;
+            if ($lessonPlanFile && Storage::disk('public')->exists($lessonPlanFile)) {
+                $fullPath = Storage::disk('public')->path($lessonPlanFile);
+                $lessonPlanContent = $this->documentExtractor->extractText($fullPath);
+            }
+
+            $lessonPlanSection = $lessonPlanContent
+                ? "--- Lesson Plan Content ---\n{$lessonPlanContent}\n\n"
+                : '';
+
             $prompt = <<<PROMPT
 You are an expert instructional coach. Based on the pre-observation data below, generate two concise text blocks for a pre-conference form.
 
@@ -93,7 +104,7 @@ Teaching Strategies: {$strategies}
 Materials: {$materials}
 Assessment Methods: {$assessment}
 
-Return JSON with exactly two keys:
+{$lessonPlanSection}Return JSON with exactly two keys:
 
 1. "discussion_notes" — 3-4 bullet points covering key discussion topics: teaching strategies, learner diversity, assessment methods, and any support the teacher may need.
 
@@ -112,7 +123,7 @@ PROMPT;
             }
         }
 
-        if (config('ai.fallback', true)) {
+        if ($templateFallback && config('ai.fallback', true)) {
             return $this->buildFallbackPreConferenceSuggestions(
                 $teacherName, $subject, $gradeLevel, $objective, $strategies, $materials, $assessment
             );

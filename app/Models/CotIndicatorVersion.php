@@ -41,6 +41,7 @@ class CotIndicatorVersion extends Model
         'ratee_position',
         'instrument',
         'career_stage',
+        'requires_post_conference',
         'rating_scale',
         'rating_scale_css',
     ];
@@ -50,6 +51,7 @@ class CotIndicatorVersion extends Model
         'observer_roles' => 'array',
         'rating_scale' => 'array',
         'rating_scale_css' => 'array',
+        'requires_post_conference' => 'boolean',
     ];
 
     public function indicators(): HasMany
@@ -226,10 +228,20 @@ class CotIndicatorVersion extends Model
 
     /**
      * Whether the given user role may rate with this form.
-     */
+      */
     public function allowsObserverRole(string $role): bool
     {
         return in_array($role, $this->observerRoles(), true);
+    }
+
+    /**
+     * Whether the observation workflow for this template includes a
+     * Post-Observation Conference stage. Defaults to true for backward
+     * compatibility with existing seeded versions.
+     */
+    public function requiresPostConference(): bool
+    {
+        return (bool) ($this->requires_post_conference ?? true);
     }
 
     /**

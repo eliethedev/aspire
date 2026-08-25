@@ -163,7 +163,7 @@ class PHPMailerService
     /**
      * Hand a generic email off to a detached background process so slow or
      * unreachable SMTP servers never delay the user's HTTP request.
-     * Falls back to sending synchronously if spawning fails.
+     * If spawning fails, the email is skipped (non-critical).
      */
     public function sendGenericEmailLater($email, $name, $subject, $body): void
     {
@@ -197,14 +197,7 @@ class PHPMailerService
 
             return;
         } catch (\Throwable $e) {
-            Log::error('Could not spawn deferred email process, sending synchronously: '.$e->getMessage());
-        }
-
-        // Fallback: bounded synchronous send (PHPMailer Timeout applies).
-        try {
-            $this->sendGenericEmail($email, $name, $subject, $body);
-        } catch (\Throwable $e) {
-            Log::error('Failed to send deferred generic email: ' . $e->getMessage());
+            Log::error('Could not spawn deferred email process, skipping email: '.$e->getMessage());
         }
     }
 

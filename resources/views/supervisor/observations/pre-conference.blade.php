@@ -145,6 +145,8 @@
                         <p>AI-generated analysis of the submitted lesson plan only. Review and customize before finalizing observation focus areas.</p>
                     </div>
 
+                    <div id="ai-panel-notice"></div>
+
                     @if($aiInsights)
                         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 insight-card">
                             <div class="flex items-start justify-between gap-3">
@@ -195,7 +197,7 @@
                         <div class="text-center py-6">
                             <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">No AI insights generated yet.</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Generate insights from the lesson plan to help focus the pre-conference discussion.</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Generate insights from the lesson plan to help focus the pre-conference discussion — or skip AI entirely and complete the form below yourself.</p>
                             <button type="button" onclick="generateAiInsights(event)"
                                     class="generate-ai-btn px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 rounded-lg transition-colors inline-flex items-center gap-2">
                                 <svg class="generate-spinner hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -306,12 +308,17 @@
 
             <!-- Section 3: Discussion Notes & Finalized Focus -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Discussion & Finalized Focus</h2>
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Discussion &amp; Finalized Focus</h2>
+                    <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">AI optional — you can write these yourself</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Use AI to draft these in one click, or simply type your own notes. Either way, what you write here is what counts.</p>
+                <div id="suggestions-notice" class="mb-3"></div>
                 <div class="space-y-4">
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pre-Conference Discussion Notes</label>
-                            <button type="button" onclick="useAiSuggestions()"
+                            <button type="button" onclick="useAiSuggestions(this)"
                                     class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                                 Use AI Suggestions
@@ -325,7 +332,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Finalized Observation Focus *</label>
-                            <button type="button" onclick="useAiSuggestions()"
+                            <button type="button" onclick="useAiSuggestions(this)"
                                     class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                                 Use AI Suggestions
@@ -590,6 +597,7 @@
 </div>
 
 @push('scripts')
+@include('partials.ai-notice')
 <script>
 // ===================== AI Insights Actions =====================
 
@@ -656,7 +664,11 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
     });
 });
 
-function useAiSuggestions() {
+function useAiSuggestions(btn) {
+    if (btn) { btn.disabled = true; btn.classList.add('opacity-60'); }
+    AINotice.hide(document.getElementById('suggestions-notice'));
+    AINotice.hide(document.getElementById('ai-panel-notice'));
+
     fetch('{{ route("supervisor.observations.generate-ai-suggestions", $observation) }}', {
         method: 'POST',
         headers: {
@@ -664,21 +676,43 @@ function useAiSuggestions() {
             'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.discussion_notes) {
-            document.getElementById('discussion_notes').value = data.discussion_notes;
-        }
-        if (data.finalized_focus) {
-            document.getElementById('finalized_focus').value = data.finalized_focus;
-        }
-        document.getElementById('ai_insights_reviewed_input').value = '1';
-        showToast('AI suggestions applied to form fields.');
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, data };
     })
-    .catch(err => {
-        alert('Failed to generate AI suggestions. Please try again.');
-        console.error(err);
+    .then(({ ok, data }) => {
+        if (ok && (data.discussion_notes || data.finalized_focus)) {
+            if (data.discussion_notes) {
+                document.getElementById('discussion_notes').value = data.discussion_notes;
+            }
+            if (data.finalized_focus) {
+                document.getElementById('finalized_focus').value = data.finalized_focus;
+            }
+            document.getElementById('ai_insights_reviewed_input').value = '1';
+            showToast('AI suggestions added below — review and edit them freely.');
+        } else {
+            AINotice.show('suggestions-notice', data, {
+                onManual: focusManualEntry,
+                manualLabel: 'Write them myself',
+            });
+        }
+    })
+    .catch(() => {
+        AINotice.show('suggestions-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
+            onManual: focusManualEntry,
+            manualLabel: 'Write them myself',
+        });
+    })
+    .finally(() => {
+        if (btn) { btn.disabled = false; btn.classList.remove('opacity-60'); }
     });
+}
+
+function focusManualEntry() {
+    const notes = document.getElementById('discussion_notes');
+    document.getElementById('suggestions-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (notes) notes.focus();
+    showToast('No problem — you can write the discussion notes and focus yourself.');
 }
 
 function markReviewed() {
@@ -700,6 +734,7 @@ function generateAiInsights(e, isRegenerate = false) {
     if (btn) btn.disabled = true;
     if (spinner) spinner.classList.remove('hidden');
     if (btnText) btnText.textContent = isRegenerate ? 'Regenerating...' : 'Generating...';
+    AINotice.hide(document.getElementById('ai-panel-notice'));
 
     fetch('{{ route("supervisor.observations.generate-ai-insights", $observation) }}', {
         method: 'POST',
@@ -708,17 +743,33 @@ function generateAiInsights(e, isRegenerate = false) {
             'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ai_insights) {
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, data };
+    })
+    .then(({ ok, data }) => {
+        if (ok && data.ai_insights) {
             location.reload();
-        } else if (data.error) {
-            alert(data.error);
+        } else {
+            AINotice.show('ai-panel-notice', data, {
+                onManual: function () {
+                    showToast('No problem — continue with the form below; AI insights are optional.');
+                    document.getElementById('discussion_notes').focus();
+                },
+                onRetry: () => generateAiInsights(null, isRegenerate),
+                manualLabel: 'Continue without AI',
+            });
         }
     })
-    .catch(err => {
-        alert('Failed to generate AI insights. Please try again.');
-        console.error(err);
+    .catch(() => {
+        AINotice.show('ai-panel-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
+            onManual: function () {
+                showToast('No problem — continue with the form below; AI insights are optional.');
+                document.getElementById('discussion_notes').focus();
+            },
+            onRetry: () => generateAiInsights(null, isRegenerate),
+            manualLabel: 'Continue without AI',
+        });
     })
     .finally(() => {
         if (btn) btn.disabled = false;

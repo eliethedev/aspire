@@ -228,6 +228,7 @@ class CotIndicatorService
             'is_default' => $version->is_default,
             'ratee_role' => $version->rateeRole(),
             'career_stage' => $version->career_stage,
+            'requires_post_conference' => $version->requiresPostConference(),
             'career_stage_label' => $version->careerStageLabel(),
             'rating_scale' => $version->ratingScale(),
             'rating_scale_css' => $version->ratingScaleCss(),
@@ -259,6 +260,7 @@ class CotIndicatorService
                 'is_default' => false,
                 'ratee_role' => CotIndicatorVersion::DEFAULT_RATEE_ROLE,
                 'career_stage' => null,
+                'requires_post_conference' => true,
                 'career_stage_label' => null,
                 'rating_scale' => config('cot.rating_scale', []),
                 'rating_scale_css' => config('cot.rating_scale_css', []),
@@ -277,6 +279,7 @@ class CotIndicatorService
         $config['is_default'] = ($config['school_year'] ?? null) === $this->defaultSchoolYear();
         $config['ratee_role'] = $config['ratee_role'] ?? CotIndicatorVersion::DEFAULT_RATEE_ROLE;
         $config['career_stage'] = $config['career_stage'] ?? null;
+        $config['requires_post_conference'] = $config['requires_post_conference'] ?? true;
         $config['career_stage_label'] = $config['career_stage_label'] ?? null;
         $config['rating_scale'] = $config['rating_scale'] ?? config('cot.rating_scale', []);
         $config['rating_scale_css'] = $config['rating_scale_css'] ?? config('cot.rating_scale_css', []);

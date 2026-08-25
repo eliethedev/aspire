@@ -71,6 +71,7 @@ class CotIndicatorController extends Controller
             'instrument' => ['nullable', 'string', 'max:50'],
             'ratee_role' => ['nullable', 'string', 'max:50'],
             'career_stage' => ['nullable', 'string', 'max:50'],
+            'requires_post_conference' => ['nullable', 'boolean'],
             'is_default' => 'nullable|boolean',
         ]);
 
@@ -105,6 +106,7 @@ class CotIndicatorController extends Controller
             'instrument' => $context['instrument'],
             'ratee_role' => $context['ratee_role'],
             'career_stage' => $context['career_stage'],
+            'requires_post_conference' => $validated['requires_post_conference'] ?? true,
             'is_default' => ! empty($validated['is_default']),
             'status' => CotIndicatorVersion::STATUS_DRAFT,
         ]);
@@ -148,6 +150,7 @@ class CotIndicatorController extends Controller
             'instrument' => ['nullable', 'string', 'max:50'],
             'ratee_role' => ['nullable', 'string', 'max:50'],
             'career_stage' => ['nullable', 'string', 'max:50'],
+            'requires_post_conference' => ['nullable', 'boolean'],
             'is_default' => 'nullable|boolean',
         ]);
 
@@ -194,6 +197,7 @@ class CotIndicatorController extends Controller
             'instrument' => $context['instrument'],
             'ratee_role' => $context['ratee_role'],
             'career_stage' => $context['career_stage'],
+            'requires_post_conference' => $validated['requires_post_conference'] ?? $cotIndicatorVersion->requires_post_conference ?? true,
             'is_default' => ! empty($validated['is_default']),
         ]);
 

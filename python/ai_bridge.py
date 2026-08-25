@@ -7,7 +7,7 @@ Provides a unified interface for calling multiple AI providers
 fallback chains, and batch processing.
 
 Usage from PHP:
-    python ai_bridge.py --action generate --provider gemini --model gemini-2.0-flash --prompt "..."
+    python ai_bridge.py --action generate --provider gemini --model gemini-3.6-flash --prompt "..."
     python ai_bridge.py --action generate_json --provider openai --model gpt-4o --prompt "..."
     python ai_bridge.py --action batch --config batch_config.json
     python ai_bridge.py --action status
@@ -211,7 +211,7 @@ def generate_with_fallback(fallback_chain: list, prompt: str, **kwargs) -> dict:
     """
     Try multiple providers in order, returning the first successful result.
 
-    fallback_chain: [{"provider": "openai", "model": "gpt-4o"}, {"provider": "gemini", "model": "gemini-2.0-flash"}]
+    fallback_chain: [{"provider": "openai", "model": "gpt-4o"}, {"provider": "gemini", "model": "gemini-3.6-flash"}]
     """
     for entry in fallback_chain:
         result = generate(
@@ -233,10 +233,10 @@ def batch_process(config: dict) -> list:
 
     config: {
         "items": [
-            {"id": "1", "provider": "gemini", "model": "gemini-2.0-flash", "prompt": "..."},
+            {"id": "1", "provider": "gemini", "model": "gemini-3.6-flash", "prompt": "..."},
             {"id": "2", "provider": "openai", "model": "gpt-4o", "prompt": "..."},
         ],
-        "fallback_chain": [{"provider": "gemini", "model": "gemini-2.0-flash"}]
+        "fallback_chain": [{"provider": "gemini", "model": "gemini-3.6-flash"}]
     }
     """
     items = config.get("items", [])
@@ -271,7 +271,7 @@ def check_provider_status() -> dict:
     gemini_key = os.getenv("GEMINI_API_KEY", "")
     status["gemini"] = {
         "configured": bool(gemini_key),
-        "model": os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+        "model": os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
     }
 
     # OpenAI

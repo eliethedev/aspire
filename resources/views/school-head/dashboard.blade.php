@@ -17,7 +17,7 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <i class="fas fa-school"></i>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Welcome back, {{ $user->name }}!</h1>
@@ -26,12 +26,12 @@
             </div>
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <i class="fas fa-school"></i>
                     School Head
                 </span>
                 @if($pendingActions > 0)
                 <a href="{{ route('school-head.observations.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <i class="fas fa-clock text-sm"></i>
                     {{ $pendingActions }} pending confirmation{{ $pendingActions > 1 ? 's' : '' }}
                 </a>
                 @endif
@@ -49,7 +49,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $stats['total'] }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <i class="fas fa-clipboard-list text-sm"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-2 text-xs">
@@ -67,16 +67,16 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($avgScore, 1) }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <i class="fas fa-circle text-xs text-gray-400"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-1.5 text-xs">
                 @if($trend > 0)
-                    <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    <i class="fas fa-circle text-xs text-gray-400"></i>
                     <span class="text-green-600 dark:text-green-400 font-medium">+{{ number_format($trend, 1) }}</span>
                     <span class="text-gray-400 dark:text-gray-500">from previous</span>
                 @elseif($trend < 0)
-                    <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                    <i class="fas fa-circle text-xs text-gray-400"></i>
                     <span class="text-red-600 dark:text-red-400 font-medium">{{ number_format($trend, 1) }}</span>
                     <span class="text-gray-400 dark:text-gray-500">from previous</span>
                 @else
@@ -93,7 +93,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $stats['completed'] }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <i class="fas fa-check-circle text-sm"></i>
                 </div>
             </div>
             <div class="mt-3">
@@ -112,7 +112,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $teacherCount }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+                    <i class="fas fa-circle text-xs text-gray-400"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-1.5 text-xs">
@@ -126,7 +126,7 @@
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div class="flex items-start gap-4">
             <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <i class="fas fa-circle text-xs text-gray-400"></i>
             </div>
             <div class="flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
@@ -148,7 +148,7 @@
                     <a href="{{ route('school-head.observations.show', $nextObservation) }}"
                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
                         View Details
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        <i class="fas fa-circle text-xs text-gray-400"></i>
                     </a>
                     <a href="{{ route('school-head.observations.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">All Observations &rarr;</a>
                 </div>
@@ -174,7 +174,7 @@
             @else
                 <div class="flex flex-col items-center justify-center py-12 text-center">
                     <div class="w-14 h-14 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
-                        <svg class="w-7 h-7 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <i class="fas fa-circle text-xs text-gray-400"></i>
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">No completed observations yet</p>
                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">COT scores will appear here once observations are completed.</p>
@@ -206,7 +206,7 @@
             @else
                 <div class="flex flex-col items-center py-8 text-center">
                     <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-2">
-                        <svg class="w-5 h-5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
+                        <i class="fas fa-circle text-xs text-gray-400"></i>
                     </div>
                     <p class="text-sm text-gray-400 dark:text-gray-500">No teachers assigned yet.</p>
                 </div>
@@ -230,7 +230,7 @@
                     <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <i class="fas fa-circle text-xs text-gray-400"></i>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $observation->observer?->name ?? 'Unknown' }}</p>
@@ -253,7 +253,7 @@
             @else
                 <div class="flex flex-col items-center py-12 text-center">
                     <div class="w-14 h-14 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
-                        <svg class="w-7 h-7 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <i class="fas fa-circle text-xs text-gray-400"></i>
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">No observations recorded yet.</p>
                 </div>
@@ -284,7 +284,7 @@
                 @else
                     <div class="flex flex-col items-center py-6 text-center">
                         <div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-2">
-                            <svg class="w-5 h-5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            <i class="fas fa-circle text-xs text-gray-400"></i>
                         </div>
                         <p class="text-xs text-gray-400 dark:text-gray-500">No feedback available yet.</p>
                     </div>
@@ -299,7 +299,7 @@
                 <div class="space-y-2">
                     <a href="{{ route('school-head.observations.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
                         <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-800/40 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <i class="fas fa-circle text-xs text-gray-400"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">My Observations</p>
@@ -308,7 +308,7 @@
                     </a>
                     <a href="{{ route('school-head.teachers.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/30 transition-colors">
                         <div class="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-800/40 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+                            <i class="fas fa-circle text-xs text-gray-400"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-sky-700 dark:text-sky-300">Teachers</p>
@@ -317,7 +317,7 @@
                     </a>
                     <a href="{{ route('school-head.reports.index') }}" class="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
                         <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-800/40 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <i class="fas fa-circle text-xs text-gray-400"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Analytics & Reports</p>

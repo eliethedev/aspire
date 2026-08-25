@@ -313,7 +313,7 @@ class FeedbackController extends Controller
             'areas_for_improvement' => $dummyAreasForImprovement,
             'recommendations' => $dummyRecommendations,
             'confidence_score' => 0.88,
-            'model_version' => 'gemini-2.0-flash',
+            'model_version' => config('ai.models.default', 'gemini-3.6-flash'),
             'generated_by' => 'ai',
             'status' => 'draft',
         ]);

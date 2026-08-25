@@ -173,6 +173,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Teacher routes
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/analytics', [App\Http\Controllers\Teacher\DashboardController::class, 'analytics'])->name('analytics');
 
     // Profile
     Route::get('/profile', [TeacherProfileController::class, 'edit'])->name('profile.edit');
@@ -206,6 +207,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::get('/teachers', [SupervisorController::class, 'teachers'])->name('teachers.index');
     Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
     Route::post('/teachers/{teacher}/career-assessment', [SupervisorController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
+    Route::get('/career-progression', [SupervisorController::class, 'careerProgression'])->name('career.index');
     Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
     Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
@@ -245,6 +247,14 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
     Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
+
+    // Goal-specific AI tasks (dynamic routing + fallback + per-task limits)
+    Route::prefix('observations/{observation}/ai-tasks')->name('ai-tasks.')->middleware('ai.rate.limit')->group(function () {
+        Route::post('/lesson-plan-suggestions', [\App\Http\Controllers\Supervisor\AITaskController::class, 'lessonPlanSuggestions'])->name('lesson-plan-suggestions');
+        Route::post('/lesson-plan-summary', [\App\Http\Controllers\Supervisor\AITaskController::class, 'lessonPlanSummary'])->name('lesson-plan-summary');
+        Route::post('/cot-ratings/{cotRating}/analysis', [\App\Http\Controllers\Supervisor\AITaskController::class, 'cotIndicatorAnalysis'])->name('cot-indicator-analysis');
+        Route::post('/overall-recommendation', [\App\Http\Controllers\Supervisor\AITaskController::class, 'overallRecommendation'])->name('overall-recommendation');
+    });
 
     // Post-Observation Report
     Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');

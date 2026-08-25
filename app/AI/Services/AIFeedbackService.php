@@ -68,7 +68,7 @@ class AIFeedbackService extends AIService
             'strengths' => $data['strengths'] ?? [],
             'areas_for_improvement' => $data['areas_for_improvement'] ?? [],
             'confidence_score' => $confidence,
-            'model_version' => 'gemini-' . $this->getModelForStage(),
+            'model_version' => $this->getModelForStage(),
         ]);
 
         Log::info("AI Feedback generated for COT Rating {$cotRating->id}");

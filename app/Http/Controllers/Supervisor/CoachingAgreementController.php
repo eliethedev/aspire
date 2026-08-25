@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Controller;
 use App\Models\CoachingAgreement;
+use App\Models\CotRating;
 use App\Models\Observation;
+use App\Services\CoachingFocusSuggestionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,11 +32,63 @@ class CoachingAgreementController extends Controller
             abort(400, 'Coaching agreements are only available for teacher observations.');
         }
 
-        $observation->load(['observee.user', 'postConference', 'aiFeedbacks' => function ($q) {
-            $q->where('status', 'published')->latest();
-        }]);
+        $observation->load([
+            'observee.user',
+            'postConference',
+            'cotRatings',
+            'aiFeedbacks' => function ($q) {
+                $q->where('status', 'published')->latest();
+            },
+        ]);
 
-        return view('supervisor.coaching.create', compact('observation'));
+        $teacherId = $observation->observee_id;
+
+        // Past observations of this teacher with a recorded COT score.
+        $pastObservations = Observation::with('observer')
+            ->where('observee_type', 'App\Models\Teacher')
+            ->where('observee_id', $teacherId)
+            ->where('id', '!=', $observation->id)
+            ->whereNotNull('overall_score')
+            ->where('status', '!=', 'cancelled')
+            ->orderByDesc('observation_date')
+            ->limit(6)
+            ->get();
+
+        // Indicators that were rated weak (<=3 or Not Observed) across those past observations.
+        $weakIndicators = CotRating::query()
+            ->whereIn('observation_id', $pastObservations->pluck('id'))
+            ->where(function ($q) {
+                $q->where('rating', '<=', 3)->orWhere('not_observed', true);
+            })
+            ->get()
+            ->groupBy('indicator_code')
+            ->map(fn ($group) => [
+                'indicator' => $group->first()->indicator,
+                'domain' => $group->first()->domain,
+                'count' => $group->count(),
+                'avg_rating' => round($group->avg(fn ($r) => $r->not_observed ? 0 : ($r->rating ?? 0)), 1),
+                'not_observed_count' => $group->where('not_observed', true)->count(),
+            ])
+            ->sortByDesc('count')
+            ->take(4)
+            ->values();
+
+        // Previous coaching agreements for this teacher.
+        $pastAgreements = CoachingAgreement::where('teacher_id', $teacherId)
+            ->where('observation_id', '!=', $observation->id)
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $suggestedFocusAreas = app(CoachingFocusSuggestionService::class)->suggest($observation);
+
+        return view('supervisor.coaching.create', compact(
+            'observation',
+            'suggestedFocusAreas',
+            'pastObservations',
+            'weakIndicators',
+            'pastAgreements'
+        ));
     }
 
     public function store(Request $request)

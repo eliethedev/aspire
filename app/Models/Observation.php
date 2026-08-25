@@ -232,6 +232,31 @@ class Observation extends Model
     }
 
     /**
+     * Whether this observation's workflow includes Post-Observation Conference.
+     * Teacher observations always include it (existing workflow unchanged).
+     * School head observations defer to the PPSSH template's flag.
+     */
+    public function requiresPostConference(): bool
+    {
+        if (! $this->isSchoolHeadObservation()) {
+            return true;
+        }
+
+        if ($this->relationLoaded('cotIndicatorVersion') && $this->cotIndicatorVersion) {
+            return $this->cotIndicatorVersion->requiresPostConference();
+        }
+
+        if ($this->cot_indicator_version_id) {
+            $version = CotIndicatorVersion::find($this->cot_indicator_version_id);
+            if ($version) {
+                return $version->requiresPostConference();
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Observation is assigned to a School Head
      */
     public function schoolHead(): BelongsTo

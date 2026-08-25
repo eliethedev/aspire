@@ -38,14 +38,14 @@ AI Pre-Observation Insights: {$aiInsights}
 
 {$rubrics}
 
-Provide concise, actionable suggestions for the supervisor:
+Provide detailed, actionable suggestions for the supervisor:
 
 1. **Key Indicators to Watch** — What specific teaching behaviors or practices should the supervisor focus on during this observation based on the finalized focus.<br>
 2. **Look-fors** — Specific observable actions, student engagement signs, and classroom practices to note.<br>
-3. **Guiding Questions** — 2-3 questions the supervisor can reflect on during the observation.<br>
+3. **Guiding Questions** — 3-4 questions the supervisor can reflect on during the observation.<br>
 4. **Coaching Opportunities** — Potential areas where constructive feedback could be most valuable.<br>
 
-Keep it brief (3-5 short paragraphs). Be specific and actionable.
+Be specific and reference actual lesson plan details wherever possible. Roughly 300-500 words; do not cut off mid-sentence.
 PROMPT;
     }
 }

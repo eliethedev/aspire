@@ -8,12 +8,14 @@ class AiUsageLog extends Model
 {
     protected $fillable = [
         'stage',
+        'provider',
         'model',
         'prompt_tokens',
         'response_tokens',
         'total_tokens',
         'response_time_ms',
         'success',
+        'fallback_used',
         'error_message',
         'observation_id',
         'user_id',
@@ -21,6 +23,7 @@ class AiUsageLog extends Model
 
     protected $casts = [
         'success' => 'boolean',
+        'fallback_used' => 'boolean',
         'prompt_tokens' => 'integer',
         'response_tokens' => 'integer',
         'total_tokens' => 'integer',

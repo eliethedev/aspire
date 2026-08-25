@@ -32,14 +32,19 @@ class AIFeedbackService
         return $this->newService->generateFeedback($cotRatingId);
     }
 
-    public function generatePreObservationInsights(Observation $observation): ?string
+    public function generatePreObservationInsights(Observation $observation, bool $templateFallback = true): ?string
     {
-        return $this->preObservation->generateInsights($observation);
+        return $this->preObservation->generateInsights($observation, $templateFallback);
     }
 
-    public function generatePostConferenceComparison(Observation $observation): ?string
+    public function generatePreConferenceSuggestions(Observation $observation, bool $templateFallback = true): ?array
     {
-        return $this->postConference->generateComparison($observation);
+        return $this->preObservation->generatePreConferenceSuggestions($observation, $templateFallback);
+    }
+
+    public function generatePostConferenceComparison(Observation $observation, bool $templateFallback = true): ?string
+    {
+        return $this->postConference->generateComparison($observation, $templateFallback);
     }
 
     public function getFeedbackNeedingReview(): \Illuminate\Support\Collection

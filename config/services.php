@@ -37,7 +37,7 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.6-flash'),
         'verify_ssl' => env('GEMINI_VERIFY_SSL', false),
     ],
 
@@ -49,6 +49,17 @@ return [
     'claude' => [
         'api_key' => env('CLAUDE_API_KEY'),
         'model' => env('CLAUDE_MODEL', 'claude-sonnet-4-20250514'),
+    ],
+
+    'deepseek' => [
+        'api_key' => env('DEEPSEEK_API_KEY'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+    ],
+
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'nvidia/nemotron-3.5-lightning:free'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
     ],
 
     'ollama' => [

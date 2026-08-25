@@ -53,12 +53,13 @@
                         <option value="gemini" {{ $config['provider'] === 'gemini' ? 'selected' : '' }}>Google Gemini</option>
                         <option value="openai" {{ $config['provider'] === 'openai' ? 'selected' : '' }}>OpenAI</option>
                         <option value="claude" {{ $config['provider'] === 'claude' ? 'selected' : '' }}>Anthropic Claude</option>
+                        <option value="openrouter" {{ $config['provider'] === 'openrouter' ? 'selected' : '' }}>OpenRouter (Fallback)</option>
                         <option value="ollama" {{ $config['provider'] === 'ollama' ? 'selected' : '' }}>Ollama (Local)</option>
                     </select>
                 </div>
 
                 <!-- Provider Cards -->
-                @foreach(['gemini', 'openai', 'claude', 'ollama'] as $providerKey)
+                @foreach(['gemini', 'openai', 'claude', 'openrouter', 'ollama'] as $providerKey)
                 @php
                     $providerCfg = $config['providers'][$providerKey] ?? [];
                     $providerStatus = $providerStatus[$providerKey] ?? ['enabled' => false, 'configured' => false];
@@ -73,6 +74,8 @@
                                     <svg class="w-5 h-5 {{ $providerStatus['configured'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" fill="currentColor" viewBox="0 0 24 24"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
                                 @elseif($providerKey === 'claude')
                                     <svg class="w-5 h-5 {{ $providerStatus['configured'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" fill="currentColor" viewBox="0 0 24 24"><path d="M4.709 15.955l4.72-2.756.08-.046 2.803-1.636a.206.206 0 0 0 0-.357l-2.959-1.726-4.716-2.752a.206.206 0 0 0-.309.178v8.917a.206.206 0 0 0 .309.178h.072zm7.582-4.626l2.819 1.645 4.716 2.753a.206.206 0 0 0 .309-.179V5.642a.206.206 0 0 0-.309-.178l-4.72 2.756-2.815 1.643a.206.206 0 0 0 0 .357v.012z"/></svg>
+                                @elseif($providerKey === 'openrouter')
+                                    <svg class="w-5 h-5 {{ $providerStatus['configured'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                 @else
                                     <svg class="w-5 h-5 {{ $providerStatus['configured'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
                                 @endif
@@ -86,11 +89,7 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $providerStatus['enabled'] ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400' }}">
                                 {{ $providerStatus['enabled'] ? 'Enabled' : 'Disabled' }}
                             </span>
-                            <form method="POST" action="{{ route('admin.ai.test-provider') }}" class="inline">
-                                @csrf
-                                <input type="hidden" name="provider" value="{{ $providerKey }}">
-                                <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Test</button>
-                            </form>
+                            <button type="button" onclick="testProvider('{{ $providerKey }}')" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Test</button>
                         </div>
                     </div>
 
@@ -118,7 +117,15 @@
 
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Model</label>
-                            <input type="text" name="ai_{{ $providerKey }}_model" value="{{ $providerCfg['default_model'] ?? '' }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            @include('admin.ai.partials.model-select', [
+                                'name' => 'ai_' . $providerKey . '_model',
+                                'id' => $providerKey . '-model-select',
+                                'current' => $providerCfg['default_model'] ?? '',
+                                'provider' => $providerKey,
+                            ])
+                            @if($providerKey === 'ollama')
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Only models pulled locally (e.g. <code>ollama pull llama3.1</code>) will work.</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -136,7 +143,12 @@
                     <!-- Default Model -->
                     <div class="pb-4 border-b border-gray-200 dark:border-gray-700">
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Fallback Model</label>
-                        <input type="text" name="ai_model_default" value="{{ $config['models']['default'] ?? 'gemini-2.0-flash' }}" class="w-full md:w-96 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                        @include('admin.ai.partials.model-select', [
+                            'name' => 'ai_model_default',
+                            'id' => 'default-model-select',
+                            'current' => $config['models']['default'] ?? '',
+                            'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'ollama'],
+                        ])
                         <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Used when a stage has no specific model configured.</p>
                     </div>
 
@@ -169,9 +181,17 @@
                                     <option value="gemini" {{ ($stageModel['provider'] ?? '') === 'gemini' ? 'selected' : '' }}>Gemini</option>
                                     <option value="openai" {{ ($stageModel['provider'] ?? '') === 'openai' ? 'selected' : '' }}>OpenAI</option>
                                     <option value="claude" {{ ($stageModel['provider'] ?? '') === 'claude' ? 'selected' : '' }}>Claude</option>
+                                    <option value="openrouter" {{ ($stageModel['provider'] ?? '') === 'openrouter' ? 'selected' : '' }}>OpenRouter</option>
                                     <option value="ollama" {{ ($stageModel['provider'] ?? '') === 'ollama' ? 'selected' : '' }}>Ollama</option>
                                 </select>
-                                <input type="text" name="ai_model_{{ $stageKey }}" value="{{ $stageModel['model'] ?? '' }}" placeholder="Model name" class="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <div class="flex-1">
+                                    @include('admin.ai.partials.model-select', [
+                                        'name' => 'ai_model_' . $stageKey,
+                                        'id' => 'stage-' . $stageKey . '-model-select',
+                                        'current' => $stageModel['model'] ?? '',
+                                        'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama'],
+                                    ])
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -332,6 +352,12 @@
             </button>
         </div>
     </form>
+
+    <!-- Provider connectivity test form (kept outside the main form to avoid illegal nesting) -->
+    <form id="provider-test-form" method="POST" action="{{ route('admin.ai.test-provider') }}" class="hidden">
+        @csrf
+        <input type="hidden" name="provider" id="provider-test-input" value="">
+    </form>
 </div>
 
 <script>
@@ -339,6 +365,26 @@ function aiSettings() {
     return {
         activeTab: 'providers',
     };
+}
+
+function testProvider(provider) {
+    document.getElementById('provider-test-input').value = provider;
+    document.getElementById('provider-test-form').submit();
+}
+
+function aiModelSelectChanged(selectEl) {
+    const wrap = selectEl.closest('[data-model-field]');
+    if (!wrap) return;
+    const customInput = wrap.querySelector('[data-custom-input]');
+    if (!customInput) return;
+
+    const isCustom = selectEl.value === '__custom__';
+    customInput.classList.toggle('hidden', !isCustom);
+    if (isCustom) {
+        customInput.focus();
+    } else {
+        customInput.value = '';
+    }
 }
 </script>
 @endsection

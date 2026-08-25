@@ -73,7 +73,7 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-        <form method="POST" action="{{ route('supervisor.observations.store') }}" class="lg:col-span-2">
+        <form method="POST" action="{{ route('supervisor.observations.store') }}" class="lg:col-span-2" novalidate>
         @csrf
 
         <!-- Progress Steps — minimized -->
@@ -191,13 +191,21 @@
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.label"></h3>
                                         <span x-show="template.is_default" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700">Default</span>
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[13px] font-medium bg-indigo-100 text-indigo-700"><span x-text="template.indicators_count"></span>  - indicators</span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[13px] font-medium bg-indigo-100 text-indigo-700" x-text="template.indicators_count + ' indicators'"></span>
                                     </div>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                                         <span x-text="template.framework_label"></span> · <span x-text="template.instrument_label"></span>
                                         <template x-if="template.career_stage_label"><span x-text="' · ' + template.career_stage_label"></span></template>
+                                        <span x-show="template.ratee_role==='school_head'" x-text="template.requires_post_conference ? ' · With Post-Conference' : ' · No Post-Conference'"></span>
                                     </p>
                                 </div>
+                                <button type="button"
+                                        @click.prevent.stop="openTemplatePreview(template)"
+                                        class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 text-xs font-medium transition-colors"
+                                        title="Preview this template's indicators">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    View
+                                </button>
                             </div>
                         </label>
                     </template>
@@ -254,6 +262,8 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-2 mt-0.5">
                                     <span x-text="item.position"></span>
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                    <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="item.school_name"></span></span>
+                                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span x-text="item.subject"></span>
                                     <template x-if="item.department">
                                         <><span class="w-1 h-1 rounded-full bg-gray-300"></span><span x-text="item.department"></span></>
@@ -293,6 +303,7 @@
                             </button>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+                            <div><span class="text-gray-400">School</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.school_name"></p></div>
                             <template x-if="selectedType === 'teacher_observation'">
                                 <>
                                     <div><span class="text-gray-400">Department</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.department"></p></div>
@@ -388,7 +399,7 @@
                     <!-- Observation Date -->
                     <div class="sm:col-span-2 mb-3">
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Date</label>
-                        <input type="date" name="observation_date" x-model="form.observation_date" required :min="today"
+                        <input type="date" name="observation_date" x-model="form.observation_date" :min="today"
                                class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
 
@@ -510,17 +521,17 @@
                     </div>
                 </div>
 
-                <!-- School Head Involvement — CLEAR FLOW, UX friendly -->
+                <!-- Co-Observation — CLEAR FLOW, UX friendly -->
                 <div class="rounded-xl border-2 p-3.5" :class="form.school_head_id ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-900/10' : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30'">
                     <div class="flex items-start gap-3">
                         <div class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">School Head involvement <span class="text-xs font-normal text-gray-400">— Optional</span></h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Invite a School Head to co-observe. They'll be notified and can submit separate ratings.</p>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Co-Observation <span class="text-xs font-normal text-gray-400">— Optional</span></h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">You are the lead observer. Optionally, invite a School Head as co-observer — they'll be notified and submit their own ratings.</p>
                         </div>
-                        <span class="text-[10px] font-medium px-2 py-1 rounded-full shrink-0" :class="form.school_head_id ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-600'"><span x-text="form.school_head_id ? 'Included' : 'Not included'"></span></span>
+                        <span class="text-[10px] font-medium px-2 py-1 rounded-full shrink-0" :class="form.school_head_id ? 'bg-amber-600 text-white' : 'bg-gray-200 text-gray-600'"><span x-text="form.school_head_id ? 'Co-observer added' : 'Not included'"></span></span>
                     </div>
 
                     <!-- Clear choice — two cards -->
@@ -539,7 +550,7 @@
                                 <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="form.school_head_id ? 'border-amber-600 bg-amber-600' : 'border-gray-300'"><svg x-show="form.school_head_id" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
                                 <div>
                                     <p class="text-xs font-semibold" :class="form.school_head_id ? 'text-amber-700' : 'text-gray-700 dark:text-gray-300'">With School Head</p>
-                                    <p class="text-[11px] text-gray-400">Co-observer</p>
+                                    <p class="text-[11px] text-gray-400">School Head co-observes &amp; co-rates</p>
                                 </div>
                             </div>
                         </button>
@@ -549,23 +560,36 @@
                     <div class="mt-3 flex items-center justify-center gap-1.5 text-xs">
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Supervisor</span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium" :class="form.school_head_id ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-gray-500 border border-dashed'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> <span x-text="form.school_head_id ? 'School Head' : '—'"></span></span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium" :class="form.school_head_id ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-gray-500 border border-dashed'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> <span class="truncate max-w-[80px]" x-text="selectedSchoolHead?.name?.split(' ')[0] || '—'"></span></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg> <span class="truncate max-w-[80px]" x-text="selectedObservee?.name?.split(' ')[0] || 'Teacher'"></span></span>
                     </div>
 
                     <div x-show="!!form.school_head_id" x-transition class="mt-3">
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Select School Head <span class="text-amber-600">*</span></label>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Select Co-Observer (School Head) <span class="text-amber-600">*</span></label>
                         <select name="school_head_id" x-model="form.school_head_id"
                                 class="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                             <option value="">— Choose School Head —</option>
                             @foreach($schoolHeadData as $sh)
-                                <option value="{{ $sh['user_id'] }}">{{ $sh['name'] }} — {{ $sh['position'] }}</option>
+                                <option value="{{ $sh['user_id'] }}">{{ $sh['name'] }} — {{ $sh['position'] }} · {{ $sh['school_name'] }}</option>
                             @endforeach
                         </select>
                         @error('school_head_id')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
+                        <template x-if="selectedSchoolHead">
+                            <div class="mt-2 rounded-lg border border-amber-200 bg-white dark:bg-gray-900 p-3 flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-bold shrink-0" x-text="selectedSchoolHead?.name?.charAt(0)?.toUpperCase() || '?'"></div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedSchoolHead?.name"></p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                        <span x-text="selectedSchoolHead?.position"></span>
+                                        <span class="text-gray-300">·</span>
+                                        <span class="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="selectedSchoolHead?.school_name"></span></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </template>
                         <p class="mt-1.5 text-xs text-emerald-600 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Will be notified and can co-rate this observation.</p>
                     </div>
                     <div x-show="!form.school_head_id" class="mt-2 text-xs text-gray-400">Supervisor-only observation — continue to next step.</div>
@@ -585,36 +609,63 @@
             </div>
         </div>
 
-        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE (OPTIONAL) — minimized -->
+        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE ===== -->
         <div x-show="currentStep === 5" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">5</span>
                     <div>
                         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Optional — schedule feedback later if needed</p>
+                        <template x-if="selectedType === 'teacher_observation'">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Optional — schedule feedback later if needed</p>
+                        </template>
+                        <template x-if="selectedType === 'school_head_observation'">
+                            <p class="text-xs text-gray-500 dark:text-gray-400" x-text="selectedCotTemplateRequiresPostConference ? 'Included by PPSSH template — will be scheduled' : 'Not included by this PPSSH template — workflow skips conference'"></p>
+                        </template>
                     </div>
                 </div>
 
-                <!-- Toggle -->
-                <label class="flex items-start gap-3 cursor-pointer rounded-xl border-2 p-4 transition-all mb-3"
-                       :class="scheduleConference ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300'">
-                    <input type="checkbox" name="schedule_conference" value="1" x-model="scheduleConference" class="sr-only">
-                    <span class="w-5 h-5 rounded border-2 mt-0.5 flex items-center justify-center shrink-0 transition-colors"
-                          :class="scheduleConference ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 dark:border-gray-600'">
-                        <svg x-show="scheduleConference" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    </span>
-                    <span>
-                        <span class="font-medium text-gray-900 dark:text-gray-100 text-sm block">Schedule a Post-Observation Conference</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 block">The ratee will be notified with the conference schedule. You can skip this and schedule later.</span>
-                    </span>
-                </label>
+                <!-- Teacher: manual toggle (existing workflow unchanged) -->
+                <template x-if="selectedType === 'teacher_observation'">
+                    <label class="flex items-start gap-3 cursor-pointer rounded-xl border-2 p-4 transition-all mb-3"
+                           :class="scheduleConference ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300'">
+                        <input type="checkbox" name="schedule_conference" value="1" x-model="scheduleConference" class="sr-only">
+                        <span class="w-5 h-5 rounded border-2 mt-0.5 flex items-center justify-center shrink-0 transition-colors"
+                              :class="scheduleConference ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 dark:border-gray-600'">
+                            <svg x-show="scheduleConference" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        <span>
+                            <span class="font-medium text-gray-900 dark:text-gray-100 text-sm block">Schedule a Post-Observation Conference</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 block">The ratee will be notified with the conference schedule. You can skip this and schedule later.</span>
+                        </span>
+                    </label>
+                </template>
 
-                <div x-show="scheduleConference" class="fade-in">
+                <!-- School Head: template-driven notice (no manual checkbox) -->
+                <template x-if="selectedType === 'school_head_observation'">
+                    <div class="mb-3">
+                        <div x-show="selectedCotTemplateRequiresPostConference" class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <p class="text-sm font-medium text-emerald-800">Post-Observation Conference is part of this PPSSH template</p>
+                                <p class="text-xs text-emerald-700/80 mt-0.5">Workflow: Pre-Observation → Observation → Post-Conference → Feedback/Development → Finalize. Fill conference details below (optional at scheduling; can be set later).</p>
+                            </div>
+                        </div>
+                        <div x-show="!selectedCotTemplateRequiresPostConference" class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">This PPSSH template does not include Post-Observation Conference</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Workflow: Pre-Observation → Observation → Feedback/Development → Finalize. No conference scheduling needed.</p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="showConferenceFields" class="fade-in">
                     <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
                         <!-- Conference Date -->
                         <div class="sm:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Date</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Date <span x-show="selectedType==='teacher_observation'" class="text-gray-400 font-normal">(optional)</span></label>
                             <input type="date" name="conference_date" x-model="form.conference_date"
                                    class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         </div>
@@ -747,8 +798,8 @@
                         </div>
 
                         <!-- Post-Conference -->
-                        <div x-show="scheduleConference" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Post-Observation Conference</p>
+                        <div x-show="showConferenceFields" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Post-Observation Conference <span x-show="selectedType==='school_head_observation'" class="normal-case font-normal text-emerald-600">(via PPSSH template)</span></p>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                 <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800" x-text="form.conference_date || '—'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Time</span><p class="font-medium text-gray-800" x-text="conferenceTimeLabel || '—'"></p></div>
@@ -763,14 +814,11 @@
                             <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" x-text="form.notes"></p>
                         </div>
 
-                        <!-- School Head (if selected) -->
+                        <!-- Co-Observation (if selected) -->
                         <div x-show="form.school_head_id" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">School Head</p>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">
-                                @foreach($schoolHeadData as $sh)
-                                    <span x-show="form.school_head_id == '{{ $sh['user_id'] }}'">{{ $sh['name'] }}</span>
-                                @endforeach
-                            </p>
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Co-Observation</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-200" x-text="selectedSchoolHead?.name"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="[selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
                         </div>
                     </div>
 
@@ -780,8 +828,8 @@
                                 class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors">
                             Go Back
                         </button>
-                        <button type="submit"
-                                @click="submitting = true"
+                        <button type="button"
+                                @click="submitting = true; $el.closest('form').submit()"
                                 class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
                             <span x-show="!submitting">Confirm &amp; Schedule</span>
                             <span x-show="submitting" class="flex items-center gap-2">
@@ -794,14 +842,84 @@
             </div>
         </div>
 
+        <!-- COT Template Preview Modal -->
+        <div x-show="previewTemplate" x-cloak @keydown.escape.window="closeTemplatePreview()"
+             class="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="COT Template Preview">
+            <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="closeTemplatePreview()"></div>
+            <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col"
+                 x-show="previewTemplate"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
+                <!-- Header -->
+                <div class="flex items-start justify-between gap-3 px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="previewTemplate?.label"></h3>
+                            <span x-show="previewTemplate?.is_default" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700">Default</span>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                            <span class="inline-flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span x-text="'SY ' + previewTemplate?.school_year"></span></span>
+                            <span class="text-gray-300">·</span>
+                            <span x-text="previewTemplate?.framework_label"></span>
+                            <span class="text-gray-300">·</span>
+                            <span x-text="previewTemplate?.instrument_label"></span>
+                            <template x-if="previewTemplate?.career_stage_label">
+                                <span class="inline-flex items-center gap-x-1"><span class="text-gray-300">·</span><span x-text="previewTemplate?.career_stage_label"></span></span>
+                            </template>
+                            <span class="text-gray-300">·</span>
+                            <span class="font-medium text-indigo-600 dark:text-indigo-400" x-text="(previewTemplate?.indicators_count || 0) + ' indicators'"></span>
+                        </p>
+                    </div>
+                    <button type="button" @click="closeTemplatePreview()" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0" aria-label="Close preview">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Body — indicators grouped by domain -->
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                    <template x-if="previewGroups.length === 0">
+                        <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-8">No indicators defined for this template yet.</p>
+                    </template>
+                    <template x-for="[domain, indicators] in previewGroups" :key="domain">
+                        <div class="rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                            <div class="px-4 py-2 bg-indigo-50/70 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between gap-2">
+                                <p class="text-xs font-semibold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider truncate" x-text="domain"></p>
+                                <span class="text-[10px] font-medium text-indigo-500 bg-white/70 dark:bg-gray-900/50 px-1.5 py-0.5 rounded-full shrink-0" x-text="indicators.length + (indicators.length === 1 ? ' indicator' : ' indicators')"></span>
+                            </div>
+                            <ol class="divide-y divide-gray-50 dark:divide-gray-800/60">
+                                <template x-for="(indicator, idx) in indicators" :key="domain + '-' + idx">
+                                    <li class="px-4 py-2.5 flex items-start gap-3">
+                                        <span class="mt-0.5 inline-flex items-center justify-center min-w-[44px] h-5 px-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-600 dark:text-gray-300 shrink-0" x-text="indicator.code || (idx + 1)"></span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300 leading-snug" x-text="indicator.description"></span>
+                                    </li>
+                                </template>
+                            </ol>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 shrink-0">
+                    <button type="button" @click="closeTemplatePreview()"
+                            class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                        Close
+                    </button>
+                    <button type="button" @click="usePreviewedTemplate()"
+                            class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span x-text="selectedCotTemplateId === previewTemplate?.id ? 'Selected' : 'Use this template'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Always-rendered hidden field for observee_id -->
         <input type="hidden" name="observee_id" x-model="observeeId">
         <!-- Always-rendered hidden field for the selected COT template -->
         <input type="hidden" name="cot_indicator_version_id" x-model="selectedCotTemplateId">
         <!-- This wizard only schedules observations (no immediate option) -->
         <input type="hidden" name="schedule_type" value="scheduled">
-        <!-- School Head (optional) -->
-        <input type="hidden" name="school_head_id" x-model="form.school_head_id">
     </form>
 
     <!-- Sticky Summary Sidebar -->
@@ -827,11 +945,23 @@
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedObservee?.name"></p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="selectedObservee?.position"></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate inline-flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="selectedObservee?.school_name"></span></p>
                     </div>
                 </div>
                 <div x-show="!selectedObservee" class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 p-4 text-center">
                     <p class="text-xs text-gray-400 dark:text-gray-500">No ratee selected yet.</p>
                 </div>
+
+                <template x-if="selectedSchoolHead">
+                    <div class="mt-3 flex items-center gap-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/40 p-3">
+                        <div class="w-9 h-9 rounded-full bg-amber-600 text-white flex items-center justify-center text-sm font-bold shrink-0" x-text="selectedSchoolHead?.name?.charAt(0)?.toUpperCase() || '?'"></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Co-Observer</p>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedSchoolHead?.name"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="[selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
+                        </div>
+                    </div>
+                </template>
 
                 <dl class="mt-4 space-y-3 text-sm">
                     <div class="flex items-center justify-between gap-3">
@@ -868,9 +998,9 @@
                             <dd class="font-medium text-gray-800 dark:text-gray-200 text-right truncate" x-text="form.subject"></dd>
                         </div>
                     </template>
-                    <div x-show="scheduleConference" class="flex items-center justify-between gap-3">
+                    <div x-show="showConferenceFields" class="flex items-center justify-between gap-3">
                         <dt class="text-xs text-gray-400 dark:text-gray-500">Conference</dt>
-                        <dd class="font-medium text-emerald-600 dark:text-emerald-400 text-right">Scheduled</dd>
+                        <dd class="font-medium text-emerald-600 dark:text-emerald-400 text-right" x-text="selectedType==='school_head_observation' ? 'Via PPSSH Template' : 'Scheduled'"></dd>
                     </div>
                 </dl>
             </div>
@@ -952,6 +1082,17 @@
                 return (this.cotTemplates || []).find(t => String(t.id) === String(this.selectedCotTemplateId)) || null;
             },
 
+            get selectedCotTemplateRequiresPostConference() {
+                if (this.selectedType === 'teacher_observation') return this.scheduleConference;
+                const t = this.selectedCotTemplate;
+                return t ? !!t.requires_post_conference : true;
+            },
+
+            get showConferenceFields() {
+                if (this.selectedType === 'school_head_observation') return this.selectedCotTemplateRequiresPostConference;
+                return this.scheduleConference;
+            },
+
             get selectedTypeLabel() {
                 if (this.selectedType === 'teacher_observation') return 'Teacher Observation';
                 if (this.selectedType === 'school_head_observation') return 'School Head Observation';
@@ -966,6 +1107,32 @@
                 return this.selectedType === 'teacher_observation' ? this.teacherData : this.schoolHeadData;
             },
 
+            get selectedSchoolHead() {
+                if (!this.form.school_head_id) return null;
+                return (this.schoolHeadData || []).find(sh => String(sh.user_id) === String(this.form.school_head_id)) || null;
+            },
+
+            previewTemplate: null,
+
+            openTemplatePreview(template) {
+                this.previewTemplate = template;
+            },
+
+            closeTemplatePreview() {
+                this.previewTemplate = null;
+            },
+
+            usePreviewedTemplate() {
+                if (this.previewTemplate) {
+                    this.selectedCotTemplateId = this.previewTemplate.id;
+                }
+                this.closeTemplatePreview();
+            },
+
+            get previewGroups() {
+                return this.previewTemplate ? Object.entries(this.previewTemplate.indicator_groups || {}) : [];
+            },
+
             get filteredList() {
                 if (!this.searchQuery) return this.observeeList;
                 const q = this.searchQuery.toLowerCase();
@@ -975,6 +1142,7 @@
                     item.grade_level?.toLowerCase().includes(q) ||
                     item.department?.toLowerCase().includes(q) ||
                     item.position?.toLowerCase().includes(q) ||
+                    item.school_name?.toLowerCase().includes(q) ||
                     item.email?.toLowerCase().includes(q)
                 );
             },
@@ -1112,9 +1280,22 @@
                     this.goToStep(this.selectedCotTemplateId ? 4 : 2);
                 } else if (this.selectedType) {
                     // Restore the correct step when re-rendering after validation error
+                    const typeErrors = @if($errors->has('observation_type')) true @else false @endif;
+                    const templateErrors = @if($errors->has('cot_indicator_version_id')) true @else false @endif;
+                    const observeeErrors = @if($errors->has('observee_id')) true @else false @endif;
                     const scheduleErrors = @if($errors->hasAny(['observation_date', 'start_time', 'end_time', 'school_head_id'])) true @else false @endif;
-                    if (scheduleErrors) {
+                    const conferenceErrors = @if($errors->hasAny(['conference_start_time', 'conference_end_time'])) true @else false @endif;
+
+                    if (typeErrors) {
+                        this.goToStep(1);
+                    } else if (templateErrors) {
+                        this.goToStep(2);
+                    } else if (observeeErrors) {
+                        this.goToStep(3);
+                    } else if (scheduleErrors) {
                         this.goToStep(4);
+                    } else if (conferenceErrors) {
+                        this.goToStep(5);
                     } else if (this.selectedCotTemplateId && this.selectedObservee) {
                         this.goToStep(5);
                     } else if (this.selectedCotTemplateId) {

@@ -3,16 +3,20 @@
 namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
+use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class ClaudeProvider implements AIServiceInterface
+class ClaudeProvider implements AIServiceInterface, TracksTokenUsage
 {
     protected string $apiKey;
 
     protected string $model;
 
     protected string $baseUrl = 'https://api.anthropic.com/v1';
+
+    protected array $lastUsage = ['input' => 0, 'output' => 0];
 
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
@@ -38,6 +42,11 @@ class ClaudeProvider implements AIServiceInterface
     public function setModel(string $model): void
     {
         $this->model = $model;
+    }
+
+    public function getLastUsage(): array
+    {
+        return $this->lastUsage;
     }
 
     public function generate(string $prompt, array $options = []): ?string
@@ -87,6 +96,13 @@ class ClaudeProvider implements AIServiceInterface
                 return null;
             }
 
+            if (isset($data['usage'])) {
+                $this->lastUsage = [
+                    'input' => (int) ($data['usage']['input_tokens'] ?? 0),
+                    'output' => (int) ($data['usage']['output_tokens'] ?? 0),
+                ];
+            }
+
             return trim($text);
         } catch (\Exception $e) {
             Log::error('ClaudeProvider exception: '.$e->getMessage());
@@ -104,20 +120,6 @@ class ClaudeProvider implements AIServiceInterface
             return null;
         }
 
-        $result = trim($result);
-        $result = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $result);
-
-        $decoded = json_decode($result, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::warning('ClaudeProvider: failed to parse JSON response', [
-                'error' => json_last_error_msg(),
-                'raw' => $result,
-            ]);
-
-            return null;
-        }
-
-        return $decoded;
+        return JsonRecovery::decode($result, 'ClaudeProvider');
     }
 }

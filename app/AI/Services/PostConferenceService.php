@@ -9,7 +9,7 @@ class PostConferenceService extends AIService
 {
     protected string $stage = 'post_conference';
 
-    public function generateComparison(Observation $observation): ?string
+    public function generateComparison(Observation $observation, bool $templateFallback = true): ?string
     {
         $observation->loadMissing(['observee.user', 'postConference', 'preObservationPlanning']);
         $teacherName = $observation->observee?->user?->name ?? 'Unknown';
@@ -39,7 +39,7 @@ class PostConferenceService extends AIService
             }
         }
 
-        if (config('ai.fallback', true)) {
+        if ($templateFallback && config('ai.fallback', true)) {
             return $this->buildFallbackComparison($teacherName, $observation, $postConference, $planning);
         }
 

@@ -237,6 +237,6 @@ class DocumentExtractorService
     {
         $text = preg_replace('/[^\S\n]+/', ' ', $text);
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
-        return trim(mb_substr($text, 0, 15000));
+        return trim(mb_substr($text, 0, 30000));
     }
 }

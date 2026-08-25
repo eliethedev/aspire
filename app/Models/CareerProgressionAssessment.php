@@ -36,6 +36,7 @@ class CareerProgressionAssessment extends Model
         'ratee_id',
         'evaluator_id',
         'status',
+        'target_career_stage',
         'remarks',
         'assessed_at',
         'position',
@@ -55,6 +56,27 @@ class CareerProgressionAssessment extends Model
     public function evaluator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'evaluator_id');
+    }
+
+    /**
+     * Resolved label for the snapshotted target career stage key
+     * (e.g. "Teacher IV-VII · Career Stage II"). Falls back to the raw key.
+     */
+    public function targetStageLabel(): string
+    {
+        if (! $this->target_career_stage) {
+            return '';
+        }
+
+        $stageLabel = config("career_stages.career_stage_labels.{$this->target_career_stage}");
+
+        if ($stageLabel === null) {
+            return ucwords(str_replace('_', ' ', $this->target_career_stage));
+        }
+
+        $enum = \App\Enums\TeacherCareerStage::tryFrom($this->target_career_stage);
+
+        return $enum !== null ? "{$enum->label()} · {$stageLabel}" : $stageLabel;
     }
 
     public function statusLabel(): string

@@ -1,5 +1,10 @@
+@php
+    $initialUnreadCount = auth()->check()
+        ? app(\App\Services\NotificationService::class)->unreadCount(auth()->user())
+        : 0;
+@endphp
 <div
-    x-data="notificationBell()"
+    x-data="notificationBell({{ $initialUnreadCount }})"
     @click.outside="open = false"
     @keydown.escape.window="open = false"
     class="relative"
@@ -14,13 +19,14 @@
         @click="openMenu()"
     >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-        <span
-            x-text="unreadCount"
-            x-show="unreadCount > 0"
-            x-cloak
-            class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full"
-            aria-hidden="true"
-        >0</span>
+        @if($initialUnreadCount > 0)
+            <span
+                x-text="unreadCount"
+                x-show="unreadCount > 0"
+                class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full"
+                aria-hidden="true"
+            >{{ $initialUnreadCount }}</span>
+        @endif
     </button>
 
     <div
@@ -119,7 +125,7 @@
 @once
     @push('scripts')
         <script>
-            function notificationBell() {
+            function notificationBell(initialUnreadCount = 0) {
                 const ICONS = {
                     observation: ['M15 12a3 3 0 11-6 0 3 3 0 016 0z', 'M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'],
                     observation_completed: ['M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
@@ -141,7 +147,7 @@
                 return {
                     open: false,
                     notifications: [],
-                    unreadCount: 0,
+                    unreadCount: Number(initialUnreadCount) || 0,
                     loading: true,
                     error: false,
 

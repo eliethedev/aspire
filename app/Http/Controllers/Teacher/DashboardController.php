@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\CotRating;
 use App\Models\Observation;
 use App\Models\Teacher;
 use App\Models\PreObservationPlanning;
@@ -118,6 +119,111 @@ class DashboardController extends Controller
         return view('teacher.dashboard', compact(
             'stats', 'recentObservation', 'nextObservation', 'cotScores', 'cotLabels',
             'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus'
+        ));
+    }
+
+    /**
+     * Personal analytics for the logged-in teacher: monthly activity and
+     * score trends, COT rating distribution, domain averages, and their
+     * strongest / weakest indicators.
+     */
+    public function analytics()
+    {
+        $teacher = Auth::user()->teacher;
+
+        $baseQuery = Observation::where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class)
+            ->where('status', '!=', 'cancelled');
+
+        $all = (clone $baseQuery)->get();
+
+        $stats = [
+            'total' => $all->count(),
+            'completed' => $all->where('status', 'completed')->count(),
+            'average_score' => round((float) ($all->whereNotNull('overall_score')->avg('overall_score') ?? 0), 2),
+            'best_score' => ($best = $all->max('overall_score')) !== null ? round((float) $best, 2) : null,
+        ];
+
+        $windowStart = now()->subMonths(11)->startOfMonth()->toDateString();
+        $windowEnd = now()->endOfMonth()->toDateString();
+        $months = collect(range(11, 0))->map(fn ($i) => now()->subMonths($i));
+        $monthlyLabels = $months->map(fn ($date) => $date->format('M Y'))->values();
+
+        $counts = (clone $baseQuery)
+            ->whereBetween('observation_date', [$windowStart, $windowEnd])
+            ->get(['observation_date', 'created_at'])
+            ->groupBy(fn (Observation $observation) => ($observation->observation_date ?? $observation->created_at)?->format('Y-m'))
+            ->map->count();
+        $monthlyCounts = $months->map(fn ($date) => (int) ($counts->get($date->format('Y-m'), 0)))->values();
+
+        $averages = (clone $baseQuery)
+            ->whereNotNull('overall_score')
+            ->whereBetween('observation_date', [$windowStart, $windowEnd])
+            ->get(['observation_date', 'overall_score'])
+            ->groupBy(fn (Observation $observation) => $observation->observation_date?->format('Y-m'))
+            ->map(fn ($group) => round((float) $group->avg('overall_score'), 2));
+        $monthlyAverages = $months->map(fn ($date) => $averages->get($date->format('Y-m')))->values();
+
+        $distributionRows = CotRating::whereHas('observation', fn ($query) => $query
+            ->where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class))
+            ->selectRaw('rating, not_observed, COUNT(*) as total')
+            ->groupBy('rating', 'not_observed')
+            ->get();
+        $distribution = [
+            'labels' => ['Poor (2)', 'Unsatisfactory (3)', 'Satisfactory (4)', 'Very Sat. (5)', 'Outstanding (6)', 'Not Observed'],
+            'counts' => [
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 2 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 3 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 4 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 5 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (int) $row->rating === 6 && ! $row->not_observed)->total ?? 0),
+                (int) ($distributionRows->firstWhere(fn ($row) => (bool) $row->not_observed)->total ?? 0),
+            ],
+        ];
+
+        $domainAverages = CotRating::whereHas('observation', fn ($query) => $query
+            ->where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class))
+            ->where('not_observed', false)
+            ->whereNotNull('domain')
+            ->selectRaw('domain, AVG(rating) as average, COUNT(*) as total')
+            ->groupBy('domain')
+            ->orderByDesc('average')
+            ->get()
+            ->map(fn ($row) => [
+                'domain' => $row->domain,
+                'average' => round((float) $row->average, 2),
+                'total' => (int) $row->total,
+            ]);
+
+        $indicatorStats = CotRating::whereHas('observation', fn ($query) => $query
+            ->where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class))
+            ->where('not_observed', false)
+            ->selectRaw('indicator_code, MAX(indicator) as indicator, AVG(rating) as average, COUNT(*) as total')
+            ->groupBy('indicator_code')
+            ->havingRaw('COUNT(*) > 0')
+            ->get()
+            ->map(fn ($row) => [
+                'code' => $row->indicator_code,
+                'indicator' => $row->indicator,
+                'average' => round((float) $row->average, 2),
+                'total' => (int) $row->total,
+            ]);
+
+        $strengths = $indicatorStats->filter(fn ($row) => $row['average'] >= 4.5)->sortByDesc('average')->take(5)->values();
+        $weaknesses = $indicatorStats->filter(fn ($row) => $row['average'] <= 3.5)->sortBy('average')->take(5)->values();
+
+        $statusCounts = Observation::where('observee_id', $teacher->id)
+            ->where('observee_type', Teacher::class)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return view('teacher.analytics', compact(
+            'stats', 'monthlyLabels', 'monthlyCounts', 'monthlyAverages',
+            'distribution', 'domainAverages', 'strengths', 'weaknesses', 'statusCounts'
         ));
     }
 }

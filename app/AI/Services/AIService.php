@@ -4,6 +4,7 @@ namespace App\AI\Services;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Exceptions\AIRateLimitException;
+use App\AI\Providers\AIProviderManager;
 use App\AI\RAG\PPSTRubricRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -16,12 +17,18 @@ abstract class AIService
 
     protected PPSTRubricRepository $rubrics;
 
+    protected AIProviderManager $manager;
+
     protected string $stage;
 
-    public function __construct(AIServiceInterface $provider, PPSTRubricRepository $rubrics)
-    {
+    public function __construct(
+        AIServiceInterface $provider,
+        PPSTRubricRepository $rubrics,
+        ?AIProviderManager $manager = null,
+    ) {
         $this->provider = $provider;
         $this->rubrics = $rubrics;
+        $this->manager = $manager ?? app(AIProviderManager::class);
     }
 
     public function isAvailable(): bool
@@ -30,27 +37,33 @@ abstract class AIService
             return false;
         }
 
-        return $this->provider->isAvailable();
+        return $this->manager->fallbackChain($this->stage) !== [];
     }
 
     protected function getModelForStage(): string
     {
-        $model = config("ai.models.{$this->stage}", config('ai.models.default', 'gemini-2.0-flash'));
-
-        if (is_array($model)) {
-            $model = $model['model'] ?? config('ai.models.default', 'gemini-2.0-flash');
-        }
+        [, $model] = $this->manager->resolveProviderAndModel($this->stage);
 
         return $model;
     }
 
+    /**
+     * Generation options resolved from task config, stage config, then defaults.
+     */
     protected function getOptions(): array
     {
+        $taskConfig = config("ai.tasks.{$this->stage}", []);
         $stageConfig = config("ai.stages.{$this->stage}", []);
 
         return [
-            'temperature' => $stageConfig['temperature'] ?? config('ai.generation.temperature', 0.5),
-            'max_output_tokens' => $stageConfig['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024),
+            'temperature' => $taskConfig['temperature']
+                ?? $stageConfig['temperature']
+                ?? config('ai.generation.temperature', 0.5),
+            'max_output_tokens' => $taskConfig['max_output_tokens']
+                ?? $stageConfig['max_output_tokens']
+                ?? config('ai.generation.max_output_tokens', 1024),
+            'timeout' => $taskConfig['timeout']
+                ?? config('ai.generation.timeout', 30),
         ];
     }
 
@@ -58,7 +71,8 @@ abstract class AIService
     {
         $userId = Auth::id() ?? 'guest';
         $key = "ai:service:{$this->stage}:{$userId}";
-        $limits = config("ai.rate_limits.operations.{$this->stage}", ['limit' => 20, 'decay' => 60]);
+        $limits = config("ai.tasks.{$this->stage}.rate_limit")
+            ?? config("ai.rate_limits.operations.{$this->stage}", ['limit' => 20, 'decay' => 60]);
 
         if (RateLimiter::tooManyAttempts($key, $limits['limit'])) {
             $availableIn = RateLimiter::availableIn($key);
@@ -66,6 +80,62 @@ abstract class AIService
         }
 
         RateLimiter::hit($key, $limits['decay']);
+    }
+
+    /**
+     * Enforce the task's max_input_tokens budget. Oversized prompts are
+     * truncated gracefully rather than silently sent in full.
+     */
+    protected function enforceInputLimit(string $prompt): string
+    {
+        $maxTokens = (int) (
+            config("ai.tasks.{$this->stage}.max_input_tokens")
+            ?? config('ai.generation.max_input_tokens', 8000)
+        );
+
+        $estimated = self::estimateTokens($prompt);
+
+        if ($estimated <= $maxTokens) {
+            return $prompt;
+        }
+
+        Log::channel(config('ai.logging.channel', 'stack'))->warning('AI input exceeded task token budget; truncating', [
+            'task' => $this->stage,
+            'estimated_tokens' => $estimated,
+            'max_input_tokens' => $maxTokens,
+        ]);
+
+        $truncated = mb_substr($prompt, 0, $maxTokens * 4);
+
+        return $truncated."\n\n[Content truncated due to input size limits]";
+    }
+
+    public static function estimateTokens(string $text): int
+    {
+        return (int) ceil(strlen($text) / 4);
+    }
+
+    /**
+     * Validate that a decoded JSON response contains the required keys.
+     */
+    protected function validateJsonResponse(?array $data, array $requiredKeys = []): bool
+    {
+        if ($data === null) {
+            return false;
+        }
+
+        foreach ($requiredKeys as $key) {
+            if (! array_key_exists($key, $data)) {
+                Log::channel(config('ai.logging.channel', 'stack'))->warning('AI response failed structure validation', [
+                    'task' => $this->stage,
+                    'missing_key' => $key,
+                ]);
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function generate(string $prompt, array $overrideOptions = []): ?string
@@ -76,16 +146,19 @@ abstract class AIService
 
         $this->checkRateLimit();
 
-        $stageModel = $this->getModelForStage();
-        $this->provider->setModel($stageModel);
-
+        $prompt = $this->enforceInputLimit($prompt);
         $options = array_merge($this->getOptions(), $overrideOptions);
 
-        $this->log('sending', $prompt, $options);
-        $result = $this->provider->generate($prompt, $options);
-        $this->log('response', $result);
+        $this->log('sending', $prompt, ['options' => $options]);
 
-        return $result;
+        $result = $this->manager->run($this->stage, $prompt, $options, json: false);
+
+        $this->log('response', $result['text'], [
+            'provider' => $result['provider'],
+            'fallback_used' => $result['fallback_used'],
+        ]);
+
+        return $result['text'];
     }
 
     protected function generateJson(string $prompt, array $overrideOptions = []): ?array
@@ -96,16 +169,19 @@ abstract class AIService
 
         $this->checkRateLimit();
 
-        $stageModel = $this->getModelForStage();
-        $this->provider->setModel($stageModel);
-
+        $prompt = $this->enforceInputLimit($prompt);
         $options = array_merge($this->getOptions(), $overrideOptions);
 
-        $this->log('sending', $prompt, $options);
-        $result = $this->provider->generateJson($prompt, $options);
-        $this->log('response', $result ? json_encode($result) : null);
+        $this->log('sending', $prompt, ['options' => $options]);
 
-        return $result;
+        $result = $this->manager->run($this->stage, $prompt, $options, json: true);
+
+        $this->log('response', $result['json'] ? json_encode($result['json']) : null, [
+            'provider' => $result['provider'],
+            'fallback_used' => $result['fallback_used'],
+        ]);
+
+        return $result['json'];
     }
 
     protected function log(string $direction, ?string $content = null, array $metadata = []): void
@@ -115,11 +191,16 @@ abstract class AIService
         }
 
         $level = $direction === 'sending' ? 'debug' : 'info';
+
+        // Only a short preview of content is logged; never full prompts or
+        // responses (they may contain lesson-plan content).
+        $preview = $content !== null ? mb_substr($content, 0, 150) : null;
+
         Log::channel(config('ai.logging.channel', 'stack'))->log($level, "AI.{$this->stage}.{$direction}", array_filter([
             'stage' => $this->stage,
-            'provider' => $this->provider->getProviderName(),
+            'provider' => $metadata['provider'] ?? $this->provider->getProviderName(),
             'model' => $this->getModelForStage(),
-            'content' => $content,
+            'content_preview' => $preview,
             'metadata' => $metadata ?: null,
         ]));
     }
@@ -227,6 +308,7 @@ Guidelines:
 - Use DepEd-aligned terminology
 - Prioritize teacher growth and development
 - Keep responses concise and focused
+- You assist the supervisor; the supervisor remains responsible for all final decisions, including ratings
 SYSTEM;
     }
 }
