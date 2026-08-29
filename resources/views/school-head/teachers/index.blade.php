@@ -47,9 +47,9 @@
             <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->user->name }}</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ $teacher->user->email }}</p>
-                @if($teacher->department || $teacher->subject)
+                @if($teacher->department || $teacher->subjectsLabel)
                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                    {{ $teacher->department ?? '' }}{{ $teacher->department && $teacher->subject ? ' · ' : '' }}{{ $teacher->subject ?? '' }}
+                    {{ $teacher->department ?? '' }}{{ $teacher->department && $teacher->subjectsLabel ? ' · ' : '' }}{{ $teacher->subjectsLabel ?? '' }}
                 </p>
                 @endif
             </div>

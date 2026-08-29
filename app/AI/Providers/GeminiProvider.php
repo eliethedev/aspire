@@ -4,11 +4,13 @@ namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Contracts\TracksTruncation;
+use App\AI\Contracts\ReportsLastError;
 use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeminiProvider implements AIServiceInterface, TracksTokenUsage
+class GeminiProvider implements AIServiceInterface, TracksTokenUsage, TracksTruncation, ReportsLastError
 {
     protected string $apiKey;
 
@@ -20,10 +22,14 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
 
     protected array $lastUsage = ['input' => 0, 'output' => 0];
 
-    public function __construct()
+    protected ?string $lastFinishReason = null;
+
+    protected ?string $lastError = null;
+
+    public function __construct(?string $model = null)
     {
         $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-3.6-flash');
+        $this->model = $model ?: config('services.gemini.model', 'gemini-3.6-flash');
         $this->verifySsl = config('services.gemini.verify_ssl', true);
     }
 
@@ -52,9 +58,22 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
         return $this->lastUsage;
     }
 
+    public function getLastFinishReason(): ?string
+    {
+        return $this->lastFinishReason;
+    }
+
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
     public function generate(string $prompt, array $options = []): ?string
     {
+        $this->lastError = null;
+
         if (! $this->isAvailable()) {
+            $this->lastError = 'API key not configured';
             Log::warning('GeminiProvider: API key not configured');
 
             return null;
@@ -116,6 +135,8 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
                 $body = $response->body();
                 Log::error("Gemini API error (status {$status})", ['body' => $body]);
 
+                $this->lastError = $this->describeApiFailure($status, $body);
+
                 if ($status === 429) {
                     Log::warning('Gemini API quota exceeded. The free tier daily limit has been reached.');
                 }
@@ -124,9 +145,31 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
             }
 
             $data = $response->json();
-            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $parts = $data['candidates'][0]['content']['parts'] ?? [];
+
+            // With thinking enabled the API can return the reasoning as a part
+            // flagged "thought": true followed by the visible answer. Assemble
+            // only the visible (non-thought) text so coaching responses are not
+            // polluted by internal reasoning and so JSON stays decodable.
+            $textParts = [];
+            foreach ($parts as $part) {
+                if (! empty($part['thought'])) {
+                    continue;
+                }
+
+                if (! empty($part['text'])) {
+                    $textParts[] = $part['text'];
+                }
+            }
+
+            if ($textParts === [] && isset($parts[0]['text'])) {
+                $textParts[] = $parts[0]['text'];
+            }
+
+            $text = $textParts === [] ? null : trim(implode("\n", $textParts));
 
             $finishReason = $data['candidates'][0]['finishReason'] ?? null;
+            $this->lastFinishReason = $finishReason === 'MAX_TOKENS' ? 'MAX_TOKENS' : null;
             if ($finishReason === 'MAX_TOKENS') {
                 Log::warning('Gemini API: response truncated at maxOutputTokens', [
                     'model' => $this->model,
@@ -136,6 +179,7 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
             }
 
             if (! $text) {
+                $this->lastError = 'API returned an empty response';
                 Log::warning('Gemini API: empty response', ['response' => $data, 'finish_reason' => $finishReason]);
 
                 return null;
@@ -150,10 +194,33 @@ class GeminiProvider implements AIServiceInterface, TracksTokenUsage
 
             return trim($text);
         } catch (\Exception $e) {
+            $this->lastError = $e->getMessage();
             Log::error('GeminiProvider exception: '.$e->getMessage());
 
             return null;
         }
+    }
+
+    /**
+     * Build a short, actionable description from an API error response so the
+     * lastError surface tells the operator why the request failed.
+     */
+    protected function describeApiFailure(int $status, string $body): string
+    {
+        $detail = null;
+        if (str_starts_with(trim($body), '{')) {
+            $decoded = json_decode($body, true);
+            $detail = $decoded['error']['message'] ?? null;
+        }
+
+        if ($status === 429) {
+            return 'rate limited (429, free-tier quota exhausted)'
+                .($detail !== null ? ': '.$detail : '')
+                .' — wait for the quota window to reset or upgrade the plan';
+        }
+
+        return 'request failed (HTTP '.$status.')'
+            .($detail !== null ? ': '.$detail : '');
     }
 
     public function generateJson(string $prompt, array $options = []): ?array

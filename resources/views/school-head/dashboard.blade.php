@@ -121,6 +121,72 @@
         </div>
     </div>
 
+    <!-- Co-Observations -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                    <i class="fas fa-user-friends text-sm text-purple-600"></i>
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Co-Observations</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">Teacher observations you're assigned to as co-observer</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                @if($coObservationStats['total'] > 0)
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                    {{ $coObservationStats['total'] }} total
+                    @if($coObservationStats['upcoming'] > 0)
+                        &middot; {{ $coObservationStats['upcoming'] }} upcoming
+                    @endif
+                </span>
+                @endif
+                <a href="{{ route('school-head.co-observations.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">View All &rarr;</a>
+            </div>
+        </div>
+
+        @if($recentCoObservations->count() > 0)
+            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                @foreach($recentCoObservations as $co)
+                    <a href="{{ route('school-head.observations.show', $co) }}" class="flex items-center justify-between py-3 first:pt-0 last:pb-0 group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0">
+                                <span class="text-xs font-bold text-purple-600 dark:text-purple-400">{{ strtoupper(substr($co->observee?->user?->name ?? '?', 0, 1)) }}</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $co->observee?->user?->name ?? 'Unknown' }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    {{ $co->observation_date?->format('M d, Y') ?? 'No date' }}
+                                    @if($co->subject) &middot; {{ $co->subject }} @endif
+                                    &middot; by {{ $co->observer?->name ?? 'Unknown' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            @if($co->overall_score)
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ number_format($co->overall_score, 1) }}</span>
+                            @endif
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium
+                                {{ $co->status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ($co->status === 'scheduled' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($co->status === 'cancelled' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400')) }}">
+                                {{ ucwords(str_replace('_', ' ', $co->status)) }}
+                            </span>
+                            <i class="fas fa-circle text-xs text-gray-300 dark:text-gray-600 group-hover:text-gray-400"></i>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <div class="flex flex-col items-center py-10 text-center">
+                <div class="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-3">
+                    <i class="fas fa-user-friends text-lg text-purple-300 dark:text-purple-600"></i>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">No co-observations yet</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">You'll be notified here when assigned as co-observer to a teacher observation.</p>
+            </div>
+        @endif
+    </div>
+
     <!-- Upcoming Observation -->
     @if($nextObservation)
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
@@ -197,7 +263,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $teacher->user->name }}</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500">{{ $teacher->department ?? $teacher->subject ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">{{ $teacher->department ?? $teacher->subjectsLabel ?? 'N/A' }}</p>
                         </div>
                         <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">{{ $teacher->observations_count ?? 0 }} obs</span>
                     </a>

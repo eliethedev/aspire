@@ -82,10 +82,7 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-snug" x-text="notification.title"></p>
                                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-snug line-clamp-2" x-text="notification.message"></p>
-                                    <div class="flex flex-wrap items-center gap-2 mt-2">
-                                        <span class="text-[11px] text-gray-400 dark:text-gray-500" x-text="formatDate(notification.created_at)"></span>
-                                        <span x-show="notification.priority_label" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium" :class="priorityClass(notification.priority)" x-text="notification.priority_label"></span>
-                                    </div>
+                                    <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-2 block" x-text="formatDate(notification.created_at)"></span>
                                 </div>
                             </div>
                         </a>
@@ -102,10 +99,7 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-snug" x-text="notification.title"></p>
                                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-snug line-clamp-2" x-text="notification.message"></p>
-                                    <div class="flex flex-wrap items-center gap-2 mt-2">
-                                        <span class="text-[11px] text-gray-400 dark:text-gray-500" x-text="formatDate(notification.created_at)"></span>
-                                        <span x-show="notification.priority_label" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium" :class="priorityClass(notification.priority)" x-text="notification.priority_label"></span>
-                                    </div>
+                                    <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-2 block" x-text="formatDate(notification.created_at)"></span>
                                 </div>
                             </div>
                         </button>

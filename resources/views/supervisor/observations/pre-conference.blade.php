@@ -139,10 +139,10 @@
                     </div>
                 </div>
 
-                <div class="p-4 space-y-4">
+                <div class="p-4 space-y-4" id="ai-panel-body">
                     <div class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                         <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <p>AI-generated analysis of the submitted lesson plan only. Review and customize before finalizing observation focus areas.</p>
+                        <p>AI-generated analysis of the submitted lesson plan. Optional — review, accept, or ignore these suggestions.</p>
                     </div>
 
                     <div id="ai-panel-notice"></div>
@@ -150,7 +150,12 @@
                     @if($aiInsights)
                         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 insight-card">
                             <div class="flex items-start justify-between gap-3">
-                                <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap flex-1" id="ai-insights-text">{{ is_array($aiInsights) ? (json_encode($aiInsights) ?: '') : $aiInsights }}</div>
+                                @php $insightSections = $planning?->insightsSections(); @endphp
+                                @if(isset($insightSections['raw']))
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed flex-1" id="ai-insights-text">{{ $insightSections['raw'] }}</div>
+                                @else
+                                    <div id="ai-insights-text" class="flex-1 ai-insights-body">{!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}</div>
+                                @endif
                                 <button type="button" onclick="copyToClipboard(this, 'ai-insights-text')"
                                         class="copy-btn p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-200 transition-colors shrink-0" title="Copy AI Insights">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
@@ -158,7 +163,6 @@
                             </div>
                         </div>
 
-                        <!-- AI Action Buttons -->
                         <div class="flex flex-wrap items-center gap-2" id="ai-action-buttons">
                             <button type="button" onclick="acceptAiInsights()"
                                     class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors inline-flex items-center gap-1.5">
@@ -182,7 +186,6 @@
                             </button>
                         </div>
 
-                        <!-- Modify AI Textarea (hidden by default) -->
                         <div id="modify-ai-container" class="hidden space-y-3">
                             <textarea id="modify-ai-textarea" rows="6"
                                       class="w-full px-3 py-2 rounded-lg border border-amber-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">{{ is_array($aiInsights) ? (json_encode($aiInsights) ?: '') : $aiInsights }}</textarea>
@@ -194,10 +197,10 @@
                             </div>
                         </div>
                     @else
-                        <div class="text-center py-6">
+                        <div class="text-center py-6" id="ai-empty-state">
                             <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">No AI insights generated yet.</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Generate insights from the lesson plan to help focus the pre-conference discussion — or skip AI entirely and complete the form below yourself.</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Generate insights from the lesson plan — or skip AI entirely and complete the form below yourself.</p>
                             <button type="button" onclick="generateAiInsights(event)"
                                     class="generate-ai-btn px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 rounded-lg transition-colors inline-flex items-center gap-2">
                                 <svg class="generate-spinner hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -252,29 +255,23 @@
             </div>
             @endif
 
-            <!-- Section 1: Conference Schedule -->
+            <!-- Section 1: Lesson Information -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Schedule</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Information</h2>
                     <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Pre-Conference</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teacher</label>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $observation->observee->position ?? 'Teacher' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject / Grade</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                         <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->subject ?? 'N/A' }}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Date</label>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Grade / Section</label>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Pre-Conference Date *</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Date / Time *</label>
                         <input type="date" name="conference_date" id="conference_date"
                                value="{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                                class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
@@ -282,80 +279,79 @@
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
-            </div>
-
-            <!-- Section 2: Lesson Plan Review & Instructional Materials -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lesson Plan Review & Instructional Materials</h2>
-                <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lesson Plan Review</label>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Review the lesson plan objectives, activities, and assessment strategies.</p>
-                        <textarea name="lesson_plan_review" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Summarize key points from the lesson plan review...">{{ old('lesson_plan_review', $preConference?->lesson_plan_review) }}</textarea>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
+                        <input type="text" name="topic"
+                               value="{{ old('topic', $preConference?->topic) }}"
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                               placeholder="e.g. Photosynthesis, Linear Equations...">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructional Materials</label>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">List the instructional materials, resources, and ICT tools to be used.</p>
-                        <textarea name="instructional_materials" rows="3"
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Learning Objectives</label>
+                        <textarea name="learning_objectives" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="e.g. PowerPoint presentation, worksheets, manipulatives, online resources...">{{ old('instructional_materials', $preConference?->instructional_materials) }}</textarea>
+                                  placeholder="What are the learning objectives for this lesson?">{{ old('learning_objectives', $preConference?->learning_objectives) }}</textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3: Discussion Notes & Finalized Focus -->
+            <!-- Section 2: Lesson Plan & Strategy -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-1">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Discussion &amp; Finalized Focus</h2>
-                    <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">AI optional — you can write these yourself</span>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan & Strategy</h2>
+                    <button type="button" onclick="useAiSuggestions(this)"
+                            class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        Use AI Suggestions
+                    </button>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Use AI to draft these in one click, or simply type your own notes. Either way, what you write here is what counts.</p>
                 <div id="suggestions-notice" class="mb-3"></div>
                 <div class="space-y-4">
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pre-Conference Discussion Notes</label>
-                            <button type="button" onclick="useAiSuggestions(this)"
-                                    class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                                Use AI Suggestions
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Document key discussion points including teaching strategies, learner diversity considerations, and assessment methods.</p>
-                        <textarea name="discussion_notes" id="discussion_notes" rows="5"
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teaching Strategies</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What teaching strategies will be used in this lesson?</p>
+                        <textarea name="teaching_strategies" id="teaching_strategies" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Document the key discussion points from the pre-conference meeting...">{{ old('discussion_notes', $preConference?->discussion_notes) }}</textarea>
+                                  placeholder="e.g. Direct instruction, collaborative learning, inquiry-based, differentiated instruction...">{{ old('teaching_strategies', $preConference?->teaching_strategies) }}</textarea>
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Finalized Observation Focus *</label>
-                            <button type="button" onclick="useAiSuggestions(this)"
-                                    class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                                Use AI Suggestions
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Areas agreed upon to be the focus of the classroom observation.</p>
-                        <textarea name="finalized_focus" id="finalized_focus" rows="4"
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructional Materials</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What materials and resources will be used?</p>
+                        <textarea name="instructional_materials" rows="2"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="e.g. Learner engagement strategies, differentiated instruction, classroom management..." required>{{ old('finalized_focus', $preConference?->finalized_focus) }}</textarea>
-                        @error('finalized_focus')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
+                                  placeholder="e.g. PowerPoint, worksheets, manipulatives, online resources...">{{ old('instructional_materials', $preConference?->instructional_materials) }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assessment / Activity</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">How will learning be assessed? What activities are planned?</p>
+                        <textarea name="assessment_activity" id="assessment_activity" rows="2"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="e.g. Formative assessment, group activity, quiz, performance task...">{{ old('assessment_activity', $preConference?->assessment_activity) }}</textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 4: Teacher Reflection -->
+            <!-- Section 3: Teacher's Anticipated Concerns (Optional) -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Teacher Reflection</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">The teacher's self-reflection on their lesson plan and anticipated challenges.</p>
-                <textarea name="teacher_reflection" rows="4"
-                          class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          placeholder="Teacher's reflection on the lesson plan, teaching strategies, and expected outcomes...">{{ old('teacher_reflection', $preConference?->teacher_reflection) }}</textarea>
+                <div class="flex items-center gap-2 mb-1">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Teacher's Anticipated Concerns</h2>
+                    <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">Optional</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Is there anything about this lesson that you anticipate may be challenging?</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Challenges</label>
+                        <textarea name="expected_challenges" rows="3"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="e.g. Students may struggle with abstract concepts, limited materials for group work...">{{ old('expected_challenges', $preConference?->expected_challenges) }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Areas Where You'd Like Feedback</label>
+                        <textarea name="feedback_areas" rows="2"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="e.g. I'd like feedback on my questioning techniques and student engagement...">{{ old('feedback_areas', $preConference?->feedback_areas) }}</textarea>
+                    </div>
+                </div>
             </div>
 
             <!-- Actions -->
@@ -476,46 +472,38 @@
             <!-- Focus Areas Summary -->
             @if($planning?->suggested_focus)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Focus Areas</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">AI Suggested Focus</h3>
                 <p class="text-sm text-gray-700 dark:text-gray-300">{{ is_array($planning->suggested_focus) ? implode(', ', $planning->suggested_focus) : $planning->suggested_focus }}</p>
             </div>
             @endif
 
             <!-- Agenda Checklist -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Pre-Conference Agenda</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Pre-Conference Checklist</h3>
                 <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="0" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Review lesson objectives and PPST alignment</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Lesson information reviewed</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="1" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss planned teaching strategies and methodologies</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teaching strategies discussed</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="2" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss learner needs and diversity considerations</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Instructional materials confirmed</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="3" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Review instructional materials and learning resources</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teacher concerns addressed</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="4" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss assessment strategies and expected learner outcomes</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Assessment and activities confirmed</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="5" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Identify specific observation focus areas</label>
-                    </li>
-                    <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" data-index="6" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Discuss teacher concerns, expectations, and support needed</label>
-                    </li>
-                    <li class="agenda-item flex items-start gap-2.5">
-                        <input type="checkbox" data-index="7" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Confirm observation schedule and arrangements</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Observation schedule confirmed</label>
                     </li>
                 </ul>
             </div>
@@ -598,18 +586,20 @@
 
 @push('scripts')
 @include('partials.ai-notice')
+@include('partials.ai-loading-state')
 <script>
 // ===================== AI Insights Actions =====================
 
 function acceptAiInsights() {
-    const text = document.getElementById('ai-insights-text');
+    var text = document.getElementById('ai-insights-text');
     if (!text) return;
-    const insights = text.textContent || text.innerText;
-    document.getElementById('discussion_notes').value = insights;
-    document.getElementById('finalized_focus').value = extractFocusAreas(insights);
+    var insights = text.textContent || text.innerText;
+    var ts = document.getElementById('teaching_strategies');
+    var aa = document.getElementById('assessment_activity');
+    if (ts) ts.value = insights;
     document.getElementById('ai_insights_reviewed_input').value = '1';
     markReviewed();
-    showToast('AI insights applied to Discussion Notes and Finalized Focus.');
+    showToast('AI insights applied to Lesson Plan & Strategy.');
 }
 
 function modifyAiInsights() {
@@ -619,11 +609,11 @@ function modifyAiInsights() {
 }
 
 function applyModifiedInsights() {
-    const modified = document.getElementById('modify-ai-textarea').value;
-    const textEl = document.getElementById('ai-insights-text');
+    var modified = document.getElementById('modify-ai-textarea').value;
+    var textEl = document.getElementById('ai-insights-text');
     if (textEl) textEl.textContent = modified;
-    document.getElementById('discussion_notes').value = modified;
-    document.getElementById('finalized_focus').value = extractFocusAreas(modified);
+    var ts = document.getElementById('teaching_strategies');
+    if (ts) ts.value = modified;
     document.getElementById('ai_insights_reviewed_input').value = '1';
     document.getElementById('modify-ai-container').classList.add('hidden');
     document.getElementById('ai-action-buttons').classList.remove('hidden');
@@ -652,13 +642,13 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
             'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
         if (data.success) {
             location.reload();
         }
     })
-    .catch(err => {
+    .catch(function(err) {
         alert('Failed to clear AI insights.');
         console.error(err);
     });
@@ -676,65 +666,98 @@ function useAiSuggestions(btn) {
             'Content-Type': 'application/json',
         },
     })
-    .then(async res => {
-        const data = await res.json().catch(() => ({}));
-        return { ok: res.ok, data };
+    .then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(data) { return { ok: res.ok, data: data }; });
     })
-    .then(({ ok, data }) => {
-        if (ok && (data.discussion_notes || data.finalized_focus)) {
-            if (data.discussion_notes) {
-                document.getElementById('discussion_notes').value = data.discussion_notes;
-            }
-            if (data.finalized_focus) {
-                document.getElementById('finalized_focus').value = data.finalized_focus;
-            }
+    .then(function(result) {
+        if (result.ok && (result.data.discussion_notes || result.data.finalized_focus)) {
+            var ts = document.getElementById('teaching_strategies');
+            var text = result.data.discussion_notes || result.data.finalized_focus;
+            if (ts) ts.value = text;
             document.getElementById('ai_insights_reviewed_input').value = '1';
-            showToast('AI suggestions added below — review and edit them freely.');
+            showToast('AI suggestions applied to Teaching Strategies — review and edit freely.');
         } else {
-            AINotice.show('suggestions-notice', data, {
+            AINotice.show('suggestions-notice', result.data, {
                 onManual: focusManualEntry,
                 manualLabel: 'Write them myself',
             });
         }
     })
-    .catch(() => {
+    .catch(function() {
         AINotice.show('suggestions-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
             onManual: focusManualEntry,
             manualLabel: 'Write them myself',
         });
     })
-    .finally(() => {
+    .finally(function() {
         if (btn) { btn.disabled = false; btn.classList.remove('opacity-60'); }
     });
 }
 
 function focusManualEntry() {
-    const notes = document.getElementById('discussion_notes');
+    var ts = document.getElementById('teaching_strategies');
     document.getElementById('suggestions-notice').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (notes) notes.focus();
-    showToast('No problem — you can write the discussion notes and focus yourself.');
+    if (ts) ts.focus();
+    showToast('No problem — you can write the teaching strategies yourself.');
 }
 
 function markReviewed() {
-    const panel = document.getElementById('ai-insights-panel');
+    var panel = document.getElementById('ai-insights-panel');
     if (panel) panel.classList.add('opacity-75');
 }
 
 // ===================== Regenerate AI Insights =====================
 
+var aiPanelBody = document.getElementById('ai-panel-body');
+var aiGenerating = false;
+
+function showAiLoading(message) {
+    if (aiPanelBody) {
+        var card = aiPanelBody.querySelector('.insight-card');
+        var actions = document.getElementById('ai-action-buttons');
+        var empty = document.getElementById('ai-empty-state');
+        if (card) card.style.display = 'none';
+        if (actions) actions.style.display = 'none';
+        if (empty) empty.style.display = 'none';
+    }
+    AiLoading.start(aiPanelBody || document.getElementById('ai-panel-notice'), message, 'Reviewing the lesson plan and previous observations\u2026');
+}
+
+function hideAiLoading() {
+    AiLoading.stop();
+    if (aiPanelBody) {
+        var card = aiPanelBody.querySelector('.insight-card');
+        var actions = document.getElementById('ai-action-buttons');
+        var empty = document.getElementById('ai-empty-state');
+        if (card) card.style.display = '';
+        if (actions) actions.style.display = '';
+        if (empty) empty.style.display = '';
+    }
+}
+
+function restoreAiBtn(btn, btnText, spinner, isRegenerate) {
+    if (btn) btn.disabled = false;
+    if (spinner) spinner.classList.add('hidden');
+    if (btnText) btnText.textContent = isRegenerate ? 'Regenerate' : 'Generate AI Insights';
+}
+
 document.getElementById('regenerate-ai-btn')?.addEventListener('click', function(e) {
     generateAiInsights(e, true);
 });
 
-function generateAiInsights(e, isRegenerate = false) {
-    const btn = e?.currentTarget || document.querySelector('.generate-ai-btn');
-    const spinner = btn ? btn.querySelector('.generate-spinner, #regenerate-spinner') : document.getElementById('regenerate-spinner');
-    const btnText = btn ? btn.querySelector('.generate-btn-text, #ai-btn-text') : null;
+function generateAiInsights(e, isRegenerate) {
+    if (aiGenerating) return;
+    aiGenerating = true;
+
+    var btn = (e && e.currentTarget) || document.querySelector('.generate-ai-btn');
+    var spinner = btn ? btn.querySelector('.generate-spinner, #regenerate-spinner') : document.getElementById('regenerate-spinner');
+    var btnText = btn ? btn.querySelector('.generate-btn-text, #ai-btn-text') : null;
 
     if (btn) btn.disabled = true;
     if (spinner) spinner.classList.remove('hidden');
-    if (btnText) btnText.textContent = isRegenerate ? 'Regenerating...' : 'Generating...';
+    if (btnText) btnText.textContent = isRegenerate ? 'Regenerating\u2026' : 'Generating\u2026';
     AINotice.hide(document.getElementById('ai-panel-notice'));
+    showAiLoading(isRegenerate ? 'Regenerating AI insights' : 'Generating AI insights');
 
     fetch('{{ route("supervisor.observations.generate-ai-insights", $observation) }}', {
         method: 'POST',
@@ -743,54 +766,100 @@ function generateAiInsights(e, isRegenerate = false) {
             'Content-Type': 'application/json',
         },
     })
-    .then(async res => {
-        const data = await res.json().catch(() => ({}));
-        return { ok: res.ok, data };
+    .then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(data) { return { ok: res.ok, status: res.status, data: data }; });
     })
-    .then(({ ok, data }) => {
-        if (ok && data.ai_insights) {
+    .then(function(result) {
+        if (result.ok && result.data.ai_insights) {
             location.reload();
-        } else {
-            AINotice.show('ai-panel-notice', data, {
-                onManual: function () {
-                    showToast('No problem — continue with the form below; AI insights are optional.');
-                    document.getElementById('discussion_notes').focus();
-                },
-                onRetry: () => generateAiInsights(null, isRegenerate),
-                manualLabel: 'Continue without AI',
-            });
+            return;
         }
-    })
-    .catch(() => {
-        AINotice.show('ai-panel-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
+        if (result.status === 202 && result.data.status === 'processing') {
+            pollAiInsightsStatus(btn, btnText, spinner, isRegenerate);
+            return;
+        }
+        hideAiLoading();
+        aiGenerating = false;
+        restoreAiBtn(btn, btnText, spinner, isRegenerate);
+        AINotice.show('ai-panel-notice', result.data, {
             onManual: function () {
                 showToast('No problem — continue with the form below; AI insights are optional.');
-                document.getElementById('discussion_notes').focus();
+                var ts = document.getElementById('teaching_strategies');
+                if (ts) ts.focus();
             },
-            onRetry: () => generateAiInsights(null, isRegenerate),
+            onRetry: function() { generateAiInsights(null, isRegenerate); },
             manualLabel: 'Continue without AI',
         });
     })
-    .finally(() => {
-        if (btn) btn.disabled = false;
-        if (spinner) spinner.classList.add('hidden');
-        if (btnText) btnText.textContent = isRegenerate ? 'Regenerate' : 'Generate AI Insights';
+    .catch(function() {
+        hideAiLoading();
+        aiGenerating = false;
+        restoreAiBtn(btn, btnText, spinner, isRegenerate);
+        AINotice.show('ai-panel-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
+            onManual: function () {
+                showToast('No problem — continue with the form below; AI insights are optional.');
+                var ts = document.getElementById('teaching_strategies');
+                if (ts) ts.focus();
+            },
+            onRetry: function() { generateAiInsights(null, isRegenerate); },
+            manualLabel: 'Continue without AI',
+        });
     });
+}
+
+function pollAiInsightsStatus(btn, btnText, spinner, isRegenerate) {
+    var attempts = 0;
+    var maxAttempts = 60; // 5 minutes max (5s intervals)
+
+    function check() {
+        attempts++;
+        if (attempts > maxAttempts) {
+            hideAiLoading();
+            aiGenerating = false;
+            restoreAiBtn(btn, btnText, spinner, isRegenerate);
+            AINotice.show('ai-panel-notice', { error: 'AI insights are taking longer than expected. Please try again later.' }, {
+                onRetry: function() { generateAiInsights(null, isRegenerate); },
+                manualLabel: 'Continue without AI',
+                onManual: function () {
+                    showToast('No problem — continue with the form below; AI insights are optional.');
+                    var ts = document.getElementById('teaching_strategies');
+                    if (ts) ts.focus();
+                },
+            });
+            return;
+        }
+
+        fetch('{{ route("supervisor.observations.ai-insights-status", $observation) }}', {
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.status === 'completed' && data.ai_insights) {
+                location.reload();
+            } else {
+                setTimeout(check, 5000);
+            }
+        })
+        .catch(function() {
+            setTimeout(check, 5000);
+        });
+    }
+
+    setTimeout(check, 3000);
 }
 
 // ===================== Copy to Clipboard =====================
 
 function copyToClipboard(btn, elementId) {
-    const el = document.getElementById(elementId);
+    var el = document.getElementById(elementId);
     if (!el) return;
-    const text = el.textContent || el.innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        const original = btn.innerHTML;
+    var text = el.textContent || el.innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        var original = btn.innerHTML;
         btn.innerHTML = '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg>';
-        setTimeout(() => btn.innerHTML = original, 2000);
-    }).catch(() => {
-        // Fallback
-        const ta = document.createElement('textarea');
+        setTimeout(function() { btn.innerHTML = original; }, 2000);
+    }).catch(function() {
+        var ta = document.createElement('textarea');
         ta.value = text;
         document.body.appendChild(ta);
         ta.select();
@@ -812,15 +881,13 @@ function closeCancelModal() {
     document.getElementById('cancel-modal').classList.remove('flex');
 }
 
-// Show/hide "other reason" field
 document.querySelector('[name="cancellation_reason"]')?.addEventListener('change', function() {
-    const container = document.getElementById('other-reason-container');
+    var container = document.getElementById('other-reason-container');
     if (container) {
         container.classList.toggle('hidden', this.value !== 'other');
     }
 });
 
-// Close modal on backdrop click
 document.getElementById('cancel-modal')?.addEventListener('click', function(e) {
     if (e.target === this) closeCancelModal();
 });
@@ -828,14 +895,7 @@ document.getElementById('cancel-modal')?.addEventListener('click', function(e) {
 // ===================== Form Validation =====================
 
 document.getElementById('pre-conference-form')?.addEventListener('submit', function(e) {
-    const focus = document.getElementById('finalized_focus');
-    const date = document.getElementById('conference_date');
-    if (focus && !focus.value.trim()) {
-        e.preventDefault();
-        alert('Please enter the Finalized Observation Focus before saving.');
-        focus.focus();
-        return;
-    }
+    var date = document.getElementById('conference_date');
     if (date && !date.value) {
         e.preventDefault();
         alert('Please select a Pre-Conference Date.');
@@ -847,17 +907,17 @@ document.getElementById('pre-conference-form')?.addEventListener('submit', funct
 // ===================== Toast Notification =====================
 
 function showToast(message) {
-    const existing = document.querySelector('.toast-notification');
+    var existing = document.querySelector('.toast-notification');
     if (existing) existing.remove();
 
-    const toast = document.createElement('div');
+    var toast = document.createElement('div');
     toast.className = 'toast-notification fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-xl text-sm font-medium animate-bounce';
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => {
+    setTimeout(function() {
         toast.style.transition = 'opacity 0.5s';
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 500);
+        setTimeout(function() { toast.remove(); }, 500);
     }, 3000);
 }
 </script>

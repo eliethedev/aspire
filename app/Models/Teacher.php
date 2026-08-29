@@ -6,6 +6,7 @@ use App\Enums\TeacherCareerStage;
 use App\Models\Traits\SchoolAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Teacher extends Model
@@ -37,6 +38,28 @@ class Teacher extends Model
     public function observations(): HasMany
     {
         return $this->hasMany(Observation::class);
+    }
+
+    /**
+     * Subjects handled by the teacher (many-to-many).
+     */
+    public function subjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'teacher_subjects');
+    }
+
+    /**
+     * Comma-separated list of the teacher's assigned subjects.
+     * Falls back to the legacy free-text `subject` column so pre-existing
+     * records keep displaying correctly even when not eager-loaded.
+     */
+    public function getSubjectsLabelAttribute(): ?string
+    {
+        if ($this->relationLoaded('subjects') && $this->subjects->isNotEmpty()) {
+            return $this->subjects->pluck('name')->map('ucwords')->implode(', ');
+        }
+
+        return $this->subject ?: null;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AiUsageLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class AIController extends Controller
 {
@@ -29,7 +30,9 @@ class AIController extends Controller
             'recent_calls' => AiUsageLog::latest()->take(10)->get(),
         ];
 
-        return view('admin.ai.index', compact('config', 'usageStats', 'providerStatus'));
+        $maskedKeys = $this->getMaskedApiKeys();
+
+        return view('admin.ai.index', compact('config', 'usageStats', 'providerStatus', 'maskedKeys'));
     }
 
     public function update(Request $request)
@@ -66,17 +69,6 @@ class AIController extends Controller
 
             'ai_model_default' => 'nullable|string|max:100',
 
-            'ai_model_pre_observation_provider' => 'nullable|string|max:50',
-            'ai_model_pre_observation' => 'nullable|string|max:100',
-            'ai_model_observation_guidance_provider' => 'nullable|string|max:50',
-            'ai_model_observation_guidance' => 'nullable|string|max:100',
-            'ai_model_feedback_provider' => 'nullable|string|max:50',
-            'ai_model_feedback' => 'nullable|string|max:100',
-            'ai_model_post_conference_provider' => 'nullable|string|max:50',
-            'ai_model_post_conference' => 'nullable|string|max:100',
-            'ai_model_final_report_provider' => 'nullable|string|max:50',
-            'ai_model_final_report' => 'nullable|string|max:100',
-
             'ai_python_bridge_enabled' => 'boolean',
         ];
 
@@ -89,11 +81,6 @@ class AIController extends Controller
             'ai_openrouter_model' => 'OPENROUTER_MODEL',
             'ai_ollama_model' => 'OLLAMA_MODEL',
             'ai_model_default' => 'AI_MODEL_DEFAULT',
-            'ai_model_pre_observation' => 'AI_MODEL_PRE_OBSERVATION',
-            'ai_model_observation_guidance' => 'AI_MODEL_OBSERVATION_GUIDANCE',
-            'ai_model_feedback' => 'AI_MODEL_FEEDBACK',
-            'ai_model_post_conference' => 'AI_MODEL_POST_CONFERENCE',
-            'ai_model_final_report' => 'AI_MODEL_FINAL_REPORT',
         ];
         foreach (array_keys($modelEnvKeys) as $field) {
             $rules[$field.'_custom'] = 'nullable|string|max:100';
@@ -107,6 +94,16 @@ class AIController extends Controller
         }
 
         $envContent = file_get_contents($envFile);
+
+        $effectiveProvider = $request->has('ai_provider')
+            ? (string) $request->input('ai_provider')
+            : (string) config('ai.provider', 'gemini');
+
+        $effectiveModel = $this->resolveModelValue(
+            $request->input('ai_model_default'),
+            $request->input('ai_model_default_custom'),
+            (string) config('ai.models.default', 'gemini-3.6-flash'),
+        );
 
         $mappings = [
             'ai_enabled' => 'AI_ENABLED',
@@ -133,16 +130,6 @@ class AIController extends Controller
             'ai_ollama_model' => 'OLLAMA_MODEL',
 
             'ai_model_default' => 'AI_MODEL_DEFAULT',
-            'ai_model_pre_observation_provider' => 'AI_MODEL_PRE_OBSERVATION_PROVIDER',
-            'ai_model_pre_observation' => 'AI_MODEL_PRE_OBSERVATION',
-            'ai_model_observation_guidance_provider' => 'AI_MODEL_OBSERVATION_GUIDANCE_PROVIDER',
-            'ai_model_observation_guidance' => 'AI_MODEL_OBSERVATION_GUIDANCE',
-            'ai_model_feedback_provider' => 'AI_MODEL_FEEDBACK_PROVIDER',
-            'ai_model_feedback' => 'AI_MODEL_FEEDBACK',
-            'ai_model_post_conference_provider' => 'AI_MODEL_POST_CONFERENCE_PROVIDER',
-            'ai_model_post_conference' => 'AI_MODEL_POST_CONFERENCE',
-            'ai_model_final_report_provider' => 'AI_MODEL_FINAL_REPORT_PROVIDER',
-            'ai_model_final_report' => 'AI_MODEL_FINAL_REPORT',
 
             'ai_python_bridge_enabled' => 'AI_PYTHON_BRIDGE_ENABLED',
         ];
@@ -181,18 +168,84 @@ class AIController extends Controller
             $this->setEnvValue($envContent, 'GOOGLE_GEMINI_API_KEY', $request->input('ai_gemini_api_key'));
         }
 
+        // Connectivity guard: never ship a configuration that cannot currently
+        // serve requests, unless the admin explicitly opts out or is disabling AI.
+        $disablingAi = $request->has('ai_enabled') && $request->boolean('ai_enabled') === false;
+        if (! $request->boolean('ai_skip_verify') && ! $disablingAi) {
+            $verifyError = $this->verifyProviderBeforeSave($request, $effectiveProvider, $effectiveModel);
+            if ($verifyError !== null) {
+                return back()->with('error', $verifyError)->withInput();
+            }
+        }
+
+        // Keep a recoverable snapshot of the last good configuration.
+        $this->backupEnvFile($envFile);
+
         $written = file_put_contents($envFile, $envContent);
         if ($written === false) {
             return back()->with('error', 'Failed to write environment file. Check file permissions.');
         }
 
-        try {
-            Artisan::call('config:clear');
-        } catch (\Throwable) {
-            // Config clear may fail in shared environments; proceed gracefully.
+        return back()->with('success', 'AI settings updated successfully (provider/model verified). Changes take effect on the next page load.');
+    }
+
+    /**
+     * One-click recovery: revert .env to the most recent pre-save backup.
+     */
+    public function restore()
+    {
+        $dir = storage_path('app/ai/env-backups');
+        $backups = $this->listEnvBackups($dir);
+        if ($backups === []) {
+            return back()->with('error', 'No AI settings backups are available to restore from.');
         }
 
-        return back()->with('success', 'AI settings updated successfully.');
+        $envFile = base_path('.env');
+        if (! file_exists($envFile)) {
+            return back()->with('error', 'Environment file not found.');
+        }
+
+        // Snapshot the current (possibly broken) state so this restore is reversible.
+        $this->backupEnvFile($envFile, 'ai-snapshot-');
+
+        $latest = $backups[0];
+        if (! copy($latest['path'], $envFile)) {
+            return back()->with('error', 'Failed to restore AI settings from backup.');
+        }
+
+        return back()->with('success', 'AI settings restored from '.basename($latest['path']).'.');
+    }
+
+    /**
+     * Emergency kill switch: disable/re-enable all AI processing immediately,
+     * always keeping rule-based fallback enabled so users never see errors.
+     */
+    public function emergency(Request $request)
+    {
+        $action = $request->input('action') === 'enable' ? 'enable' : 'disable';
+
+        $envFile = base_path('.env');
+        if (! file_exists($envFile)) {
+            return back()->with('error', 'Environment file not found.');
+        }
+
+        $envContent = file_get_contents($envFile);
+        $this->setEnvValue($envContent, 'AI_ENABLED', $action === 'enable' ? 'true' : 'false');
+        $this->setEnvValue($envContent, 'AI_FALLBACK_ENABLED', 'true');
+
+        // Snapshot the pre-emergency state so it can be reverted precisely.
+        $this->backupEnvFile($envFile, 'ai-snapshot-');
+
+        if (file_put_contents($envFile, $envContent) === false) {
+            return back()->with('error', 'Failed to write environment file. Check file permissions.');
+        }
+
+        return back()->with(
+            'success',
+            $action === 'enable'
+                ? 'AI processing re-enabled. New requests will use AI again.'
+                : 'AI processing is now DISABLED. Rule-based fallback will serve users until re-enabled.'
+        );
     }
 
     public function test()
@@ -214,7 +267,7 @@ class AIController extends Controller
     public function testProvider(Request $request)
     {
         $request->validate([
-            'provider' => 'required|in:gemini,openai,claude,deepseek,ollama',
+            'provider' => 'required|in:gemini,openai,claude,deepseek,openrouter,ollama',
         ]);
 
         $provider = $request->input('provider');
@@ -278,6 +331,146 @@ class AIController extends Controller
         $successful = AiUsageLog::where('success', true)->count();
 
         return round(($successful / $total) * 100, 1);
+    }
+
+    private function getMaskedApiKeys(): array
+    {
+        $providers = ['gemini', 'openai', 'claude', 'deepseek', 'openrouter'];
+        $masked = [];
+
+        foreach ($providers as $provider) {
+            $key = config("services.{$provider}.api_key", '');
+            if (! empty($key)) {
+                $len = strlen($key);
+                if ($len <= 8) {
+                    $masked[$provider] = str_repeat('*', $len);
+                } else {
+                    $masked[$provider] = substr($key, 0, 4) . str_repeat('*', $len - 8) . substr($key, -4);
+                }
+            } else {
+                $masked[$provider] = '';
+            }
+        }
+
+        return $masked;
+    }
+
+    /**
+     * Run a real connectivity check on the exact provider/model that is about
+     * to be saved, using any newly-submitted API key. Returns null on success
+     * or a user-facing error string on failure.
+     */
+    private function verifyProviderBeforeSave(Request $request, string $provider, string $model): ?string
+    {
+        try {
+            // Reflect a newly-submitted API key or Ollama URL before testing so we
+            // verify exactly what will be stored, not the previous configuration.
+            $keyField = 'ai_'.$provider.'_api_key';
+            if ($provider !== 'ollama' && $request->filled($keyField)) {
+                config(["services.{$provider}.api_key" => (string) $request->input($keyField)]);
+            }
+            if ($provider === 'gemini' && $request->filled($keyField)) {
+                config(['services.gemini.api_key' => (string) $request->input($keyField)]);
+            }
+            if ($provider === 'ollama' && $request->filled('ai_ollama_url')) {
+                config(['services.ollama.url' => (string) $request->input('ai_ollama_url')]);
+            }
+
+            $instance = app(AIProviderManager::class)->createProvider($provider, $model);
+        } catch (\Throwable $e) {
+            return 'Cannot create the '.ucfirst($provider).' provider: '.$e->getMessage().' Settings were not saved.';
+        }
+
+        try {
+            $response = $instance->generate('Reply with the single word: OK', [
+                'timeout' => 15,
+                'max_output_tokens' => 16,
+                'temperature' => 0,
+            ]);
+        } catch (\Throwable $e) {
+            return 'Connectivity check failed for '.ucfirst($provider).' / "'.$model.'": '.$e->getMessage()
+                .' Settings were not saved. Check the API key, model id and quota, or tick "Save without connectivity check".';
+        }
+
+        if ($response === null || trim((string) $response) === '') {
+            $reason = method_exists($instance, 'getLastError') && $instance->getLastError()
+                ? ' Reason: '.$instance->getLastError().'.'
+                : '';
+
+            return 'Connectivity check for '.ucfirst($provider).' / "'.$model.'" did not succeed.'.$reason
+                .' Settings were not saved. Check the API key, model id and quota, or tick "Save without connectivity check".';
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a model dropdown value, handling the "Custom model…" sentinel and
+     * blank choices the same way the write-loop does.
+     */
+    private function resolveModelValue(mixed $value, mixed $custom, string $existing): string
+    {
+        $value = is_string($value) ? trim($value) : $value;
+        if ($value === '__custom__') {
+            $custom = is_string($custom) ? trim($custom) : '';
+
+            return $custom !== '' ? $custom : $existing;
+        }
+        if ($value === null || $value === '') {
+            return $existing;
+        }
+
+        return (string) $value;
+    }
+
+    /**
+     * Snapshot the current .env before it is overwritten, keeping the newest
+     * five snapshots.
+     */
+    private function backupEnvFile(string $envFile, string $prefix = 'ai-'): void
+    {
+        $dir = storage_path('app/ai/env-backups');
+        if (! is_dir($dir) && ! @mkdir($dir, 0755, true) && ! is_dir($dir)) {
+            Log::warning('Could not create AI env backup directory: '.$dir);
+
+            return;
+        }
+
+        $target = $dir.'/'.$prefix.now()->format('Ymd-His-u').'.env';
+        if (! copy($envFile, $target)) {
+            Log::warning('Could not back up .env to '.$target);
+
+            return;
+        }
+
+        foreach (array_slice($this->listEnvBackups($dir), 5) as $old) {
+            @unlink($old['path']);
+        }
+    }
+
+    /**
+     * Return auto-save backups newest-first. On-the-fly snapshots produced by
+     * restore()/emergency() use the "ai-snapshot-" prefix and are excluded so
+     * they never become restore points themselves.
+     *
+     * @return array<int, array{path: string, time: int}>
+     */
+    private function listEnvBackups(string $dir): array
+    {
+        if (! is_dir($dir)) {
+            return [];
+        }
+
+        $out = [];
+        foreach (glob($dir.'/ai-*.env') ?: [] as $file) {
+            if (str_starts_with(basename($file), 'ai-snapshot-')) {
+                continue;
+            }
+            $out[] = ['path' => $file, 'time' => filemtime($file)];
+        }
+        usort($out, fn ($a, $b) => $b['time'] <=> $a['time']);
+
+        return $out;
     }
 
     private function setEnvValue(string &$content, string $key, ?string $value): void

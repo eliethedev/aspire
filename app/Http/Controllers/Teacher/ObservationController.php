@@ -190,6 +190,36 @@ class ObservationController extends Controller
         return back()->with('success', 'You have confirmed the observation schedule.');
     }
 
+    public function updateLocation(Request $request, Observation $observation)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'location' => ['required', 'string', 'max:255'],
+        ]);
+
+        $oldLocation = $observation->location;
+        $observation->update(['location' => $validated['location']]);
+
+        // Also save as default room for future observations
+        $profile = Auth::user()->teacherProfile;
+        if ($profile && empty($profile->default_room)) {
+            $profile->update(['default_room' => $validated['location']]);
+        }
+
+        app(AuditLogService::class)->log(
+            'location_updated', 'observations', (string) $observation->getKey(),
+            "Teacher updated observation location from '{$oldLocation}' to '{$validated['location']}'",
+            'success', [], $observation->toArray()
+        );
+
+        return back()->with('success', 'Observation location updated successfully.');
+    }
+
     public function reject(Request $request, Observation $observation)
     {
         $teacher = Auth::user()->teacher;

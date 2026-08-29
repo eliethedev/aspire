@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
 // School management routes (admin only)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/status', [App\Http\Controllers\Admin\DashboardController::class, 'systemStatus'])->name('dashboard.status');
 
     // Profile
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -114,6 +115,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/', [AIController::class, 'update'])->name('update');
         Route::post('/test', [AIController::class, 'test'])->name('test');
         Route::post('/test-provider', [AIController::class, 'testProvider'])->name('test-provider');
+        Route::post('/restore', [AIController::class, 'restore'])->name('restore');
+        Route::post('/emergency', [AIController::class, 'emergency'])->name('emergency');
     });
 
     // Reports
@@ -182,6 +185,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
     Route::get('/observations', [App\Http\Controllers\Teacher\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
     Route::post('/observations/{observation}/upload-lesson-plan', [App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->middleware('throttle:uploads')->name('observations.upload-lesson-plan');
+    Route::patch('/observations/{observation}/update-location', [App\Http\Controllers\Teacher\ObservationController::class, 'updateLocation'])->name('observations.update-location');
     Route::post('/observations/{observation}/confirm', [App\Http\Controllers\Teacher\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [App\Http\Controllers\Teacher\ObservationController::class, 'reject'])->name('observations.reject');
 
@@ -206,8 +210,12 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 
     Route::get('/teachers', [SupervisorController::class, 'teachers'])->name('teachers.index');
     Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
-    Route::post('/teachers/{teacher}/career-assessment', [SupervisorController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
+        Route::post('/teachers/{teacher}/career-assessment', [SupervisorController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
+        Route::put('/teachers/{teacher}/career-assessment/{assessment}', [SupervisorController::class, 'updateCareerAssessment'])->name('teachers.career-assessment.update');
     Route::get('/career-progression', [SupervisorController::class, 'careerProgression'])->name('career.index');
+    Route::get('/career-monitor', [SupervisorController::class, 'careerMonitor'])->name('career.monitor');
+    Route::post('/teachers/{teacher}/career-stage/allow', [SupervisorController::class, 'allowCareerStage'])->name('career.allow');
+    Route::post('/teachers/{teacher}/career-stage/announce', [SupervisorController::class, 'announceCareerStage'])->name('career.announce');
     Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
     Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
@@ -243,6 +251,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 
     // AI-powered insights
     Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
+    Route::get('/observations/{observation}/ai-insights-status', [SupervisorController::class, 'aiInsightsStatus'])->name('observations.ai-insights-status');
     Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
     Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
@@ -310,6 +319,7 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
     Route::get('/observations/create', [App\Http\Controllers\SchoolHead\ObservationController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
+    Route::get('/co-observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'coObservations'])->middleware('throttle:search')->name('co-observations.index');
     Route::post('/observations/{observation}/confirm', [App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');
     Route::post('/observations/{observation}/upload-plan', [App\Http\Controllers\SchoolHead\ObservationController::class, 'uploadPlan'])->middleware('throttle:uploads')->name('observations.upload-plan');
@@ -328,8 +338,10 @@ Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('sc
 
     // AI-powered insights (school head as observer)
     Route::post('/observations/{observation}/generate-ai-insights', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
+    Route::get('/observations/{observation}/ai-insights-status', [App\Http\Controllers\SchoolHead\ObservationController::class, 'aiInsightsStatus'])->name('observations.ai-insights-status');
     Route::delete('/observations/{observation}/clear-ai-insights', [App\Http\Controllers\SchoolHead\ObservationController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
+    Route::post('/observations/{observation}/generate-ai-suggestions', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
 
     // Cancellation (school head as observer)
     Route::get('/observations/{observation}/cancel', [App\Http\Controllers\SchoolHead\ObservationController::class, 'showCancelForm'])->name('observations.cancel-form');

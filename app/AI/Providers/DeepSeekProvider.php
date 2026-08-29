@@ -4,11 +4,12 @@ namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Contracts\TracksTruncation;
 use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage
+class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage, TracksTruncation
 {
     protected string $apiKey;
 
@@ -17,6 +18,8 @@ class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage
     protected string $baseUrl = 'https://api.deepseek.com/v1';
 
     protected array $lastUsage = ['input' => 0, 'output' => 0];
+
+    protected ?string $lastFinishReason = null;
 
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
@@ -49,6 +52,11 @@ class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage
         return $this->lastUsage;
     }
 
+    public function getLastFinishReason(): ?string
+    {
+        return $this->lastFinishReason;
+    }
+
     public function generate(string $prompt, array $options = []): ?string
     {
         if (! $this->isAvailable()) {
@@ -56,6 +64,8 @@ class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage
 
             return null;
         }
+
+        $this->lastFinishReason = null;
 
         $temperature = $options['temperature'] ?? config('ai.generation.temperature', 0.5);
         $maxTokens = $options['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024);
@@ -88,6 +98,8 @@ class DeepSeekProvider implements AIServiceInterface, TracksTokenUsage
 
                 return null;
             }
+
+            $this->lastFinishReason = ($data['choices'][0]['finish_reason'] ?? null) === 'length' ? 'length' : null;
 
             if (isset($data['usage'])) {
                 $this->lastUsage = [

@@ -6,6 +6,7 @@ use App\AI\Exceptions\AIRateLimitException;
 use App\AI\Support\AIStatus;
 use App\Enums\NotificationType;
 use App\Jobs\GeneratePostObservationFeedback;
+use App\Models\CareerAdvancement;
 use App\Models\CareerProgressionAssessment;
 use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
@@ -18,9 +19,9 @@ use App\Models\User;
 use App\Services\AIFeedbackService;
 use App\Services\AISuggestionService;
 use App\Services\AuditLogService;
+use App\Services\CareerMonitorService;
 use App\Services\CareerProgressionService;
-use App\Services\CotDocumentService;
-use App\Services\CotIndicatorService;
+use App\Services\CotDocumentService;use App\Services\CotIndicatorService;
 use App\Services\FormTemplateService;
 use App\Services\IndicatorTrendService;
 use App\Services\NotificationService;
@@ -30,6 +31,7 @@ use App\Services\PDFReportService;
 use App\Services\PHPMailerService;
 use App\Services\ProfessionalDevelopmentService;
 use App\Services\RateeProfileService;
+use App\Services\TeacherAttentionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -119,8 +121,16 @@ class SupervisorController extends Controller
 
         $trend = $prevAvg ? ($stats['average_score'] - round($prevAvg, 2)) : 0;
 
+        // Teachers that need the supervisor's attention (dashboard card -> teachers list).
+        $attention = app(TeacherAttentionService::class)->forSchool($user->school_id);
+        $needsAttention = collect($attention)
+            ->filter(fn ($row) => $row['level'] !== 'ok')
+            ->sortByDesc('level')
+            ->values();
+
         return view('supervisor.dashboard', compact(
-            'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend'
+            'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend',
+            'attention', 'needsAttention'
         ));
     }
 
@@ -131,12 +141,23 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
 
+        // Attention diagnostics for every teacher under the supervisor's school.
+        $attention = app(TeacherAttentionService::class)->forSchool($user->school_id);
+        $order = ['high' => 0, 'medium' => 1, 'low' => 2];
+        $needsAttentionCount = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->count();
+
+        $attentionFilter = $request->get('attention');
+
         // Get teachers from the same school as the supervisor
         $teachers = Teacher::query()
-            ->with(['user', 'school'])
+            ->with(['user', 'school', 'subjects'])
             ->withCount('observations')
             ->whereHas('user', function ($query) use ($user) {
                 $query->where('school_id', $user->school_id);
+            })
+            ->when($attentionFilter === 'needs', function ($query) use ($attention) {
+                $ids = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->keys();
+                $query->whereIn('id', $ids->isNotEmpty() ? $ids->all() : [0]);
             })
             ->when($request->search, function ($query, $search) {
                 $query->whereHas('user', function ($q) use ($search) {
@@ -146,7 +167,30 @@ class SupervisorController extends Controller
             })
             ->paginate($request->per_page ?? 15);
 
-        return view('supervisor.teachers.index', compact('teachers'));
+        // Enrich each paginated teacher with its attention flags and summary.
+        $teachers->getCollection()->transform(function (Teacher $teacher) use ($attention, $order) {
+            $row = $attention[$teacher->id] ?? [
+                'teacher' => $teacher,
+                'flags' => [],
+                'summary' => 'On track',
+                'level' => 'ok',
+            ];
+
+            $teacher->attention_level = $row['level'];
+            $teacher->attention_level_order = $order[$row['level']] ?? 3;
+            $teacher->attention_flags = $row['flags'];
+            $teacher->attention_summary = $row['summary'];
+
+            return $teacher;
+        });
+
+        // Order the current page: attention severity first (high -> medium -> low -> ok), then name.
+        $sorted = $teachers->getCollection()
+            ->sortBy(fn ($t) => $t->attention_level_order)
+            ->values();
+        $teachers->setCollection($sorted);
+
+        return view('supervisor.teachers.index', compact('teachers', 'needsAttentionCount', 'order'));
     }
 
     /**
@@ -160,7 +204,7 @@ class SupervisorController extends Controller
             abort(403, 'This teacher does not belong to your school.');
         }
 
-        $teacher->load(['user', 'school']);
+        $teacher->load(['user', 'school', 'subjects']);
 
         $observations = Observation::with(['preObservationPlanning', 'preConference', 'postConference', 'cotRatings', 'cotIndicatorVersion'])
             ->where('observee_id', $teacher->id)
@@ -194,7 +238,10 @@ class SupervisorController extends Controller
         $rateeProfile = app(RateeProfileService::class)->for($teacher);
         $careerContext = $careerService->contextFor($teacher);
 
-        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile'))
+        $attention = app(\App\Services\TeacherAttentionService::class)->forSchool($user->school_id);
+        $teacherAttention = $attention[$teacher->id] ?? ['flags' => [], 'level' => 'ok', 'summary' => 'On track'];
+
+        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile', 'teacherAttention'))
             ->with('careerContext', $careerContext)
             ->with('careerNextStages', $careerService->nextStageOptions($careerContext['career_stage']))
             ->with('careerEvidence', $careerService->evidenceFor($teacher))
@@ -226,7 +273,52 @@ class SupervisorController extends Controller
 
         app(CareerProgressionService::class)->recordAssessment($teacher, $user, $validated);
 
+        $this->notifyCareerAssessment($teacher, $validated);
+
         return back()->with('success', 'Career progression readiness assessment saved.');
+    }
+
+    /**
+     * Edit an existing career readiness assessment in place.
+     */
+    public function updateCareerAssessment(Teacher $teacher, CareerProgressionAssessment $assessment, Request $request)
+    {
+        $user = Auth::user();
+
+        if ($teacher->user->school_id !== $user->school_id) {
+            abort(403, 'This teacher does not belong to your school.');
+        }
+
+        if ($assessment->ratee_type !== $teacher->getMorphClass() || $assessment->ratee_id !== $teacher->id) {
+            abort(403, 'This assessment does not belong to the given teacher.');
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(CareerProgressionAssessment::STATUSES)],
+            'target_career_stage' => ['nullable', 'string', 'max:50'],
+            'remarks' => ['nullable', 'string', 'max:1000'],
+            'assessed_at' => ['nullable', 'date'],
+        ]);
+
+        app(CareerProgressionService::class)->updateAssessment($assessment, $validated);
+
+        $this->notifyCareerAssessment($teacher, $validated, true);
+
+        return back()->with('success', 'Career progression readiness assessment updated.');
+    }
+
+    /**
+     * Notify the teacher and school head(s) about a saved/edited assessment.
+     */
+    private function notifyCareerAssessment(Teacher $teacher, array $data, bool $edited = false): void
+    {
+        $this->notificationService->notifyCareerAssessment(
+            $teacher->user,
+            $teacher->user->school_id,
+            CareerProgressionAssessment::statusLabelFor($data['status']),
+            route('supervisor.teachers.show', $teacher).'#readiness',
+            $edited
+        );
     }
 
     /**
@@ -324,6 +416,125 @@ class SupervisorController extends Controller
     }
 
     /**
+     * Career Monitor: shows whether each teacher's performance aligns with
+     * their position / career stage, and lets the supervisor allow or
+     * announce an achieved higher stage.
+     */
+    public function careerMonitor(Request $request)
+    {
+        $user = Auth::user();
+        $monitor = app(CareerMonitorService::class)->forSchool($user->school_id);
+
+        $counts = [
+            'aligned' => $monitor->where('alignment', CareerMonitorService::ALIGNED)->count(),
+            'partial' => $monitor->where('alignment', CareerMonitorService::PARTIAL)->count(),
+            'not_aligned' => $monitor->where('alignment', CareerMonitorService::NOT_ALIGNED)->count(),
+            'insufficient' => $monitor->where('alignment', CareerMonitorService::INSUFFICIENT)->count(),
+            'ready' => $monitor->where('next_stage', '!==', null)->where('alignment', CareerMonitorService::ALIGNED)->count(),
+        ];
+
+        $filter = $request->alignment;
+        if ($filter && in_array($filter, [CareerMonitorService::ALIGNED, CareerMonitorService::PARTIAL, CareerMonitorService::NOT_ALIGNED, CareerMonitorService::INSUFFICIENT], true)) {
+            $rows = $monitor->where('alignment', $filter)->values();
+        } else {
+            $filter = null;
+            $rows = $monitor;
+        }
+
+        $rows = $rows->sort(function (array $a, array $b) {
+            $order = [CareerMonitorService::NOT_ALIGNED => 0, CareerMonitorService::PARTIAL => 1, CareerMonitorService::ALIGNED => 2, CareerMonitorService::INSUFFICIENT => 3];
+            return [$order[$a['alignment']] ?? 9, strtolower($a['teacher']->user->name)]
+                <=> [$order[$b['alignment']] ?? 9, strtolower($b['teacher']->user->name)];
+        })->values();
+
+        return view('supervisor.career.monitor', [
+            'rows' => $rows,
+            'counts' => $counts,
+            'filter' => $filter,
+            'search' => $request->search,
+            'alignmentOptions' => [
+                CareerMonitorService::ALIGNED => 'Aligned with position',
+                CareerMonitorService::PARTIAL => 'Partially aligned',
+                CareerMonitorService::NOT_ALIGNED => 'Needs development',
+                CareerMonitorService::INSUFFICIENT => 'Insufficient data',
+            ],
+        ]);
+    }
+
+    /**
+     * Record that a supervisor allows a teacher to progress to the next
+     * career stage and notify the teacher + school head.
+     */
+    public function allowCareerStage(Teacher $teacher, Request $request)
+    {
+        return $this->handleAdvancement($teacher, $request, CareerAdvancement::TYPE_ALLOW);
+    }
+
+    /**
+     * Announce that a teacher has achieved a higher career stage and notify
+     * the teacher + school head.
+     */
+    public function announceCareerStage(Teacher $teacher, Request $request)
+    {
+        return $this->handleAdvancement($teacher, $request, CareerAdvancement::TYPE_ANNOUNCE);
+    }
+
+    private function handleAdvancement(Teacher $teacher, Request $request, string $type)
+    {
+        $user = Auth::user();
+
+        if ($teacher->user->school_id !== $user->school_id) {
+            abort(403, 'This teacher does not belong to your school.');
+        }
+
+        $context = app(CareerProgressionService::class)->contextFor($teacher);
+        $currentStage = $context['career_stage'];
+        $nextStage = app(CareerProgressionService::class)->nextStageKey($currentStage);
+
+        if (! $nextStage) {
+            return back()->with('error', 'This teacher is already at the top of their career track.');
+        }
+
+        $remarks = $request->input('remarks');
+        $remarks = is_string($remarks) ? trim($remarks) : null;
+
+        CareerAdvancement::create([
+            'teacher_id' => $teacher->id,
+            'supervisor_id' => $user->id,
+            'from_career_stage' => $currentStage,
+            'to_career_stage' => $nextStage,
+            'type' => $type,
+            'status' => CareerAdvancement::STATUS_RECORDED,
+            'remarks' => $remarks ?: null,
+            'acted_at' => now()->toDateString(),
+        ]);
+
+        if ($teacher->career_stage !== $nextStage) {
+            $teacher->career_stage = $nextStage;
+            $teacher->save();
+        }
+
+        $this->notificationService->notifyCareerAdvancement(
+            $teacher->user,
+            $teacher->user->school_id,
+            $this->stageLabel($nextStage),
+            $type === CareerAdvancement::TYPE_ALLOW,
+            route('supervisor.teachers.show', $teacher).'#readiness',
+        );
+
+        $message = $type === CareerAdvancement::TYPE_ALLOW
+            ? 'Career progression allowed. The teacher and school head have been notified.'
+            : 'Career stage achieved and announced. The teacher and school head have been notified.';
+
+        return back()->with('success', $message);
+    }
+
+    private function stageLabel(string $stageKey): string
+    {
+        return app(\App\Services\CareerStageResolver::class)->stageLabel($stageKey) ?: $stageKey;
+    }
+
+    /**
      * Display list of school heads.
      */
     public function schoolHeads(Request $request)
@@ -413,7 +624,7 @@ class SupervisorController extends Controller
 
         // Get teachers from the same school (using teacher's school_id directly)
         $teachers = Teacher::query()
-            ->with(['user', 'school'])
+            ->with(['user', 'school', 'subjects'])
             ->where('school_id', $user->school_id)
             ->get();
 
@@ -454,7 +665,8 @@ class SupervisorController extends Controller
                 'id' => $teacher->id,
                 'name' => $teacher->user->name,
                 'email' => $teacher->user->email,
-                'subject' => $teacher->subject ?? 'Not set',
+                'subject' => $teacher->subjectsLabel ?? 'Not set',
+                'subjects' => $teacher->subjects->pluck('name')->values()->all(),
                 'grade_level' => $teacher->grade_level ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
@@ -817,6 +1029,122 @@ class SupervisorController extends Controller
     }
 
     /**
+     * Create a linked School Head PPSSH observation for the given teacher observation.
+     * The new observation is of type school_head_observation and is linked via
+     * related_observation_id to the primary teacher COT observation.
+     * The school head is pre-filled from the teacher observation's school_head_id.
+     */
+    public function createLinkedPpsshObservation(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if ($observation->observation_type !== 'teacher_observation') {
+            return back()->with('error', 'This action is only available for teacher observations.');
+        }
+
+        if ($observation->isLinkedObservation()) {
+            return back()->with('error', 'A linked PPSSH observation already exists for this observation.');
+        }
+
+        // Use the same school head that was assigned to the teacher observation
+        $schoolHeadId = $observation->school_head_id;
+        $schoolHead = $schoolHeadId ? User::find($schoolHeadId) : null;
+
+        // Determine the active PPSSH template for the current school year
+        $schoolYear = $observation->school_year ?? $this->getCurrentSchoolYear();
+        $activeTemplate = $this->formTemplateService->getActiveTemplate($schoolYear, 'school_head_observation');
+
+        // Determine the COT indicator version to use for the SH observation
+        // Resolve a published PPSSH version for the school year
+        $cotIndicatorVersion = CotIndicatorVersion::where('school_year', $schoolYear)
+            ->published()
+            ->where('rateeRole', 'school_head')
+            ->inRandomOrder() // Pick first available; could be made configurable
+            ->first();
+
+        $observeeType = SchoolHeadProfile::class;
+        $observeeId = $schoolHead?->id ?? null;
+
+        // Create the linked PPSSH observation
+        $linkedObservation = Observation::create([
+            'observer_id' => Auth::id(),
+            'observer_type' => User::class,
+            'observee_id' => $observeeId,
+            'observee_type' => $observeeType,
+            'observation_type' => 'school_head_observation',
+            'observation_date' => $observation->observation_date,
+            'start_time' => $observation->start_time ?? null,
+            'end_time' => $observation->end_time ?? null,
+            'location' => $observation->location ?? null,
+            'stage' => 'pre_observation_planning',
+            'notes' => 'Linked PPSSH observation for ' . $observation->subject,
+            'status' => 'in_progress',
+            'school_year' => $schoolYear,
+            'quarter' => $observation->quarter ?? $this->getCurrentQuarter(),
+            'observation_number' => 1,
+            'subject' => $observation->subject ?? null,
+            'grade_level' => $observation->grade_level ?? null,
+            'observation_mode' => 'in_person',
+            'form_template_id' => $activeTemplate?->id,
+            'cot_indicator_version_id' => $cotIndicatorVersion?->id,
+            'school_head_id' => $schoolHeadId,
+            'related_observation_id' => $observation->id,
+        ]);
+
+        // Post-observation Conference handling for SH observation
+        $isSchoolHeadObs = true;
+        $requiresPostConference = true; // PPSSH templates typically require it
+        if ($requiresPostConference) {
+            $linkedObservation->postConference()->create([
+                'conference_date' => null,
+                'start_time' => null,
+                'end_time' => null,
+                'location' => null,
+                'mode' => 'in_person',
+            ]);
+        }
+
+        app(AuditLogService::class)->log(
+            'created', 'observations', (string) $linkedObservation->getKey(),
+            "Created linked PPSSH observation #{$linkedObservation->getKey()} for teacher observation #{$observation->getKey()}",
+            'success', [], $linkedObservation->toArray()
+        );
+
+        // Notify school head if assigned
+        if ($linkedObservation->school_head_id) {
+            $shUser = User::find($linkedObservation->school_head_id);
+            if ($shUser) {
+                $shLink = route('school-head.observations.show', $linkedObservation->id);
+                $this->notificationService->notify(
+                    $shUser,
+                    \App\Enums\NotificationType::OBSERVATION,
+                    'Linked PPSSH Observation Assignment',
+                    'You have been assigned to conduct a School Head post-observation conference linked to teacher observation #' . $observation->getKey() . ' on ' . ($observation->observation_date?->format('M d, Y') ?? 'No date') . '.',
+                    null,
+                    $shLink
+                );
+            }
+        }
+
+        // Notify the teacher (observee) that a linked PPSSH observation was created
+        $teacher = $observation->observee;
+        if ($teacher && $teacher->user) {
+            $teacherLink = route('teacher.observations.show', $observation->id);
+            $this->notificationService->notify(
+                $teacher->user,
+                \App\Enums\NotificationType::OBSERVATION,
+                'Linked PPSSH Observation Created',
+                'A School Head post-observation conference has been created and linked to your observation on ' . ($observation->observation_date?->format('M d, Y') ?? 'No date') . '.',
+                null,
+                $teacherLink
+            );
+        }
+
+        return redirect()->route('supervisor.observations.preObservationPlanning', $linkedObservation->id)
+            ->with('success', 'Linked PPSSH observation has been created successfully. Proceed to Pre-Observation Planning.');
+    }
+
+    /**
      * Get current school year.
      */
     private function getCurrentSchoolYear(): string
@@ -1114,6 +1442,12 @@ class SupervisorController extends Controller
             'teacher_reflection' => ['nullable', 'string'],
             'lesson_plan_review' => ['nullable', 'string'],
             'instructional_materials' => ['nullable', 'string'],
+            'topic' => ['nullable', 'string'],
+            'learning_objectives' => ['nullable', 'string'],
+            'teaching_strategies' => ['nullable', 'string'],
+            'assessment_activity' => ['nullable', 'string'],
+            'expected_challenges' => ['nullable', 'string'],
+            'feedback_areas' => ['nullable', 'string'],
             'ai_insights_reviewed' => ['nullable', 'boolean'],
         ], $templateRules));
 
@@ -1124,6 +1458,12 @@ class SupervisorController extends Controller
             'teacher_reflection' => $validated['teacher_reflection'] ?? null,
             'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
             'instructional_materials' => $validated['instructional_materials'] ?? null,
+            'topic' => $validated['topic'] ?? null,
+            'learning_objectives' => $validated['learning_objectives'] ?? null,
+            'teaching_strategies' => $validated['teaching_strategies'] ?? null,
+            'assessment_activity' => $validated['assessment_activity'] ?? null,
+            'expected_challenges' => $validated['expected_challenges'] ?? null,
+            'feedback_areas' => $validated['feedback_areas'] ?? null,
         ];
 
         $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_conference', $request->all(), $obsType);
@@ -2334,10 +2674,14 @@ class SupervisorController extends Controller
         $this->authorizeObservation($observation);
         $observation->load(['preObservationPlanning', 'observee']);
 
+        // Generate inline (with a generous time budget) so the result arrives
+        // in full within the same request instead of relying on a background
+        // queue worker. No template fallback here: if AI is disabled/unavailable
+        // we return a friendly notice instead of canned text.
+        set_time_limit(300);
+
         try {
-            // No silent template substitution for supervisors: when AI is
-            // unavailable we say so and offer manual entry instead.
-            $insights = $this->aiFeedback->generatePreObservationInsights($observation, templateFallback: false);
+            $insights = app(\App\AI\Services\PreObservationService::class)->generateInsights($observation, false);
         } catch (AIRateLimitException $e) {
             return response()->json(AIStatus::unavailable('pre_observation', $e), 429);
         } catch (\Throwable $e) {
@@ -2346,7 +2690,7 @@ class SupervisorController extends Controller
             return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
-        if ($insights === null) {
+        if (!$insights) {
             return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
@@ -2355,7 +2699,44 @@ class SupervisorController extends Controller
             ['ai_insights' => $insights]
         );
 
-        return response()->json(['ai_insights' => $insights, 'source' => 'ai']);
+        app(AuditLogService::class)->logAi(
+            'insights_generated',
+            "Pre-observation AI insights generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_observation', 'observation_id' => $observation->id],
+        );
+
+        return response()->json([
+            'status' => 'completed',
+            'ai_insights' => $insights,
+            'source' => 'ai',
+        ]);
+    }
+
+    /**
+     * Check whether pre-observation AI insights are ready.
+     * Called by the frontend via polling after dispatching the job.
+     */
+    public function aiInsightsStatus(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->load('preObservationPlanning');
+
+        $insights = $observation->preObservationPlanning?->ai_insights;
+
+        if ($insights) {
+            return response()->json([
+                'status' => 'completed',
+                'ai_insights' => $insights,
+                'source' => 'ai',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'processing',
+            'message' => 'AI insights are still being generated.',
+        ]);
     }
 
     public function clearAiInsights(Observation $observation)
@@ -2365,6 +2746,14 @@ class SupervisorController extends Controller
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
             ['ai_insights' => null]
+        );
+
+        app(AuditLogService::class)->logAi(
+            'insights_cleared',
+            "Pre-observation AI insights cleared for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_observation', 'observation_id' => $observation->id],
         );
 
         return response()->json(['success' => true]);
@@ -2401,6 +2790,14 @@ class SupervisorController extends Controller
             );
         }
 
+        app(AuditLogService::class)->logAi(
+            'suggestions_generated',
+            "Pre-conference AI suggestions generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_conference', 'observation_id' => $observation->id],
+        );
+
         return response()->json([
             'discussion_notes' => $data['discussion_notes'] ?? '',
             'finalized_focus' => $data['finalized_focus'] ?? '',
@@ -2431,6 +2828,14 @@ class SupervisorController extends Controller
             ['ai_comparison' => $comparison]
         );
 
+        app(AuditLogService::class)->logAi(
+            'comparison_generated',
+            "Post-conference AI comparison generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'post_conference', 'observation_id' => $observation->id],
+        );
+
         return response()->json(['ai_comparison' => $comparison]);
     }
 
@@ -2455,6 +2860,14 @@ class SupervisorController extends Controller
                 route('teacher.observations.show', $observation),
             );
         }
+
+        app(AuditLogService::class)->logAi(
+            'guidance_generated',
+            "During-observation AI guidance generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'during_observation', 'observation_id' => $observation->id],
+        );
 
         return response()->json(['suggestions' => $suggestions]);
     }
@@ -2529,7 +2942,7 @@ class SupervisorController extends Controller
                 ],
                 'pre_conference' => [
                     'relation' => 'preConference',
-                    'fillable' => ['discussion_notes', 'finalized_focus', 'teacher_reflection', 'lesson_plan_review', 'instructional_materials', 'conference_date'],
+                    'fillable' => ['discussion_notes', 'finalized_focus', 'teacher_reflection', 'lesson_plan_review', 'instructional_materials', 'conference_date', 'topic', 'learning_objectives', 'teaching_strategies', 'assessment_activity', 'expected_challenges', 'feedback_areas'],
                 ],
                 'post_conference' => [
                     'relation' => 'postConference',

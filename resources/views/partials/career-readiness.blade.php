@@ -3,185 +3,262 @@
     $status = $careerReadiness['status'] ?? 'not_yet_assessed';
     $history = $careerReadiness['history'] ?? collect();
     $canAssess = $canAssess ?? false;
+    $canEditAssessment = $canEditAssessment ?? false;
 @endphp
-
-<div id="readiness" class="scroll-mt-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-    <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3 flex-wrap">
-            <h3 class="text-gray-900 dark:text-gray-100 font-semibold text-lg">Career Progression Readiness</h3>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ \App\Models\CareerProgressionAssessment::statusBadgeFor($status) }}">
+<div id="readiness" class="scroll-mt-24 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 section-card"
+    x-data="{
+        editOpen: false,
+        editAction: '',
+        editStatus: '',
+        editTarget: '',
+        editRemarks: '',
+        editDate: '',
+        openEdit(id, status, target, remarks, date) {
+            this.editAction = '{{ $canEditAssessment ? route('supervisor.teachers.career-assessment.update', [$ratee ?? '__tid__', '__id__']) : '' }}'.replace('__id__', id);
+            this.editStatus = status;
+            this.editTarget = target;
+            this.editRemarks = remarks || '';
+            this.editDate = date || '';
+            this.editOpen = true;
+            document.body.classList.add('overflow-y-hidden');
+        },
+        closeEdit() {
+            this.editOpen = false;
+            document.body.classList.remove('overflow-y-hidden');
+        }
+    }">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-sm font-bold tracking-widest uppercase text-slate-700 flex items-center gap-2"><span class="w-1.5 h-5 rounded-full bg-emerald-500"></span> Career Progression Readiness</h3>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border {{ \App\Models\CareerProgressionAssessment::statusBadgeFor($status) }}">
                 {{ \App\Models\CareerProgressionAssessment::statusLabelFor($status) }}
             </span>
             @if($assessment?->target_career_stage)
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    Target: {{ $assessment->targetStageLabel() }}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700">
+                    <i class="fas fa-arrow-right text-[11px]"></i> Target: {{ $assessment->targetStageLabel() }}
                 </span>
             @endif
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Assessment &amp; support tool &middot; no automatic promotion</p>
+        <p class="text-xs px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-600">Support tool · no auto promotion</p>
     </div>
 
-    <!-- Ratee context -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Current Position</p>
-            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $careerContext['position'] }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-500">Current Position</p>
+            <p class="mt-1 font-semibold text-slate-900">{{ $careerContext['position'] }}</p>
         </div>
-        <div class="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Career Stage</p>
-            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $careerContext['career_stage_label'] ?: 'N/A' }}</p>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-500">Career Stage</p>
+            <p class="mt-1 font-semibold text-slate-900">{{ $careerContext['career_stage_label'] ?: '—' }}</p>
         </div>
-        <div class="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Framework</p>
-            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $careerContext['framework_label'] }}</p>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-500">Framework</p>
+            <p class="mt-1 font-semibold text-slate-900">{{ $careerContext['framework_label'] }}</p>
         </div>
-        <div class="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Career Track</p>
-            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $careerContext['career_track_label'] }}</p>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-500">Career Track</p>
+            <p class="mt-1 font-semibold text-slate-900">{{ $careerContext['career_track_label'] }}</p>
         </div>
     </div>
 
-    <!-- COT evidence summary -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $careerEvidence['total_observations'] }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Total Observations</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+            <p class="text-2xl font-extrabold text-slate-900">{{ $careerEvidence['total_observations'] }}</p>
+            <p class="text-xs font-medium text-slate-500">Total Observations</p>
         </div>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ $careerEvidence['average_rating'] !== null ? number_format($careerEvidence['average_rating'], 2) . ' / 6' : 'N/A' }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Average Rating</p>
+        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+            <p class="text-xl font-extrabold text-indigo-700">{{ $careerEvidence['average_rating'] !== null ? number_format($careerEvidence['average_rating'], 2) . ' / 6' : '—' }}</p>
+            <p class="text-xs font-medium text-indigo-700/70">Average Rating</p>
         </div>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ $careerEvidence['recent_observation_rating'] !== null ? number_format($careerEvidence['recent_observation_rating'], 2) : 'N/A' }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Recent Observation @if($careerEvidence['recent_observation_date'])({{ $careerEvidence['recent_observation_date'] }})@endif</p>
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+            <p class="text-lg font-extrabold text-slate-900">{{ $careerEvidence['recent_observation_rating'] !== null ? number_format($careerEvidence['recent_observation_rating'], 2) : '—' }}</p>
+            <p class="text-xs font-medium text-slate-500">Recent @if($careerEvidence['recent_observation_date'])<span class="text-slate-400">({{ $careerEvidence['recent_observation_date'] }})</span>@endif</p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div>
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Indicator Strengths</h4>
+        <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/30">
+            <h4 class="text-xs font-bold tracking-widest uppercase text-slate-700 mb-3 flex items-center gap-1.5"><span class="w-1 h-4 rounded-full bg-emerald-500"></span> Strengths</h4>
             @forelse($careerEvidence['strengths'] as $strength)
                 <div class="flex items-start gap-2 py-1.5">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 shrink-0">{{ $strength['code'] }}</span>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $strength['indicator'] }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 shrink-0">{{ $strength['code'] }}</span>
+                    <p class="text-sm text-slate-700">{{ $strength['indicator'] }}</p>
                 </div>
             @empty
-                <p class="text-sm text-gray-500 dark:text-gray-400">No clear strengths recorded yet.</p>
+                <p class="text-sm text-slate-500">No clear strengths recorded yet.</p>
             @endforelse
         </div>
-        <div>
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Indicators Needing Development</h4>
+        <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/30">
+            <h4 class="text-xs font-bold tracking-widest uppercase text-slate-700 mb-3 flex items-center gap-1.5"><span class="w-1 h-4 rounded-full bg-amber-500"></span> Needs Development</h4>
             @forelse($careerEvidence['needs_development'] as $needed)
                 <div class="flex items-start gap-2 py-1.5">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 shrink-0">{{ $needed['code'] }}</span>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $needed['indicator'] }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-700 shrink-0">{{ $needed['code'] }}</span>
+                    <p class="text-sm text-slate-700">{{ $needed['indicator'] }}</p>
                 </div>
             @empty
-                <p class="text-sm text-gray-500 dark:text-gray-400">No indicators flagged for development.</p>
+                <p class="text-sm text-slate-500">No indicators flagged for development.</p>
             @endforelse
         </div>
     </div>
 
-    <!-- Assessment form -->
     @if($canAssess)
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Readiness Assessment</h4>
-            <form method="POST" action="{{ $careerRoute }}" class="space-y-4">
+        <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+            <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <i class="fas fa-plus text-indigo-600 text-xs"></i> New Readiness Assessment
+            </h4>
+            <p class="text-xs text-slate-500 mb-3 flex items-center gap-1.5"><i class="fas fa-circle-info text-slate-400"></i> Add a new readiness assessment. Existing entries can be edited from the history below.</p>
+            <form method="POST" id="career-assessment-form" action="{{ $careerRoute }}" class="space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                        <select name="status" required
-                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm px-3 py-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                        <select name="status" required class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             @foreach(\App\Models\CareerProgressionAssessment::statusOptions() as $value => $label)
-                                <option value="{{ $value }}" @selected($assessment && $assessment->status === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('status') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Career Stage</label>
-                        @php $selectedTarget = old('target_career_stage', $assessment?->target_career_stage); @endphp
-                        <select name="target_career_stage"
-                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm px-3 py-2">
-                            <option value="">Auto &mdash; next career stage</option>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Target Stage</label>
+                        <select name="target_career_stage" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            <option value="">Auto — next stage</option>
                             @foreach($careerNextStages ?? [] as $value => $label)
-                                <option value="{{ $value }}" @selected($selectedTarget === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('target_career_stage') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-                            @if(empty($careerNextStages))
-                                This ratee is already at the top of the current track.
-                            @else
-                                Defaults to the next stage after the ratee's current one.
-                            @endif
-                        </p>
+                        <p class="mt-1 text-xs text-slate-500">@if(empty($careerNextStages))Already at top of track.@else Defaults to next stage.@endif</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assessment Date</label>
-                        <input type="date" name="assessed_at"
-                               value="{{ old('assessed_at', $assessment?->assessed_at?->toDateString() ?? now()->toDateString()) }}"
-                               class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm px-3 py-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Assessment Date</label>
+                        <input type="date" name="assessed_at" value="{{ old('assessed_at', now()->toDateString()) }}" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remarks</label>
-                    <textarea name="remarks" rows="2" placeholder="Optional remarks to support this assessment"
-                              class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm px-3 py-2">{{ old('remarks', $assessment?->remarks) }}</textarea>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Remarks</label>
+                    <textarea name="remarks" rows="2" placeholder="Optional remarks to support this assessment" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">{{ old('remarks') }}</textarea>
                 </div>
-                <div class="flex items-center justify-end gap-3">
-                    @if($assessment)
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Last assessed {{ $assessment->assessed_at?->format('M d, Y') }} by {{ $assessment->evaluator?->name ?? 'N/A' }}</span>
-                    @endif
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                        Save Assessment
-                    </button>
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <span class="text-xs text-slate-500">Support tool · no auto promotion</span>
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+                            <i class="fas fa-floppy-disk text-xs"></i> Save Assessment
+                        </button>
+                    </div>
                 </div>
-                @error('status')
-                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-                @error('target_career_stage')
-                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
+                @error('status')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                @error('target_career_stage')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
             </form>
         </div>
     @endif
 
-    <!-- History -->
     @if($history->isNotEmpty())
         <div class="mt-6">
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Assessment History</h4>
-            <div class="overflow-x-auto">
+            <h4 class="text-xs font-bold tracking-widest uppercase text-slate-700 mb-3">Assessment History</h4>
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
                 <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                            <th class="py-2 pr-4 font-medium">Date</th>
-                            <th class="py-2 pr-4 font-medium">Status</th>
-                            <th class="py-2 pr-4 font-medium">Target Stage</th>
-                            <th class="py-2 pr-4 font-medium">Position at Assessment</th>
-                            <th class="py-2 pr-4 font-medium">Evaluator</th>
-                            <th class="py-2 font-medium">Remarks</th>
+                    <thead class="bg-slate-50">
+                        <tr class="text-left text-xs font-semibold tracking-widest uppercase text-slate-500 border-b border-slate-200">
+                            <th class="py-2.5 px-3 font-semibold">Date</th>
+                            <th class="py-2.5 px-3 font-semibold">Status</th>
+                            <th class="py-2.5 px-3 font-semibold">Target</th>
+                            <th class="py-2.5 px-3 font-semibold">Position</th>
+                            <th class="py-2.5 px-3 font-semibold">Evaluator</th>
+                            <th class="py-2.5 px-3 font-semibold">Remarks</th>
+                            @if($canEditAssessment)<th class="py-2.5 px-3 font-semibold">Actions</th>@endif
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($history as $entry)
-                            <tr class="border-b border-gray-100 dark:border-gray-800">
-                                <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ $entry->assessed_at?->format('M d, Y') }}</td>
-                                <td class="py-2 pr-4">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span>
-                                </td>
-                                <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ $entry->targetStageLabel() ?: '—' }}</td>
-                                <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">
-                                    {{ $entry->position ?: 'N/A' }}@if($entry->career_stage)<span class="text-gray-400"> &middot; {{ $entry->career_stage }}</span>@endif
-                                </td>
-                                <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ $entry->evaluator?->name ?? 'N/A' }}</td>
-                                <td class="py-2 text-gray-700 dark:text-gray-300">{{ $entry->remarks ?: '—' }}</td>
+                            <tr>
+                                <td class="py-2.5 px-3 text-slate-700">{{ $entry->assessed_at?->format('M d, Y') }}</td>
+                                <td class="py-2.5 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span></td>
+                                <td class="py-2.5 px-3 text-slate-700">{{ $entry->targetStageLabel() ?: '—' }}</td>
+                                <td class="py-2.5 px-3 text-slate-700">{{ $entry->position ?: '—' }}@if($entry->career_stage)<span class="text-slate-400"> · {{ $entry->career_stage }}</span>@endif</td>
+                                <td class="py-2.5 px-3 text-slate-700">{{ $entry->evaluator?->name ?? '—' }}</td>
+                                <td class="py-2.5 px-3 text-slate-700">{{ $entry->remarks ?: '—' }}</td>
+                                @if($canEditAssessment)
+                                    <td class="py-2.5 px-3">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 bg-white hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors"
+                                            @click="openEdit(
+                                                {{ $entry->id }},
+                                                '{{ $entry->status }}',
+                                                '{{ $entry->target_career_stage ?? '' }}',
+                                                @js($entry->remarks),
+                                                '{{ $entry->assessed_at?->toDateString() }}'
+                                            )">
+                                            <i class="fas fa-pen text-[11px]"></i> Edit
+                                        </button>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
+    @endif
+
+    {{-- Edit Assessment Modal --}}
+    @if($canEditAssessment)
+    <div x-show="editOpen" x-cloak class="fixed inset-0 z-[90] overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeEdit()"></div>
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200 my-6"
+                x-show="editOpen"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-4"
+                x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                    <div>
+                        <h4 class="text-base font-bold text-slate-900 flex items-center gap-2"><i class="fas fa-pen text-indigo-600 text-xs"></i> Edit Readiness Assessment</h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Update this entry in the assessment history.</p>
+                    </div>
+                    <button type="button" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" @click="closeEdit()">
+                        <i class="fas fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <form method="POST" :action="editAction" class="p-6 space-y-4">
+                    @csrf
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                            <select name="status" x-model="editStatus" required class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                @foreach(\App\Models\CareerProgressionAssessment::statusOptions() as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Stage</label>
+                            <select name="target_career_stage" x-model="editTarget" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="">Auto — next stage</option>
+                                @foreach($careerNextStages ?? [] as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Assessment Date</label>
+                            <input type="date" name="assessed_at" x-model="editDate" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Remarks</label>
+                        <textarea name="remarks" x-model="editRemarks" rows="3" placeholder="Optional remarks to support this assessment" class="w-full rounded-xl border border-slate-300 bg-white text-slate-900 text-sm px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <button type="button" class="px-4 py-2.5 border border-slate-300 text-slate-700 bg-white rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors" @click="closeEdit()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+                            <i class="fas fa-floppy-disk text-xs"></i> Update Assessment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     @endif
 </div>

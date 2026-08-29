@@ -260,10 +260,27 @@
                             </select>
                             <x-input-error class="mt-2" :messages="$errors->get('grade_level')" />
                         </div>
-                        <div>
-                            <x-input-label for="subject" :value="__('Subject')" />
-                            <x-text-input id="subject" name="subject" type="text" class="mt-1 block w-full" :value="old('subject', $user->teacher?->subject)" />
-                            <x-input-error class="mt-2" :messages="$errors->get('subject')" />
+                        <div class="md:col-span-2">
+                            <x-input-label for="subjects" :value="__('Subjects Handled')" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select all subjects you currently teach. Add any that are not listed below.</p>
+                            @php $checkedSubjects = old('subjects', $user->teacher?->subjects?->pluck('id')->all() ?? []); @endphp
+                            <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                @foreach ($subjects as $subjectItem)
+                                    <label class="flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm cursor-pointer">
+                                        <input type="checkbox" name="subjects[]" value="{{ $subjectItem->id }}"
+                                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:ring-offset-gray-800"
+                                               @checked(in_array($subjectItem->id, $checkedSubjects))>
+                                        <span class="text-gray-700 dark:text-gray-200">{{ $subjectItem->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div class="mt-3">
+                                <x-text-input id="new_subjects" name="new_subjects" type="text" class="mt-1 block w-full"
+                                              :value="old('new_subjects')"
+                                              placeholder="Additional subjects, e.g. Robotics, Practical Research 2" />
+                            </div>
+                            <x-input-error class="mt-2" :messages="$errors->get('subjects')" />
+                            <x-input-error class="mt-2" :messages="$errors->get('new_subjects')" />
                         </div>
                         <div>
                             <x-input-label for="subject_area_taught" :value="__('Subject Area Taught')" />
@@ -307,6 +324,12 @@
                             <x-input-label for="advisory_section" :value="__('Advisory Section')" />
                             <x-text-input id="advisory_section" name="advisory_section" type="text" class="mt-1 block w-full" :value="old('advisory_section', $user->teacherProfile?->advisory_section)" />
                             <x-input-error class="mt-2" :messages="$errors->get('advisory_section')" />
+                        </div>
+                        <div>
+                            <x-input-label for="default_room" :value="__('Default Room / Location')" />
+                            <x-text-input id="default_room" name="default_room" type="text" class="mt-1 block w-full" :value="old('default_room', $user->teacherProfile?->default_room)" placeholder="e.g. Room 201, Building A" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Used as the default location for your observations.</p>
+                            <x-input-error class="mt-2" :messages="$errors->get('default_room')" />
                         </div>
                     </div>
                     <div class="mt-6">

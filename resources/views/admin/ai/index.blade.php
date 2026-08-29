@@ -9,13 +9,31 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">AI Settings</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure AI providers, per-task model routing, and view usage.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure AI providers and the single default model used for every feature, then view usage.</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Saving runs a live connectivity check on the selected provider/model first — a broken configuration is rejected before it reaches users.</p>
         </div>
         <div class="flex items-center gap-3">
+            <form method="POST" action="{{ route('admin.ai.restore') }}">
+                @csrf
+                <button type="submit" onclick="return confirm('Restore AI settings from the most recent backup?')" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                    Restore Last Save
+                </button>
+            </form>
             <form method="POST" action="{{ route('admin.ai.test') }}">
                 @csrf
                 <button type="submit" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
                     Test Active Provider
+                </button>
+            </form>
+            <form method="POST" action="{{ route('admin.ai.emergency') }}">
+                @csrf
+                <input type="hidden" name="action" value="{{ $config['enabled'] ? 'disable' : 'enable' }}">
+                <button type="submit"
+                    onclick="return {{ $config['enabled'] ? "confirm('Disable all AI processing now? Users will fall back to rule-based responses.')" : "confirm('Re-enable AI processing?')" }}"
+                    class="px-4 py-2 rounded-lg transition-colors text-sm font-medium {{ $config['enabled']
+                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
+                    {{ $config['enabled'] ? 'Disable AI Now' : 'Re-enable AI' }}
                 </button>
             </form>
         </div>
@@ -26,9 +44,6 @@
         <nav class="flex gap-6 -mb-px overflow-x-auto">
             <button @click="activeTab = 'providers'" :class="activeTab === 'providers' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'" class="py-3 px-1 border-b-2 text-sm font-medium transition-colors">
                 Providers
-            </button>
-            <button @click="activeTab = 'routing'" :class="activeTab === 'routing' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'" class="py-3 px-1 border-b-2 text-sm font-medium transition-colors">
-                Model Routing
             </button>
             <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'" class="py-3 px-1 border-b-2 text-sm font-medium transition-colors">
                 General
@@ -47,15 +62,30 @@
             <div class="space-y-4">
                 <!-- Active Provider Selector -->
                 <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Default Provider</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Used for stages without a specific provider override.</p>
-                    <select name="ai_provider" class="w-full md:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="gemini" {{ $config['provider'] === 'gemini' ? 'selected' : '' }}>Google Gemini</option>
-                        <option value="openai" {{ $config['provider'] === 'openai' ? 'selected' : '' }}>OpenAI</option>
-                        <option value="claude" {{ $config['provider'] === 'claude' ? 'selected' : '' }}>Anthropic Claude</option>
-                        <option value="openrouter" {{ $config['provider'] === 'openrouter' ? 'selected' : '' }}>OpenRouter (Fallback)</option>
-                        <option value="ollama" {{ $config['provider'] === 'ollama' ? 'selected' : '' }}>Ollama (Local)</option>
-                    </select>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Default Provider &amp; Model</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Applied to every AI feature — this single provider and model are used for all goals, lesson-plan AI, observation stages and recommendations.</p>
+                    <div class="flex flex-col md:flex-row md:items-end gap-4">
+                        <div class="flex-1 md:max-w-xs">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Provider</label>
+                            <select name="ai_provider" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="gemini" {{ $config['provider'] === 'gemini' ? 'selected' : '' }}>Google Gemini</option>
+                                <option value="openai" {{ $config['provider'] === 'openai' ? 'selected' : '' }}>OpenAI</option>
+                                <option value="claude" {{ $config['provider'] === 'claude' ? 'selected' : '' }}>Anthropic Claude</option>
+                                <option value="openrouter" {{ $config['provider'] === 'openrouter' ? 'selected' : '' }}>OpenRouter</option>
+                                <option value="deepseek" {{ $config['provider'] === 'deepseek' ? 'selected' : '' }}>DeepSeek</option>
+                                <option value="ollama" {{ $config['provider'] === 'ollama' ? 'selected' : '' }}>Ollama (Local)</option>
+                            </select>
+                        </div>
+                        <div class="flex-1 md:max-w-md">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Model</label>
+                            @include('admin.ai.partials.model-select', [
+                                'name' => 'ai_model_default',
+                                'id' => 'default-model-select',
+                                'current' => $config['models']['default'] ?? '',
+                                'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama'],
+                            ])
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Provider Cards -->
@@ -106,7 +136,18 @@
                         @if($providerKey !== 'ollama')
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
-                            <input type="password" name="ai_{{ $providerKey }}_api_key" placeholder="Leave empty to keep current" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            @if(!empty($maskedKeys[$providerKey]))
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 relative">
+                                        <input type="text" value="{{ $maskedKeys[$providerKey] }}" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-mono cursor-default">
+                                        <button type="button" onclick="copyApiKey('{{ $providerKey }}', '{{ addslashes(config('services.' . $providerKey . '.api_key', '')) }}')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" title="Copy API key">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Key is set. Leave empty below to keep it, or enter a new one to replace.</p>
+                            @endif
+                            <input type="password" name="ai_{{ $providerKey }}_api_key" placeholder="{{ !empty($maskedKeys[$providerKey]) ? 'Enter new key to replace' : 'Enter API key' }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 mt-{{ !empty($maskedKeys[$providerKey]) ? '2' : '0' }}">
                         </div>
                         @else
                         <div>
@@ -130,73 +171,6 @@
                     </div>
                 </div>
                 @endforeach
-            </div>
-        </div>
-
-        <!-- MODEL ROUTING TAB -->
-        <div x-show="activeTab === 'routing'" x-transition.opacity>
-            <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Per-Task Model Routing</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Assign a specific provider and model to each observation stage. Leave provider empty to use the default.</p>
-
-                <div class="space-y-4">
-                    <!-- Default Model -->
-                    <div class="pb-4 border-b border-gray-200 dark:border-gray-700">
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Fallback Model</label>
-                        @include('admin.ai.partials.model-select', [
-                            'name' => 'ai_model_default',
-                            'id' => 'default-model-select',
-                            'current' => $config['models']['default'] ?? '',
-                            'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'ollama'],
-                        ])
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Used when a stage has no specific model configured.</p>
-                    </div>
-
-                    @php
-                        $stages = [
-                            'pre_observation' => ['label' => 'Pre-Observation', 'desc' => 'Lesson plan analysis, preparation guidance'],
-                            'observation_guidance' => ['label' => 'Observation Guidance', 'desc' => 'Real-time coaching prompts during observation'],
-                            'feedback' => ['label' => 'Feedback Generation', 'desc' => 'COT rating analysis, feedback drafts'],
-                            'post_conference' => ['label' => 'Post-Conference', 'desc' => 'Conference form suggestions, follow-up plans'],
-                            'final_report' => ['label' => 'Final Report', 'desc' => 'Comprehensive summary, recommendations'],
-                        ];
-                    @endphp
-
-                    @foreach($stages as $stageKey => $stageInfo)
-                    @php
-                        $stageModel = $config['models'][$stageKey] ?? [];
-                        if (!is_array($stageModel)) {
-                            $stageModel = ['provider' => '', 'model' => $stageModel];
-                        }
-                    @endphp
-                    <div class="flex items-start gap-4 p-4 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stageInfo['label'] }}</span>
-                                <span class="text-xs text-gray-400 dark:text-gray-500">&mdash; {{ $stageInfo['desc'] }}</span>
-                            </div>
-                            <div class="flex items-center gap-3 mt-2">
-                                <select name="ai_model_{{ $stageKey }}_provider" class="w-40 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
-                                    <option value="">Default ({{ ucfirst($config['provider']) }})</option>
-                                    <option value="gemini" {{ ($stageModel['provider'] ?? '') === 'gemini' ? 'selected' : '' }}>Gemini</option>
-                                    <option value="openai" {{ ($stageModel['provider'] ?? '') === 'openai' ? 'selected' : '' }}>OpenAI</option>
-                                    <option value="claude" {{ ($stageModel['provider'] ?? '') === 'claude' ? 'selected' : '' }}>Claude</option>
-                                    <option value="openrouter" {{ ($stageModel['provider'] ?? '') === 'openrouter' ? 'selected' : '' }}>OpenRouter</option>
-                                    <option value="ollama" {{ ($stageModel['provider'] ?? '') === 'ollama' ? 'selected' : '' }}>Ollama</option>
-                                </select>
-                                <div class="flex-1">
-                                    @include('admin.ai.partials.model-select', [
-                                        'name' => 'ai_model_' . $stageKey,
-                                        'id' => 'stage-' . $stageKey . '-model-select',
-                                        'current' => $stageModel['model'] ?? '',
-                                        'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama'],
-                                    ])
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
             </div>
         </div>
 
@@ -346,7 +320,11 @@
         </div>
 
         <!-- Save Button -->
-        <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
+                <input type="checkbox" name="ai_skip_verify" value="1" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:bg-gray-800 focus:ring-indigo-500">
+                Save even if the connectivity check fails
+            </label>
             <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
                 Save Configuration
             </button>
@@ -385,6 +363,23 @@ function aiModelSelectChanged(selectEl) {
     } else {
         customInput.value = '';
     }
+}
+
+function copyApiKey(provider, key) {
+    if (!key) {
+        alert('No API key found for ' + provider);
+        return;
+    }
+    navigator.clipboard.writeText(key).then(function() {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 right-4 px-4 py-2 bg-gray-800 text-white text-sm rounded-lg shadow-lg z-50 transition-opacity';
+        toast.textContent = 'API key copied to clipboard';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 2000);
+    });
 }
 </script>
 @endsection

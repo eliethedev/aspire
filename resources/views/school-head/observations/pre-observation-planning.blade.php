@@ -223,12 +223,17 @@
 
                 <div id="ai-insights-container">
                     @if($planning && $planning->ai_insights)
-                        <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
+                        <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
                                 <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Analysis Complete</span>
                             </div>
-                            <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap" id="ai-insights-text">{{ $planning->ai_insights }}</div>
+                            @php $insightSections = $planning->insightsSections(); @endphp
+                            @if(isset($insightSections['raw']))
+                                <div id="ai-insights-text" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ $insightSections['raw'] }}</div>
+                            @else
+                                {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
+                            @endif
                         </div>
                     @else
                         <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 text-center" id="ai-insights-empty">
@@ -491,6 +496,8 @@
     </div>
 </div>
 @push('scripts')
+@include('partials.ai-notice')
+@include('partials.ai-loading-state')
 <script>
 function requestLessonPlan(btn) {
     btn.disabled = true;
@@ -512,17 +519,95 @@ function requestLessonPlan(btn) {
     });
 }
 
-document.getElementById('generate-ai-insights-btn')?.addEventListener('click', function() {
-    const btn = this;
-    const spinner = document.getElementById('ai-spinner');
-    const btnText = document.getElementById('ai-btn-text');
-    const input = document.getElementById('ai_insights_input');
-    const container = document.getElementById('ai-insights-container');
-    const empty = document.getElementById('ai-insights-empty');
+var aiBtn = document.getElementById('generate-ai-insights-btn');
+var aiSpinner = document.getElementById('ai-spinner');
+var aiBtnText = document.getElementById('ai-btn-text');
+var aiNoticeSlot = document.getElementById('ai-notice-slot');
+var insightsContainer = document.getElementById('ai-insights-container');
+var aiGenerating = false;
 
-    btn.disabled = true;
-    spinner.classList.remove('hidden');
-    btnText.textContent = 'Generating...';
+function removeEmptyState() {
+    var empty = document.getElementById('ai-insights-empty');
+    if (empty) empty.remove();
+}
+
+function renderInsightsCard(text) {
+    var container = insightsContainer;
+    var existing = document.getElementById('ai-insights-card');
+    if (!existing) {
+        existing = document.createElement('div');
+        existing.id = 'ai-insights-card';
+        container.appendChild(existing);
+    }
+    existing.className = 'bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-xl p-5 border border-purple-100 dark:border-purple-900/40';
+    existing.innerHTML = '<div class="flex items-center gap-2 mb-3"><div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div><span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Analysis Complete</span></div><div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed" id="ai-insights-text"></div>';
+    existing.querySelector('#ai-insights-text').textContent = text;
+    document.getElementById('clear-ai-insights-btn')?.classList.remove('hidden');
+}
+
+function restoreBtn() {
+    if (!aiBtn) return;
+    aiBtn.disabled = false;
+    if (aiSpinner) aiSpinner.classList.add('hidden');
+    if (aiBtnText) aiBtnText.textContent = 'Generate AI Insights';
+}
+
+function startGeneratingUi() {
+    removeEmptyState();
+    var existing = document.getElementById('ai-insights-card');
+    if (existing) existing.remove();
+    AiLoading.start(insightsContainer, 'Generating AI insights', 'Reviewing the lesson plan and previous observations\u2026');
+}
+
+function finishGenerated(insights) {
+    AiLoading.stop();
+    document.getElementById('ai_insights_input').value = insights;
+    renderInsightsCard(insights);
+    restoreBtn();
+    aiGenerating = false;
+}
+
+function cancelGeneration() {
+    AiLoading.stop();
+    restoreBtn();
+    aiGenerating = false;
+}
+
+function pollAiInsightsStatus(attempt) {
+    attempt = attempt || 1;
+    var maxAttempts = 40;
+    var pollInterval = 3000;
+
+    if (attempt > maxAttempts) {
+        cancelGeneration();
+        alert('AI insights are taking longer than expected. Please try again later.');
+        return;
+    }
+
+    setTimeout(function() {
+        fetch('{{ route("school-head.observations.ai-insights-status", $observation) }}')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.status === 'completed' && data.ai_insights) {
+                    finishGenerated(data.ai_insights);
+                } else {
+                    pollAiInsightsStatus(attempt + 1);
+                }
+            })
+            .catch(function() {
+                pollAiInsightsStatus(attempt + 1);
+            });
+    }, pollInterval);
+}
+
+document.getElementById('generate-ai-insights-btn')?.addEventListener('click', function() {
+    if (aiGenerating) return;
+    aiGenerating = true;
+
+    if (aiBtn) aiBtn.disabled = true;
+    if (aiSpinner) aiSpinner.classList.remove('hidden');
+    if (aiBtnText) aiBtnText.textContent = 'Generating\u2026';
+    startGeneratingUi();
 
     fetch('{{ route("school-head.observations.generate-ai-insights", $observation) }}', {
         method: 'POST',
@@ -531,32 +616,25 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
             'Content-Type': 'application/json',
         },
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ai_insights) {
-            input.value = data.ai_insights;
-            if (empty) empty.remove();
-            let existingText = document.getElementById('ai-insights-text');
-            if (existingText) {
-                existingText.textContent = data.ai_insights;
-            } else {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700';
-                div.innerHTML = '<p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" id="ai-insights-text">' + data.ai_insights.replace(/\n/g, '<br>') + '</p>';
-                container.appendChild(div);
-            }
-        } else if (data.error) {
-            alert(data.error);
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        return { ok: res.ok, data };
+    })
+    .then(({ ok, data }) => {
+        if (ok && data.ai_insights) {
+            finishGenerated(data.ai_insights);
+            return;
         }
+        if (ok && data.status === 'processing') {
+            pollAiInsightsStatus(1);
+            return;
+        }
+        cancelGeneration();
+        alert((data && data.error) || 'AI isn\'t available right now. Please try again.');
     })
-    .catch(err => {
+    .catch(() => {
+        cancelGeneration();
         alert('Failed to generate AI insights. Please try again.');
-        console.error(err);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        spinner.classList.add('hidden');
-        btnText.textContent = 'Generate AI Insights';
     });
 });
 
@@ -574,17 +652,16 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
     .then(data => {
         if (data.success) {
             document.getElementById('ai_insights_input').value = '';
-            const textEl = document.getElementById('ai-insights-text');
-            if (textEl) {
-                const container = textEl.closest('.bg-gray-50 dark:bg-gray-800');
-                if (container) container.remove();
-            }
+            const card = document.getElementById('ai-insights-card');
+            if (card) card.remove();
+            const empty = document.getElementById('ai-insights-empty');
+            if (empty) empty.remove();
             const container = document.getElementById('ai-insights-container');
-            if (!document.getElementById('ai-insights-empty')) {
+            if (container) {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-600 text-center';
                 div.id = 'ai-insights-empty';
-                div.innerHTML = '<svg class="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><p class="text-sm text-gray-500 dark:text-gray-400">No AI insights available yet.</p><p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations.</p>';
+                div.className = 'bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 text-center';
+                div.innerHTML = '<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div><p class="text-sm font-medium text-gray-600 dark:text-gray-400">No AI insights available yet</p><p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">Click "Generate AI Insights" to analyze the lesson plan and generate recommendations.</p>';
                 container.appendChild(div);
             }
             document.getElementById('clear-ai-insights-btn').classList.add('hidden');

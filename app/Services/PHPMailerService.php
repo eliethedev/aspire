@@ -192,7 +192,7 @@ class PHPMailerService
                 '--subject='.((string) $subject),
                 '--body-path='.$bodyPath,
             ]), base_path(), $env);
-            $process->setOptions(['create_new_console' => true]);
+            $process->setOptions(['create_no_window' => true]);
             $process->start();
 
             return;

@@ -115,11 +115,27 @@ PROMPT;
 
             $result = $this->generateJson($prompt, [
                 'temperature' => 0.3,
-                'max_output_tokens' => 1024,
+                'max_output_tokens' => 4096,
             ]);
 
             if ($result) {
-                return $result;
+                // Normalize model output (arrays or strings) to consistent,
+                // textarea-friendly bullet strings.
+                $asText = static function ($value) {
+                    if (is_array($value)) {
+                        return implode("\n", array_map(
+                            fn ($item) => '- '.trim((string) $item),
+                            $value
+                        ));
+                    }
+
+                    return is_string($value) ? trim($value) : (string) $value;
+                };
+
+                return [
+                    'discussion_notes' => $asText($result['discussion_notes'] ?? ''),
+                    'finalized_focus' => $asText($result['finalized_focus'] ?? ''),
+                ];
             }
         }
 
@@ -201,6 +217,24 @@ PROMPT;
         $strategies = $planning?->teaching_strategies ?? 'Not specified';
         $materials = $planning?->materials ?? 'Not specified';
         $assessment = $planning?->assessment_methods ?? 'Not specified';
+
+        $goals = [];
+        if ($objective && $objective !== 'Not specified') {
+            $goals[] = "The lesson centers on the objective: \"{$objective}\".";
+        }
+        if ($strategies && $strategies !== 'Not specified') {
+            $goals[] = "Instructional focus employs {$strategies}.";
+        }
+        if ($materials && $materials !== 'Not specified') {
+            $goals[] = "Learning resources include {$materials}.";
+        }
+        if ($assessment && $assessment !== 'Not specified') {
+            $goals[] = "Student understanding will be measured through {$assessment}.";
+        }
+        if ($goals !== []) {
+            $insights[] = "**Lesson Plan Goals & Focus:** " . implode(' ', $goals) . " The supervisor should be ready to observe how these elements come together during the lesson.";
+            $insights[] = "";
+        }
 
         if ($objective && $objective !== 'Not specified') {
             $insights[] = "**Key Focus Areas:** The lesson objective \"{$objective}\" should be the primary focus during observation. Pay attention to how the teacher communicates this objective to students and whether lesson activities align with achieving it.";

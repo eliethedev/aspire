@@ -212,6 +212,23 @@ class CareerProgressionService
         ]);
     }
 
+    /**
+     * Update an existing readiness assessment in place (keeps the same row,
+     * so the history entry reflects the edited values rather than appending
+     * another record).
+     */
+    public function updateAssessment(CareerProgressionAssessment $assessment, array $data): CareerProgressionAssessment
+    {
+        $assessment->update([
+            'status' => $data['status'],
+            'target_career_stage' => $data['target_career_stage'] ?? $assessment->target_career_stage,
+            'remarks' => $data['remarks'] ?? $assessment->remarks,
+            'assessed_at' => $data['assessed_at'] ?? $assessment->assessed_at,
+        ]);
+
+        return $assessment->refresh();
+    }
+
     public function completedObservations(Model $ratee)
     {
         return Observation::where('observee_id', $ratee->getKey())

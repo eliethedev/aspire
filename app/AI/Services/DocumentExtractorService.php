@@ -54,20 +54,6 @@ class DocumentExtractorService
 
     protected function extractPhpWordElementText($element): string
     {
-        if (method_exists($element, 'getText')) {
-            return $element->getText() . "\n";
-        }
-
-        if (method_exists($element, 'getElements')) {
-            $text = '';
-            foreach ($element->getElements() as $child) {
-                if (method_exists($child, 'getText')) {
-                    $text .= $child->getText() . "\n";
-                }
-            }
-            return $text;
-        }
-
         if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
             $text = '';
             foreach ($element->getElements() as $part) {
@@ -93,6 +79,22 @@ class DocumentExtractorService
             return $this->extractPhpWordTable($element);
         }
 
+        if (method_exists($element, 'getText') && is_string($element->getText())) {
+            return $element->getText() . "\n";
+        }
+
+        if (method_exists($element, 'getElements')) {
+            $text = '';
+            foreach ($element->getElements() as $child) {
+                if ($child instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                    $text .= $this->extractPhpWordElementText($child);
+                } elseif (method_exists($child, 'getText') && is_string($child->getText())) {
+                    $text .= $child->getText() . "\n";
+                }
+            }
+            return $text;
+        }
+
         return '';
     }
 
@@ -102,15 +104,22 @@ class DocumentExtractorService
         foreach ($table->getRows() as $row) {
             $cells = [];
             foreach ($row->getCells() as $cell) {
-                $cellText = '';
-                foreach ($cell->getElements() as $cellElement) {
-                    if (method_exists($cellElement, 'getText')) {
-                        $cellText .= $cellElement->getText() . ' ';
-                    }
-                }
-                $cells[] = trim($cellText);
+                $cells[] = trim($this->extractPhpWordCellElements($cell->getElements()));
             }
             $text .= implode(' | ', $cells) . "\n";
+        }
+        return $text;
+    }
+
+    protected function extractPhpWordCellElements($elements): string
+    {
+        $text = '';
+        foreach ($elements as $element) {
+            if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                $text .= $this->extractPhpWordCellElements($element->getElements());
+            } elseif (method_exists($element, 'getText') && is_string($element->getText())) {
+                $text .= $element->getText() . ' ';
+            }
         }
         return $text;
     }

@@ -10,8 +10,12 @@ class RequireSchool
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!app()->bound('current_school')) {
-            return response()->json(['message' => 'School required'], 400);
+        if (! app()->bound('current_school')) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'School required'], 400);
+            }
+
+            abort(400, 'School context is required.');
         }
 
         return $next($request);

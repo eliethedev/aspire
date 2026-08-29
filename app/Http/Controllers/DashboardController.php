@@ -98,6 +98,8 @@ class DashboardController extends Controller
                 'teacherCount' => 0,
                 'unreadNotifications' => 0,
                 'latestFeedbacks' => collect(),
+                'coObservationStats' => ['total' => 0, 'upcoming' => 0, 'completed' => 0],
+                'recentCoObservations' => collect(),
             ]);
         }
 
@@ -148,7 +150,7 @@ class DashboardController extends Controller
         $teacherCount = 0;
         if ($schoolHead->school_id) {
             $schoolTeachers = \App\Models\Teacher::where('school_id', $schoolHead->school_id)
-                ->with('user')
+                ->with('user', 'subjects')
                 ->get();
             $teacherCount = $schoolTeachers->count();
         }
@@ -161,10 +163,29 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
+        $coObservations = \App\Models\Observation::where('school_head_id', $user->id)
+            ->with(['observee.user', 'observer'])
+            ->get();
+
+        $coObservationStats = [
+            'total' => $coObservations->count(),
+            'upcoming' => $coObservations
+                ->whereIn('status', ['scheduled', 'in_progress'])
+                ->where('status', '!=', 'cancelled')
+                ->count(),
+            'completed' => $coObservations->where('status', 'completed')->count(),
+        ];
+
+        $recentCoObservations = $coObservations
+            ->sortByDesc('observation_date')
+            ->take(5)
+            ->values();
+
         return view('school-head.dashboard', compact(
             'stats', 'nextObservation', 'recentObservations', 'schoolTeachers',
             'cotScores', 'cotLabels', 'trend', 'avgScore', 'teacherCount',
-            'unreadNotifications', 'latestFeedbacks'
+            'unreadNotifications', 'latestFeedbacks',
+            'coObservationStats', 'recentCoObservations'
         ));
     }
 

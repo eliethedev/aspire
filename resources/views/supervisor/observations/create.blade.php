@@ -489,7 +489,14 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                             <div class="relative">
-                                <input type="text" name="subject" x-model="form.subject"
+                                <select name="subject" x-model="form.subject" x-show="selectedSubjList.length"
+                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="" disabled>Select subject</option>
+                                    <template x-for="s in selectedSubjList" :key="s">
+                                        <option :value="s" x-text="s"></option>
+                                    </template>
+                                </select>
+                                <input type="text" name="subject" x-model="form.subject" x-show="!selectedSubjList.length"
                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                                        placeholder="Auto-filled">
                                 <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
@@ -1112,6 +1119,11 @@
                 return (this.schoolHeadData || []).find(sh => String(sh.user_id) === String(this.form.school_head_id)) || null;
             },
 
+            get selectedSubjList() {
+                const s = this.selectedObservee && this.selectedObservee.subjects;
+                return s && s.length ? s : [];
+            },
+
             previewTemplate: null,
 
             openTemplatePreview(template) {
@@ -1138,6 +1150,7 @@
                 const q = this.searchQuery.toLowerCase();
                 return this.observeeList.filter(item =>
                     item.name?.toLowerCase().includes(q) ||
+                    (item.subjects || []).join(' ').toLowerCase().includes(q) ||
                     item.subject?.toLowerCase().includes(q) ||
                     item.grade_level?.toLowerCase().includes(q) ||
                     item.department?.toLowerCase().includes(q) ||
@@ -1194,7 +1207,10 @@
 
             autoFillDetails() {
                 if (this.selectedObservee) {
-                    if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
+                    const subjList = this.selectedObservee.subjects || [];
+                    if (subjList.length) {
+                        this.form.subject = subjList[0];
+                    } else if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
                         this.form.subject = this.selectedObservee.subject;
                     }
                     if (this.selectedObservee.grade_level && this.selectedObservee.grade_level !== 'Not set') {

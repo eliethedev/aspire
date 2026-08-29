@@ -4,11 +4,12 @@ namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Contracts\TracksTruncation;
 use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class ClaudeProvider implements AIServiceInterface, TracksTokenUsage
+class ClaudeProvider implements AIServiceInterface, TracksTokenUsage, TracksTruncation
 {
     protected string $apiKey;
 
@@ -17,6 +18,8 @@ class ClaudeProvider implements AIServiceInterface, TracksTokenUsage
     protected string $baseUrl = 'https://api.anthropic.com/v1';
 
     protected array $lastUsage = ['input' => 0, 'output' => 0];
+
+    protected ?string $lastFinishReason = null;
 
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
@@ -43,19 +46,26 @@ class ClaudeProvider implements AIServiceInterface, TracksTokenUsage
     {
         $this->model = $model;
     }
-
-    public function getLastUsage(): array
+public function getLastUsage(): array
     {
         return $this->lastUsage;
+    }
+
+    public function getLastFinishReason(): ?string
+    {
+        return $this->lastFinishReason;
     }
 
     public function generate(string $prompt, array $options = []): ?string
     {
         if (! $this->isAvailable()) {
+
             Log::warning('ClaudeProvider: API key not configured');
 
             return null;
         }
+
+        $this->lastFinishReason = null;
 
         $temperature = $options['temperature'] ?? config('ai.generation.temperature', 0.5);
         $maxTokens = $options['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024);
@@ -95,6 +105,8 @@ class ClaudeProvider implements AIServiceInterface, TracksTokenUsage
 
                 return null;
             }
+
+            $this->lastFinishReason = ($data['stop_reason'] ?? null) === 'max_tokens' ? 'length' : null;
 
             if (isset($data['usage'])) {
                 $this->lastUsage = [

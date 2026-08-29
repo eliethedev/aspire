@@ -46,6 +46,8 @@ class AdminAISettingsTest extends TestCase
             'ai_fallback_enabled' => '1',
             'ai_logging_enabled' => '1',
             'ai_python_bridge_enabled' => '0',
+            // bypass the live connectivity check in tests
+            'ai_skip_verify' => '1',
         ];
 
         $response = $this->actingAs($admin)->post(route('admin.ai.update'), $payload);
@@ -70,6 +72,7 @@ class AdminAISettingsTest extends TestCase
             'ai_gemini_enabled' => '1',
             'ai_gemini_api_key' => '',
             'ai_gemini_model' => 'gemini-3.6-flash',
+            'ai_skip_verify' => '1',
         ]);
 
         $response->assertRedirect();
@@ -84,8 +87,10 @@ class AdminAISettingsTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $before = file_get_contents(base_path('.env'));
+        preg_match('/^GEMINI_MODEL=(.*)$/m', $before, $m);
+        $existingModel = trim($m[1] ?? '');
 
-        $this->assertStringContainsString('GEMINI_MODEL=gemini-3.6-flash', $before);
+        $this->assertNotEquals('', $existingModel, 'GEMINI_MODEL must be set before the request.');
 
         $response = $this->actingAs($admin)->post(route('admin.ai.update'), [
             'ai_provider' => 'gemini',
@@ -93,13 +98,14 @@ class AdminAISettingsTest extends TestCase
             'ai_gemini_api_key' => '',
             'ai_gemini_model' => '__custom__',
             // no ai_gemini_model_custom submitted (left empty)
+            'ai_skip_verify' => '1',
         ]);
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
         $after = file_get_contents(base_path('.env'));
-        $this->assertStringContainsString('GEMINI_MODEL=gemini-3.6-flash', $after);
+        $this->assertStringContainsString('GEMINI_MODEL='.$existingModel, $after);
     }
 
     public function test_save_button_renders_inside_main_form(): void
@@ -138,9 +144,50 @@ class AdminAISettingsTest extends TestCase
         $this->assertStringContainsString('name="ai_gemini_model"', $html);
         $this->assertStringContainsString('Gemini 3.6 Flash — latest, fast &amp; reliable (recommended)', $html);
 
-        // Stage routing + default fallback use the grouped picker.
-        $this->assertStringContainsString('name="ai_model_feedback"', $html);
+        // Default model picker (covers every feature) uses the grouped picker.
+        $this->assertStringContainsString('name="ai_model_default"', $html);
         $this->assertStringContainsString('optgroup label="OpenAI"', $html);
         $this->assertStringContainsString('Custom model', $html);
+    }
+
+    public function test_emergency_toggle_disables_and_reenables_ai(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('admin.ai.emergency'), ['action' => 'disable']);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $env = file_get_contents(base_path('.env'));
+        $this->assertMatchesRegularExpression('/^AI_ENABLED=false$/m', $env);
+        $this->assertMatchesRegularExpression('/^AI_FALLBACK_ENABLED=true$/m', $env);
+
+        $response = $this->actingAs($admin)->post(route('admin.ai.emergency'), ['action' => 'enable']);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $env = file_get_contents(base_path('.env'));
+        $this->assertMatchesRegularExpression('/^AI_ENABLED=true$/m', $env);
+    }
+
+    public function test_restore_reverts_to_last_backup(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $envFile = base_path('.env');
+        $before = file_get_contents($envFile);
+
+        $dir = storage_path('app/ai/env-backups');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        copy($envFile, $dir.'/ai-test-restore-'.now()->format('YmdHis-u').'.env');
+
+        file_put_contents($envFile, preg_replace('/^AI_MODEL_DEFAULT=.*$/m', 'AI_MODEL_DEFAULT=broken-model-x', $before));
+
+        $response = $this->actingAs($admin)->post(route('admin.ai.restore'));
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertSame($before, file_get_contents($envFile));
     }
 }

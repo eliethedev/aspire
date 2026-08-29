@@ -60,16 +60,18 @@
                         <option value="{{ $type->value }}" @selected($activeType?->value === $type->value)>{{ $type->label() }}</option>
                     @endforeach
                 </select>
-                <label class="sr-only" for="priority-filter">Priority</label>
-                <select name="priority" id="priority-filter" onchange="this.form.submit()"
-                        class="text-sm rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">All priorities</option>
-                    @foreach($priorities as $priority)
-                        <option value="{{ $priority->value }}" @selected($activePriority?->value === $priority->value)>{{ $priority->label() }}</option>
-                    @endforeach
-                </select>
+                @if(auth()->user()->role === 'admin')
+                    <label class="sr-only" for="priority-filter">Priority</label>
+                    <select name="priority" id="priority-filter" onchange="this.form.submit()"
+                            class="text-sm rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">All priorities</option>
+                        @foreach($priorities as $priority)
+                            <option value="{{ $priority->value }}" @selected($activePriority?->value === $priority->value)>{{ $priority->label() }}</option>
+                        @endforeach
+                    </select>
+                @endif
                 <noscript><button type="submit" class="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg">Apply</button></noscript>
-                @if($activeType || $activePriority || $status !== 'all')
+                @if($activeType || (auth()->user()->role === 'admin' && $activePriority) || $status !== 'all')
                     <a href="{{ route('notifications.index') }}" class="text-sm text-gray-500 hover:text-indigo-600 dark:text-gray-400">Clear</a>
                 @endif
             </form>
@@ -93,9 +95,11 @@
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ $notification->message }}</p>
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2">
                             <span class="text-xs text-gray-400 dark:text-gray-500">{{ $notification->created_at?->diffForHumans() }}</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium {{ $priorityClasses[$notification->priorityEnum()?->value] ?? $priorityClasses['low'] }}">
-                                {{ $notification->priorityEnum()?->label() ?? 'Medium priority' }}
-                            </span>
+                            @if(auth()->user()->role === 'admin')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium {{ $priorityClasses[$notification->priorityEnum()?->value] ?? $priorityClasses['low'] }}">
+                                    {{ $notification->priorityEnum()?->label() ?? 'Medium priority' }}
+                                </span>
+                            @endif
                             @if($notification->link)
                                 <a href="{{ $notification->link }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                     View details &rarr;
@@ -127,7 +131,7 @@
                     <x-notification-icon :type="$activeType?->value ?? 'system'" class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
                     <h3 class="mt-3 text-sm font-medium text-gray-900 dark:text-gray-100">No notifications</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        You don't have any notifications{{ $status !== 'all' || $activeType || $activePriority ? ' matching these filters' : '' }}.
+                        You don't have any notifications{{ $status !== 'all' || $activeType || (auth()->user()->role === 'admin' && $activePriority) ? ' matching these filters' : '' }}.
                     </p>
                 </div>
             @endforelse

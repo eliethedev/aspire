@@ -225,6 +225,93 @@ class NotificationService
         );
     }
 
+    /**
+     * Notify the ratee (teacher) and the school head(s) of the same school
+     * whenever a career readiness assessment is saved or edited.
+     */
+    public function notifyCareerAssessment(User $ratee, ?string $schoolId, string $statusLabel, string $link, bool $edited = false): void
+    {
+        $action = $edited ? 'updated' : 'recorded';
+        $title = $edited ? 'Career Readiness Assessment Updated' : 'Career Readiness Assessment';
+
+        $this->notify(
+            $ratee,
+            NotificationType::ACHIEVEMENT,
+            $title,
+            "Your career readiness has been assessed as \"{$statusLabel}\".",
+            null,
+            $link
+        );
+
+        if ($schoolId) {
+            $schoolHeads = \App\Models\User::query()
+                ->where('role', 'school_head')
+                ->where('school_id', $schoolId)
+                ->get();
+
+            foreach ($schoolHeads as $schoolHead) {
+                $this->notify(
+                    $schoolHead,
+                    NotificationType::ACHIEVEMENT,
+                    $title,
+                    "Career readiness for {$ratee->name} has been {$action} as \"{$statusLabel}\".",
+                    null,
+                    $link
+                );
+            }
+        }
+    }
+
+    /**
+     * Notify the teacher and the school head(s) that a teacher has achieved
+     * (or is allowed to progress to) a higher career stage.
+     */
+    public function notifyCareerAdvancement(User $teacher, ?string $schoolId, string $stageLabel, bool $allowed = false, ?string $link = null): void
+    {
+        if ($allowed) {
+            $title = 'Career advancement allowed';
+            $message = "Your supervisor has allowed you to progress to {$stageLabel}.";
+        } else {
+            $title = 'Career stage achieved';
+            $message = "Congratulations! You have achieved the {$stageLabel} career stage.";
+        }
+
+        $this->notify(
+            $teacher,
+            NotificationType::ACHIEVEMENT,
+            $title,
+            $message,
+            null,
+            $link
+        );
+
+        if ($schoolId) {
+            $schoolHeads = \App\Models\User::query()
+                ->where('role', 'school_head')
+                ->where('school_id', $schoolId)
+                ->get();
+
+            $schoolHeadTitle = $allowed ? 'Career progression allowed' : 'Career stage achieved';
+            $schoolHeadMessage = "{$teacher->name} has been {$this->advancementVerb($allowed)} to the {$stageLabel} career stage.";
+
+            foreach ($schoolHeads as $schoolHead) {
+                $this->notify(
+                    $schoolHead,
+                    NotificationType::ACHIEVEMENT,
+                    $schoolHeadTitle,
+                    $schoolHeadMessage,
+                    null,
+                    $link
+                );
+            }
+        }
+    }
+
+    private function advancementVerb(bool $allowed): string
+    {
+        return $allowed ? 'allowed to progress' : 'announced as having achieved';
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Read / unread state
@@ -283,7 +370,6 @@ class NotificationService
     public function getRecent(User $user, int $limit = 8): SupportCollection
     {
         return $this->baseQuery($user)
-            ->orderByDesc('is_read')
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get();

@@ -11,45 +11,42 @@
 
 **Existing Process:**
 - Manual classroom observation scheduling, documentation, and feedback generation
-- Paper-based COT (Classroom Observation Tool) forms aligned with PPST standards
-- Time-consuming report preparation and manual data compilation across multiple schools
+- Paper-based COT (Classroom Observation Tool) forms
+- Time-consuming report preparation and data compilation
 
 **Major Issue Encountered:**
 - Supervisors spend excessive time on administrative tasks rather than instructional coaching
-- Inconsistent documentation and feedback quality across observations
-- Difficulty tracking teacher performance trends and career progression over time
-- No centralized system for observation records across District IX schools
+- Inconsistent documentation and feedback across observations
+- Difficulty tracking teacher performance trends over time
 
 **Evidence the Problem Exists:**
-- High administrative burden on PSDS handling observations for multiple schools and teachers
-- Lack of standardized digital observation records
-- Delayed feedback delivery to teachers, impacting professional growth
+- High administrative burden on PSDS handling multiple schools
+- Lack of centralized observation records
+- Delayed feedback to teachers
 
 **Why a System-Based Solution is Needed:**
-- Automate repetitive documentation tasks (COT generation, report compilation)
+- Automate repetitive documentation tasks
 - Ensure consistent, data-driven evaluations aligned with PPST standards
-- Enable AI-powered insights and real-time analytics for better instructional decisions
+- Enable real-time analytics for better decision-making
 
 > **"What is happening now, and why is this project necessary?"**
-> Supervisors are overwhelmed with manual paperwork, reducing time for meaningful coaching. ASPIRE automates the entire observation workflow—from scheduling to feedback—allowing focus on teacher development.
+> Supervisors are overwhelmed with manual paperwork, reducing time for meaningful coaching. ASPIRE automates the observation workflow, allowing focus on teacher development.
 
 ---
 
 ## 2. General and Specific Objectives
 
 ### General Objective
-To develop an AI-powered classroom observation and evaluation system that streamlines instructional supervision for DepEd District IX, Division of Sagay City.
+To develop an AI-powered classroom observation and evaluation system that streamlines instructional supervision for DepEd District IX.
 
 ### Specific Objectives
-1. **Automate observation documentation** – Develop a system that automates the complete COT workflow (pre-observation planning, pre-conference, observation, post-conference), generates PPST-aligned COT documents, and organizes observation records digitally.
+1. **Automate observation documentation** – Develop a system that automates COT documentation, organizes observation records, and generates structured feedback aligned with PPST standards.
 
-2. **Implement AI-powered feedback generation** – Integrate multi-provider AI (Gemini, OpenAI, Claude, Ollama) with RAG to generate structured per-indicator feedback, observation insights, and comparison analyses grounded in PPST standards.
+2. **Implement analytics dashboards** – Create visual reporting tools showing observation results, indicator trends, and progress comparisons for data-driven supervision.
 
-3. **Implement analytics dashboards and reporting tools** – Create visual dashboards showing indicator trends, progress comparisons, career progression assessments, and professional development recommendations for data-driven supervision.
+3. **Evaluate system quality** – Assess the system using McCall's Software Quality Model (product operation, product revision, product transition).
 
-4. **Evaluate system quality** – Assess the system using McCall's Software Quality Model (product operation, product revision, product transition).
-
-5. **Determine usability** – Measure user satisfaction and effectiveness using the Computer System Usability Questionnaire (CSUQ).
+4. **Determine usability** – Measure user satisfaction and effectiveness using the Computer System Usability Questionnaire (CSUQ).
 
 ---
 
@@ -60,10 +57,10 @@ To develop an AI-powered classroom observation and evaluation system that stream
 | Category | Details |
 |----------|---------|
 | **Intended Users** | Admin, Public Schools District Supervisor (PSDS), School Heads, Teachers |
-| **Major Modules** | Observation Management (5-stage COT workflow), AI-Powered Insights (6 AI services), COT Document Generation (DOCX/PDF), PPST Standards Management, Coaching Agreements, Analytics Dashboard, Calendar Scheduling, Career Progression Assessments, Form Template Builder, Notifications, Audit Logging, Support Messages |
-| **Processes Covered** | Pre-Observation Planning → Pre-Conference → Observation (with autosave) → Post-Conference → Report Generation → Coaching Agreement |
-| **Platform** | Cloud-native Web Application (SPA) |
-| **Major Technologies** | Laravel 12 (PHP 8.2+), React 19 with Inertia.js, TypeScript, Tailwind CSS, Python AI Bridge, Multi-provider AI (Gemini, OpenAI, Claude, Ollama), MySQL, DomPDF, PHPWord |
+| **Major Modules** | Observation Management, AI Insights, COT Document Generation, PPST Standards, Coaching Agreements, Analytics Dashboard, Calendar Scheduling, Career Progression, Notifications, Audit Logging |
+| **Processes Covered** | Pre-Observation Planning → Pre-Conference → Observation → Post-Conference → Feedback → Coaching |
+| **Platform** | Web-based (Cloud-native) |
+| **Major Technologies** | Laravel (PHP), Python (AI Bridge), Gemini AI, PDF Generation, MySQL Database |
 
 ### Limitations
 - System is limited to District IX, Division of Sagay City; not for nationwide deployment in this phase.
@@ -72,7 +69,7 @@ To develop an AI-powered classroom observation and evaluation system that stream
 
 | Beneficiary | Expected Improvement |
 |-------------|---------------------|
-| **Supervisors (PSDS)** | Reduced administrative burden; more time for instructional coaching and meaningful teacher support |
+| **Supervisors (PSDS)** | Reduced administrative burden; more time for instructional coaching |
 
 ---
 
@@ -82,15 +79,15 @@ To develop an AI-powered classroom observation and evaluation system that stream
 
 | Existing Solution | Existing Feature | Identified Gap |
 |-------------------|------------------|----------------|
-| **Manual Paper-Based System** | Paper COT forms, manual filing | No digital records; no trend tracking; no data analytics; inconsistent documentation |
-| **Spreadsheet-based Tracking** | Excel-based observation logs | No AI assistance; no automated feedback; limited visualization; no PPST alignment |
-| **Generic School Management Systems** | Student information, grades | No observation workflow; no COT support; no coaching features; no career progression tracking |
+| **Manual Paper-Based System** | Paper COT forms, manual filing | No digital records; difficult to track trends; no data analytics |
+| **Spreadsheet-based Tracking** | Excel-based observation logs | No AI assistance; no automated feedback; limited visualization |
+| **Generic School Management Systems** | Student information, grades | No observation workflow; no PPST alignment; no coaching features |
 
 ### Proposed System
 
 | Proposed System | Addresses Identified Gaps |
 |-----------------|---------------------------|
-| **ASPIRE** | Integrated 5-stage observation workflow with multi-provider AI-powered insights (RAG-grounded in PPST), versioned COT indicator management, automated DOCX/PDF document generation, analytics dashboards with indicator trends and progress comparison, coaching agreements with digital signing, and career progression assessments |
+| **ASPIRE** | Integrated observation workflow with AI-powered insights, PPST-aligned COT generation, analytics dashboards, and coaching agreements – addressing all identified gaps |
 
 ---
 
@@ -101,49 +98,41 @@ To develop an AI-powered classroom observation and evaluation system that stream
 │                         INPUT                                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │ • User credentials (Admin, Supervisor, School Head, Teacher)       │
-│ • Observation data (schedule, lesson plans, COT ratings, comments)│
-│ • PPST Standards and versioned COT indicators                      │
-│ • Form template configurations                                     │
-│ • Document uploads (lesson plans, evidence files)                  │
-│ • AI provider credentials (API keys, model configs)                │
+│ • Observation data (schedule, lesson plans, ratings, comments)     │
+│ • PPST Standards and COT indicators                                │
+│ • Form templates and evaluation criteria                           │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        PROCESS                                      │
 ├─────────────────────────────────────────────────────────────────────┤
-│ • 5-stage observation workflow (planning → pre-conference →        │
-│   observation → post-conference → completion)                      │
-│ • AI-powered analysis via RAG (6 services: PreObservation,         │
-│   ObservationGuidance, AIFeedback, PostConference, FinalReport,   │
-│   DocumentExtractor) with multi-provider fallback                 │
-│ • COT document generation (DOCX via PHPWord, PDF via DomPDF)      │
-│ • Indicator trend computation and progress comparison              │
-│ • Career progression assessment and prediction generation          │
-│ • Notification delivery and audit logging                          │
+│ • Observation workflow management (4-stage process)                 │
+│ • AI-powered analysis (insights, suggestions, comparisons)          │
+│ • COT document generation and PDF export                           │
+│ • Analytics computation (trends, progress, PD recommendations)     │
+│ • Notification and audit logging                                    │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        OUTPUT                                       │
 ├─────────────────────────────────────────────────────────────────────┤
-│ • Digital COT documents with PPST-aligned ratings (DOCX/PDF)      │
-│ • AI-generated per-indicator feedback with confidence scoring      │
-│ • Observation insights, suggestions, and comparison analyses       │
-│ • Analytics dashboards (indicator trends, progress, PD recs)       │
-│ • Coaching agreements with digital signatures                      │
-│ • Career progression assessments and performance predictions       │
-│ • PDF exportable observation reports                               │
+│ • Digital observation records and COT documents                    │
+│ • AI-generated feedback and suggestions                            │
+│ • Analytics dashboards and reports (PDF export)                    │
+│ • Coaching agreements and career progression assessments           │
+│ • Notification alerts and audit trails                             │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        OUTCOME                                      │
 ├─────────────────────────────────────────────────────────────────────┤
-│ • Streamlined supervision process across District IX schools       │
-│ • Data-driven instructional decisions grounded in PPST standards   │
-│ • Improved teacher performance monitoring and career support       │
-│ • Enhanced supervisor productivity and coaching effectiveness      │
+│ • Streamlined supervision process                                  │
+│ • Data-driven instructional decisions                              │
+│ • Improved teacher performance monitoring                          │
+│ • Enhanced supervisor productivity                                 │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -152,27 +141,23 @@ To develop an AI-powered classroom observation and evaluation system that stream
 ## 6. Methodology
 
 ### Requirements/Data Gathering
-- **Interview** – PSDS Sir Rubin, School Heads, and Teachers for requirements gathering
-- **Document Review** – DepEd COT forms, PPST standards, observation guidelines
-- **Survey** – User needs assessment and current pain points evaluation
+- **Interview** – PSDS Sir Rubin, School Heads, and Teachers for requirements
+- **Document Review** – DepEd observation forms, PPST standards, COT guidelines
+- **Survey** – User needs and current pain points assessment
 
 ### Development Methodology
-- **Rapid Application Development (RAD)** – Chosen for rapid prototyping, intensive user involvement, and fast delivery suitable for a cloud-native, AI-powered platform requiring quick iterations
+- **Rapid Application Development (RAD)** – Chosen for rapid prototyping, intensive user involvement, and fast delivery suitable for cloud-native AI platforms
 
 ### System Development Process
 
 | Component | Technology |
 |-----------|------------|
-| **Backend Framework** | Laravel 12 (PHP 8.2+) |
-| **Frontend** | React 19 with Inertia.js, TypeScript, Tailwind CSS, Framer Motion |
-| **AI Integration** | Python AI Bridge + Multi-provider (Gemini, OpenAI Claude, Ollama) with RAG |
-| **Database** | MySQL (InnoDB) with 76 migrations |
-| **PDF Generation** | DomPDF (reports), PHPWord (COT documents) |
-| **Authentication** | Laravel Breeze with role-based access (Spatie Permissions) |
-| **Document Processing** | PHPWord, PHPSpreadsheet, PHPPresentation, PDFParser |
-| **Audit Logging** | Spatie Activity Log |
-| **Email** | PHPMailer (custom integration) |
-| **Build Tools** | Vite 8, Node.js |
+| **Backend Framework** | Laravel 11 (PHP) |
+| **Frontend** | Blade Templates, Tailwind CSS, Alpine.js |
+| **AI Integration** | Python Bridge + Gemini AI API |
+| **Database** | MySQL |
+| **PDF Generation** | DOMPDF / TCPDF |
+| **Authentication** | Laravel Breeze with role-based access |
 | **Version Control** | Git |
 | **Deployment** | Cloud-hosted (XAMPP for development) |
 
@@ -182,8 +167,9 @@ To develop an AI-powered classroom observation and evaluation system that stream
 
 | Method | Tool/Standard | Purpose |
 |--------|---------------|---------|
-| **Software Quality Evaluation** | McCall's Software Quality Model | Assess product operation, product revision, and product transition criteria |
-| **Usability Assessment** | Computer System Usability Questionnaire (CSUQ) | Measure user satisfaction and system effectiveness across all user roles |
+| **Software Quality Evaluation** | McCall's Software Quality Model | Assess product operation, product revision, and product transition |
+| **Usability Assessment** | Computer System Usability Questionnaire (CSUQ) | Measure user satisfaction and system effectiveness |
+| **User Acceptance** | System Usability Scale (SUS) | Validate user acceptance across roles |
 
 ---
 
@@ -191,53 +177,42 @@ To develop an AI-powered classroom observation and evaluation system that stream
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                      PRESENTATION LAYER                              │
+│                           PRESENTATION LAYER                        │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
 │  │  Admin   │  │Supervisor│  │School    │  │ Teacher  │           │
-│  │Dashboard │  │Dashboard │  │Head Dash │  │Dashboard │           │
-│  │(React +  │  │(React +  │  │(React +  │  │(React +  │           │
-│  │Inertia)  │  │Inertia)  │  │Inertia)  │  │Inertia)  │           │
+│  │Dashboard │  │Dashboard │  │HeadDash  │  │Dashboard │           │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
 └──────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                       APPLICATION LAYER                              │
+│                         APPLICATION LAYER                           │
 │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐       │
-│  │Observation │ │   COT      │ │  Reports   │ │  Coaching  │       │
-│  │ Workflow   │ │  Ratings   │ │  & Export  │ │ Agreements │       │
+│  │Observation │ │   AI       │ │  Reports   │ │  Coaching  │       │
+│  │ Management │ │  Services  │ │  & Export  │ │ Agreements │       │
 │  └────────────┘ └────────────┘ └────────────┘ └────────────┘       │
 │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐       │
 │  │COT Document│ │   PPST     │ │ Calendar   │ │Notifications│      │
 │  │ Generation │ │ Standards  │ │ Scheduling │ │  & Audit   │       │
 │  └────────────┘ └────────────┘ └────────────┘ └────────────┘       │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐                      │
-│  │ Form       │ │  Career    │ │  Predictions│                     │
-│  │ Templates  │ │Progression │ │  & Analytics│                     │
-│  └────────────┘ └────────────┘ └────────────┘                      │
 └──────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                          AI LAYER                                    │
+│                           AI LAYER                                  │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  Python AI Bridge ←→ Multi-Provider AI                      │   │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │   │
-│  │  │ Gemini  │ │ OpenAI  │ │ Claude  │ │ Ollama  │          │   │
-│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │   │
-│  │  RAG System: PPST Rubric + COT Indicator Repositories      │   │
-│  │  Services: PreObs │ ObsGuidance │ Feedback │ PostConf │    │   │
-│  │            FinalReport │ DocumentExtractor                  │   │
+│  │  Python AI Bridge ←→ Gemini AI API                          │   │
+│  │  • Feedback Generation  • Insights  • Suggestions          │   │
+│  │  • Comparison Analysis  • PD Recommendations               │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                         DATA LAYER                                   │
+│                           DATA LAYER                                │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
 │  │  MySQL   │  │  Users   │  │Observations│ │ AI Logs  │           │
 │  │Database  │  │  & Roles │  │& COT Docs │  │& Insights│           │
-│  │(76 tables│  │          │  │           │  │          │           │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -246,34 +221,23 @@ To develop an AI-powered classroom observation and evaluation system that stream
 
 ## 9. Expected Output
 
-### Dashboard Previews
-
-**Admin Dashboard:**
-- User management, school management, COT indicator versions, PPST standards, form templates, AI settings, audit logs, announcements, support messages
-
-**Supervisor Dashboard:**
-- Observation calendar, teacher/school head list, recent observations, quick actions (create observation, generate reports), AI insights overview
-
-**School Head Dashboard:**
-- My observations (as observee), teacher observations (as observer), lesson plans, reports, coaching agreements
-
-**Teacher Dashboard:**
-- My observations, uploaded lesson plans, feedback received, coaching agreements, confirm/reject observation schedules
+### Proposed Dashboard Features
+- **Admin Dashboard**: User management, school management, PPST standards, audit logs
+- **Supervisor Dashboard**: Observation calendar, teacher list, recent observations, AI insights
+- **School Head Dashboard**: Teacher observations, reports, lesson plans
+- **Teacher Dashboard**: My observations, feedback, coaching agreements
 
 ### Sample Expected Outputs
-- Digital COT documents (DOCX/PDF) with PPST-aligned ratings and career-stage-specific instruments
-- AI-generated per-indicator feedback with confidence scoring (high ≥ 0.85, medium ≥ 0.60, low < 0.60)
-- Observation insights, suggestions, and comparison analyses grounded in PPST via RAG
-- Analytics dashboards with indicator trends, progress comparison, and PD recommendations
-- Coaching agreements with digital signatures
-- Career progression assessments and performance predictions
-- PDF exportable observation reports with executive summaries
+- Digital COT documents with PPST-aligned ratings
+- AI-generated observation insights and suggestions
+- Analytics dashboards with indicator trends
+- PDF exportable reports and coaching agreements
 
 ---
 
 ## 10. Closing Statement
 
-The **ASPIRE System** addresses the critical need for modernizing instructional supervision in DepEd District IX, Division of Sagay City. By leveraging multi-provider AI technology with RAG-grounded PPST standards and automating the complete 5-stage COT observation workflow, ASPIRE empowers supervisors to shift from administrative tasks to meaningful instructional coaching—ultimately improving teacher performance and student outcomes.
+The **ASPIRE System** addresses the critical need for modernizing instructional supervision in DepEd District IX. By leveraging AI technology and automating the observation workflow, ASPIRE empowers supervisors to shift from administrative tasks to meaningful instructional coaching, ultimately improving teacher performance and student outcomes.
 
 ---
 

@@ -15,7 +15,7 @@ class TeacherController extends Controller
         $user = Auth::user();
 
         $teachers = Teacher::query()
-            ->with(['user', 'school'])
+            ->with(['user', 'school', 'subjects'])
             ->withCount('observations')
             ->whereHas('user', function ($query) use ($user) {
                 $query->where('school_id', $user->school_id);
@@ -41,7 +41,7 @@ class TeacherController extends Controller
             abort(403, 'This teacher does not belong to your school.');
         }
 
-        $teacher->load(['user', 'school']);
+        $teacher->load(['user', 'school', 'subjects']);
 
         $observations = Observation::with(['observer'])
             ->where('observee_id', $teacher->id)

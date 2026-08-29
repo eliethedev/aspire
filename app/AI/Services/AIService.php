@@ -147,16 +147,43 @@ abstract class AIService
         $this->checkRateLimit();
 
         $prompt = $this->enforceInputLimit($prompt);
-        $options = array_merge($this->getOptions(), $overrideOptions);
 
-        $this->log('sending', $prompt, ['options' => $options]);
+        $this->log('sending', $prompt, ['options' => array_merge($this->getOptions(), $overrideOptions)]);
 
-        $result = $this->manager->run($this->stage, $prompt, $options, json: false);
+        $maxAttempts = 3;
 
-        $this->log('response', $result['text'], [
-            'provider' => $result['provider'],
-            'fallback_used' => $result['fallback_used'],
-        ]);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $options = array_merge($this->getOptions(), $overrideOptions);
+
+            // A length-truncated response (e.g. Gemini MAX_TOKENS) comes back
+            // partially written. Retry with a larger output budget so the
+            // response can complete, instead of storing a cut-off result.
+            if ($attempt > 1) {
+                $current = (int) ($options['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024));
+                $options['max_output_tokens'] = min($current * 2, 8192);
+            }
+
+            $result = $this->manager->run($this->stage, $prompt, $options, json: false);
+
+            $this->log('response', $result['text'], [
+                'provider' => $result['provider'],
+                'fallback_used' => $result['fallback_used'],
+            ]);
+
+            if ($result['text'] === null) {
+                return null;
+            }
+
+            if ($result['finish_reason'] === null) {
+                return $result['text'];
+            }
+
+            Log::warning('AI response truncated; retrying with a larger output budget', [
+                'stage' => $this->stage,
+                'attempt' => $attempt,
+                'finish_reason' => $result['finish_reason'],
+            ]);
+        }
 
         return $result['text'];
     }
@@ -170,18 +197,56 @@ abstract class AIService
         $this->checkRateLimit();
 
         $prompt = $this->enforceInputLimit($prompt);
-        $options = array_merge($this->getOptions(), $overrideOptions);
 
-        $this->log('sending', $prompt, ['options' => $options]);
+        $this->log('sending', $prompt, ['options' => array_merge($this->getOptions(), $overrideOptions)]);
 
-        $result = $this->manager->run($this->stage, $prompt, $options, json: true);
+        $maxAttempts = 3;
 
-        $this->log('response', $result['json'] ? json_encode($result['json']) : null, [
-            'provider' => $result['provider'],
-            'fallback_used' => $result['fallback_used'],
-        ]);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $options = array_merge($this->getOptions(), $overrideOptions);
 
-        return $result['json'];
+            // A length-truncated response (e.g. Gemini MAX_TOKENS) leaves the
+            // JSON payload incomplete — sometimes still partially decodable.
+            // Retry with a larger output budget so the response can complete.
+            if ($attempt > 1) {
+                $current = (int) ($options['max_output_tokens'] ?? config('ai.generation.max_output_tokens', 1024));
+                $options['max_output_tokens'] = min($current * 2, 8192);
+            }
+
+            $result = $this->manager->run($this->stage, $prompt, $options, json: true);
+
+            $this->log('response', $result['json'] ? json_encode($result['json']) : null, [
+                'provider' => $result['provider'],
+                'fallback_used' => $result['fallback_used'],
+            ]);
+
+            if ($result['json'] === null) {
+                if ($attempt < $maxAttempts) {
+                    Log::channel(config('ai.logging.channel', 'stack'))->warning('AI JSON response failed; retrying with a larger output budget', [
+                        'stage' => $this->stage,
+                        'attempt' => $attempt,
+                    ]);
+
+                    continue;
+                }
+
+                return null;
+            }
+
+            if ($result['finish_reason'] !== null && $attempt < $maxAttempts) {
+                Log::channel(config('ai.logging.channel', 'stack'))->warning('AI JSON response truncated; retrying with a larger output budget', [
+                    'stage' => $this->stage,
+                    'attempt' => $attempt,
+                    'finish_reason' => $result['finish_reason'],
+                ]);
+
+                continue;
+            }
+
+            return $result['json'];
+        }
+
+        return null;
     }
 
     protected function log(string $direction, ?string $content = null, array $metadata = []): void

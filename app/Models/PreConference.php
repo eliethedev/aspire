@@ -18,6 +18,12 @@ class PreConference extends Model
         'teacher_reflection',
         'lesson_plan_review',
         'instructional_materials',
+        'topic',
+        'learning_objectives',
+        'teaching_strategies',
+        'assessment_activity',
+        'expected_challenges',
+        'feedback_areas',
         'form_responses',
     ];
 

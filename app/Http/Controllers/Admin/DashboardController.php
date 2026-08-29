@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\AI\Providers\AIProviderManager;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\CotRating;
 use App\Models\Observation;
 use App\Models\School;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,16 +42,29 @@ class DashboardController extends Controller
             ->get();
 
         // System status
-        $systemStatus = [
-            'database' => $this->checkDatabaseStatus(),
-            'api_services' => 'Operational',
-            'email_service' => $this->checkEmailService(),
-            'file_storage' => $this->checkFileStorage(),
-            'ai_processing' => 'Offline',
-            'server_usage' => $this->getServerUsage(),
-        ];
+        $systemStatus = $this->runStatusChecks();
 
         return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'systemStatus'));
+    }
+
+    public function systemStatus(): JsonResponse
+    {
+        $checks = $this->runStatusChecks();
+
+        return response()->json($checks);
+    }
+
+    protected function runStatusChecks(): array
+    {
+        return [
+            'database' => $this->checkDatabaseStatus(),
+            'api_services' => $this->checkApiStatus(),
+            'email_service' => $this->checkEmailService(),
+            'file_storage' => $this->checkFileStorage(),
+            'ai_processing' => $this->checkAiStatus(),
+            'server_usage' => $this->getServerUsage(),
+            'checked_at' => now()->toIso8601String(),
+        ];
     }
 
     /**
@@ -86,6 +101,45 @@ class DashboardController extends Controller
             return 'Connected';
         } catch (\Exception $e) {
             return 'Disconnected';
+        }
+    }
+
+    /**
+     * Check API services status
+     */
+    private function checkApiStatus(): string
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(5)->get(url('/up'));
+            return $response->successful() ? 'Operational' : 'Degraded';
+        } catch (\Exception $e) {
+            return 'Unreachable';
+        }
+    }
+
+    /**
+     * Check AI processing status
+     */
+    private function checkAiStatus(): string
+    {
+        if (! config('ai.enabled', true)) {
+            return 'Disabled';
+        }
+
+        try {
+            $manager = app(AIProviderManager::class);
+            $chain = $manager->fallbackChain('pre_observation');
+
+            if ($chain === []) {
+                return 'No Provider';
+            }
+
+            $primary = $chain[0]['provider'] ?? 'unknown';
+            $model = $chain[0]['model'] ?? '';
+
+            return 'Online (' . $primary . ')';
+        } catch (\Exception $e) {
+            return 'Error';
         }
     }
 

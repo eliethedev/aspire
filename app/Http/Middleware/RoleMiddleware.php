@@ -12,8 +12,12 @@ class RoleMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+        if (! $user) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            return redirect()->route('login');
         }
 
         // Check global role first
@@ -24,7 +28,7 @@ class RoleMiddleware
         // Check tenant-specific role if tenant is available
         if (app()->bound('current_tenant')) {
             $tenant = app('current_tenant');
-            
+
             foreach ($roles as $role) {
                 if ($user->hasTenantRole($tenant, $role)) {
                     return $next($request);
@@ -32,6 +36,10 @@ class RoleMiddleware
             }
         }
 
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if ($request->expectsJson() || $request->header('X-Inertia')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        abort(403, 'Unauthorized.');
     }
 }

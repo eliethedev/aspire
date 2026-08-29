@@ -31,7 +31,9 @@
                 @if($observation->start_time_label)
                     @ {{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif
                 @endif
-                @if($observation->location) &middot; {{ $observation->location }} @endif
+                @if($observation->location)
+                    &middot; {{ $observation->location }}
+                @endif
             </p>
             @if($observation->subject)
                 <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- Grade {{ $observation->grade_level }} @endif</p>
@@ -41,6 +43,40 @@
            class="px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm">
             Back to List
         </a>
+    </div>
+
+    <!-- Details Filter -->
+    <div class="flex flex-wrap gap-2 mb-4">
+        <button wire:click="detailFilter = 'all'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            All Details
+        </button>
+        <button wire:click="detailFilter = 'ratings'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'ratings' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            Ratings Only
+        </button>
+        <button wire:click="detailFilter = 'result'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'result' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            Result Only
+        </button>
+        <button wire:click="detailFilter = 'pre_observation'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'pre_observation' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            Pre-Observation
+        </button>
+        <button wire:click="detailFilter = 'pre_conference'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'pre_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            Pre-Conference
+        </button>
+        <button wire:click="detailFilter = 'post_conference'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'post_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
+                >
+            Post-Conference
+        </button>
     </div>
 
     @php
@@ -58,10 +94,20 @@
         ];
         $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageKeys);
+        $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
+        $detailFilter = request('detail_filter') ?? 'all';
     @endphp
 
-    <!-- Progress Steps (read-only) -->
-    <div class="mb-8">
+    @push('scripts')
+    <script>
+        window.detailFilter = '{{ $detailFilter }}';
+    </script>
+    @endpush
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div class="lg:col-span-2 min-w-0">
+            <!-- Progress Steps (read-only) -->
+            <div class="mb-8">
         <div class="flex items-center justify-between">
             @foreach($stageKeys as $i => $key)
                 @php
@@ -239,7 +285,7 @@
     <!-- Stage Details -->
     <div class="space-y-6">
         <!-- Pre-Observation Planning -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_observation'">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -272,6 +318,66 @@
                             <p class="text-xs text-indigo-600 dark:text-indigo-400">Submit your lesson plan for supervisor review</p>
                         </div>
                     </div>
+
+                    <!-- AI Lesson Plan Guide -->
+                    <div x-data="{ guideOpen: false }" class="mb-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50 bg-white/60 dark:bg-gray-800/40 overflow-hidden">
+                        <button type="button" @click="guideOpen = !guideOpen" class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-xs font-semibold text-indigo-700 dark:text-indigo-300">What to include in your Lesson Plan</span>
+                            </div>
+                            <svg class="w-4 h-4 text-indigo-400 transition-transform duration-200" :class="{ 'rotate-180': guideOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="guideOpen" x-collapse x-cloak class="px-4 pb-4">
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">For the AI to generate useful insights, your lesson plan should clearly include these elements:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Learning Objective</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">What students should know or be able to do</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Teaching Strategies</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Methods you'll use (e.g., collaborative, inquiry-based)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Materials & Resources</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Visual aids, worksheets, tech tools, etc.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Assessment Methods</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">How you'll check for understanding</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">Lesson Procedure / Activities</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Step-by-step flow with time estimates</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/80 dark:bg-indigo-900/20">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                                    <div>
+                                        <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">PPST / COT Alignment</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Which indicators the lesson addresses</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-3 italic">Tip: The more specific your lesson plan, the better the AI insights will be.</p>
+                        </div>
+                    </div>
+
                     <form action="{{ route('teacher.observations.upload-lesson-plan', $observation) }}" method="POST" enctype="multipart/form-data"
                           x-data="{ submitting: false }"
                           x-on:submit="submitting = true">
@@ -324,11 +430,16 @@
                     @endif
                     @if($observation->preObservationPlanning->ai_insights)
                     <div class="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800">
-                        <div class="flex items-center gap-2 mb-2">
+                        <div class="flex items-center gap-2 mb-3">
                             <div class="w-2 h-2 rounded-full bg-purple-500"></div>
-                            <span class="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">AI Insights</span>
+                            <span class="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">AI Insights/Supervisor's Insights</span>
                         </div>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ $observation->preObservationPlanning->ai_insights }}</p>
+                        @php $insightSections = $observation->preObservationPlanning->insightsSections(); @endphp
+                        @if(isset($insightSections['raw']))
+                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ $insightSections['raw'] }}</p>
+                        @else
+                            {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
+                        @endif
                     </div>
                     @endif
                     @if($observation->preObservationPlanning->suggested_focus)
@@ -366,7 +477,7 @@
 
         <!-- Pre-Conference -->
         @if($observation->preConference)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_conference'">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
@@ -385,11 +496,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 @if($observation->preObservationPlanning?->ai_insights)
                 <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800">
-                    <div class="flex items-center gap-2 mb-2">
+                    <div class="flex items-center gap-2 mb-3">
                         <div class="w-2 h-2 rounded-full bg-purple-500"></div>
                         <span class="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">AI Pre-Observation Insights</span>
                     </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ is_array($observation->preObservationPlanning->ai_insights) ? (json_encode($observation->preObservationPlanning->ai_insights) ?: '') : $observation->preObservationPlanning->ai_insights }}</p>
+                    @php $insightSections = $observation->preObservationPlanning->insightsSections(); @endphp
+                    @if(isset($insightSections['raw']))
+                        <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ $insightSections['raw'] }}</p>
+                    @else
+                        {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
+                    @endif
                 </div>
                 @endif
                 @if($observation->preConference->conference_date)
@@ -398,10 +514,28 @@
                     <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->preConference->conference_date->format('M d, Y') }}</p>
                 </div>
                 @endif
-                @if($observation->preConference->lesson_plan_review)
+                @if($observation->preConference->topic)
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lesson Plan Review</span>
-                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->preConference->lesson_plan_review }}</p>
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Topic</span>
+                    <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->preConference->topic }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->learning_objectives)
+                <div class="md:col-span-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Learning Objectives</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->learning_objectives }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->teaching_strategies)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Teaching Strategies</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->teaching_strategies }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->assessment_activity)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assessment/Activity</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->assessment_activity }}</p>
                 </div>
                 @endif
                 @if($observation->preConference->discussion_notes)
@@ -422,6 +556,18 @@
                     <p class="text-sm text-gray-700 dark:text-gray-300">{{ $observation->preConference->finalized_focus }}</p>
                 </div>
                 @endif
+                @if($observation->preConference->expected_challenges)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expected Challenges</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->expected_challenges }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->feedback_areas)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Feedback Areas</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->feedback_areas }}</p>
+                </div>
+                @endif
                 @if($observation->preConference->teacher_reflection)
                 <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800">
                     <div class="flex items-center gap-2 mb-2">
@@ -437,7 +583,7 @@
 
         <!-- Observation (COT Ratings) -->
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'ratings'">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -501,7 +647,7 @@
 
         <!-- Post-Conference -->
         @if($observation->postConference)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'post_conference'">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
@@ -566,6 +712,115 @@
             </div>
         </div>
         @endif
+    </div>
+        </div>
+
+        {{-- Right rail: schedule details --}}
+        <aside class="lg:col-span-1 order-first lg:order-none lg:sticky lg:top-24 space-y-6 min-w-0" x-data="{ editing: false, saving: false }">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Schedule Details</h2>
+                </div>
+                <dl class="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Date</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right">
+                            {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
+                        </dd>
+                    </div>
+                    @if($observation->has_time_schedule)
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Time</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right">
+                            {{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif
+                        </dd>
+                    </div>
+                    @endif
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Type</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right capitalize">
+                            {{ str_replace('_', ' ', $observation->observation_type) }}
+                        </dd>
+                    </div>
+                    @if($observation->observation_mode)
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Mode</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right capitalize">
+                            {{ str_replace('_', ' ', $observation->observation_mode) }}
+                        </dd>
+                    </div>
+                    @endif
+                    @if($observation->subject)
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Subject</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right">
+                            {{ $observation->subject }}@if($observation->grade_level) &middot; Gr. {{ $observation->grade_level }}@endif
+                        </dd>
+                    </div>
+                    @endif
+                    <div class="px-5 py-3.5 flex items-start justify-between gap-3">
+                        <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Supervisor</dt>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right">
+                            {{ $observation->observer?->name ?? 'Unknown' }}
+                        </dd>
+                    </div>
+
+                    {{-- Room / Location --}}
+                    <div class="px-5 py-3.5">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Room / Location</dt>
+                            @if(!in_array($observation->status, ['completed', 'cancelled']))
+                                <button type="button" x-show="!editing" @click="editing = true" class="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    Edit
+                                </button>
+                            @endif
+                        </div>
+
+                        {{-- View mode --}}
+                        <div x-show="!editing">
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                {{ $observation->location ?? 'Not set yet' }}
+                            </p>
+                            @if(!$observation->location && $defaultRoom)
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                    Default room: <span class="font-medium">{{ $defaultRoom }}</span>
+                                </p>
+                            @endif
+                        </div>
+
+                        {{-- Edit mode --}}
+                        <template x-if="editing">
+                            <form method="POST" action="{{ route('teacher.observations.update-location', $observation) }}" x-on:submit="saving = true" class="mt-1">
+                                @csrf
+                                @method('PATCH')
+                                <div class="flex gap-2">
+                                    <input type="text" name="location" x-ref="locationInput" x-init="$nextTick(() => $refs.locationInput.focus())"
+                                           value="{{ $observation->location ?? $defaultRoom ?? '' }}"
+                                           placeholder="e.g. Room 201, Building A"
+                                           class="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 outline-none" required>
+                                </div>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <button type="submit" :disabled="saving"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50">
+                                        <span x-show="saving" class="animate-spin inline-block h-3 w-3 border-2 border-white/40 border-t-white rounded-full"></span>
+                                        <span x-show="!saving">Save</span>
+                                        <span x-show="saving">Saving...</span>
+                                    </button>
+                                    <button type="button" @click="editing = false"
+                                            class="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </template>
+                    </div>
+                </dl>
+            </div>
+        </aside>
     </div>
 </div>
 @endsection

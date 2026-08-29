@@ -13,19 +13,24 @@ class IdentifySchool
     {
         $school = $this->resolveSchool($request);
 
-        if (!$school) {
-            return response()->json(['message' => 'School not found'], 404);
+        if (! $school) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'School not found'], 404);
+            }
+
+            abort(404, 'School not found.');
         }
 
-        if (!$school->isActive()) {
-            return response()->json(['message' => 'School is inactive'], 403);
+        if (! $school->isActive()) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'School is inactive'], 403);
+            }
+
+            abort(403, 'School is inactive.');
         }
 
         // Bind school to container for use throughout the request
         app()->instance('current_school', $school);
-        
-        // Set school connection if needed for database per-school
-        // $this->setSchoolConnection($school);
 
         return $next($request);
     }

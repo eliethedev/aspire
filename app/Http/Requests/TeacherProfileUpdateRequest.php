@@ -33,6 +33,9 @@ class TeacherProfileUpdateRequest extends FormRequest
             'employment_status' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'max:255'],
+            'subjects' => ['nullable', 'array'],
+            'subjects.*' => ['integer', 'exists:subjects,id'],
+            'new_subjects' => ['nullable', 'string', 'max:255'],
             'grade_level' => ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
             'career_stage' => ['nullable', Rule::enum(TeacherCareerStage::class)],
@@ -43,6 +46,7 @@ class TeacherProfileUpdateRequest extends FormRequest
             'advisory_section' => ['nullable', 'string', 'max:255'],
             'teacher_load' => ['nullable', 'integer', 'min:0'],
             'certification_training' => ['nullable', 'string'],
+            'default_room' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

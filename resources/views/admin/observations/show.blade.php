@@ -187,7 +187,14 @@
                 @if($observation->preObservationPlanning->ai_insights)
                 <div>
                     <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">AI Insights:</span>
-                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ is_array($observation->preObservationPlanning->ai_insights) ? json_encode($observation->preObservationPlanning->ai_insights) : $observation->preObservationPlanning->ai_insights }}</p>
+                    <div class="mt-2">
+                        @php $insightSections = $observation->preObservationPlanning->insightsSections(); @endphp
+                        @if(isset($insightSections['raw']))
+                            <p class="text-gray-900 dark:text-gray-100 mt-1 text-sm whitespace-pre-wrap">{{ $insightSections['raw'] }}</p>
+                        @else
+                            {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
+                        @endif
+                    </div>
                 </div>
                 @endif
                 @if($observation->preObservationPlanning->suggested_focus)
@@ -210,10 +217,28 @@
                     <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->preConference->conference_date->format('M d, Y') }}</p>
                 </div>
                 @endif
-                @if($observation->preConference->lesson_plan_review)
+                @if($observation->preConference->topic)
                 <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Lesson Plan Review</span>
-                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->preConference->lesson_plan_review }}</p>
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Topic</span>
+                    <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->preConference->topic }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->learning_objectives)
+                <div class="md:col-span-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Learning Objectives</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->learning_objectives }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->teaching_strategies)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Teaching Strategies</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->teaching_strategies }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->assessment_activity)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Assessment/Activity</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->assessment_activity }}</p>
                 </div>
                 @endif
                 @if($observation->preConference->discussion_notes)
@@ -226,6 +251,18 @@
                 <div class="md:col-span-2 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
                     <span class="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Finalized Focus</span>
                     <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->preConference->finalized_focus }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->expected_challenges)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Expected Challenges</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->expected_challenges }}</p>
+                </div>
+                @endif
+                @if($observation->preConference->feedback_areas)
+                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Feedback Areas</span>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->feedback_areas }}</p>
                 </div>
                 @endif
                 @if($observation->preConference->teacher_reflection)

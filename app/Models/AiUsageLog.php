@@ -32,11 +32,11 @@ class AiUsageLog extends Model
 
     public function observation()
     {
-        $this->belongsTo(Observation::class);
+        return $this->belongsTo(Observation::class);
     }
 
     public function user()
     {
-        $this->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 }

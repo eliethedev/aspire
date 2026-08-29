@@ -21,6 +21,7 @@ class TeacherProfile extends Model
         'teacher_load',
         'certification_training',
         'department',
+        'default_room',
     ];
 
     protected $casts = [

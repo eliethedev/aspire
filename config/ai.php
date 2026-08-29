@@ -43,11 +43,11 @@ return [
             'label' => 'Google Gemini',
             'models' => [
                 ['id' => 'gemini-3.6-flash', 'name' => 'Gemini 3.6 Flash — latest, fast & reliable (recommended)'],
-                ['id' => 'gemini-3.7-flash', 'name' => 'Gemini 3.7 Flash — newest flash generation'],
                 ['id' => 'gemini-3.5-flash', 'name' => 'Gemini 3.5 Flash — proven & stable'],
+                ['id' => 'gemini-3.5-flash-lite', 'name' => 'Gemini 3.5 Flash-Lite — ultra-fast, low-cost'],
                 ['id' => 'gemini-flash-latest', 'name' => 'Gemini Flash (Latest) — auto-updates to newest flash'],
-                ['id' => 'gemini-2.5-flash', 'name' => 'Gemini 2.5 Flash — older stable generation'],
                 ['id' => 'gemini-3.1-pro-preview', 'name' => 'Gemini 3.1 Pro (Preview) — highest quality, slower'],
+                ['id' => 'gemini-2.5-flash', 'name' => 'Gemini 2.5 Flash — older stable generation'],
                 ['id' => 'gemini-2.5-pro', 'name' => 'Gemini 2.5 Pro — pro tier, stable'],
                 ['id' => 'gemini-pro-latest', 'name' => 'Gemini Pro (Latest) — auto-updates to newest pro'],
             ],
@@ -83,6 +83,10 @@ return [
                 ['id' => 'meta-llama/llama-3.1-8b-instruct:free', 'name' => 'Llama 3.1 8B — Meta free model'],
                 ['id' => 'qwen/qwen-2.5-72b-instruct:free', 'name' => 'Qwen 2.5 72B — strong free model'],
                 ['id' => 'google/gemma-2-9b-it:free', 'name' => 'Gemma 2 9B — Google free model'],
+                ['id' => 'minimax/minimax-m2.5', 'name' => 'MiniMax M2.5 — strong general model (paid, uses credits)'],
+                ['id' => 'minimax/minimax-m2.7', 'name' => 'MiniMax M2.7 — latest productivity model (paid, uses credits)'],
+                ['id' => 'minimax/minimax-m3', 'name' => 'MiniMax M3 — flagship, 1M context (paid, uses credits)'],
+                ['id' => 'minimax/minimax-m3:free', 'name' => 'MiniMax M3 (free) — shares the free-tier daily quota'],
             ],
         ],
         'ollama' => [
@@ -99,37 +103,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Per-Stage Model Routing
+    | Default Model
     |--------------------------------------------------------------------------
     |
-    | Configure which provider and model to use for each observation stage.
-    | Each stage can target a different provider for cost/quality optimization.
-    | If 'provider' is omitted, the default provider above is used.
+    | A single Default Provider (ai.provider) + Default Model is applied to
+    | every AI task across all goals, observation stages and features.
+    | There is no per-task or per-stage model routing.
     |
     */
 
     'models' => [
         'default' => env('AI_MODEL_DEFAULT', 'gemini-3.6-flash'),
-        'pre_observation' => [
-            'provider' => env('AI_MODEL_PRE_OBSERVATION_PROVIDER', ''),
-            'model' => env('AI_MODEL_PRE_OBSERVATION', 'gemini-3.6-flash'),
-        ],
-        'observation_guidance' => [
-            'provider' => env('AI_MODEL_OBSERVATION_GUIDANCE_PROVIDER', ''),
-            'model' => env('AI_MODEL_OBSERVATION_GUIDANCE', 'gemini-3.6-flash'),
-        ],
-        'feedback' => [
-            'provider' => env('AI_MODEL_FEEDBACK_PROVIDER', ''),
-            'model' => env('AI_MODEL_FEEDBACK', 'gemini-3.6-flash'),
-        ],
-        'post_conference' => [
-            'provider' => env('AI_MODEL_POST_CONFERENCE_PROVIDER', ''),
-            'model' => env('AI_MODEL_POST_CONFERENCE', 'gemini-3.6-flash'),
-        ],
-        'final_report' => [
-            'provider' => env('AI_MODEL_FINAL_REPORT_PROVIDER', ''),
-            'model' => env('AI_MODEL_FINAL_REPORT', 'gemini-3.6-flash'),
-        ],
     ],
 
     /*
@@ -214,7 +198,7 @@ return [
         'lesson_plan_suggestion' => [
             'purpose' => 'Identify lesson plan weaknesses/gaps and suggest practical improvements aligned to applicable PPST/COT indicators.',
             'max_input_tokens' => (int) env('AI_TASK_LP_SUGGESTION_MAX_INPUT', 12000),
-            'max_output_tokens' => 2048,
+            'max_output_tokens' => 4096,
             'temperature' => 0.4,
             'timeout' => 90,
             'rate_limit' => ['limit' => 10, 'decay' => 60],
@@ -222,7 +206,7 @@ return [
         'lesson_plan_summary' => [
             'purpose' => 'Summarize only the instructionally relevant content of a lesson plan.',
             'max_input_tokens' => (int) env('AI_TASK_LP_SUMMARY_MAX_INPUT', 12000),
-            'max_output_tokens' => 1200,
+            'max_output_tokens' => 4096,
             'temperature' => 0.3,
             'timeout' => 90,
             'rate_limit' => ['limit' => 15, 'decay' => 60],
@@ -230,7 +214,7 @@ return [
         'cot_indicator_analysis' => [
             'purpose' => 'Compare observation evidence against a selected COT indicator; explain evidence and gaps. Never assigns final ratings.',
             'max_input_tokens' => 8000,
-            'max_output_tokens' => 2048,
+            'max_output_tokens' => 4096,
             'temperature' => 0.3,
             'timeout' => 90,
             'rate_limit' => ['limit' => 12, 'decay' => 60],
@@ -266,7 +250,7 @@ return [
 
     'stages' => [
         'pre_observation' => [
-            'temperature' => 0.5,
+            'temperature' => 0.3,
             'max_output_tokens' => 2048,
         ],
         'observation_guidance' => [
@@ -398,8 +382,10 @@ return [
     'python_bridge' => [
         'enabled' => env('AI_PYTHON_BRIDGE_ENABLED', false),
         'script_path' => env('AI_PYTHON_BRIDGE_PATH', base_path('python/ai_bridge.py')),
-        'python_path' => env('AI_PYTHON_PATH', 'python3'),
+        'python_path' => env('AI_PYTHON_PATH', 'python'),
         'timeout' => env('AI_PYTHON_BRIDGE_TIMEOUT', 60),
+        'provider' => env('AI_PYTHON_BRIDGE_PROVIDER', ''),
+        'default_model' => env('AI_PYTHON_BRIDGE_DEFAULT_MODEL', 'gemini-3.6-flash'),
     ],
 
 ];

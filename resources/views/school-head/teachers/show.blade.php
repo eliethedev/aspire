@@ -19,8 +19,8 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $teacher->user->name }}</h1>
                 <p class="text-gray-500 dark:text-gray-400">{{ $teacher->user->email }}</p>
-                @if($teacher->department || $teacher->subject)
-                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ $teacher->department ?? '' }}{{ $teacher->department && $teacher->subject ? ' Â· ' : '' }}{{ $teacher->subject ?? '' }}</p>
+                @if($teacher->department || $teacher->subjectsLabel)
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ $teacher->department ?? '' }}{{ $teacher->department && $teacher->subjectsLabel ? ' · ' : '' }}{{ $teacher->subjectsLabel ?? '' }}</p>
                 @endif
             </div>
         </div>
@@ -42,8 +42,8 @@
                 <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->department ?? '--' }}</dd>
             </div>
             <div>
-                <dt class="text-xs text-gray-500 dark:text-gray-400">Subject</dt>
-                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->subject ?? '--' }}</dd>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">Subjects</dt>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->subjectsLabel ?? '--' }}</dd>
             </div>
             <div>
                 <dt class="text-xs text-gray-500 dark:text-gray-400">Grade Level</dt>

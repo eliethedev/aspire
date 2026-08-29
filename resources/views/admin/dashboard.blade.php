@@ -71,11 +71,95 @@
     <div class="space-y-3 max-h-72 overflow-auto pr-1">@forelse($recentAuditLogs as $log)<div class="flex gap-3"><div class="w-2 h-2 rounded-full mt-2 bg-blue-500 shrink-0"></div><div class="flex-1 min-w-0"><p class="text-sm truncate"><span class="font-semibold">{{ $log->user?->name ?? 'System' }}</span> {{ str_replace('_',' ',$log->action) }} <span class="text-gray-500">{{ str_replace('_',' ',$log->module ?? '') }}</span> <span class="text-gray-400">#{{ $log->record_id }}</span></p><p class="text-xs text-gray-400">{{ $log->created_at->diffForHumans() }}</p></div></div>@empty<p class="text-sm text-gray-400 text-center py-8 border-2 border-dashed rounded-xl">No recent activity</p>@endforelse</div>
    </div>
    <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
-    <h2 class="text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span><i class="fas fa-gear text-blue-600"></i> System Status</h2>
-    <div class="space-y-2">@php $ss=[['Database',$systemStatus['database']],['API',$systemStatus['api_services']],['Email',$systemStatus['email_service']],['Storage',$systemStatus['file_storage']],['AI',$systemStatus['ai_processing']]]; @endphp @foreach($ss as [$k,$v])<div class="flex justify-between p-3 rounded-xl bg-blue-50 border border-blue-100"><span class="text-sm text-blue-700"><i class="fas fa-circle text-[8px] mr-1"></i>{{ $k }}</span><span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white border text-blue-700">{{ $v }}</span></div>@endforeach</div>
-    <div class="flex justify-between text-xs text-gray-400 mt-3"><span>Mem {{ $systemStatus['server_usage']['memory_usage'] ?? '—' }}</span><span>Peak {{ $systemStatus['server_usage']['memory_peak'] ?? '—' }}</span></div>
+    <h2 class="text-xs font-bold tracking-widest uppercase mb-4 flex items-center gap-2"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span><i class="fas fa-gear text-blue-600"></i> System Status <span id="status-last-checked" class="text-[10px] font-normal text-gray-400 ml-auto"></span></h2>
+    <div id="system-status-list" class="space-y-2">
+      @php $ss=[['Database',$systemStatus['database']],['API',$systemStatus['api_services']],['Email',$systemStatus['email_service']],['Storage',$systemStatus['file_storage']],['AI',$systemStatus['ai_processing']]]; @endphp
+      @foreach($ss as [$k,$v])
+      <div class="flex justify-between p-3 rounded-xl bg-blue-50 border border-blue-100" data-status-key="{{ strtolower($k) }}">
+        <span class="text-sm text-blue-700"><i class="fas fa-circle text-[8px] mr-1"></i>{{ $k }}</span>
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white border text-blue-700">{{ $v }}</span>
+      </div>
+      @endforeach
+    </div>
+    <div class="flex justify-between text-xs text-gray-400 mt-3">
+      <span id="status-mem">Mem {{ $systemStatus['server_usage']['memory_usage'] ?? '—' }}</span>
+      <span id="status-peak">Peak {{ $systemStatus['server_usage']['memory_peak'] ?? '—' }}</span>
+    </div>
    </div>
   </div>
  </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+(function() {
+    const STATUS_URL = '{{ route("admin.dashboard.status") }}';
+    const INTERVAL = 30000;
+    const statusList = document.getElementById('system-status-list');
+    const lastChecked = document.getElementById('status-last-checked');
+    const memEl = document.getElementById('status-mem');
+    const peakEl = document.getElementById('status-peak');
+
+    const labelMap = {
+        database: 'Database',
+        api_services: 'API',
+        email_service: 'Email',
+        file_storage: 'Storage',
+        ai_processing: 'AI',
+    };
+
+    function getStatusColor(value) {
+        const v = value.toLowerCase();
+        if (v.includes('connected') || v.includes('operational') || v.includes('online')) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+        if (v.includes('disabled') || v.includes('not configured')) return 'text-amber-700 bg-amber-50 border-amber-200';
+        if (v.includes('error') || v.includes('disconnected') || v.includes('unreachable') || v.includes('degraded')) return 'text-red-700 bg-red-50 border-red-200';
+        return 'text-blue-700 bg-white border';
+    }
+
+    function getDotColor(value) {
+        const v = value.toLowerCase();
+        if (v.includes('connected') || v.includes('operational') || v.includes('online')) return 'text-emerald-500';
+        if (v.includes('disabled') || v.includes('not configured')) return 'text-amber-500';
+        return 'text-red-500';
+    }
+
+    function updateStatus(data) {
+        const keys = ['database', 'api_services', 'email_service', 'file_storage', 'ai_processing'];
+        keys.forEach(key => {
+            const row = statusList.querySelector(`[data-status-key="${key === 'api_services' ? 'api' : key === 'email_service' ? 'email' : key === 'file_storage' ? 'storage' : key === 'ai_processing' ? 'ai' : key}"]`);
+            if (!row) return;
+            const val = data[key] ?? 'Unknown';
+            const dot = row.querySelector('i.fa-circle');
+            const badge = row.querySelector('span:last-child');
+            if (dot) dot.className = `fas fa-circle text-[8px] mr-1 ${getDotColor(val)}`;
+            if (badge) {
+                badge.textContent = val;
+                badge.className = `text-xs font-semibold px-2.5 py-1 rounded-full bg-white border ${getStatusColor(val)}`;
+            }
+        });
+
+        if (data.server_usage) {
+            memEl.textContent = 'Mem ' + (data.server_usage.memory_usage || '—');
+            peakEl.textContent = 'Peak ' + (data.server_usage.memory_peak || '—');
+        }
+
+        if (data.checked_at) {
+            const d = new Date(data.checked_at);
+            lastChecked.textContent = 'Updated ' + d.toLocaleTimeString();
+        }
+    }
+
+    function fetchStatus() {
+        fetch(STATUS_URL, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(updateStatus)
+        .catch(() => {});
+    }
+
+    fetchStatus();
+    setInterval(fetchStatus, INTERVAL);
+})();
+</script>
+@endpush

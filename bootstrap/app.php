@@ -5,6 +5,10 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\AuthorizationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,17 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // When a stale CSRF token from a previous session is submitted,
-        // show a friendly page instead of a bare "419 Page Expired" error.
+        // CSRF token mismatch — show friendly session-expired page.
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Your session has expired. Please refresh the page and try again.',
                 ], 419);
             }
 
-            // Submitting the login form itself with a stale token: send back
-            // to login with a message so the user can simply try again.
             if ($request->isMethod('POST') && $request->route() && $request->route()->named('login')) {
                 return redirect()->back()->withErrors([
                     'email' => 'Your session has expired. Please try signing in again.',
@@ -46,5 +47,59 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->view('errors.419', [], 419);
+        });
+
+        // 404 — Model not found or route not matched.
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'The requested resource was not found.'], 404);
+            }
+
+            return response()->view('errors.404', [], 404);
+        });
+
+        $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'The requested resource was not found.'], 404);
+            }
+
+            return response()->view('errors.404', [], 404);
+        });
+
+        // 403 — Authorization denied.
+        $exceptions->render(function (AuthorizationException $e, Request $request) {
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'You are not authorized to perform this action.'], 403);
+            }
+
+            return response()->view('errors.403', [], 403);
+        });
+
+        // HTTP exceptions (403, 404, 405, 429, 503, etc.) — use the
+        // status-specific error page when one exists, otherwise fall back
+        // to the generic 500 page.
+        $exceptions->render(function (HttpException $e, Request $request) {
+            $status = $e->getStatusCode();
+            $view = view()->exists("errors.{$status}") ? "errors.{$status}" : 'errors.500';
+
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => $e->getMessage() ?: 'An error occurred.'], $status);
+            }
+
+            return response()->view($view, [], $status);
+        });
+
+        // Catch-all: any unhandled exception shows the friendly 500 page
+        // in production. Details are still logged by Laravel's log channel.
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            if (config('app.debug')) {
+                return null; // Let Laravel's Ignition/Whoops handle it in dev.
+            }
+
+            if ($request->expectsJson() || $request->header('X-Inertia')) {
+                return response()->json(['message' => 'Something went wrong. Please try again later.'], 500);
+            }
+
+            return response()->view('errors.500', [], 500);
         });
     })->create();

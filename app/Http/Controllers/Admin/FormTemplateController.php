@@ -313,6 +313,12 @@ class FormTemplateController extends Controller
                 'teacher_reflection' => 'Teacher Reflection',
                 'lesson_plan_review' => 'Lesson Plan Review',
                 'instructional_materials' => 'Instructional Materials',
+                'topic' => 'Topic',
+                'learning_objectives' => 'Learning Objectives',
+                'teaching_strategies' => 'Teaching Strategies',
+                'assessment_activity' => 'Assessment/Activity',
+                'expected_challenges' => 'Expected Challenges',
+                'feedback_areas' => 'Feedback Areas',
             ],
             'post_conference' => [
                 'ai_comparison' => 'AI Comparison',

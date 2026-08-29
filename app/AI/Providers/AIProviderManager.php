@@ -4,6 +4,7 @@ namespace App\AI\Providers;
 
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Contracts\TracksTruncation;
 use App\Models\AiUsageLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -33,18 +34,19 @@ class AIProviderManager
         $model = $model ?: '';
 
         return match ($provider) {
+            'gemini' => new GeminiProvider(model: $model ?: null),
             'openai' => new OpenAIProvider(model: $model ?: null),
             'claude' => new ClaudeProvider(model: $model ?: null),
             'deepseek' => new DeepSeekProvider(model: $model ?: null),
             'openrouter' => new OpenRouterProvider(model: $model ?: null),
             'ollama' => new OllamaProvider(model: $model ?: null),
-            default => new GeminiProvider,
+            'python' => new PythonBridgeProvider(model: $model ?: null),
+            default => new GeminiProvider(model: $model ?: null),
         };
     }
 
     /**
-     * Resolve a provider instance for a task, honouring per-task
-     * provider/model overrides from config.
+     * Resolve a provider instance for a task.
      */
     public function resolveForTask(string $task): AIServiceInterface
     {
@@ -56,36 +58,17 @@ class AIProviderManager
     /**
      * Resolve [provider, model] for a task from configuration.
      *
-     * Order: ai.tasks.{task}.provider/model -> ai.models.{task} -> ai.provider/ai.models.default
+     * The Default Provider + Default Model is applied to every task; there is
+     * no per-task routing. $task is accepted only to keep the signature stable.
      *
      * @return array{0: string, 1: string}
      */
     public function resolveProviderAndModel(string $task): array
     {
-        $defaultProvider = config('ai.provider', 'gemini');
-        $defaultModel = config('ai.models.default', 'gemini-3.6-flash');
-
-        $taskConfig = config("ai.tasks.{$task}");
-        if (is_array($taskConfig) && (! empty($taskConfig['provider']) || ! empty($taskConfig['model']))) {
-            return [
-                $taskConfig['provider'] ?: $defaultProvider,
-                $taskConfig['model'] ?: $defaultModel,
-            ];
-        }
-
-        $stageConfig = config("ai.models.{$task}");
-        if ($stageConfig !== null) {
-            if (is_array($stageConfig)) {
-                return [
-                    ($stageConfig['provider'] ?: $defaultProvider),
-                    ($stageConfig['model'] ?: $defaultModel),
-                ];
-            }
-
-            return [$defaultProvider, (string) $stageConfig];
-        }
-
-        return [$defaultProvider, $defaultModel];
+        return [
+            (string) config('ai.provider', 'gemini'),
+            (string) config('ai.models.default', 'gemini-3.6-flash'),
+        ];
     }
 
     /**
@@ -146,7 +129,7 @@ class AIProviderManager
      * @return array{
      *     success: bool, text: ?string, json: ?array, provider: ?string, model: ?string,
      *     fallback_used: bool, input_tokens: int, output_tokens: int,
-     *     duration_ms: int, error: ?string
+     *     duration_ms: int, finish_reason: ?string, error: ?string
      * }
      */
     public function run(
@@ -168,6 +151,7 @@ class AIProviderManager
             'input_tokens' => 0,
             'output_tokens' => 0,
             'duration_ms' => 0,
+            'finish_reason' => null,
             'error' => null,
         ];
 
@@ -242,6 +226,9 @@ class AIProviderManager
                 $result['output_tokens'] = $usage['output'] ?? 0;
                 $result['duration_ms'] = $durationMs;
                 $result['error'] = null;
+                $result['finish_reason'] = $provider instanceof TracksTruncation
+                    ? $provider->getLastFinishReason()
+                    : null;
 
                 return $result;
             }

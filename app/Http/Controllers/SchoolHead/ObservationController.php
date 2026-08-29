@@ -85,6 +85,39 @@ class ObservationController extends Controller
     }
 
     /**
+     * Display observations where the school head is assigned as co-observer.
+     */
+    public function coObservations(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = Observation::with(['observee.user', 'observer', 'schoolHead', 'epocEvaluation'])
+            ->where('school_head_id', $user->id)
+            ->latest();
+
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                  ->orWhere('school_year', 'like', "%{$search}%");
+            });
+        }
+
+        $observations = $query
+            ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->when($request->stage, fn($q, $s) => $q->where('stage', $s))
+            ->paginate(10)
+            ->withQueryString();
+
+        $stats = [
+            'total' => (clone $query)->count(),
+            'upcoming' => (clone $query)->whereIn('status', ['scheduled', 'in_progress'])->count(),
+            'completed' => (clone $query)->where('status', 'completed')->count(),
+        ];
+
+        return view('school-head.co-observations.index', compact('observations', 'stats'));
+    }
+
+    /**
      * Show observation details.
      */
     public function show(Observation $observation)
@@ -114,7 +147,7 @@ class ObservationController extends Controller
         $user = Auth::user();
 
         $teachers = Teacher::query()
-            ->with(['user'])
+            ->with(['user', 'subjects'])
             ->where('school_id', $user->school_id)
             ->get();
 
@@ -149,7 +182,8 @@ class ObservationController extends Controller
                 'id' => $teacher->id,
                 'name' => $teacher->user->name,
                 'email' => $teacher->user->email,
-                'subject' => $teacher->subject ?? 'Not set',
+                'subject' => $teacher->subjectsLabel ?? 'Not set',
+                'subjects' => $teacher->subjects->pluck('name')->values()->all(),
                 'grade_level' => $teacher->grade_level ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
@@ -451,6 +485,12 @@ class ObservationController extends Controller
             'teacher_reflection' => ['nullable', 'string'],
             'lesson_plan_review' => ['nullable', 'string'],
             'instructional_materials' => ['nullable', 'string'],
+            'topic' => ['nullable', 'string'],
+            'learning_objectives' => ['nullable', 'string'],
+            'teaching_strategies' => ['nullable', 'string'],
+            'assessment_activity' => ['nullable', 'string'],
+            'expected_challenges' => ['nullable', 'string'],
+            'feedback_areas' => ['nullable', 'string'],
             'ai_insights_reviewed' => ['nullable', 'boolean'],
         ], $templateRules));
 
@@ -461,6 +501,12 @@ class ObservationController extends Controller
             'teacher_reflection' => $validated['teacher_reflection'] ?? null,
             'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
             'instructional_materials' => $validated['instructional_materials'] ?? null,
+            'topic' => $validated['topic'] ?? null,
+            'learning_objectives' => $validated['learning_objectives'] ?? null,
+            'teaching_strategies' => $validated['teaching_strategies'] ?? null,
+            'assessment_activity' => $validated['assessment_activity'] ?? null,
+            'expected_challenges' => $validated['expected_challenges'] ?? null,
+            'feedback_areas' => $validated['feedback_areas'] ?? null,
         ];
 
         $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_conference', $request->all(), $obsType);
@@ -829,10 +875,24 @@ class ObservationController extends Controller
         $this->authorizeObservation($observation);
         $observation->load(['preObservationPlanning', 'observee']);
 
-        $insights = $this->aiFeedback->generatePreObservationInsights($observation);
+        // Generate inline (with a generous time budget) so the result arrives
+        // in full within the same request instead of relying on a background
+        // queue worker. No template fallback here: if AI is disabled/unavailable
+        // we return a friendly notice instead of canned text.
+        set_time_limit(300);
 
-        if ($insights === null) {
-            return response()->json(['error' => 'Failed to generate insights. Try again later.'], 500);
+        try {
+            $insights = app(\App\AI\Services\PreObservationService::class)->generateInsights($observation, false);
+        } catch (\App\AI\Exceptions\AIRateLimitException $e) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        if (!$insights) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
         }
 
         $observation->preObservationPlanning()->updateOrCreate(
@@ -840,20 +900,45 @@ class ObservationController extends Controller
             ['ai_insights' => $insights]
         );
 
-        $observee = $observation->observee;
-        if ($observee && $observee->user) {
-            $this->notificationService->notify(
-                $observee->user,
-                NotificationType::AI_SUGGESTION,
-                'AI insights are ready',
-                'AI has prepared insights for your upcoming observation. Please review them with your supervisor.',
-                null,
-                route('teacher.observations.show', $observation),
-            );
+        app(AuditLogService::class)->logAi(
+            'insights_generated',
+            "Pre-observation AI insights generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_observation', 'observation_id' => $observation->id],
+        );
+
+        return response()->json([
+            'status' => 'completed',
+            'ai_insights' => $insights,
+            'source' => 'ai',
+        ]);
+    }
+
+    /**
+     * Check whether pre-observation AI insights are ready.
+     */
+    public function aiInsightsStatus(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->load('preObservationPlanning');
+
+        $insights = $observation->preObservationPlanning?->ai_insights;
+
+        if ($insights) {
+            $source = config('services.gemini.api_key') ? 'ai' : 'rule-based';
+
+            return response()->json([
+                'status' => 'completed',
+                'ai_insights' => $insights,
+                'source' => $source,
+            ]);
         }
 
-        $source = $this->aiFeedback->isGeminiConfigured() ? 'gemini' : 'rule-based';
-        return response()->json(['ai_insights' => $insights, 'source' => $source]);
+        return response()->json([
+            'status' => 'processing',
+            'message' => 'AI insights are still being generated.',
+        ]);
     }
 
     /**
@@ -866,6 +951,14 @@ class ObservationController extends Controller
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
             ['ai_insights' => null]
+        );
+
+        app(AuditLogService::class)->logAi(
+            'insights_cleared',
+            "Pre-observation AI insights cleared for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_observation', 'observation_id' => $observation->id],
         );
 
         return response()->json(['success' => true]);
@@ -906,7 +999,65 @@ class ObservationController extends Controller
             );
         }
 
+        app(AuditLogService::class)->logAi(
+            'comparison_generated',
+            "Post-conference AI comparison generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'post_conference', 'observation_id' => $observation->id],
+        );
+
         return response()->json(['ai_comparison' => $comparison]);
+    }
+
+    /**
+     * Generate AI pre-conference suggestions (strategy AI).
+     */
+    public function generateAiSuggestions(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+        $observation->loadMissing(['preObservationPlanning', 'observee']);
+
+        set_time_limit(300);
+
+        try {
+            $data = $this->aiFeedback->generatePreConferenceSuggestions($observation, false);
+        } catch (\App\AI\Exceptions\AIRateLimitException $e) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        if ($data === null || (blank($data['discussion_notes'] ?? null) && blank($data['finalized_focus'] ?? null))) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $this->notificationService->notify(
+                $observee->user,
+                NotificationType::AI_SUGGESTION,
+                'AI discussion notes are ready',
+                'AI has drafted discussion notes and focus areas for your observation. Please review them with your supervisor.',
+                null,
+                route('teacher.observations.show', $observation),
+            );
+        }
+
+        app(AuditLogService::class)->logAi(
+            'suggestions_generated',
+            "Pre-conference AI suggestions generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_conference', 'observation_id' => $observation->id],
+        );
+
+        return response()->json([
+            'discussion_notes' => $data['discussion_notes'] ?? '',
+            'finalized_focus' => $data['finalized_focus'] ?? '',
+        ]);
     }
 
     /**

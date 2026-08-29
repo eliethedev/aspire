@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TeacherProfileUpdateRequest;
+use App\Models\Subject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,9 @@ class TeacherProfileController extends Controller
     {
         $user = $request->user()->load(['teacher', 'teacherProfile', 'profile']);
 
-        return view('teacher.profile', compact('user'));
+        $subjects = Subject::query()->orderBy('name')->get();
+
+        return view('teacher.profile', compact('user', 'subjects'));
     }
 
     public function update(TeacherProfileUpdateRequest $request): RedirectResponse
@@ -62,9 +65,31 @@ class TeacherProfileController extends Controller
                 'department' => $validated['department'] ?? $user->teacher->department,
                 'position' => $validated['position'] ?? $user->teacher->position,
                 'career_stage' => $careerStage,
-                'subject' => $validated['subject'] ?? $user->teacher->subject,
                 'grade_level' => $validated['grade_level'] ?? $user->teacher->grade_level,
             ]);
+
+            // Sync subjects handled by the teacher (many-to-many). Free-text
+            // additions are created on the fly so new subjects keep working.
+            $subjectIds = collect($validated['subjects'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            foreach (explode(',', (string) ($validated['new_subjects'] ?? '')) as $rawName) {
+                $name = trim($rawName);
+                if ($name === '') {
+                    continue;
+                }
+
+                $subject = Subject::firstOrCreate(['name' => $name]);
+                $subjectIds[] = $subject->id;
+            }
+
+            if ($subjectIds !== []) {
+                $user->teacher->subjects()->sync(array_values(array_unique($subjectIds)));
+            }
         }
 
         // Update or create teacher profile (extended fields)
@@ -78,6 +103,7 @@ class TeacherProfileController extends Controller
             'teacher_load' => $validated['teacher_load'] ?? null,
             'certification_training' => $validated['certification_training'] ?? null,
             'department' => $validated['department'] ?? null,
+            'default_room' => $validated['default_room'] ?? null,
         ];
 
         $user->teacherProfile()->updateOrCreate(['user_id' => $user->id], $teacherProfileData);

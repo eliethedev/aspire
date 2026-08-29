@@ -237,6 +237,25 @@ class AuditLogService
             ->get();
     }
 
+    public function logAi(
+        string $action,
+        string $description = null,
+        string $recordId = null,
+        string $status = 'success',
+        array $metadata = [],
+    ): AuditLog {
+        return $this->log(
+            $action,
+            'ai',
+            $recordId,
+            $description,
+            $status,
+            [],
+            [],
+            $metadata,
+        );
+    }
+
     public function getRecentLogs(int $days = 30, int $limit = 100)
     {
         return AuditLog::recent($days)

@@ -442,4 +442,44 @@ class Observation extends Model
     {
         return $query->where('confirmation_status', 'rejected');
     }
+
+    /**
+     * The linked observation (e.g. PPSSH observation linked to teacher COT).
+     */
+    public function relatedObservation(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'related_observation_id');
+    }
+
+    /**
+     * Get the linked observation, if any.
+     */
+    public function getRelatedObservationAttribute()
+    {
+        return $this->relatedObservation;
+    }
+
+    /**
+     * Check if this observation has a linked observation.
+     */
+    public function hasRelatedObservation(): bool
+    {
+        return ! empty($this->related_observation_id);
+    }
+
+    /**
+     * Check if this is the primary observation (no linked observation).
+     */
+    public function isPrimaryObservation(): bool
+    {
+        return ! $this->hasRelatedObservation();
+    }
+
+    /**
+     * Check if this is a linked/secondary observation.
+     */
+    public function isLinkedObservation(): bool
+    {
+        return $this->hasRelatedObservation();
+    }
 }
