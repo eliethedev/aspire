@@ -6,8 +6,6 @@ use App\Models\User;
 use App\Models\School;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -82,30 +80,18 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // Email address is immutable once the account is created.
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', 'string', Rule::in(['admin', 'school_head', 'supervisor', 'teacher'])],
             'school_id' => ['nullable', 'exists:schools,id'],
         ]);
 
         $user->update([
             'name' => $validated['name'],
-            'email' => $validated['email'],
             'role' => $validated['role'],
             'school_id' => $validated['school_id'] ?? null,
         ]);
-
-        // Password update is optional
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            ]);
-            
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
-        }
 
         app(AuditLogService::class)->logUpdate(
             'users', $user,
@@ -120,25 +106,36 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Soft-delete the specified user (deactivates the account).
+     * The user record is kept so audit history remains intact, but the
+     * account can no longer sign in.
      */
     public function destroy(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'You cannot deactivate your own account.');
+        }
+
         $userName = $user->name;
         $userId = $user->id;
+        $role = $user->role;
+        $email = $user->email;
+
         $user->delete();
 
         app(AuditLogService::class)->log(
             'deleted', 'users', (string) $userId,
-            "Deleted user: {$userName}",
+            "Deactivated user: {$userName}",
             'success',
-            ['name' => $userName, 'role' => $user->role, 'email' => $user->email],
+            ['name' => $userName, 'role' => $role, 'email' => $email],
             [],
         );
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', "User {$userName} has been deleted successfully.");
+            ->with('success', "User {$userName} has been deactivated successfully.");
     }
 
     /**

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('framework')->nullable();
             $table->timestamps();
 
-            $table->index(['ratee_type', 'ratee_id', 'assessed_at']);
+            $table->index(['ratee_type', 'ratee_id', 'assessed_at'], 'cpa_ratee_assessed_idx');
         });
     }
 

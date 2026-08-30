@@ -24,6 +24,10 @@ class IndicatorTrendService
                 'domains' => collect(),
                 'low_indicators' => collect(),
                 'total_observations' => 0,
+                'date_range' => [
+                    'start' => null,
+                    'end' => null,
+                ],
             ];
         }
 

@@ -4,9 +4,9 @@
     @slot('title', 'Service Unavailable')
     @slot('heading', '503 - Maintenance')
     @slot('message', 'ASPIRE is temporarily undergoing maintenance. Please try again shortly.')
-    @slot('iconBg', 'bg-purple-50 border border-purple-100')
+    @slot('iconBg', 'bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/20')
     @slot('icon')
-        <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-10 h-10 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
     @endslot

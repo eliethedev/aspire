@@ -16,6 +16,8 @@ return [
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
     'username' => env('MAIL_USERNAME'),
     'password' => env('MAIL_PASSWORD'),
+    'enabled' => env('MAIL_ENABLED', true),
+    'force_tls_1_2' => env('MAIL_FORCE_TLS_1_2', false),
 
     // Seconds a single SMTP operation may block before giving up.
     'timeout' => env('MAIL_TIMEOUT', 15),

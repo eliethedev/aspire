@@ -13,6 +13,22 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            if (localStorage.getItem('app_text_large') === '1') {
+                document.documentElement.classList.add('text-large');
+            }
+        })();
+        function toggleTheme() {
+            var root = document.documentElement;
+            root.classList.toggle('dark');
+            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        }
+    </script>
+    
     <style>
         .light-bg {
             background-color: #f0f5ff;
@@ -64,18 +80,42 @@
                 padding: 1.25rem;
             }
         }
+
+        .dark .light-bg {
+            background-color: #030712;
+        }
+
+        .dark .glass-card {
+            background-color: #111827;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .dark .light-input {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+
+        .dark .light-input::placeholder {
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
     <!-- Top Nav -->
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">        
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">        
             ASPIRE
         </a>
-        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">
-            Homepage
-        </a>
+        <div class="flex items-center gap-4">
+            <button type="button" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" class="text-xs sm:text-sm text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </button>
+            <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+                Homepage
+            </a>
+        </div>
     </nav>
 
     <!-- Main Content -->
@@ -91,8 +131,8 @@
                 </svg>
             </div> -->
             
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">Login to Aspire</h1>
-            <p class="text-gray-500 text-sm">Sign in to access your ASPIRE account</p>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Login to Aspire</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Sign in to access your ASPIRE account</p>
         </div>
 
         <!-- Login Form -->
@@ -101,7 +141,7 @@
 
             <!-- Email Field -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Email Address</label>
                 <input 
                     type="email" 
                     name="email" 
@@ -123,7 +163,7 @@
 
             <!-- Password Field -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Password</label>
                 <div class="relative">
                     <input 
                         type="password" 
@@ -136,7 +176,7 @@
                     <button 
                         type="button" 
                         onclick="togglePassword()"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
                     >
                         <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -163,13 +203,13 @@
                     <input 
                         type="checkbox" 
                         name="remember" 
-                        class="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                        class="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                     >
-                    <span class="ml-2 text-xs sm:text-sm text-gray-600 group-hover:text-gray-800 transition-colors">Remember me</span>
+                    <span class="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-white transition-colors">Remember me</span>
                 </label>
                 <a 
                     href="" 
-                    class="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+                    class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors whitespace-nowrap"
                 >
                     Forgot password?
                 </a>
@@ -189,7 +229,7 @@
 
         <!-- Footer Links -->
         <div class="text-center space-y-4">
-            <a href="{{ route('home') }}" class="inline-flex items-center text-sm text-gray-400 hover:text-gray-600 transition-colors group">
+            <a href="{{ route('home') }}" class="inline-flex items-center text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group">
                 <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>

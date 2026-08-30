@@ -67,7 +67,7 @@ class ObservationReportService
         $observation->loadMissing([
             'observee.user',
             'observee.school',
-            'observer.user',
+            'observer',
             'preObservationPlanning',
             'preConference',
             'postConference',
@@ -145,6 +145,9 @@ MD;
         }
 
         $average = $overallScore ?? $cotRatings->avg('rating');
+        if ($average === null) {
+            return "## COT Rating Summary\n\n_No ratings available for this observation._\n";
+        }
         $descriptive = $this->getDescriptiveRating($average);
 
         $md .= "\n**Overall Average Rating:** " . number_format($average, 2) . " / 6.00\n";

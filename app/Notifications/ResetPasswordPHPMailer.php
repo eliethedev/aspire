@@ -18,14 +18,8 @@ class ResetPasswordPHPMailer extends ResetPassword
         $resetUrl = $this->resetUrl($notifiable);
 
         try {
-            $mailerService = app(PHPMailerService::class);
-            $success = $mailerService->sendPasswordResetEmail($notifiable, $resetUrl);
-
-            if (!$success) {
-                \Log::error('Failed to send password reset email to: ' . $notifiable->email);
-            }
-
-            // Return a dummy mail message for compatibility
+            // The actual email is sent by PHPMailerChannel (deferred, without
+            // blocking the HTTP request). Here we only build the message shell.
             return (new \Illuminate\Notifications\Messages\MailMessage)
                 ->subject('Reset Password Notification')
                 ->line('You are receiving this email because we received a password reset request for your account.')
@@ -35,7 +29,7 @@ class ResetPasswordPHPMailer extends ResetPassword
 
         } catch (\Exception $e) {
             \Log::error('Password reset email error: ' . $e->getMessage());
-            
+
             return (new \Illuminate\Notifications\Messages\MailMessage)
                 ->subject('Reset Password Notification')
                 ->line('There was an issue sending the password reset email. Please contact support.')

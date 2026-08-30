@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('observations', function (Blueprint $table) {
-            $table->timestamp('finalized_at')->nullable()->after('rejected_at');
-            $table->foreignId('finalized_by')->nullable()->after('finalized_at')->constrained('users')->nullOnDelete();
+            if (! Schema::hasColumn('observations', 'finalized_at')) {
+                $table->timestamp('finalized_at')->nullable();
+            }
+            if (! Schema::hasColumn('observations', 'finalized_by')) {
+                $table->foreignId('finalized_by')->nullable()->constrained('users')->nullOnDelete();
+            }
         });
     }
 

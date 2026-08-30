@@ -420,7 +420,7 @@ class ObservationController extends Controller
         $this->notificationService->notifyLessonPlanRequested($teacherUser, $requesterName, $observationLink);
 
         $subject = "Lesson Plan Requested – {$observation->subject}";
-        $this->mailer->sendGenericEmail(
+        $this->mailer->sendGenericEmailLater(
             $teacherUser->email,
             $teacherUser->name,
             $subject,
@@ -860,7 +860,7 @@ class ObservationController extends Controller
                 str_replace('_', ' ', ucwords($reason)),
                 $observationLink
             );
-            $this->mailer->sendGenericEmail($observeeUser->email, $observeeUser->name, $subject, $emailBody);
+            $this->mailer->sendGenericEmailLater($observeeUser->email, $observeeUser->name, $subject, $emailBody);
         }
 
         return redirect()->route('school-head.observations.index')

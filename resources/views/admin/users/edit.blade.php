@@ -71,14 +71,12 @@
                     
                     <div>
                         <label for="email" class="block text-sm font-medium text-dark mb-1">
-                            Email Address <span class="text-red-500">*</span>
+                            Email Address
                         </label>
-                        <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required
-                               class="w-full px-3 py-2 border glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        <input type="email" id="email" value="{{ $user->email }}" readonly disabled
+                               class="w-full px-3 py-2 border glass-card text-dark rounded-lg bg-slate-100 dark:bg-gray-800 cursor-not-allowed"
                                placeholder="john@example.com">
-                        @error('email')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
+                        <p class="mt-1 text-xs text-dark">Email address cannot be changed.</p>
                     </div>
                 </div>
             </div>
@@ -128,44 +126,6 @@
                         </p>
                     </div>
                 </div>
-            </div>
-
-            <!-- Password (Optional) -->
-            <div>
-                <h3 class="text-lg font-medium text-dark mb-4">Password (Optional)</h3>
-                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                    <p class="text-sm text-blue-800">
-                        Leave these fields empty to keep the current password. Only enter a new password if you want to change it.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-dark mb-1">
-                            New Password
-                        </label>
-                        <input type="password" id="password" name="password"
-                               class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Enter new password (optional)">
-                        @error('password')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-dark mb-1">
-                            Confirm New Password
-                        </label>
-                        <input type="password" id="password_confirmation" name="password_confirmation"
-                               class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Confirm new password">
-                        @error('password_confirmation')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-                <p class="mt-2 text-sm text-dark">
-                    Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters.
-                </p>
             </div>
 
             <!-- Form Actions -->

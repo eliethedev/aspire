@@ -88,6 +88,18 @@ class NotificationController extends Controller
         return $this->stateResponse($request);
     }
 
+    public function destroy(Request $request, int $id): JsonResponse|RedirectResponse
+    {
+        $notification = Notification::findOrFail($id);
+        $user = $request->user();
+
+        if (! $this->notificationService->delete($notification, $user)) {
+            abort(403, 'Unauthorized');
+        }
+
+        return $this->stateResponse($request);
+    }
+
     /**
      * Legacy per-role route — kept so old "view all" links keep working.
      */

@@ -124,6 +124,13 @@
                                 </button>
                             </form>
                         @endif
+                        <form method="POST" action="{{ route('notifications.destroy', $notification->id) }}"
+                              onsubmit="return confirm('Delete this notification?')">
+                            @csrf
+                            <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 rounded focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete notification">
+                                Delete
+                            </button>
+                        </form>
                     </div>
                 </div>
             @empty

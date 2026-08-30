@@ -19,7 +19,12 @@ class PHPMailerService
 
     private function shouldSend(): bool
     {
-        return !app()->environment('testing') && config('mail.default') !== 'array';
+        if (!config('phpmailer.enabled', true)) {
+            return false;
+        }
+
+        return !app()->environment('testing')
+            && !in_array(config('mail.default'), ['array', 'log'], true);
     }
 
     private function configure(): void
@@ -47,6 +52,13 @@ class PHPMailerService
             // max_execution_time and make form submissions appear to hang.
             $this->mailer->Timeout = max(5, (int) config('phpmailer.timeout', 15));
 
+            // Cap the reply-wait (`stream_select`) so a dead server raises a
+            // catchable PHPMailer exception instead of PHP's max_execution_time
+            // fatal error (SMTP::get_lines()).
+            $this->mailer->SMTP = new \PHPMailer\PHPMailer\SMTP();
+            $this->mailer->SMTP->setTimeout(max(5, (int) config('phpmailer.timeout', 15)));
+            $this->mailer->SMTP->Timelimit = max(5, (int) config('phpmailer.timeout', 15));
+
             // Recipients
             $this->mailer->setFrom(
                 config('phpmailer.from.address', 'noreply@aspire.edu'),
@@ -67,6 +79,9 @@ class PHPMailerService
 
             // SMTP options
             $smtpOptions = config('phpmailer.smtp_options', []);
+            if (config('phpmailer.force_tls_1_2', false)) {
+                $smtpOptions['ssl']['crypto_method'] = STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+            }
             if (!empty($smtpOptions)) {
                 $this->mailer->SMTPOptions = $smtpOptions;
             }
@@ -167,6 +182,36 @@ class PHPMailerService
      */
     public function sendGenericEmailLater($email, $name, $subject, $body): void
     {
+        $this->spawnDeferred($email, $name, $subject, $body);
+    }
+
+    /**
+     * Deferred variant of sendVerificationEmail.
+     */
+    public function sendVerificationEmailLater($user, $verificationUrl): void
+    {
+        $subject = 'ASPIRE - Verify Your Email';
+        $body = $this->getVerificationEmailTemplate($user, $verificationUrl);
+        $this->spawnDeferred($user->email, $user->name, $subject, $body);
+    }
+
+    /**
+     * Deferred variant of sendPasswordResetEmail.
+     */
+    public function sendPasswordResetEmailLater($user, $resetUrl): void
+    {
+        $subject = 'Reset Your ASPIRE Password';
+        $body = $this->getPasswordResetEmailTemplate($user, $resetUrl);
+        $this->spawnDeferred($user->email, $user->name, $subject, $body);
+    }
+
+    /**
+     * Write the message body to a temp file and hand it to a detached
+     * `aspire:send-deferred-email` process so the HTTP request never blocks
+     * on a slow or unreachable SMTP server.
+     */
+    private function spawnDeferred($email, $name, $subject, $body): void
+    {
         try {
             $bodyPath = tempnam(sys_get_temp_dir(), 'aspire_mail_');
             file_put_contents($bodyPath, $body);
@@ -192,7 +237,7 @@ class PHPMailerService
                 '--subject='.((string) $subject),
                 '--body-path='.$bodyPath,
             ]), base_path(), $env);
-            $process->setOptions(['create_no_window' => true]);
+            $process->setOptions(['create_new_console' => true]);
             $process->start();
 
             return;
@@ -296,7 +341,7 @@ class PHPMailerService
         }
 
         try {
-            return $this->mailer->SMTP->connect();
+            return $this->mailer->smtpConnect();
         } catch (Exception $e) {
             Log::error('SMTP connection test failed: ' . $e->getMessage());
             return false;

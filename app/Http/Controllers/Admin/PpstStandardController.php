@@ -41,6 +41,19 @@ class PpstStandardController extends Controller
             'domains' => $standards->groupBy('domain')->count(),
             'strands' => $standards->groupBy('strand')->count(),
             'indicators' => $standards->count(),
+            'active' => $standards->where('is_active', true)->count(),
+            'inactive' => $standards->where('is_active', false)->count(),
+        ];
+
+        // Domain meta for organized, color-coded presentation (kept in sync with config/ppst.php order)
+        $domainMeta = [
+            'Content Knowledge and Pedagogy' => ['number' => 1, 'color' => 'indigo', 'icon' => 'fa-book-open'],
+            'Learning Environment' => ['number' => 2, 'color' => 'emerald', 'icon' => 'fa-school'],
+            'Diversity of Learners' => ['number' => 3, 'color' => 'amber', 'icon' => 'fa-users'],
+            'Curriculum and Planning' => ['number' => 4, 'color' => 'violet', 'icon' => 'fa-clipboard-list'],
+            'Assessment and Reporting' => ['number' => 5, 'color' => 'rose', 'icon' => 'fa-chart-bar'],
+            'Community Linkages and Professional Engagement' => ['number' => 6, 'color' => 'teal', 'icon' => 'fa-handshake'],
+            'Personal Growth and Professional Development' => ['number' => 7, 'color' => 'blue', 'icon' => 'fa-seedling'],
         ];
 
         $usageByStandard = CotIndicator::query()
@@ -64,7 +77,9 @@ class PpstStandardController extends Controller
         return view('admin.ppst-standards.index', compact(
             'domains',
             'totals',
-            'usageByStandard'
+            'usageByStandard',
+            'standards',
+            'domainMeta'
         ));
     }
 

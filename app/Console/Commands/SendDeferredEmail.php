@@ -18,6 +18,9 @@ class SendDeferredEmail extends Command
 
     public function handle(PHPMailerService $mailer): int
     {
+        // Runs outside the HTTP request, so it may outlive PHP's web budget.
+        set_time_limit(120);
+
         $to = (string) $this->option('to');
         $name = (string) $this->option('name');
         $subject = (string) $this->option('subject');

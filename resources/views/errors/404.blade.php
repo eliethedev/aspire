@@ -4,9 +4,9 @@
     @slot('title', 'Page Not Found')
     @slot('heading', '404 - Not Found')
     @slot('message', 'The page you\'re looking for doesn\'t exist or has been moved.')
-    @slot('iconBg', 'bg-blue-50 border border-blue-100')
+    @slot('iconBg', 'bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20')
     @slot('icon')
-        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
     @endslot

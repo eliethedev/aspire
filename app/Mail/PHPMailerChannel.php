@@ -17,13 +17,17 @@ class PHPMailerChannel
             // For verification emails, use the dedicated method
             if ($notification instanceof \App\Notifications\VerifyEmailPHPMailer) {
                 $verificationUrl = $notification->verificationUrl($notifiable);
-                return $mailerService->sendVerificationEmail($notifiable, $verificationUrl);
+                $mailerService->sendVerificationEmailLater($notifiable, $verificationUrl);
+
+                return true;
             }
 
             // For password reset emails
             if ($notification instanceof \Illuminate\Auth\Notifications\ResetPassword) {
                 $resetUrl = $message->actionUrl;
-                return $mailerService->sendPasswordResetEmail($notifiable, $resetUrl);
+                $mailerService->sendPasswordResetEmailLater($notifiable, $resetUrl);
+
+                return true;
             }
 
             // For invitation emails, use the dedicated method
@@ -48,7 +52,14 @@ class PHPMailerChannel
 
             $body = $this->buildInvitationEmail($message, $invitation);
 
-            return $mailerService->sendInvitationEmail($invitation, $message->subject, $body);
+            $mailerService->sendGenericEmailLater(
+                $invitation->email,
+                $invitation->user->name,
+                $message->subject,
+                $body
+            );
+
+            return true;
 
         } catch (\Exception $e) {
             \Log::error('Failed to send invitation email: ' . $e->getMessage());
@@ -91,7 +102,9 @@ class PHPMailerChannel
 
             $body = $this->buildGenericEmail($message);
 
-            return $mailerService->sendGenericEmail($notifiable->email, $notifiable->name, $message->subject, $body);
+            $mailerService->sendGenericEmailLater($notifiable->email, $notifiable->name, $message->subject, $body);
+
+            return true;
 
         } catch (\Exception $e) {
             \Log::error('Failed to send generic email: ' . $e->getMessage());

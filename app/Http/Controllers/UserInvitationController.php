@@ -176,7 +176,7 @@ class UserInvitationController extends Controller
             );
 
             return redirect()
-                ->route('admin.invitations.index')
+                ->route('admin.users.index')
                 ->with('success', 'Invitation sent successfully to ' . $invitation->email);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()

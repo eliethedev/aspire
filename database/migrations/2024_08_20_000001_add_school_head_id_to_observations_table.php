@@ -9,7 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('observations', function (Blueprint $table) {
-            $table->foreignId('school_head_id')->nullable()->after('observee_type')->constrained('users')->nullOnDelete();
+            if (! Schema::hasColumn('observations', 'school_head_id')) {
+                // Use no explicit `after()` to avoid missing-column failures across
+                // fresh/test databases where polymorphic columns are added later.
+                $table->foreignId('school_head_id')->nullable()->constrained('users')->nullOnDelete();
+            }
         });
     }
 

@@ -3,7 +3,7 @@
     $rawValue = old($fieldKey, $value);
     $fieldValue = is_array($rawValue) ? json_encode($rawValue) : $rawValue;
     $isRequired = $field->required;
-    $labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+    $labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1';
     $requiredMark = $isRequired ? ' <span class="text-red-500">*</span>' : '';
     $hasError = isset($errors[$fieldKey]);
     $errorMsg = $hasError ? (is_array($errors[$fieldKey]) ? implode(', ', $errors[$fieldKey]) : $errors[$fieldKey]) : null;
@@ -13,22 +13,22 @@
 
 @switch($field->type)
     @case('heading')
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $field->label }}</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ $field->label }}</h3>
         @break
 
     @case('paragraph')
-        <p class="text-sm text-gray-500 mb-2">{{ $field->label }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">{{ $field->label }}</p>
         @break
 
     @case('hr')
-        <hr class="my-4 border-gray-200">
+        <hr class="my-4 border-gray-200 dark:border-gray-800">
         @break
 
     @case('textarea')
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <textarea name="{{ $fieldKey }}" id="{{ $fieldKey }}" rows="4"
                       placeholder="{{ $field->placeholder }}"
@@ -41,7 +41,7 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <select name="{{ $fieldKey }}" id="{{ $fieldKey }}"
                     class="w-full px-3 py-2 rounded-lg border {{ $hasError ? 'border-red-400' : 'border-gray-300' }} text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
@@ -62,7 +62,7 @@
         <div>
             <label class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <div class="space-y-2">
                 @foreach($getOptions() as $opt)
@@ -74,7 +74,7 @@
                         <input type="radio" name="{{ $fieldKey }}" value="{{ $optValue }}"
                                {{ $isChecked($optValue) ? 'checked' : '' }}
                                class="text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-sm text-gray-700">{{ $optLabel }}</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-200">{{ $optLabel }}</span>
                     </label>
                 @endforeach
             </div>
@@ -86,7 +86,7 @@
         <div>
             <label class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <div class="space-y-2">
                 @foreach($getOptions() as $opt)
@@ -98,7 +98,7 @@
                         <input type="checkbox" name="{{ $fieldKey }}[]" value="{{ $optValue }}"
                                {{ $isChecked($optValue) ? 'checked' : '' }}
                                class="text-indigo-600 focus:ring-indigo-500 rounded">
-                        <span class="text-sm text-gray-700">{{ $optLabel }}</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-200">{{ $optLabel }}</span>
                     </label>
                 @endforeach
             </div>
@@ -110,10 +110,10 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="file" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
-                   class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                   class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-gray-800 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-gray-700">
             @if($errorMsg)<p class="{{ $errorClass }}">{{ $errorMsg }}</p>@endif
         </div>
         @break
@@ -122,7 +122,7 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="date" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
                    value="{{ $fieldValue }}"
@@ -135,7 +135,7 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="time" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
                    value="{{ $fieldValue }}"
@@ -148,7 +148,7 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="number" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
                    value="{{ $fieldValue }}"
@@ -162,7 +162,7 @@
         <div>
             <label for="{{ $fieldKey }}" class="{{ $labelClass }}">{!! $field->label !!}{!! $requiredMark !!}</label>
             @if($field->help_text)
-                <p class="text-xs text-gray-500 mb-2">{{ $field->help_text }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="text" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
                    value="{{ $fieldValue }}"

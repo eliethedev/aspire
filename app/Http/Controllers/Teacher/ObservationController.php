@@ -132,7 +132,7 @@ class ObservationController extends Controller
         if ($observer && $observer instanceof \App\Models\User) {
             $link = route('supervisor.observations.show', $observation);
             $this->notificationService->notifyLessonPlanUploaded($observer, $teacherName, $link);
-            $this->mailer->sendGenericEmail(
+            $this->mailer->sendGenericEmailLater(
                 $observer->email, $observer->name, $subject,
                 $this->buildLessonPlanUploadedEmail($teacherName, $subject, $observation, $link)
             );
@@ -145,7 +145,7 @@ class ObservationController extends Controller
             foreach ($schoolHeads as $schoolHead) {
                 $link = route('supervisor.observations.show', $observation);
                 $this->notificationService->notifyLessonPlanUploaded($schoolHead, $teacherName, $link);
-                $this->mailer->sendGenericEmail(
+                $this->mailer->sendGenericEmailLater(
                     $schoolHead->email, $schoolHead->name, $subject,
                     $this->buildLessonPlanUploadedEmail($teacherName, $subject, $observation, $link)
                 );
@@ -181,7 +181,7 @@ class ObservationController extends Controller
 
             $teacherName = Auth::user()->name;
             $subject = "Observation Confirmed – {$observation->subject}";
-            $this->mailer->sendGenericEmail(
+            $this->mailer->sendGenericEmailLater(
                 $observer->email, $observer->name, $subject,
                 $this->buildObservationConfirmedEmail($teacherName, $subject, $observation, $link)
             );
@@ -257,7 +257,7 @@ class ObservationController extends Controller
 
             $teacherName = Auth::user()->name;
             $subject = "Observation Rejected – {$observation->subject}";
-            $this->mailer->sendGenericEmail(
+            $this->mailer->sendGenericEmailLater(
                 $observer->email, $observer->name, $subject,
                 $this->buildObservationRejectedEmail($teacherName, $subject, $observation, $reason, $notes, $link)
             );

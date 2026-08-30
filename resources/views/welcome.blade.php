@@ -13,8 +13,29 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/landing.tsx'])
+
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            if (localStorage.getItem('app_text_large') === '1') {
+                document.documentElement.classList.add('text-large');
+            }
+        })();
+        function toggleTheme() {
+            var root = document.documentElement;
+            root.classList.toggle('dark');
+            localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+        }
+    </script>
 </head>
-<body class="antialiased">
+<body class="antialiased dark:bg-gray-950">
+    <div class="fixed top-4 right-6 z-50">
+        <button type="button" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" class="text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+    </div>
     <div id="landing-root"></div>
 </body>
 </html>

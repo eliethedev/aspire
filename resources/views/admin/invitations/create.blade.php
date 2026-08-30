@@ -36,18 +36,19 @@
 
             <!-- Step Indicator -->
             <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center">
-                        <div id="step-1-indicator" class="flex items-center">
-                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">1</div>
-                            <span class="ml-2 text-sm font-medium text-blue-600 dark:text-blue-400">Basic Info</span>
+                        <div class="flex items-center">
+                            <div id="step1-circle" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">1</div>
+                            <span id="step1-label" class="ml-2 text-sm font-medium text-blue-600 dark:text-blue-400">Basic Info</span>
                         </div>
                         <div class="w-16 h-0.5 bg-gray-200 mx-4 hidden sm:block"></div>
-                        <div id="step-2-indicator" class="flex items-center">
-                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500 flex items-center justify-center text-sm font-medium">2</div>
-                            <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">Role Details</span>
+                        <div class="flex items-center">
+                            <div id="step2-circle" class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 dark:text-gray-400 flex items-center justify-center text-sm font-medium">2</div>
+                            <span id="step2-label" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Role Details</span>
                         </div>
                     </div>
+                    <p id="stepHint" class="text-xs text-gray-400 dark:text-gray-500">Step 1 of 2 &middot; Enter the invitee&rsquo;s basic information</p>
                 </div>
             </div>
 
@@ -145,8 +146,7 @@
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <label class="relative cursor-pointer">
                                     <input type="radio" name="role" value="teacher" required
-                                           onchange="handleRoleChange(this.value)"
-                                           class="peer sr-only">
+                                           class="peer sr-only" {{ old('role') == 'teacher' ? 'checked' : '' }}>
                                     <div class="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:bg-blue-900/20 transition-all hover:border-gray-300">
                                         <div class="text-center">
                                             <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500 peer-checked:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,9 +158,8 @@
                                 </label>
 
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="role" value="supervisor"
-                                           onchange="handleRoleChange(this.value)"
-                                           class="peer sr-only">
+                                    <input type="radio" name="role" value="supervisor" required
+                                           class="peer sr-only" {{ old('role') == 'supervisor' ? 'checked' : '' }}>
                                     <div class="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:bg-blue-900/20 transition-all hover:border-gray-300">
                                         <div class="text-center">
                                             <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500 peer-checked:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,9 +171,8 @@
                                 </label>
 
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="role" value="school_head"
-                                           onchange="handleRoleChange(this.value)"
-                                           class="peer sr-only">
+                                    <input type="radio" name="role" value="school_head" required
+                                           class="peer sr-only" {{ old('role') == 'school_head' ? 'checked' : '' }}>
                                     <div class="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:bg-blue-900/20 transition-all hover:border-gray-300">
                                         <div class="text-center">
                                             <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500 peer-checked:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,9 +184,8 @@
                                 </label>
 
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="role" value="admin"
-                                           onchange="handleRoleChange(this.value)"
-                                           class="peer sr-only">
+                                    <input type="radio" name="role" value="admin" required
+                                           class="peer sr-only" {{ old('role') == 'admin' ? 'checked' : '' }}>
                                     <div class="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:bg-blue-900/20 transition-all hover:border-gray-300">
                                         <div class="text-center">
                                             <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500 peer-checked:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,9 +197,7 @@
                                     </div>
                                 </label>
                             </div>
-                            @error('role')
-                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                            @enderror
+                            <p id="role-error" class="mt-2 text-sm text-red-600 dark:text-red-400 @error('role') @else hidden @enderror">@error('role'){{ $message }}@enderror</p>
                         </div>
 
                         <!-- School Assignment -->
@@ -362,21 +357,21 @@
                        class="px-4 py-2 text-dark bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors">
                         Cancel
                     </a>
-                    <button type="button" id="backBtn" onclick="goToStep(1)" class="hidden px-4 py-2 text-dark bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button type="button" id="backBtn" class="hidden px-4 py-2 text-dark bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
                         Back
                     </button>
                 </div>
-                <button type="button" id="nextBtn" onclick="goToStep(2)" 
-                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                <button type="button" id="nextBtn"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center">
                     <span>Next</span>
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
-                <button type="submit" id="submitBtn" class="hidden px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                <button type="submit" id="submitBtn" class="hidden px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center">
                     <svg id="submitIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
@@ -391,147 +386,250 @@
     </div>  
 </div>
 
-<script>
-let currentStep = 1;
-
-function goToStep(step) {
-    // Validate step 1 before proceeding
-    if (currentStep === 1 && step === 2) {
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        
-        if (!name || !email) {
-            alert('Please fill in the required fields (Full Name and Email Address)');
-            return;
+<style>
+    .step-fade {
+        animation: step-fade 0.25s ease-out;
+    }
+    @keyframes step-fade {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
+</style>
 
-    currentStep = step;
-
-    // Hide all step contents
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-
-    // Show current step content
-    if (step === 1) {
-        document.getElementById('content-basic').classList.remove('hidden');
-    } else if (step === 2) {
-        document.getElementById('content-role').classList.remove('hidden');
-    }
-
-    // Update step indicators
-    const step1Indicator = document.getElementById('step-1-indicator');
-    const step2Indicator = document.getElementById('step-2-indicator');
-
-    if (step === 1) {
-        step1Indicator.querySelector('div').classList.remove('bg-gray-200', 'text-gray-500 dark:text-gray-400 dark:text-gray-500');
-        step1Indicator.querySelector('div').classList.add('bg-blue-600', 'text-white');
-        step1Indicator.querySelector('span').classList.remove('text-gray-500 dark:text-gray-400 dark:text-gray-500');
-        step1Indicator.querySelector('span').classList.add('text-blue-600 dark:text-blue-400');
-
-        step2Indicator.querySelector('div').classList.remove('bg-blue-600', 'text-white');
-        step2Indicator.querySelector('div').classList.add('bg-gray-200', 'text-gray-500 dark:text-gray-400 dark:text-gray-500');
-        step2Indicator.querySelector('span').classList.remove('text-blue-600 dark:text-blue-400');
-        step2Indicator.querySelector('span').classList.add('text-gray-500 dark:text-gray-400 dark:text-gray-500');
-    } else {
-        step1Indicator.querySelector('div').classList.remove('bg-blue-600', 'text-white');
-        step1Indicator.querySelector('div').classList.add('bg-green-50 dark:bg-green-900/200', 'text-white');
-        step1Indicator.querySelector('span').classList.remove('text-blue-600 dark:text-blue-400');
-        step1Indicator.querySelector('span').classList.add('text-green-600 dark:text-green-400');
-
-        step2Indicator.querySelector('div').classList.remove('bg-gray-200', 'text-gray-500 dark:text-gray-400 dark:text-gray-500');
-        step2Indicator.querySelector('div').classList.add('bg-blue-600', 'text-white');
-        step2Indicator.querySelector('span').classList.remove('text-gray-500 dark:text-gray-400 dark:text-gray-500');
-        step2Indicator.querySelector('span').classList.add('text-blue-600 dark:text-blue-400');
-    }
-
-    // Update navigation buttons
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('invitationForm');
     const backBtn = document.getElementById('backBtn');
     const nextBtn = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-
-    if (step === 1) {
-        backBtn.classList.add('hidden');
-        nextBtn.classList.remove('hidden');
-        submitBtn.classList.add('hidden');
-    } else {
-        backBtn.classList.remove('hidden');
-        nextBtn.classList.add('hidden');
-        submitBtn.classList.remove('hidden');
-    }
-}
-
-function handleRoleChange(role) {
-    const roleSpecificFields = document.getElementById('role-specific-fields');
-    const schoolRequired = document.getElementById('school-required');
-    const schoolHelper = document.getElementById('school-helper');
-    const schoolId = document.getElementById('school_id');
-
-    // Hide all role-specific field groups
-    document.getElementById('teacher-fields').classList.add('hidden');
-    document.getElementById('supervisor-fields').classList.add('hidden');
-    document.getElementById('school-head-fields').classList.add('hidden');
-
-    // Remove irrelevant fields from form submission
-    const teacherFields = document.querySelectorAll('#teacher-fields input, #teacher-fields select');
-    const supervisorFields = document.querySelectorAll('#supervisor-fields input, #supervisor-fields select');
-    const schoolHeadFields = document.querySelectorAll('#school-head-fields input, #school-head-fields select');
-
-    teacherFields.forEach(field => field.disabled = true);
-    supervisorFields.forEach(field => field.disabled = true);
-    schoolHeadFields.forEach(field => field.disabled = true);
-
-    if (role === 'teacher' || role === 'supervisor' || role === 'school_head') {
-        // Show role-specific fields
-        roleSpecificFields.classList.remove('hidden');
-
-        // Make school required
-        schoolRequired.classList.remove('hidden');
-        schoolHelper.textContent = 'Required for this role';
-        schoolId.required = true;
-
-        // Enable relevant fields
-        if (role === 'teacher') {
-            document.getElementById('teacher-fields').classList.remove('hidden');
-            teacherFields.forEach(field => field.disabled = false);
-        } else if (role === 'supervisor') {
-            document.getElementById('supervisor-fields').classList.remove('hidden');
-            supervisorFields.forEach(field => field.disabled = false);
-        } else if (role === 'school_head') {
-            document.getElementById('school-head-fields').classList.remove('hidden');
-            schoolHeadFields.forEach(field => field.disabled = false);
-        }
-    } else {
-        // Hide role-specific fields for admin
-        roleSpecificFields.classList.add('hidden');
-
-        // Make school optional
-        schoolRequired.classList.add('hidden');
-        schoolHelper.textContent = 'Optional for system admins';
-        schoolId.required = false;
-    }
-}
-
-// Form submission handling
-document.getElementById('invitationForm').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('submitBtn');
     const submitIcon = document.getElementById('submitIcon');
     const submitText = document.getElementById('submitText');
     const loadingIcon = document.getElementById('loadingIcon');
 
-    // Show loading state
-    submitBtn.disabled = true;
-    submitIcon.classList.add('hidden');
-    submitText.textContent = 'Sending...';
-    loadingIcon.classList.remove('hidden');
-});
+    const basicContent = document.getElementById('content-basic');
+    const roleContent = document.getElementById('content-role');
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const roleSelect = document.querySelector('input[name="role"]:checked');
-    if (roleSelect) {
-        handleRoleChange(roleSelect.value);
+    const name = document.getElementById('name');
+    const email = document.getElementById('email');
+
+    const step1Circle = document.getElementById('step1-circle');
+    const step2Circle = document.getElementById('step2-circle');
+    const step1Label = document.getElementById('step1-label');
+    const step2Label = document.getElementById('step2-label');
+    const stepHint = document.getElementById('stepHint');
+    const roleError = document.getElementById('role-error');
+
+    let currentStep = 1;
+
+    /* ---------- validation helpers ---------- */
+
+    function setFieldError(input, message) {
+        input.classList.toggle('border-red-500', Boolean(message));
+        let err = input.parentElement.querySelector('.field-error');
+        if (message) {
+            if (!err) {
+                err = document.createElement('p');
+                err.className = 'field-error mt-1 text-sm text-red-600 dark:text-red-400';
+                input.parentElement.appendChild(err);
+            }
+            err.textContent = message;
+        } else if (err) {
+            err.remove();
+        }
+    }
+
+    function validateStep1() {
+        let valid = true;
+
+        const nameVal = name.value.trim();
+        if (!nameVal) {
+            setFieldError(name, 'Full Name is required.');
+            valid = false;
+        } else {
+            setFieldError(name, null);
+        }
+
+        const emailVal = email.value.trim();
+        if (!emailVal) {
+            setFieldError(email, 'Email Address is required.');
+            valid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+            setFieldError(email, 'Enter a valid email address (e.g. juan.delacruz@deped.gov.ph).');
+            valid = false;
+        } else {
+            setFieldError(email, null);
+        }
+
+        return valid;
+    }
+
+    /* ---------- step indicator helpers ---------- */
+
+    function setCircle(circle, state, content) {
+        circle.classList.remove('bg-blue-600', 'bg-gray-200', 'bg-green-600', 'text-white', 'text-gray-500', 'dark:text-gray-400', 'dark:text-gray-500');
+        if (state === 'active') {
+            circle.classList.add('bg-blue-600', 'text-white');
+        } else if (state === 'done') {
+            circle.classList.add('bg-green-600', 'text-white');
+        } else {
+            circle.classList.add('bg-gray-200', 'text-gray-500', 'dark:text-gray-400');
+        }
+        circle.innerHTML = content;
+    }
+
+    function setLabel(label, state) {
+        label.classList.remove('text-blue-600', 'text-green-600', 'text-gray-500', 'dark:text-blue-400', 'dark:text-green-400', 'dark:text-gray-400');
+        if (state === 'active') {
+            label.classList.add('text-blue-600', 'dark:text-blue-400');
+        } else if (state === 'done') {
+            label.classList.add('text-green-600', 'dark:text-green-400');
+        } else {
+            label.classList.add('text-gray-500', 'dark:text-gray-400');
+        }
+    }
+
+    function showTab(tab, show) {
+        if (show) {
+            tab.classList.remove('hidden');
+            tab.classList.add('step-fade');
+        } else {
+            tab.classList.add('hidden');
+            tab.classList.remove('step-fade');
+        }
+    }
+
+    function setVisible(btn, visible) {
+        btn.classList.toggle('hidden', !visible);
+    }
+
+    function goToStep(step) {
+        if (step === 2 && !validateStep1()) {
+            const firstInvalid = [name, email].find((el) => el.classList.contains('border-red-500'));
+            if (firstInvalid) firstInvalid.focus();
+            return;
+        }
+
+        currentStep = step;
+        showTab(basicContent, step === 1);
+        showTab(roleContent, step === 2);
+        setVisible(backBtn, step === 2);
+        setVisible(nextBtn, step === 1);
+        setVisible(submitBtn, step === 2);
+
+        if (step === 1) {
+            setCircle(step1Circle, 'active', '1');
+            setLabel(step1Label, 'active');
+            setCircle(step2Circle, 'pending', '2');
+            setLabel(step2Label, 'pending');
+            stepHint.innerHTML = 'Step 1 of 2 &middot; Enter the invitee&rsquo;s basic information';
+        } else {
+            setCircle(step1Circle, 'done', '&#10003;');
+            setLabel(step1Label, 'done');
+            setCircle(step2Circle, 'active', '2');
+            setLabel(step2Label, 'active');
+            stepHint.innerHTML = 'Step 2 of 2 &middot; Choose the role &amp; assignment details';
+        }
+    }
+
+    /* ---------- role-specific fields ---------- */
+
+    function handleRoleChange(role) {
+        const roleSpecificFields = document.getElementById('role-specific-fields');
+        const schoolRequired = document.getElementById('school-required');
+        const schoolHelper = document.getElementById('school-helper');
+        const schoolId = document.getElementById('school_id');
+
+        const groups = {
+            teacher: document.getElementById('teacher-fields'),
+            supervisor: document.getElementById('supervisor-fields'),
+            school_head: document.getElementById('school-head-fields'),
+        };
+
+        Object.entries(groups).forEach(([key, group]) => {
+            group.classList.add('hidden');
+            group.querySelectorAll('input, select').forEach((field) => (field.disabled = true));
+        });
+
+        if (role === 'admin') {
+            roleSpecificFields.classList.add('hidden');
+            schoolRequired.classList.add('hidden');
+            schoolHelper.textContent = 'Optional for system admins';
+            schoolId.required = false;
+            return;
+        }
+
+        roleSpecificFields.classList.remove('hidden');
+        schoolRequired.classList.remove('hidden');
+        schoolHelper.textContent = 'Required for this role';
+        schoolId.required = true;
+
+        if (groups[role]) {
+            groups[role].classList.remove('hidden');
+            groups[role].querySelectorAll('input, select').forEach((field) => (field.disabled = false));
+        }
+    }
+
+    /* ---------- event wiring ---------- */
+
+    backBtn.addEventListener('click', () => goToStep(1));
+    nextBtn.addEventListener('click', () => goToStep(2));
+
+    basicContent.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goToStep(2);
+            }
+        });
+    });
+
+    name.addEventListener('input', () => setFieldError(name, null));
+    email.addEventListener('input', () => setFieldError(email, null));
+
+    document.querySelectorAll('input[name="role"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+            handleRoleChange(radio.value);
+            roleError.classList.add('hidden');
+        });
+    });
+
+    form.addEventListener('submit', function (e) {
+        const role = document.querySelector('input[name="role"]:checked');
+
+        if (!role) {
+            e.preventDefault();
+            goToStep(2);
+            roleError.textContent = 'Please select a role for this user.';
+            roleError.classList.remove('hidden');
+            roleError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        roleError.classList.add('hidden');
+
+        submitBtn.disabled = true;
+        submitIcon.classList.add('hidden');
+        submitText.textContent = 'Sending...';
+        loadingIcon.classList.remove('hidden');
+    });
+
+    /* ---------- initialize ---------- */
+
+    const selectedRole = document.querySelector('input[name="role"]:checked');
+    if (selectedRole) {
+        handleRoleChange(selectedRole.value);
+        goToStep(2);
+    } else {
+        setCircle(step1Circle, 'active', '1');
+        setLabel(step1Label, 'active');
+        setCircle(step2Circle, 'pending', '2');
+        setLabel(step2Label, 'pending');
     }
 });
 </script>

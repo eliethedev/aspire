@@ -15,7 +15,25 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8">
+@php
+    $stageLabels = [
+        'pre_observation_planning' => 'Pre-Observation Planning',
+        'pre_conference' => 'Pre-Conference',
+        'observation' => 'Observation',
+        'post_conference' => 'Post-Conference',
+    ];
+    $stageCompleted = [
+        'pre_observation_planning' => (bool) $observation->preObservationPlanning,
+        'pre_conference' => (bool) $observation->preConference,
+        'observation' => $observation->cotRatings && $observation->cotRatings->count() > 0,
+        'post_conference' => (bool) $observation->postConference,
+    ];
+    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $currentIdx = array_search($observation->stage, $stageKeys);
+    $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
+    $detailFilter = request('detail_filter') ?? 'all';
+@endphp
+<div class="max-w-7xl mx-auto px-6 py-8" x-data="{ detailFilter: '{{ $detailFilter }}' }">
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">
@@ -47,62 +65,39 @@
 
     <!-- Details Filter -->
     <div class="flex flex-wrap gap-2 mb-4">
-        <button wire:click="detailFilter = 'all'"
+        <button @click="detailFilter = 'all'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             All Details
         </button>
-        <button wire:click="detailFilter = 'ratings'"
+        <button @click="detailFilter = 'ratings'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'ratings' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Ratings Only
         </button>
-        <button wire:click="detailFilter = 'result'"
+        <button @click="detailFilter = 'result'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'result' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Result Only
         </button>
-        <button wire:click="detailFilter = 'pre_observation'"
+        <button @click="detailFilter = 'pre_observation'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'pre_observation' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Pre-Observation
         </button>
-        <button wire:click="detailFilter = 'pre_conference'"
+        <button @click="detailFilter = 'pre_conference'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'pre_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Pre-Conference
         </button>
-        <button wire:click="detailFilter = 'post_conference'"
+        <button @click="detailFilter = 'post_conference'"
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'post_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Post-Conference
         </button>
     </div>
 
-    @php
-        $stageLabels = [
-            'pre_observation_planning' => 'Pre-Observation Planning',
-            'pre_conference' => 'Pre-Conference',
-            'observation' => 'Observation',
-            'post_conference' => 'Post-Conference',
-        ];
-        $stageCompleted = [
-            'pre_observation_planning' => (bool) $observation->preObservationPlanning,
-            'pre_conference' => (bool) $observation->preConference,
-            'observation' => $observation->cotRatings && $observation->cotRatings->count() > 0,
-            'post_conference' => (bool) $observation->postConference,
-        ];
-        $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-        $currentIdx = array_search($observation->stage, $stageKeys);
-        $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
-        $detailFilter = request('detail_filter') ?? 'all';
-    @endphp
-
     @push('scripts')
-    <script>
-        window.detailFilter = '{{ $detailFilter }}';
-    </script>
-    @endpush
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div class="lg:col-span-2 min-w-0">

@@ -11,6 +11,10 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <script>
+        (function(){ if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); })();
+    </script>
+
     <style>
         .light-bg { background-color: #f0f5ff; }
         .glass-card {
@@ -36,15 +40,27 @@
             50% { transform: translateY(-6px); }
         }
         .float-icon { animation: float-icon 3s ease-in-out infinite; }
+        .dark .light-bg { background-color: #030712; }
+        .dark .glass-card {
+            background: #111827;
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+        .dark .btn-secondary {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+        .dark .btn-secondary:hover { background-color: #374151; border-color: #4b5563; }
     </style>
 </head>
 <body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">
             ASPIRE
         </a>
-        <span class="text-xs sm:text-sm text-gray-400 font-medium">
+        <span class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 font-medium">
             {{ $heading ?? 'Error' }}
         </span>
     </nav>
@@ -56,11 +72,11 @@
                 {!! $icon ?? '' !!}
             </div>
 
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-3 tracking-tight">
                 {{ $title ?? 'Error' }}
             </h1>
 
-            <p class="text-gray-500 text-sm sm:text-base leading-relaxed mb-8">
+            <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base leading-relaxed mb-8">
                 {{ $message ?? 'Something went wrong.' }}
             </p>
 
@@ -69,7 +85,7 @@
         </div>
     </main>
 
-    <footer class="text-center py-6 text-xs text-gray-400">
+    <footer class="text-center py-6 text-xs text-gray-400 dark:text-gray-500">
         {{ config('app.name', 'ASPIRE') }} &copy; {{ date('Y') }}
     </footer>
 </body>

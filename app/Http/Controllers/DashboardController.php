@@ -34,39 +34,7 @@ class DashboardController extends Controller
      */
     private function teacherDashboard(Request $request)
     {
-        $teacher = $request->user()->teacher;
-
-        if (!$teacher) {
-            return redirect()->route('profile.edit')->with('error', 'Teacher profile not found. Please complete your profile.');
-        }
-
-        $observationsQuery = $teacher->observations();
-
-        // Get teacher statistics
-        $stats = [
-            'total_observations' => $observationsQuery->count(),
-            'completed' => $observationsQuery->completed()->count(),
-            'average_cot_score' => $observationsQuery->completed()->avg('overall_score') ?? 0,
-            'upcoming' => $observationsQuery->pending()->count(),
-        ];
-
-        // Recent observation
-        $recentObservation = $observationsQuery->with('observer')->latest()->first();
-
-        // Next upcoming observation
-        $nextObservation = $observationsQuery->pending()->with('observer')->first();
-
-        // Recent post-conference feedback
-        $recentFeedback = $observationsQuery->completed()->with('postConference')->latest()->first()?->postConference;
-
-        // COT score trend data
-        $cotObservations = $observationsQuery->completed()->orderBy('observation_date')->get(['overall_score', 'observation_date']);
-        $cotScores = $cotObservations->pluck('overall_score');
-        $cotLabels = $cotObservations->pluck('observation_date')->map(fn($d) => $d->format('M d, Y'));
-
-        return view('teacher.dashboard', compact(
-            'stats', 'cotScores', 'cotLabels', 'recentObservation', 'recentFeedback', 'nextObservation'
-        ));
+        return app(\App\Http\Controllers\Teacher\DashboardController::class)->index();
     }
 
     /**

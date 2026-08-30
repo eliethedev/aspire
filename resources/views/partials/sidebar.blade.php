@@ -8,7 +8,6 @@
         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif" 
            :class="$store.sidebar.isCollapsed() ? 'hidden' : ''"
            class="flex items-center space-x-2.5">
-           <x-deped-logo class="w-16 h-auto shrink-0" />
            <span class="text-lg font-bold text-indigo-600 tracking-tight">
                 ASPIRE
             </span>
@@ -100,8 +99,7 @@
                         $pendingConfirmationCount = auth()->user()->teacher
                             ? \App\Models\Observation::where('observee_id', auth()->user()->teacher->id)
                                 ->where('observee_type', \App\Models\Teacher::class)
-                                ->where('confirmation_status', 'pending')
-                                ->where('status', '!=', 'cancelled')
+                                ->where('status', 'scheduled')
                                 ->count()
                             : 0;
                     @endphp

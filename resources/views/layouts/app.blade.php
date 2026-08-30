@@ -13,15 +13,22 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script>
+            (function() {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
     </head>
     <body class="font-sans antialiased" x-data="{ sidebarOpen: true, isHovering: false }">
-        <div class="min-h-screen bg-white" :class="{ 'sidebar-closed': !sidebarOpen }">
+        <div class="min-h-screen bg-white dark:bg-gray-950" :class="{ 'sidebar-closed': !sidebarOpen }">
             @include('layouts.navigation')
             @include('layouts.header')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="glass-card border-b border-gray-200" :class="{ 'sidebar-closed': !sidebarOpen }">
+                <header class="glass-card border-b border-gray-200 dark:border-gray-800" :class="{ 'sidebar-closed': !sidebarOpen }">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

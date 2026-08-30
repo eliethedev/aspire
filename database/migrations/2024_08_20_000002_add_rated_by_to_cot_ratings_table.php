@@ -9,15 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cot_ratings', function (Blueprint $table) {
-            $table->foreignId('rated_by')->nullable()->after('comments')->constrained('users')->nullOnDelete();
+            if (! Schema::hasColumn('cot_ratings', 'rated_by')) {
+                $table->foreignId('rated_by')->nullable()->constrained('users')->nullOnDelete();
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('cot_ratings', function (Blueprint $table) {
-            $table->dropForeign(['rated_by']);
-            $table->dropColumn('rated_by');
+            if (Schema::hasColumn('cot_ratings', 'rated_by')) {
+                try { $table->dropForeign(['rated_by']); } catch (\Throwable $e) {}
+                $table->dropColumn('rated_by');
+            }
         });
     }
 };

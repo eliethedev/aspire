@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])->middleware('throttle:30,1')->name('notifications.mark-read');
     Route::post('/notifications/{id}/mark-unread', [NotificationController::class, 'markAsUnread'])->middleware('throttle:30,1')->name('notifications.mark-unread');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->middleware('throttle:10,1')->name('notifications.mark-all-read');
+    Route::post('/notifications/{id}/delete', [NotificationController::class, 'destroy'])->middleware('throttle:30,1')->name('notifications.destroy');
     // Legacy per-role URL — kept for older links, redirects to the unified page.
     Route::get('/notifications/{role}', [NotificationController::class, 'show'])->name('notifications.show');
 

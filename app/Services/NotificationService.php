@@ -352,6 +352,21 @@ class NotificationService
         ]);
     }
 
+    /**
+     * Delete a single notification. Returns false when the notification
+     * does not belong to the given user.
+     */
+    public function delete(Notification $notification, User $user): bool
+    {
+        if (! $this->belongsTo($notification, $user)) {
+            return false;
+        }
+
+        $notification->delete();
+
+        return true;
+    }
+
     public function unreadCount(User $user): int
     {
         return $this->baseQuery($user)->unread()->count();

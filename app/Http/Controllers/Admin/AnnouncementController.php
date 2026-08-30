@@ -199,7 +199,7 @@ class AnnouncementController extends Controller
             }
 
             if ($sendEmail && $user->email) {
-                $this->mailer->sendGenericEmail(
+                $this->mailer->sendGenericEmailLater(
                     $user->email,
                     $user->name,
                     $announcement->title,
