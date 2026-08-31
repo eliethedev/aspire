@@ -64,17 +64,26 @@ class ForgotPasswordController extends Controller
                     'user_agent' => request()->userAgent(),
                 ]);
 
-                // Send invitation email
+            // Send invitation email
+            try {
                 $user->notify(new UserInvitation($invitation));
 
                 // Notify admins about password reset request
                 $this->notifyAdmins($user, $invitation);
+            } catch (\Throwable $e) {
+                // Log the failure but don't break the user-facing flow.
+                // The success message is still shown to prevent account enumeration.
+                logger()->error('Failed to send password reset invitation', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
             });
         }
 
         // Always return success message to prevent timing attacks
         return back()
-            ->with('status', 'If your email is registered, a new invitation has been sent to reset your password. Please check your inbox.');
+            ->with('status', 'If your email is registered, we have sent a new invitation link to your inbox. Please check your email (and spam/junk folder) to reset your password.');
     }
 
     /**
@@ -87,7 +96,20 @@ class ForgotPasswordController extends Controller
             ->where('status', 'active')
             ->get();
 
+        $notificationService = app(\App\Services\NotificationService::class);
+
         foreach ($admins as $admin) {
+            // In-app notification (uses the custom notifications table).
+            $notificationService->notify(
+                $admin,
+                \App\Enums\NotificationType::SECURITY,
+                'Password Reset Request',
+                "{$user->email} ({$user->name}) requested a password reset / new invitation.",
+                null,
+                url('/admin/users/' . $user->id),
+            );
+
+            // Email notification to the admin.
             $admin->notify(new \App\Notifications\PasswordResetRequestNotification($user, $invitation));
         }
     }

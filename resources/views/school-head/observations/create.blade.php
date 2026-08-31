@@ -101,7 +101,7 @@
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span x-text="item.subject"></span>
                                     <template x-if="item.department">
-                                        <><span class="w-1 h-1 rounded-full bg-gray-300"></span><span x-text="item.department"></span></>
+                                        <span class="inline-flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-gray-300"></span><span x-text="item.department"></span></span>
                                     </template>
                                 </div>
                             </div>

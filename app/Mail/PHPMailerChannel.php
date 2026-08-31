@@ -78,7 +78,7 @@ class PHPMailerChannel
             <div style='background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;'>
                 <p><strong>Your Role:</strong> " . ucfirst($invitation->role) . "</p>
                 <p><strong>School:</strong> " . ($invitation->school?->name ?? 'Not assigned') . "</p>
-                <p><strong>Invited by:</strong> {$invitation->invitedBy->name}</p>
+                <p><strong>Invited by:</strong> " . ($invitation->invitedBy?->name ?? 'The Administrator') . "</p>
                 <p><strong>Expires:</strong> {$expiresAt}</p>
             </div>
             <p>To get started, please click the button below to set your password and activate your account.</p>

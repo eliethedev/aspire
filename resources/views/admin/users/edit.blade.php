@@ -71,12 +71,31 @@
                     
                     <div>
                         <label for="email" class="block text-sm font-medium text-dark mb-1">
-                            Email Address
+                            Email Address <span class="text-red-500">*</span>
                         </label>
-                        <input type="email" id="email" value="{{ $user->email }}" readonly disabled
-                               class="w-full px-3 py-2 border glass-card text-dark rounded-lg bg-slate-100 dark:bg-gray-800 cursor-not-allowed"
+                        <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required
+                               class="w-full px-3 py-2 border glass-card text-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="john@example.com">
-                        <p class="mt-1 text-xs text-dark">Email address cannot be changed.</p>
+                        @error('email')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                            Emergency edit only: changing the email also invalidates password reset links sent to the old address and un-verifies the new one.
+                        </p>
+
+                        <div class="mt-3 p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20">
+                            <label class="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300 cursor-pointer">
+                                <input type="checkbox" id="confirm_email_change" name="confirm_email_change" value="1"
+                                       class="mt-0.5 rounded border-amber-400 text-amber-600 focus:ring-amber-500">
+                                <span>
+                                    I confirm this is a deliberate email change for
+                                    <strong>{{ $user->name }}</strong>.
+                                </span>
+                            </label>
+                            @error('confirm_email_change')
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
             </div>

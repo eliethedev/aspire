@@ -62,7 +62,6 @@ class SupervisorController extends Controller
             'fullName' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'phoneNumber' => ['nullable', 'string', 'max:20'],
             'schoolId' => ['required', 'exists:schools,id'],
             'employeeId' => ['nullable', 'string', 'max:50'],
             'position' => ['required', Rule::in([
@@ -89,7 +88,6 @@ class SupervisorController extends Controller
         // Create supervisor profile
         $supervisor = $user->supervisor()->create([
             'school_id' => $validated['schoolId'],
-            'phone_number' => $validated['phoneNumber'] ?? null,
             'employee_id' => $validated['employeeId'] ?? null,
             'position' => $validated['position'],
             'status' => $validated['status'],
@@ -133,7 +131,6 @@ class SupervisorController extends Controller
         $validated = $request->validate([
             'fullName' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($supervisor->user_id)],
-            'phoneNumber' => ['nullable', 'string', 'max:20'],
             'schoolId' => ['sometimes', 'required', 'exists:schools,id'],
             'employeeId' => ['nullable', 'string', 'max:50'],
             'position' => ['sometimes', 'required', Rule::in([
@@ -165,9 +162,6 @@ class SupervisorController extends Controller
 
         // Update supervisor data
         $supervisorData = [];
-        if (isset($validated['phoneNumber'])) {
-            $supervisorData['phone_number'] = $validated['phoneNumber'];
-        }
         if (isset($validated['employeeId'])) {
             $supervisorData['employee_id'] = $validated['employeeId'];
         }

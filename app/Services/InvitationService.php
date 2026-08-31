@@ -255,7 +255,7 @@ class InvitationService
             case 'school_head':
                 \App\Models\SchoolHeadProfile::create([
                     'user_id' => $user->id,
-                    'school_id' => $data['school_id'] ?? null,
+                    'school_id' => $user->school_id ?? ($data['school_id'] ?? null),
                     'position_level' => $data['position_level'] ?? null,
                     'administrative_experience_years' => $data['administrative_experience_years'] ?? 0,
                     'leadership_training' => $data['leadership_training'] ?? null,

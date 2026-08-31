@@ -24,7 +24,7 @@ class InvitationFlowTest extends TestCase
             'department' => 'Science',
         ]);
 
-        $response->assertRedirect(route('admin.invitations.index'));
+        $response->assertRedirect(route('admin.users.index'));
 
         $this->assertDatabaseHas('users', [
             'email' => 'maria@example.com',

@@ -208,7 +208,7 @@
                     <span class="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-white transition-colors">Remember me</span>
                 </label>
                 <a 
-                    href="" 
+                    href="{{ route('password.request') }}" 
                     class="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors whitespace-nowrap"
                 >
                     Forgot password?

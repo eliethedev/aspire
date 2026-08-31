@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CotIndicatorVersion;
 use App\Models\Observation;
+use App\Models\School;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\CotIndicatorService;
@@ -108,7 +109,15 @@ class CotCareerStageVersionTest extends TestCase
             'label' => 'MT I-II',
         ]);
 
+        $school = School::factory()->create();
         $schoolHead = User::factory()->create(['role' => 'school_head']);
+        $schoolHead->profile()->create(['mobile_number' => '09171234567']);
+        $schoolHead->schoolHeadProfile()->create([
+            'school_id' => $school->id,
+            'school_type' => 'elementary',
+            'grade_level' => 'Grade 7',
+            'subject' => 'Mathematics',
+        ]);
         $teacher = Teacher::factory()->create(['career_stage' => 'master_teacher_i_ii']);
 
         $this->actingAs($schoolHead)

@@ -69,7 +69,7 @@ class RateLimitTest extends TestCase
                 'name' => "Invitee {$i}",
                 'email' => "invitee{$i}@example.com",
                 'role' => 'teacher',
-            ])->assertRedirect(route('admin.invitations.index'));
+            ])->assertRedirect(route('admin.users.index'));
         }
 
         $this->actingAs($admin)->post(route('admin.invitations.store'), [

@@ -95,9 +95,11 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($schoolHeads as $schoolHead)
             @php
-                $initial = strtoupper(substr($schoolHead->user->name, 0, 1));
+                $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
+                $shEmail = $schoolHead->user?->email ?? '';
+                $initial = strtoupper(substr($shName, 0, 1));
                 $avatarColors = ['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-violet-500', 'bg-rose-500', 'bg-amber-500', 'bg-cyan-500', 'bg-pink-500'];
-                $avatarColor = $avatarColors[crc32($schoolHead->user->email) % count($avatarColors)];
+                $avatarColor = $avatarColors[crc32($shEmail ?: $shName) % count($avatarColors)];
             @endphp
             <div class="teacher-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
                 <div class="flex items-center gap-4">
@@ -105,8 +107,10 @@
                         {{ $initial }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $schoolHead->user->name }}</a>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $schoolHead->user->email }}</p>
+                        <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $shName }}</a>
+                        @if($shEmail)
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $shEmail }}</p>
+                        @endif
                         @if($schoolHead->current_designation)
                             <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $schoolHead->current_designation_label }}</p>
                         @endif

@@ -80,12 +80,26 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        // Email address is immutable once the account is created.
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required', 'string', 'lowercase', 'email', 'max:255',
+                Rule::unique('users')->ignore($user->id),
+            ],
             'role' => ['required', 'string', Rule::in(['admin', 'school_head', 'supervisor', 'teacher'])],
             'school_id' => ['nullable', 'exists:schools,id'],
+            'confirm_email_change' => ['nullable', 'boolean'],
         ]);
+
+        $emailChanged = strtolower($validated['email']) !== strtolower($user->email);
+
+        // Changing a login email is an emergency, sensitive operation. Require
+        // the admin to acknowledge it explicitly before the change is saved.
+        if ($emailChanged && empty($validated['confirm_email_change'])) {
+            return back()
+                ->withErrors(['confirm_email_change' => 'Please confirm the email change by ticking the confirmation box.'])
+                ->withInput();
+        }
 
         $user->update([
             'name' => $validated['name'],
@@ -93,11 +107,18 @@ class UserController extends Controller
             'school_id' => $validated['school_id'] ?? null,
         ]);
 
+        if ($emailChanged) {
+            $user->update([
+                'email' => $validated['email'],
+                'email_verified_at' => null,
+            ]);
+        }
+
         app(AuditLogService::class)->logUpdate(
             'users', $user,
             $user->getOriginal(),
-            $validated,
-            "Updated user: {$user->name}"
+            array_merge($validated, ['email_changed' => $emailChanged]),
+            "Updated user: {$user->name}" . ($emailChanged ? ' (email changed)' : '')
         );
 
         return redirect()

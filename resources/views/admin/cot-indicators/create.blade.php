@@ -57,9 +57,11 @@
                     <select name="career_track" id="career_track" x-model="track" @change="onTrackChange()"
                             class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm @error('career_track') border-red-500 @enderror">
                         <option value="">Select career track</option>
-                        <template x-for="(trackLabel, trackValue) in availableTracks" :key="trackValue">
-                            <option :value="trackValue" x-text="trackLabel"></option>
-                        </template>
+                        @foreach ($tracks[old('framework', 'ppst')] ?? [] as $trackValue => $trackLabel)
+                            <option value="{{ $trackValue }}" {{ old('career_track') == $trackValue ? 'selected' : '' }}>
+                                {{ $trackLabel }}
+                            </option>
+                        @endforeach
                     </select>
                     @error('career_track') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -71,9 +73,18 @@
                     <select name="ratee_position" id="ratee_position" x-model="position" @change="onPositionChange()"
                             class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm @error('ratee_position') border-red-500 @enderror">
                         <option value="">Select ratee position</option>
-                        <template x-for="positionOption in availablePositions" :key="positionOption.value">
-                            <option :value="positionOption.value" x-text="positionOption.label"></option>
-                        </template>
+                        @php
+                            $createFramework = old('framework', 'ppst');
+                            $createTrack = old('career_track');
+                        @endphp
+                        @isset($positions[$createFramework][$createTrack])
+                            @foreach ($positions[$createFramework][$createTrack] as $positionOption)
+                                <option value="{{ $positionOption['value'] }}"
+                                    {{ old('ratee_position') == $positionOption['value'] ? 'selected' : '' }}>
+                                    {{ $positionOption['label'] }}
+                                </option>
+                            @endforeach
+                        @endisset
                     </select>
                     @error('ratee_position') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>

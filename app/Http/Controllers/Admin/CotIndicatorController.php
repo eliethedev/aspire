@@ -6,6 +6,7 @@ use App\Enums\TeacherCareerStage;
 use App\Http\Controllers\Controller;
 use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
+use App\Models\PpstStandard;
 use App\Services\CareerStageResolver;
 use App\Services\CotIndicatorService;
 use App\Services\CotDocumentService;
@@ -130,8 +131,34 @@ class CotIndicatorController extends Controller
 
         return view('admin.cot-indicators.edit', array_merge(
             compact('cotIndicatorVersion', 'schoolYears', 'rateeRoles', 'careerStages'),
-            $this->versionContextViewData()
+            $this->versionContextViewData(),
+            $this->ppstPickerViewData($cotIndicatorVersion)
         ));
+    }
+
+    /**
+     * View data for the "Add from PPST Standards" picker in the COT editor:
+     * the standards library grouped by domain → strand, plus the set of codes
+     * already used by this version (so the picker can flag/disable them).
+     */
+    private function ppstPickerViewData(CotIndicatorVersion $cotIndicatorVersion): array
+    {
+        $standards = PpstStandard::query()->ordered()->get();
+
+        $domains = $standards
+            ->groupBy('domain')
+            ->map(fn ($domainStandards) => $domainStandards->groupBy('strand'));
+
+        $usedCodes = $cotIndicatorVersion->indicators
+            ->pluck('code')
+            ->filter()
+            ->flip();
+
+        return [
+            'ppstStandards' => $standards,
+            'ppstDomains' => $domains,
+            'ppstUsedCodes' => $usedCodes,
+        ];
     }
 
     public function update(Request $request, CotIndicatorVersion $cotIndicatorVersion)
@@ -316,6 +343,50 @@ class CotIndicatorController extends Controller
             ->with('success', "Indicator {$validated['code']} added.");
     }
 
+    /**
+     * Add a PPST library standard as an indicator of the version. Pulls the
+     * code, description and domain straight from the canonical standard and
+     * links it via ppst_standard_id so the template stays traceable.
+     */
+    public function addStandardIndicator(Request $request, CotIndicatorVersion $cotIndicatorVersion)
+    {
+        if (! $cotIndicatorVersion->canEdit()) {
+            return redirect()->back()->with('error', 'Published or archived versions are immutable.');
+        }
+
+        $validated = $request->validate([
+            'ppst_standard_id' => ['required', 'integer'],
+        ]);
+
+        $standard = PpstStandard::findOrFail($validated['ppst_standard_id']);
+
+        $existing = CotIndicator::where('version_id', $cotIndicatorVersion->id)
+            ->where('code', $standard->indicator_code)
+            ->exists();
+
+        if ($existing) {
+            return redirect()->route('admin.cot-indicators.edit', $cotIndicatorVersion)
+                ->with('error', "Indicator {$standard->indicator_code} is already in this version.");
+        }
+
+        $maxOrder = (int) CotIndicator::where('version_id', $cotIndicatorVersion->id)->max('sort_order');
+
+        CotIndicator::create([
+            'version_id' => $cotIndicatorVersion->id,
+            'ppst_standard_id' => $standard->id,
+            'code' => $standard->indicator_code,
+            'description' => $standard->description,
+            'domain' => $standard->domain,
+            'sort_order' => $maxOrder + 1,
+            'is_active' => true,
+        ]);
+
+        $this->cotIndicatorService->clearCache();
+
+        return redirect()->route('admin.cot-indicators.edit', $cotIndicatorVersion)
+            ->with('success', "PPST indicator {$standard->indicator_code} added to this version.");
+    }
+
     public function updateIndicator(Request $request, CotIndicatorVersion $cotIndicatorVersion)
     {
         if (! $cotIndicatorVersion->canEdit()) {
@@ -346,6 +417,7 @@ class CotIndicatorController extends Controller
             'description' => $validated['description'],
             'domain' => $validated['domain'],
             'is_active' => ! empty($validated['is_active']),
+            'ppst_standard_id' => $request->input('ppst_standard_id') ?: $indicator->ppst_standard_id,
         ]);
 
         $this->cotIndicatorService->clearCache();

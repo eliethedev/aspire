@@ -131,15 +131,9 @@
                         </span>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="text-sm font-medium text-dark/80">Phone Number</h4>
-                        <p class="text-dark">{{ $supervisor->phone_number ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-dark/80">Employee ID</h4>
-                        <p class="text-dark">{{ $supervisor->employee_id ?? 'N/A' }}</p>
-                    </div>
+                <div>
+                    <h4 class="text-sm font-medium text-dark/80">Employee ID</h4>
+                    <p class="text-dark">{{ $supervisor->employee_id ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>

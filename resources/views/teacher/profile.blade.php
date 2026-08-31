@@ -10,6 +10,29 @@
 
 <div class="max-w-5xl mx-auto" x-data="{ activeTab: 'basic' }">
 
+    @if (session('status') === 'profile-incomplete' || session('profile_incomplete'))
+        <div x-data="{ show: true }" x-show="show" x-transition
+             class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 rounded-xl p-5 flex items-start gap-4">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold">Complete your profile to continue</h3>
+                <p class="text-sm mt-1">A few essential details are required before you can use observations. Please fill in the highlighted fields below.</p>
+                @if (session('profile_missing'))
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach (session('profile_missing') as $field)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                                {{ str_replace('_', ' ', ucfirst($field)) }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if (session('status') === 'profile-updated')
         <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)"
              class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl p-4 flex items-center gap-3">
@@ -235,19 +258,20 @@
                         </div>
                         <div>
                             <x-input-label for="position" :value="__('Position')" />
-                            <x-text-input id="position" name="position" type="text" class="mt-1 block w-full" :value="old('position', $user->teacher?->position)" />
+                            <input type="hidden" name="position" value="{{ old('position', $user->teacher?->position) }}">
+                            <input id="position" type="text" disabled
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
+                                   value="{{ old('position', $user->teacher?->position) }}">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('position')" />
                         </div>
                         <div>
                             <x-input-label for="career_stage" :value="__('Career Stage')" />
-                            <select id="career_stage" name="career_stage"
-                                    class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Auto-detect from position</option>
-                                @foreach(App\Enums\TeacherCareerStage::options() as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('career_stage', $user->teacher?->career_stage) === $value)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines which COT instrument applies to your observations.</p>
+                            <input type="hidden" name="career_stage" value="{{ old('career_stage', $user->teacher?->career_stage) }}">
+                            <input id="career_stage" type="text" disabled
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
+                                   value="{{ $user->teacher?->careerStage()?->label() ?? '—' }}">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Determines which COT instrument applies to your observations. Set by the administrator.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('career_stage')" />
                         </div>
                         <div>

@@ -10,6 +10,29 @@
 
 <div class="max-w-5xl mx-auto" x-data="{ activeTab: 'basic' }">
 
+    @if (session('status') === 'profile-incomplete' || session('profile_incomplete'))
+        <div x-data="{ show: true }" x-show="show" x-transition
+             class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 rounded-xl p-5 flex items-start gap-4">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold">Complete your profile to continue</h3>
+                <p class="text-sm mt-1">A few essential details are required before you can use the platform. Please fill in the highlighted fields below.</p>
+                @if (session('profile_missing'))
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach (session('profile_missing') as $field)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                                {{ str_replace('_', ' ', ucfirst($field)) }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if (session('status') === 'profile-updated')
         <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)"
              class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl p-4 flex items-center gap-3">
@@ -232,31 +255,29 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <x-input-label for="position" :value="__('Position')" />
-                            <x-text-input id="position" name="position" type="text" class="mt-1 block w-full" :value="old('position', $user->schoolHeadProfile?->position)" />
+                            <input type="hidden" name="position" value="{{ old('position', $user->schoolHeadProfile?->position) }}">
+                            <input id="position" type="text" disabled
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
+                                   value="{{ old('position', $user->schoolHeadProfile?->position) }}">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('position')" />
                         </div>
                         <div>
                             <x-input-label for="position_level" :value="__('Position Level')" />
-                            <select id="position_level" name="position_level" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Select Level</option>
-                                <option value="principal_i" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'principal_i')>Principal I</option>
-                                <option value="principal_ii" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'principal_ii')>Principal II</option>
-                                <option value="principal_iii" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'principal_iii')>Principal III</option>
-                                <option value="principal_iv" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'principal_iv')>Principal IV</option>
-                                <option value="head_teacher" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'head_teacher')>Head Teacher</option>
-                                <option value="assistant_principal" @selected(old('position_level', $user->schoolHeadProfile?->position_level) === 'assistant_principal')>Assistant Principal</option>
-                            </select>
+                            <input type="hidden" name="position_level" value="{{ old('position_level', $user->schoolHeadProfile?->position_level) }}">
+                            <input id="position_level" type="text" disabled
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
+                                   value="{{ $user->schoolHeadProfile?->position_level ? str_replace('_', ' ', ucwords(str_replace('_', ' ', $user->schoolHeadProfile->position_level))) : '—' }}">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('position_level')" />
                         </div>
                         <div>
                             <x-input-label for="current_designation" :value="__('Current Designation')" />
-                            <select id="current_designation" name="current_designation" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Select Designation</option>
-                                <option value="principal" @selected(old('current_designation', $user->schoolHeadProfile?->current_designation) === 'principal')>Principal</option>
-                                <option value="officer_in_charge" @selected(old('current_designation', $user->schoolHeadProfile?->current_designation) === 'officer_in_charge')>Officer-in-Charge</option>
-                                <option value="head_teacher" @selected(old('current_designation', $user->schoolHeadProfile?->current_designation) === 'head_teacher')>Head Teacher</option>
-                                <option value="assistant_principal" @selected(old('current_designation', $user->schoolHeadProfile?->current_designation) === 'assistant_principal')>Assistant Principal</option>
-                            </select>
+                            <input type="hidden" name="current_designation" value="{{ old('current_designation', $user->schoolHeadProfile?->current_designation) }}">
+                            <input id="current_designation" type="text" disabled
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
+                                   value="{{ $user->schoolHeadProfile?->current_designation ? str_replace('_', ' ', ucwords(str_replace('_', ' ', $user->schoolHeadProfile->current_designation))) : '—' }}">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('current_designation')" />
                         </div>
                         <div>

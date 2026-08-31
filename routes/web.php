@@ -32,7 +32,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
 // Invitation-based password setup (public route for invited users)
 Route::get('/auth/set-password/{token}', [SetPasswordController::class, 'show'])->name('auth.set-password');
@@ -161,6 +161,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
             ->middleware('throttle:exports')->name('template');
 
         Route::post('/{cotIndicatorVersion}/indicators', [CotIndicatorController::class, 'storeIndicator'])->name('indicators.store');
+        Route::post('/{cotIndicatorVersion}/indicators/from-standard', [CotIndicatorController::class, 'addStandardIndicator'])->name('indicators.from-standard');
         Route::put('/{cotIndicatorVersion}/indicators', [CotIndicatorController::class, 'updateIndicator'])->name('indicators.update');
         Route::delete('/{cotIndicatorVersion}/indicators', [CotIndicatorController::class, 'destroyIndicator'])->name('indicators.destroy');
         Route::post('/{cotIndicatorVersion}/indicators/reorder', [CotIndicatorController::class, 'reorderIndicators'])->name('indicators.reorder');
@@ -175,7 +176,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 });
 
 // Teacher routes
-Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+Route::middleware(['auth', 'role:teacher', 'profile.complete'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [App\Http\Controllers\Teacher\DashboardController::class, 'analytics'])->name('analytics');
 
@@ -199,7 +200,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 });
 
 // Supervisor routes
-Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supervisor.')->group(function () {
+Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supervisor')->name('supervisor.')->group(function () {
     Route::get('/dashboard', [SupervisorController::class, 'dashboard'])->name('dashboard');
 
     // Profile
@@ -308,7 +309,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
 });
 
 // School Head routes
-Route::middleware(['auth', 'role:school_head'])->prefix('school-head')->name('school-head.')->group(function () {
+Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('school-head')->name('school-head.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile

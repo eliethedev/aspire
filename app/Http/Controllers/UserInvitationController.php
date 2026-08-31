@@ -129,7 +129,7 @@ class UserInvitationController extends Controller
             'leadership_training' => 'nullable|string|max:255',
             'current_designation' => 'nullable|in:principal,officer_in_charge,head_teacher,assistant_principal',
             'number_of_teachers_supervised' => 'nullable|integer|min:0',
-            'school_type' => 'nullable|in:elementary,secondary,integrated,senior_high',
+            'school_type' => 'nullable|in:public,private',
             'additional_roles' => 'nullable|string',
             'position' => 'nullable|string|max:255',
         ];

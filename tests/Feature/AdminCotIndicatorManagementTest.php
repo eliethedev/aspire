@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\CotIndicator;
 use App\Models\CotIndicatorVersion;
 use App\Models\Observation;
+use App\Models\PpstStandard;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -448,5 +449,91 @@ class AdminCotIndicatorManagementTest extends TestCase
             ->assertRedirect(route('admin.cot-indicators.index'));
 
         $this->assertDatabaseMissing('cot_indicator_versions', ['id' => $version->id]);
+    }
+
+    public function test_admin_can_add_a_ppst_standard_as_an_indicator(): void
+    {
+        $version = $this->makeDraftVersion();
+        $standard = PpstStandard::factory()->create([
+            'indicator_code' => '1.1.2',
+            'domain' => 'Content Knowledge and Pedagogy',
+            'description' => 'Applies knowledge of content within and across curriculum areas.',
+        ]);
+
+        $this->actingAs($this->admin)->post(
+            route('admin.cot-indicators.indicators.from-standard', $version),
+            ['ppst_standard_id' => $standard->id]
+        )->assertRedirect(route('admin.cot-indicators.edit', $version));
+
+        $this->assertDatabaseHas('cot_indicators', [
+            'version_id' => $version->id,
+            'ppst_standard_id' => $standard->id,
+            'code' => '1.1.2',
+            'domain' => 'Content Knowledge and Pedagogy',
+            'description' => 'Applies knowledge of content within and across curriculum areas.',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_adding_an_existing_ppst_code_to_a_version_is_rejected(): void
+    {
+        $version = $this->makeDraftVersion();
+        $standard = PpstStandard::factory()->create([
+            'indicator_code' => '1.1.2',
+        ]);
+
+        CotIndicator::factory()->create([
+            'version_id' => $version->id,
+            'code' => '1.1.2',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->from(route('admin.cot-indicators.edit', $version))
+            ->post(
+                route('admin.cot-indicators.indicators.from-standard', $version),
+                ['ppst_standard_id' => $standard->id]
+            )
+            ->assertRedirect(route('admin.cot-indicators.edit', $version));
+
+        $this->assertSame(1, CotIndicator::where('version_id', $version->id)->count());
+    }
+
+    public function test_adding_a_ppst_standard_to_an_immutable_version_is_rejected(): void
+    {
+        $version = CotIndicatorVersion::factory()->published()->create();
+        $standard = PpstStandard::factory()->create([
+            'indicator_code' => '1.1.2',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(
+                route('admin.cot-indicators.indicators.from-standard', $version),
+                ['ppst_standard_id' => $standard->id]
+            )
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('cot_indicators', [
+            'version_id' => $version->id,
+            'code' => '1.1.2',
+        ]);
+    }
+
+    public function test_edit_page_renders_the_ppst_picker_for_draft_versions(): void
+    {
+        $version = $this->makeDraftVersion();
+        $standard = PpstStandard::factory()->create([
+            'indicator_code' => '2.1.1',
+            'domain' => 'Learning Environment',
+            'description' => 'Manages classroom structure to engage learners.',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.cot-indicators.edit', $version))
+            ->assertOk()
+            ->assertSee('Add from PPST Standards')
+            ->assertSee('2.1.1')
+            ->assertSee('Manages classroom structure to engage learners.')
+            ->assertSee('/indicators/from-standard', false);
     }
 }

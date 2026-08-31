@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'school' => \App\Http\Middleware\IdentifySchool::class,
             'require.school' => \App\Http\Middleware\RequireSchool::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'ai.rate.limit' => \App\Http\Middleware\AIRateLimitMiddleware::class,
         ]);

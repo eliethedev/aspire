@@ -266,7 +266,7 @@
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span x-text="item.subject"></span>
                                     <template x-if="item.department">
-                                        <><span class="w-1 h-1 rounded-full bg-gray-300"></span><span x-text="item.department"></span></>
+                                        <span class="inline-flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-gray-300"></span><span x-text="item.department"></span></span>
                                     </template>
                                 </div>
                             </div>
@@ -305,19 +305,19 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
                             <div><span class="text-gray-400">School</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.school_name"></p></div>
                             <template x-if="selectedType === 'teacher_observation'">
-                                <>
+                                <span class="contents">
                                     <div><span class="text-gray-400">Department</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.department"></p></div>
                                     <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.subject"></p></div>
                                     <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.grade_level"></p></div>
                                     <div><span class="text-gray-400">Employee No.</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.employee_number"></p></div>
-                                </>
+                                </span>
                             </template>
                             <template x-if="selectedType !== 'teacher_observation'">
-                                <>
+                                <span class="contents">
                                     <div><span class="text-gray-400">Position Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.position_level"></p></div>
                                     <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.subject"></p></div>
                                     <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.grade_level"></p></div>
-                                </>
+                                </span>
                             </template>
                             <div><span class="text-gray-400">Email</span><p class="font-medium text-gray-800 truncate" x-text="selectedObservee.email"></p></div>
                         </div>
@@ -552,12 +552,15 @@
                                 </div>
                             </div>
                         </button>
-                        <button type="button" @click="if(!form.school_head_id) form.school_head_id='{{ $schoolHeadData[0]['user_id'] ?? '' }}'" :class="form.school_head_id ? 'border-amber-600 bg-amber-50 ring-1 ring-amber-200' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'" class="rounded-xl border-2 p-3 text-left transition-all">
+                        <button type="button" @click="toggleSchoolHead()"
+                                :disabled="!schoolHeadData || !schoolHeadData.length"
+                                :class="form.school_head_id ? 'border-amber-600 bg-amber-50 ring-1 ring-amber-200' : (!schoolHeadData || !schoolHeadData.length) ? 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'"
+                                class="rounded-xl border-2 p-3 text-left transition-all">
                             <div class="flex items-center gap-2">
                                 <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" :class="form.school_head_id ? 'border-amber-600 bg-amber-600' : 'border-gray-300'"><svg x-show="form.school_head_id" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
                                 <div>
                                     <p class="text-xs font-semibold" :class="form.school_head_id ? 'text-amber-700' : 'text-gray-700 dark:text-gray-300'">With School Head</p>
-                                    <p class="text-[11px] text-gray-400">School Head co-observes &amp; co-rates</p>
+                                    <p class="text-[11px]" :class="(!schoolHeadData || !schoolHeadData.length) ? 'text-gray-400 italic' : 'text-gray-400'" x-text="(!schoolHeadData || !schoolHeadData.length) ? 'No school heads available' : 'School Head co-observes & co-rates'"></p>
                                 </div>
                             </div>
                         </button>
@@ -851,8 +854,9 @@
 
         <!-- COT Template Preview Modal -->
         <div x-show="previewTemplate" x-cloak @keydown.escape.window="closeTemplatePreview()"
-             class="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="COT Template Preview">
+             class="fixed inset-0 z-[70] overflow-y-auto" role="dialog" aria-modal="true" aria-label="COT Template Preview">
             <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="closeTemplatePreview()"></div>
+            <div class="min-h-full flex items-center justify-center p-4">
             <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col"
                  x-show="previewTemplate"
                  x-transition:enter="transition ease-out duration-200"
@@ -918,6 +922,7 @@
                         <span x-text="selectedCotTemplateId === previewTemplate?.id ? 'Selected' : 'Use this template'"></span>
                     </button>
                 </div>
+            </div>
             </div>
         </div>
 
@@ -1203,6 +1208,14 @@
                 this.selectedObservee = item;
                 this.observeeId = item.id;
                 this.searchQuery = '';
+            },
+
+            toggleSchoolHead() {
+                if (this.schoolHeadData && this.schoolHeadData.length) {
+                    this.form.school_head_id = String(this.schoolHeadData[0].user_id);
+                } else {
+                    this.form.school_head_id = '';
+                }
             },
 
             autoFillDetails() {

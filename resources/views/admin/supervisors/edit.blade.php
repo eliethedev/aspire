@@ -80,20 +80,6 @@
                         @enderror
                     </div>
                 </div>
-
-                <div class="mt-6">
-                    <label for="phoneNumber" class="block text-sm font-medium text-white mb-1">
-                        Phone Number
-                    </label>
-                    <input type="tel" id="phoneNumber" name="phoneNumber" 
-                           value="{{ old('phoneNumber', $supervisor->phone_number) }}"
-                           class="w-full px-3 py-2 text-white border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                           {{ $errors->has('phoneNumber') ? 'border-red-500' : '' }}"
-                           placeholder="+63 912 345 6789">
-                    @error('phoneNumber')
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
             </div>
 
             <!-- Supervisor Information -->

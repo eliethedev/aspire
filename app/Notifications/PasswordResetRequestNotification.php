@@ -29,7 +29,10 @@ class PasswordResetRequestNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', \App\Mail\PHPMailerChannel::class];
+        // The in-app notification is created via NotificationService (the
+        // custom `notifications` table needs title/message/link which
+        // Laravel's default `database` channel cannot provide).
+        return [\App\Mail\PHPMailerChannel::class];
     }
 
     /**
