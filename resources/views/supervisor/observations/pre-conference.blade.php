@@ -274,7 +274,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Date / Time *</label>
                         <input type="date" name="conference_date" id="conference_date"
                                value="{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
-                               class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" required>
+                               class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                         @error('conference_date')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -897,10 +897,8 @@ document.getElementById('cancel-modal')?.addEventListener('click', function(e) {
 document.getElementById('pre-conference-form')?.addEventListener('submit', function(e) {
     var date = document.getElementById('conference_date');
     if (date && !date.value) {
-        e.preventDefault();
-        alert('Please select a Pre-Conference Date.');
-        date.focus();
-        return;
+        alert('Please select a Pre-Conference Date for your records, but you may continue.');
+        // Allow submission to proceed - the controller will handle stage advancement
     }
 });
 
