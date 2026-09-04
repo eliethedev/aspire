@@ -15,6 +15,10 @@
       background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 55%, #ffffff 100%)
     }
 
+    .dark .hero-card {
+      background: linear-gradient(135deg, #0b1220 0%, #111827 55%, #0b1220 100%)
+    }
+
     .section-card {
       transition: all .18s ease
     }

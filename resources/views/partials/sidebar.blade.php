@@ -3,38 +3,50 @@
        x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), rateesOpen: $persist(true), postObsOpen: $persist(true), reportsOpen: $persist(true) } @else { supervisionOpen: $persist(true), aiInsightsOpen: $persist(true), othersOpen: $persist(false) } @endif" 
        :class="[$store.sidebar.isCollapsed() ? 'w-16' : 'w-56', $store.sidebar.mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0']">
 
-    <!-- Logo - fixed at top -->
-    <div class="h-16 flex items-center justify-between px-4 border-b border-gray-100/80 dark:border-gray-800/80 shrink-0">
-        <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif" 
+    <!-- Logo - fixed at top (friendly brand lockup, same h-16 size) -->
+    <div class="h-16 flex items-center justify-between gap-2 px-4 border-b border-gray-200/80 dark:border-gray-800/80 shrink-0 bg-white dark:bg-transparent">
+        <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif"
            :class="$store.sidebar.isCollapsed() ? 'hidden' : ''"
-           class="flex items-center space-x-2.5">
-           <span class="text-lg font-bold text-indigo-600 tracking-tight">
-                ASPIRE
+           class="sidebar-brand flex items-center gap-2.5 min-w-0 rounded-lg focus:outline-none"
+           title="ASPIRE — Go to Home (Dashboard)"
+           aria-label="ASPIRE — Go to Home Dashboard">
+            <span class="sidebar-brand-mark flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white text-sm font-extrabold shrink-0" aria-hidden="true">A</span>
+            <span class="flex flex-col leading-none min-w-0">
+                <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                    ASPIRE
+                </span>
+                <span class="text-[11px] font-medium text-slate-500 dark:text-gray-400 leading-tight truncate">
+                    Classroom Guidance
+                </span>
             </span>
         </a>
-        <button @click="$store.sidebar.toggle()" 
+        {{-- Desktop collapse/expand toggle: plain-language labels for older users. Same p-2 / w-5 h-5 sizes. --}}
+        <button @click="$store.sidebar.toggle()"
                 :class="$store.sidebar.isCollapsed() ? 'mx-auto' : ''"
-                class="hidden lg:flex p-2 focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-indigo-600 dark:text-gray-500 dark:hover:text-indigo-400"
-                :title="$store.sidebar.isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-                :aria-label="$store.sidebar.isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
-            <svg x-show="!$store.sidebar.isCollapsed()" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                class="sidebar-toggle-btn hidden lg:flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 dark:hover:bg-gray-800 dark:hover:text-indigo-300 dark:hover:border-indigo-800 transition-colors focus:outline-none"
+                :title="$store.sidebar.isCollapsed() ? 'Show side menu' : 'Hide side menu'"
+                :aria-label="$store.sidebar.isCollapsed() ? 'Show side menu' : 'Hide side menu'"
+                :aria-expanded="!$store.sidebar.isCollapsed()"
+                aria-controls="sidebar-nav">
+            <span class="sr-only" x-text="$store.sidebar.isCollapsed() ? 'Show side menu' : 'Hide side menu'"></span>
+            <svg x-show="!$store.sidebar.isCollapsed()" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16M18 10l-2 2 2 2"/>
             </svg>
-            <svg x-show="$store.sidebar.isCollapsed()" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 19l7-7-7-7"/>
+            <svg x-show="$store.sidebar.isCollapsed()" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16M16 10l2 2-2 2"/>
             </svg>
         </button>
         <button @click="$store.sidebar.closeMobile()"
-                class="lg:hidden p-2 focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-indigo-600 dark:text-gray-500 dark:hover:text-indigo-400"
-                title="Close menu" aria-label="Close menu">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="lg:hidden p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+                title="Close side menu" aria-label="Close side menu">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
     </div>
 
     <!-- Navigation - scrollable — minimized spacing like admin -->
-    <nav class="flex-1 overflow-y-auto sidebar-scroll mt-2 pb-4" :class="$store.sidebar.isCollapsed() ? 'px-2' : 'px-3'">
+    <nav id="sidebar-nav" aria-label="Main menu" class="flex-1 overflow-y-auto sidebar-scroll mt-2 pb-4" :class="$store.sidebar.isCollapsed() ? 'px-2' : 'px-3'">
         <ul class="space-y-0.5">
             <!-- Main Navigation Section -->
             <li class="mb-1">

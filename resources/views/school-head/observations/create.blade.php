@@ -15,6 +15,9 @@
         border-color: #6366f1;
         background: #eef2ff;
     }
+    .dark .observee-card.selected {
+        background: rgba(79, 70, 229, 0.15);
+    }
     .fade-in {
         animation: fadeIn 0.3s ease;
     }
@@ -62,7 +65,7 @@
                         <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors" x-text="step.label"></span>
                     </div>
                     <div x-show="i < steps.length - 1"
-                         :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200'"
+                         :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200 dark:bg-gray-700'"
                          class="w-6 sm:w-10 h-0.5 rounded transition-colors"></div>
                 </div>
             </template>
@@ -70,7 +73,7 @@
 
         <!-- ===== STEP 1: SELECT TEACHER ===== -->
         <div x-show="currentStep === 1" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Select a Teacher</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Search or browse to find the teacher you want to observe.</p>
 
@@ -119,7 +122,7 @@
 
                 <!-- Selected Observee Card -->
                 <div x-show="selectedObservee" class="fade-in">
-                    <div class="rounded-xl border-2 border-indigo-200 bg-indigo-50/40 p-5">
+                    <div class="rounded-xl border-2 border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-900/20 p-5">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-lg font-bold" x-text="selectedObservee.name.charAt(0).toUpperCase()"></div>
@@ -136,10 +139,10 @@
                             </button>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2.5 text-sm">
-                            <div><span class="text-gray-500 dark:text-gray-400">Department</span><p class="font-medium text-gray-800" x-text="selectedObservee.department"></p></div>
-                            <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800" x-text="selectedObservee.subject"></p></div>
-                            <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800" x-text="selectedObservee.grade_level"></p></div>
-                            <div><span class="text-gray-500 dark:text-gray-400">Employee No.</span><p class="font-medium text-gray-800" x-text="selectedObservee.employee_number"></p></div>
+                            <div><span class="text-gray-500 dark:text-gray-400">Department</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.department"></p></div>
+                            <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.subject"></p></div>
+                            <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.grade_level"></p></div>
+                            <div><span class="text-gray-500 dark:text-gray-400">Employee No.</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.employee_number"></p></div>
 
                             <!-- Recent Observations -->
                             <template x-if="selectedObservee.recent_observations && selectedObservee.recent_observations.length > 0">
@@ -153,7 +156,7 @@
                                     </div>
                                     <div class="space-y-1">
                                         <template x-for="obs in selectedObservee.recent_observations" :key="obs.id">
-                                            <div class="flex items-center justify-between rounded-lg px-3 py-2 bg-white/70 border border-indigo-100">
+                                            <div class="flex items-center justify-between rounded-lg px-3 py-2 bg-white/70 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/40">
                                                 <div class="flex items-center gap-2.5 min-w-0">
                                                     <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0 w-16" x-text="obs.date"></span>
                                                     <span class="text-sm text-gray-700 dark:text-gray-300 truncate" x-text="obs.subject || 'Observation'"></span>
@@ -188,7 +191,7 @@
 
         <!-- ===== STEP 2: OBSERVATION DETAILS ===== -->
         <div x-show="currentStep === 2" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Details</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Configure the schedule and observation parameters.</p>
 
@@ -291,7 +294,7 @@
 
         <!-- ===== STEP 3: SCHEDULE TYPE & NOTES ===== -->
         <div x-show="currentStep === 3" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 p-4">
+            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule & Notes</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Choose when to conduct the observation and add notes.</p>
 
@@ -301,7 +304,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Schedule Type</label>
                         <div class="grid sm:grid-cols-2 gap-3">
                             <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'scheduled' ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
+                                   :class="form.schedule_type === 'scheduled' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
                                 <input type="radio" name="schedule_type" value="scheduled"
                                        x-model="form.schedule_type" class="sr-only">
                                 <div class="flex items-start gap-3">
@@ -316,7 +319,7 @@
                                 </div>
                             </label>
                             <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'immediate' ? 'border-indigo-600 bg-indigo-50/40' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
+                                   :class="form.schedule_type === 'immediate' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
                                 <input type="radio" name="schedule_type" value="immediate"
                                        x-model="form.schedule_type" class="sr-only">
                                 <div class="flex items-start gap-3">
@@ -396,23 +399,23 @@
                         </div>
 
                         <!-- Observation Details -->
-                        <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                        <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Observation Info</p>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800">Teacher Observation (COT)</p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800" x-text="form.observation_date"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">School Year</span><p class="font-medium text-gray-800" x-text="form.school_year"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Quarter</span><p class="font-medium text-gray-800" x-text="'Quarter ' + form.quarter"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800" x-text="form.subject || 'Not set'"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800" x-text="form.grade_level || 'Not set'"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Observation #</span><p class="font-medium text-gray-800" x-text="form.observation_number === '2' ? '2nd' : '1st'"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Mode</span><p class="font-medium text-gray-800 capitalize" x-text="form.observation_mode?.replace('_', ' ')"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Tool</span><p class="font-medium text-gray-800">Classroom Observation Tool (COT)</p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800 dark:text-gray-100">Teacher Observation (COT)</p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_date"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">School Year</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.school_year"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Quarter</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="'Quarter ' + form.quarter"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.subject || 'Not set'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.grade_level || 'Not set'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Observation #</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_number === '2' ? '2nd' : '1st'"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Mode</span><p class="font-medium text-gray-800 dark:text-gray-100 capitalize" x-text="form.observation_mode?.replace('_', ' ')"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Tool</span><p class="font-medium text-gray-800 dark:text-gray-100">Classroom Observation Tool (COT)</p></div>
                             </div>
                         </div>
 
                         <!-- Schedule Type -->
-                        <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                        <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Schedule</p>
                             <div class="flex items-center gap-2">
                                 <template x-if="form.schedule_type === 'scheduled'">
@@ -432,14 +435,14 @@
                         </div>
 
                         <!-- Notes -->
-                        <div x-show="form.notes" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
+                        <div x-show="form.notes" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Notes</p>
                             <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap" x-text="form.notes"></p>
                         </div>
                     </div>
 
                     <!-- Modal Actions -->
-                    <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-gray-100">
+                    <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-gray-100 dark:border-gray-800">
                         <button type="button" @click="showConfirmModal = false"
                                 class="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 transition-colors">
                             Go Back

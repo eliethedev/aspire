@@ -20,7 +20,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="obs-show max-w-7xl mx-auto px-6">
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">

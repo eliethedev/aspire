@@ -290,6 +290,233 @@
     gap: 8px;
 }
 
+/* ===== SIDEBAR FRIENDLINESS (same sizes, clearer for older users) ===== */
+/* Stronger, easier-to-read section titles — color only, no size change */
+.sidebar-section-header span {
+    color: #64748b;
+}
+.dark .sidebar-section-header span {
+    color: #ffffff;
+}
+
+/* ===== SIDEBAR DARK MODE: white text (not grey) — color only, no size change ===== */
+.dark .sidebar-glass .sidebar-link-hover {
+    color: #ffffff;
+}
+.dark .sidebar-glass .sidebar-link-hover .font-medium {
+    color: #ffffff;
+}
+.dark .sidebar-glass .sidebar-section-header,
+.dark .sidebar-glass .sidebar-section-header span,
+.dark .sidebar-glass .sidebar-section-header svg {
+    color: #ffffff;
+}
+.dark .sidebar-glass .sidebar-brand span {
+    color: #ffffff;
+}
+.dark .sidebar-glass .sidebar-brand .text-slate-500 {
+    color: rgba(255, 255, 255, 0.75);
+}
+.dark .sidebar-glass .sidebar-toggle-btn {
+    color: #ffffff;
+}
+/* Bottom user card in sidebar */
+.dark .sidebar-glass .text-gray-800 {
+    color: #ffffff;
+}
+.dark .sidebar-glass .text-gray-400 {
+    color: rgba(255, 255, 255, 0.75);
+}
+/* Keep active link readable on its tinted background */
+.dark .sidebar-glass .sidebar-link-active,
+.dark .sidebar-glass .sidebar-link-active .font-medium {
+    color: #ffffff;
+}
+
+/* ===== OBSERVATION SHOW DARK-MODE FIX (scoped to .obs-show, color only, no size change) ===== */
+.dark .obs-show .hero-card {
+    background: linear-gradient(135deg, #0b1220 0%, #111827 55%, #0b1220 100%);
+    border-color: #1f2937;
+}
+.dark .obs-show .sticky-filter {
+    background: rgba(17, 24, 39, 0.95);
+    border-color: #1f2937;
+}
+/* Solid light surfaces → dark surfaces */
+.dark .obs-show .bg-white {
+    background-color: #111827;
+}
+.dark .obs-show .bg-gray-50 {
+    background-color: #1f2937;
+}
+.dark .obs-show .bg-gray-100 {
+    background-color: #243044;
+}
+.dark .obs-show .border-gray-200,
+.dark .obs-show .border-gray-100 {
+    border-color: #374151;
+}
+.dark .obs-show .divide-gray-100 > * + * {
+    border-color: #374151;
+}
+/* Light text → near-white */
+.dark .obs-show .text-gray-900,
+.dark .obs-show .text-gray-800,
+.dark .obs-show .text-gray-700 {
+    color: #f3f4f6;
+}
+.dark .obs-show .text-gray-600 {
+    color: #d1d5db;
+}
+/* "At a glance" values: some <dd> have no text-color class and inherit
+   dark body text → force white; labels stay soft white */
+.dark .obs-show dl dd {
+    color: #ffffff;
+}
+.dark .obs-show dl dt {
+    color: rgba(255, 255, 255, 0.65);
+}
+/* Pastel status boxes → dark translucent (keep hue, drop glare) */
+.dark .obs-show [class*="bg-emerald-50"] {
+    background-color: rgba(6, 78, 59, 0.35);
+    border-color: #065f46;
+}
+.dark .obs-show [class*="bg-blue-50"] {
+    background-color: rgba(30, 58, 138, 0.35);
+    border-color: #1e40af;
+}
+.dark .obs-show [class*="bg-amber-50"] {
+    background-color: rgba(120, 53, 15, 0.35);
+    border-color: #92400e;
+}
+.dark .obs-show [class*="bg-violet-50"] {
+    background-color: rgba(76, 29, 149, 0.35);
+    border-color: #5b21b6;
+}
+.dark .obs-show [class*="bg-indigo-50"] {
+    background-color: rgba(49, 46, 129, 0.4);
+    border-color: #4338ca;
+}
+.dark .obs-show [class*="bg-red-50"] {
+    background-color: rgba(127, 29, 29, 0.35);
+    border-color: #991b1b;
+}
+/* Dark text inside pastel boxes → light tints */
+.dark .obs-show [class*="text-emerald-800"],
+.dark .obs-show [class*="text-emerald-700"] {
+    color: #a7f3d0;
+}
+.dark .obs-show [class*="text-blue-800"],
+.dark .obs-show [class*="text-blue-700"] {
+    color: #bfdbfe;
+}
+.dark .obs-show [class*="text-amber-800"],
+.dark .obs-show [class*="text-amber-700"] {
+    color: #fde68a;
+}
+.dark .obs-show [class*="text-violet-800"],
+.dark .obs-show [class*="text-violet-700"] {
+    color: #ddd6fe;
+}
+.dark .obs-show [class*="text-indigo-700"] {
+    color: #c7d2fe;
+}
+.dark .obs-show [class*="text-red-800"],
+.dark .obs-show [class*="text-red-700"] {
+    color: #fecaca;
+}
+/* Light hover states → dark hover states */
+.dark .obs-show [class*="hover:bg-gray-50"]:hover {
+    background-color: #1f2937;
+}
+.dark .obs-show [class*="hover:bg-white"]:hover {
+    background-color: #1f2937;
+}
+/* AI insight gradient boxes (from-violet-50/to-indigo-50) → flat dark */
+.dark .obs-show [class*="from-violet-50"],
+.dark .obs-show [class*="from-blue-50"],
+.dark .obs-show [class*="from-indigo-50"] {
+    background-image: none;
+    background-color: rgba(76, 29, 149, 0.3);
+    border-color: #5b21b6;
+}
+/* Elements with size-only classes (text-sm/text-xs) but no text-COLOR class
+   inherit dark body text → lighten. NOTE: must exclude by color name, NOT
+   by "text-" (size classes like text-sm also contain "text-"). */
+.dark .obs-show p:not([class*="text-gray"]):not([class*="text-white"]):not([class*="text-slate"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]) {
+    color: #e5e7eb;
+}
+.dark .obs-show span:not([class*="text-gray"]):not([class*="text-white"]):not([class*="text-slate"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]) {
+    color: #f3f4f6;
+}
+/* Colorless buttons/links (Preview, DOCX, Trends, Compare, Feedback,
+   Coaching, View) sit on darkened bg-white → force near-white text */
+.dark .obs-show a:not([class*="text-gray"]):not([class*="text-white"]):not([class*="text-slate"]):not([class*="text-indigo"]):not([class*="text-violet"]):not([class*="text-purple"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-red"]):not([class*="text-rose"]) {
+    color: #f3f4f6;
+}
+/* Saturated mid-tone text (-600) is too dark on dark bg → lighten */
+.dark .obs-show [class*="text-red-600"] {
+    color: #fca5a5;
+}
+.dark .obs-show [class*="text-indigo-600"] {
+    color: #a5b4fc;
+}
+.dark .obs-show [class*="text-emerald-600"] {
+    color: #6ee7b7;
+}
+.dark .obs-show [class*="text-blue-600"] {
+    color: #93c5fd;
+}
+.dark .obs-show [class*="text-amber-600"] {
+    color: #fcd34d;
+}
+.dark .obs-show [class*="text-violet-600"] {
+    color: #c4b5fd;
+}
+/* Muted labels (domain names, subtitles, /6 suffixes) were pure grey → soft white */
+.dark .obs-show .text-gray-500 {
+    color: rgba(255, 255, 255, 0.7);
+}
+.dark .obs-show .text-gray-400 {
+    color: rgba(255, 255, 255, 0.55);
+}
+/* Faint dividers invisible on dark → soft white line */
+.dark .obs-show [class*="border-black"] {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Brand lockup: keep layout size, add clarity + clear keyboard focus */
+.sidebar-brand {
+    text-decoration: none;
+}
+.sidebar-brand:hover .sidebar-brand-mark {
+    background: #4338ca;
+}
+.sidebar-brand:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+}
+.sidebar-brand-mark {
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.35);
+    line-height: 1;
+}
+
+/* Toggle: bordered, higher-contrast button so it reads as clickable.
+   Sizes unchanged (p-2 / w-5 h-5 icons kept in Blade). */
+.sidebar-toggle-btn {
+    cursor: pointer;
+}
+.sidebar-toggle-btn:hover {
+    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+}
+.sidebar-toggle-btn:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+}
+.sidebar-toggle-btn:active {
+    transform: translateY(0.5px);
+}
+
 .sidebar-avatar-ring {
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15), 0 0 0 4px white;
 }

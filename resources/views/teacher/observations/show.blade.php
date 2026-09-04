@@ -33,7 +33,7 @@
     $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
     $detailFilter = request('detail_filter') ?? 'all';
 @endphp
-<div class="max-w-7xl mx-auto px-6 py-8" x-data="{ detailFilter: '{{ $detailFilter }}' }">
+<div class="obs-show max-w-7xl mx-auto px-6 py-8" x-data="{ detailFilter: '{{ $detailFilter }}' }">
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">

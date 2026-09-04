@@ -62,7 +62,7 @@
     ];
 @endphp
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0" x-data="{ detailFilter: '{{ $initialFilter }}' }">
+<div class="obs-show max-w-7xl mx-auto px-4 sm:px-6 lg:px-0" x-data="{ detailFilter: '{{ $initialFilter }}' }">
 
     {{-- Breadcrumb + Back --}}
     <nav class="flex items-center justify-between gap-4 mb-4 text-sm" aria-label="Breadcrumb">
