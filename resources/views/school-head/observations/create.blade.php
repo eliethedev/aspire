@@ -47,7 +47,7 @@
         </ol>
     </nav>
 
-    <x-page-header title="Schedule Teacher Observation" subtitle="Schedule a COT classroom observation for a teacher in your school." />
+    <x-page-header title="Schedule Teacher Observation" subtitle="Schedule a classroom observation for a teacher in your school." />
 
     <form method="POST" action="{{ route('school-head.observations.store') }}" @submit="submitting = true">
         @csrf
@@ -204,16 +204,15 @@
                                placeholder="e.g., 2024-2025">
                     </div>
 
-                    <!-- Quarter -->
+                    <!-- Term -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quarter</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Term</label>
                         <select name="quarter" x-model="form.quarter"
                                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="">Select quarter</option>
-                            <option value="1">1st Quarter</option>
-                            <option value="2">2nd Quarter</option>
-                            <option value="3">3rd Quarter</option>
-                            <option value="4">4th Quarter</option>
+                            <option value="">Select term</option>
+                            <option value="1">1st Term</option>
+                            <option value="2">2nd Term</option>
+                            <option value="3">3rd Term</option>
                         </select>
                     </div>
 
@@ -329,7 +328,7 @@
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900 dark:text-gray-100 text-sm">Immediate</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Start the COT evaluation right away.</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Start the evaluation right away.</p>
                                     </div>
                                 </div>
                             </label>
@@ -402,10 +401,10 @@
                         <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Observation Info</p>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800 dark:text-gray-100">Teacher Observation (COT)</p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800 dark:text-gray-100">Teacher Observation</p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_date"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">School Year</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.school_year"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Quarter</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="'Quarter ' + form.quarter"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Term</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="'Term ' + form.quarter"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.subject || 'Not set'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.grade_level || 'Not set'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Observation #</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_number === '2' ? '2nd' : '1st'"></p></div>

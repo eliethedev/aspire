@@ -36,7 +36,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
     @forelse($observations as $observation)
         @php
-            $stageLabels = ['pre_observation_planning' => 'Planning', 'pre_conference' => 'Pre-Conf', 'observation' => 'Observe', 'post_conference' => 'Post-Conf'];
+            $stageLabels = ['pre_observation_planning' => 'Prepare', 'pre_conference' => 'Pre-Observation Conversation', 'observation' => 'Classroom Observation', 'post_conference' => 'Post-Observation Conference'];
             $stageBadgeColor = match($observation->status) {
                 'completed' => 'bg-green-100 dark:bg-green-900/30 text-green-700',
                 'scheduled' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700',

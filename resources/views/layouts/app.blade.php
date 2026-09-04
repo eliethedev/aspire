@@ -13,13 +13,61 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
         <script>
             (function() {
                 if (localStorage.getItem('theme') === 'dark') {
                     document.documentElement.classList.add('dark');
                 }
+                if (localStorage.getItem('app_text_large') === '1') {
+                    document.documentElement.classList.add('text-large');
+                }
             })();
         </script>
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.store('sidebar', {
+                    collapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+                    mobileOpen: false,
+                    isCollapsed() {
+                        return window.innerWidth >= 1024 ? this.collapsed : false;
+                    },
+                    toggle() {
+                        this.collapsed = !this.collapsed;
+                        localStorage.setItem('sidebar_collapsed', this.collapsed);
+                    },
+                    openMobile() {
+                        this.mobileOpen = true;
+                    },
+                    closeMobile() {
+                        this.mobileOpen = false;
+                    }
+                });
+                Alpine.store('theme', {
+                    dark: document.documentElement.classList.contains('dark'),
+                    toggle() {
+                        this.dark = !this.dark;
+                        document.documentElement.classList.toggle('dark', this.dark);
+                        localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+                    }
+                });
+                Alpine.store('accessibility', {
+                    large: localStorage.getItem('app_text_large') === '1',
+                    toggle() {
+                        this.large = !this.large;
+                        document.documentElement.classList.toggle('text-large', this.large);
+                        localStorage.setItem('app_text_large', this.large ? '1' : '0');
+                    },
+                    setLarge(v) {
+                        this.large = v;
+                        document.documentElement.classList.toggle('text-large', v);
+                        localStorage.setItem('app_text_large', v ? '1' : '0');
+                    }
+                });
+            });
+        </script>
+        @stack('styles')
     </head>
     <body class="font-sans antialiased" x-data="{ sidebarOpen: true, isHovering: false }">
         <div class="min-h-screen bg-white dark:bg-gray-950" :class="{ 'sidebar-closed': !sidebarOpen }">
@@ -40,5 +88,6 @@
                 @yield('content')
             </main>
         </div>
+        @stack('scripts')
     </body>
 </html>

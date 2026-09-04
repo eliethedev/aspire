@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\NotificationPriority;
 use App\Enums\NotificationType;
+use App\Models\CareerAdvancement;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\Paginator;
@@ -263,18 +264,62 @@ class NotificationService
     }
 
     /**
-     * Notify the teacher and the school head(s) that a teacher has achieved
-     * (or is allowed to progress to) a higher career stage.
+     * Notify the school head(s) of the same school that a supervisor has
+     * recommended a career advancement which needs their review & approval.
      */
-    public function notifyCareerAdvancement(User $teacher, ?string $schoolId, string $stageLabel, bool $allowed = false, ?string $link = null): void
-    {
-        if ($allowed) {
-            $title = 'Career advancement allowed';
-            $message = "Your supervisor has allowed you to progress to {$stageLabel}.";
-        } else {
-            $title = 'Career stage achieved';
-            $message = "Congratulations! You have achieved the {$stageLabel} career stage.";
+    public function notifyCareerAdvancementApprovalRequest(
+        User $teacher,
+        string $stageLabel,
+        string $type,
+        ?string $link = null,
+    ): void {
+        $schoolId = $teacher->school_id;
+
+        if (! $schoolId) {
+            return;
         }
+
+        $verb = $type === CareerAdvancement::TYPE_ALLOW ? 'progress to the' : 'be announced as having achieved the';
+        $title = 'Career advancement requires your approval';
+        $message = "Supervisor has recommended that {$teacher->name} {$verb} {$stageLabel} career stage. Review and approve to complete the advancement.";
+
+        $this->notify(
+            $teacher,
+            NotificationType::ACTION_REQUIRED,
+            'Career advancement pending approval',
+            "Your supervisor has recommended your advancement to the {$stageLabel} career stage. It is now awaiting school head approval.",
+            null,
+            null,
+        );
+
+        $schoolHeads = \App\Models\User::query()
+            ->where('role', 'school_head')
+            ->where('school_id', $schoolId)
+            ->get();
+
+        foreach ($schoolHeads as $schoolHead) {
+            $this->notify(
+                $schoolHead,
+                NotificationType::ACTION_REQUIRED,
+                $title,
+                $message,
+                null,
+                $link,
+            );
+        }
+    }
+
+    /**
+     * Notify the teacher that their career advancement was approved by the
+     * school head (a congratulations-style achievement notification).
+     */
+    public function notifyCareerAdvancementApproved(
+        User $teacher,
+        string $stageLabel,
+        ?string $link = null,
+    ): void {
+        $title = 'Congratulations on your career advancement!';
+        $message = "Your career advancement to the {$stageLabel} career stage has been approved. Congratulations!";
 
         $this->notify(
             $teacher,
@@ -282,34 +327,47 @@ class NotificationService
             $title,
             $message,
             null,
-            $link
+            $link,
         );
-
-        if ($schoolId) {
-            $schoolHeads = \App\Models\User::query()
-                ->where('role', 'school_head')
-                ->where('school_id', $schoolId)
-                ->get();
-
-            $schoolHeadTitle = $allowed ? 'Career progression allowed' : 'Career stage achieved';
-            $schoolHeadMessage = "{$teacher->name} has been {$this->advancementVerb($allowed)} to the {$stageLabel} career stage.";
-
-            foreach ($schoolHeads as $schoolHead) {
-                $this->notify(
-                    $schoolHead,
-                    NotificationType::ACHIEVEMENT,
-                    $schoolHeadTitle,
-                    $schoolHeadMessage,
-                    null,
-                    $link
-                );
-            }
-        }
     }
 
-    private function advancementVerb(bool $allowed): string
+    /**
+     * Notify the supervisor and the teacher that a career advancement was
+     * rejected by the school head.
+     */
+    public function notifyCareerAdvancementRejected(
+        User $supervisor,
+        User $teacher,
+        string $stageLabel,
+        ?string $remarks = null,
+    ): void {
+        $title = 'Career advancement rejected';
+        $message = "The school head did not approve {$this->advancementRejectedSubject($teacher->name)} the {$stageLabel} career stage."
+            . ($remarks ? " Reason: {$remarks}" : '');
+
+        $this->notify(
+            $supervisor,
+            NotificationType::SYSTEM,
+            $title,
+            $message,
+            null,
+            null,
+        );
+
+        $this->notify(
+            $teacher,
+            NotificationType::SYSTEM,
+            'Career advancement not approved',
+            "Your advancement to the {$stageLabel} career stage was not approved."
+                . ($remarks ? " Reason: {$remarks}" : ''),
+            null,
+            null,
+        );
+    }
+
+    private function advancementRejectedSubject(string $teacherName): string
     {
-        return $allowed ? 'allowed to progress' : 'announced as having achieved';
+        return "{$teacherName}'s advancement to";
     }
 
     /*

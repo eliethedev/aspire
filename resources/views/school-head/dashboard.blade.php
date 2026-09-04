@@ -228,7 +228,7 @@
         <!-- COT Score Trend -->
         <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">COT Score Trend</h2>
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Observation Score Trend</h2>
                 @if(count($cotScores) > 0)
                     <span class="text-xs text-gray-500 dark:text-gray-400">{{ count($cotScores) }} observation{{ count($cotScores) > 1 ? 's' : '' }}</span>
                 @endif
@@ -243,7 +243,7 @@
                         <i class="fas fa-circle text-xs text-gray-400"></i>
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">No completed observations yet</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">COT scores will appear here once observations are completed.</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Observation scores will appear here once observations are completed.</p>
                 </div>
             @endif
         </div>
@@ -407,7 +407,7 @@
         data: {
             labels: {!! json_encode($cotLabels) !!},
             datasets: [{
-                label: 'COT Score',
+                label: 'Observation Score',
                 data: {!! json_encode($cotScores) !!},
                 borderColor: '#4f46e5',
                 backgroundColor: 'rgba(79, 70, 229, 0.08)',

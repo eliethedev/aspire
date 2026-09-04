@@ -1,6 +1,6 @@
 @extends('layouts.teacher')
 
-@section('title', 'Post-Conference')
+@section('title', 'Post-Observation Conference')
 
 @push('styles')
 <style>
@@ -13,11 +13,12 @@
 @endpush
 
 @php
+    $isSchoolHeadObs = $observation->isSchoolHeadObservation();
     $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
     $stageLabels = [
         'pre_observation_planning' => 'Pre-Observation Planning',
         'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
+        'observation' => $isSchoolHeadObs ? 'School Head Observation' : 'Observation',
         'post_conference' => 'Post-Conference',
     ];
     $stageRoutes = [
@@ -39,7 +40,7 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('school-head.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Conference</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Observation Conference</li>
         </ol>
     </nav>
 
@@ -78,7 +79,7 @@
     </div>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Conference</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
     </div>
 
@@ -87,11 +88,66 @@
         <!-- Left Column -->
         <div class="lg:col-span-2 space-y-6">
 
-            <!-- COT Ratings Summary -->
+            @if($isSchoolHeadObs)
+            @if($epocEvaluation && $epocEvaluation->ratings->count() > 0)
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Ratings</h2>
+                    <span class="text-2xl font-bold text-indigo-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 5.00</span></span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-800">
+                                <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-medium">Domain</th>
+                                <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-medium">Indicator</th>
+                                <th class="text-center px-3 py-2 text-gray-600 dark:text-gray-400 font-medium w-20">Rating</th>
+                                <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-medium">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($epocEvaluation->ratings as $rating)
+                            <tr class="hover:bg-gray-50 dark:bg-gray-800">
+                                <td class="px-3 py-2 text-gray-700 dark:text-gray-300 text-xs">{{ $rating->domain }}</td>
+                                <td class="px-3 py-2 text-gray-700 dark:text-gray-300 text-xs">{{ $rating->indicator }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold {{ $rating->rating >= 4 ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($rating->rating >= 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 dark:bg-red-900/30 text-red-700') }}">
+                                        {{ number_format($rating->rating, 1) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs">{{ $rating->comments ?? '-' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">{{ $epocEvaluation->ratings->count() }} indicator(s) rated</p>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Score Breakdown by Domain</h2>
+                <div class="space-y-3">
+                    @php $groupedEpoc = $epocEvaluation->ratings->groupBy('domain'); @endphp
+                    @foreach($groupedEpoc as $domain => $ratings)
+                        @php $avg = $ratings->avg('rating'); @endphp
+                        <div>
+                            <div class="flex items-center justify-between text-sm mb-1">
+                                <span class="text-gray-700 dark:text-gray-300">{{ $domain }}</span>
+                                <span class="font-medium {{ $avg >= 4 ? 'text-green-600 dark:text-green-400' : ($avg >= 3 ? 'text-yellow-600' : 'text-red-600 dark:text-red-400') }}">{{ number_format($avg, 2) }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full {{ $avg >= 4 ? 'bg-green-500' : ($avg >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ ($avg / 5) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+            @else
             @if($cotRatings && $cotRatings->count() > 0)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">COT Ratings Summary</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
                     <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 6.00</span></span>
                 </div>
                 <div class="overflow-x-auto">
@@ -146,6 +202,7 @@
                 </div>
             </div>
             @endif
+            @endif
 
             <!-- Evidence Files -->
             @if($observation->evidence_files)
@@ -172,34 +229,10 @@
                   x-data="{ submitting: false }" x-on:submit="submitting = true">
                 @csrf
 
-                <!-- Section 1: Conference Schedule -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Details</h2>
-                        <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-1 rounded-full font-medium">Post-Conference</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teacher</label>
-                            <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $observation->observee->position ?? 'Teacher' }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Post-Conference Date</label>
-                            <input type="date" name="conference_date" id="conference_date"
-                                   value="{{ old('conference_date', $postConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
-                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                            @error('conference_date')
-                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Enhanced Post Observation Conference Guide -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Guide</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Guide</h2>
                         <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-1 rounded-full font-medium">DepEd CID Format</span>
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Follow this structured guide for a productive post-observation conference.</p>
@@ -210,10 +243,10 @@
                         <p class="text-xs text-blue-600 mt-1">Establish rapport and set the purpose of the conference.</p>
                     </div>
 
-                    <!-- Step 2: STAR Notes - What's Going Well -->
+                    <!-- Step 2: What's Going Well -->
                     <div class="border border-green-200 rounded-lg p-4 mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 2: What's Going Well <span class="text-xs font-normal text-green-600 dark:text-green-400">(STAR Notes)</span></h3>
+                            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 2: What's Going Well</h3>
                             <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full">Strengths</span>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Document specific observations of effective teaching practices observed.</p>
@@ -281,11 +314,11 @@
 
                 <!-- Teacher Reflection -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Teacher Reflection</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">The teacher's reflection on their observed lesson and the post-conference discussion.</p>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Reflection' : 'Teacher Reflection' }}</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? "The school head's reflection on the observed supervision session and the post-conference discussion." : "The teacher's reflection on their observed lesson and the post-conference discussion." }}</p>
                     <textarea name="teacher_reflection" rows="4"
                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Teacher's personal reflection on the observation feedback and insights gained...">{{ old('teacher_reflection', $postConference?->teacher_reflection) }}</textarea>
+                              placeholder="{{ $isSchoolHeadObs ? "School head's personal reflection on the supervision feedback and insights gained..." : "Teacher's personal reflection on the observation feedback and insights gained..." }}">{{ old('teacher_reflection', $postConference?->teacher_reflection) }}</textarea>
                 </div>
 
                 <!-- AI Comparison -->
@@ -319,10 +352,10 @@
                     </div>
                 </div>
 
-                <!-- Supervisor Notes (Private) -->
+                <!-- Private Notes -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Supervisor's Private Notes</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Private Notes</h2>
                         <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">Private</span>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">These notes are for your reference only and will not be visible to the teacher.</p>
@@ -368,7 +401,7 @@
 
             <!-- Teacher Info Card -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Teacher Information</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h3>
                 <div class="space-y-3">
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Name</span>
@@ -376,7 +409,7 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Position</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->position ?? 'Teacher' }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position ?? 'Teacher') }}</p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>
@@ -396,10 +429,10 @@
                 <div class="text-4xl font-bold {{ $observation->overall_score >= 4 ? 'text-green-600 dark:text-green-400' : ($observation->overall_score >= 3 ? 'text-yellow-600' : 'text-red-600 dark:text-red-400') }}">
                     {{ number_format($observation->overall_score, 2) }}
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">out of 5.00</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">out of {{ $isSchoolHeadObs ? '5.00' : '6.00' }}</p>
                 <div class="mt-3 w-full bg-gray-200 rounded-full h-3">
                     <div class="h-3 rounded-full {{ $observation->overall_score >= 4 ? 'bg-green-500' : ($observation->overall_score >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}"
-                         style="width: {{ $observation->overall_score ? ($observation->overall_score / 6) * 100 : 0 }}%"></div>
+                         style="width: {{ $observation->overall_score ? ($observation->overall_score / ($isSchoolHeadObs ? 5 : 6)) * 100 : 0 }}%"></div>
                 </div>
             </div>
             @endif
@@ -409,10 +442,10 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Planning Summary</h3>
                 <div class="space-y-2">
-                    @if($planning->observation_tool)
+                    @if($isSchoolHeadObs || $planning->observation_tool)
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Tool</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? 'EPOC' : str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
                     </div>
                     @endif
                     @if($planning->suggested_focus)

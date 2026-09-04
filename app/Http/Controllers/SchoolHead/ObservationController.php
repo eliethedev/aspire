@@ -15,6 +15,7 @@ use App\Services\PHPMailerService;
 use App\Services\AIFeedbackService;
 use App\Services\FormTemplateService;
 use App\Services\CotIndicatorService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -245,7 +246,7 @@ class ObservationController extends Controller
             'notes' => $validated['notes'] ?? null,
             'status' => $status,
             'school_year' => $schoolYear,
-            'quarter' => $validated['quarter'] ?? $this->getCurrentQuarter(),
+            'quarter' => $validated['quarter'] ?? $this->getCurrentTerm(),
             'observation_number' => $validated['observation_number'] ?? 1,
             'subject' => $validated['subject'] ?? null,
             'grade_level' => $validated['grade_level'] ?? null,
@@ -589,10 +590,21 @@ class ObservationController extends Controller
         $ratingScaleCss = $cotVersion['rating_scale_css'] ?? config('cot.rating_scale_css', []);
         $existingSuggestions = $observation->preObservationPlanning?->ai_insights;
 
+        // School head observations use the EPOC instrument instead of the COT
+        // rating sheet, so load the EPOC relationships for the integrated form.
+        $epocEvaluation = null;
+        $schoolHead = null;
+        if ($observation->isSchoolHeadObservation()) {
+            $observation->loadMissing(['epocEvaluation.ratings', 'schoolHead']);
+            $epocEvaluation = $observation->epocEvaluation;
+            $schoolHead = $observation->schoolHead;
+        }
+
         return view('school-head.observations.observation', compact(
             'observation', 'cotRatings', 'preConference',
             'cotIndicators', 'ratingScale', 'ratingScaleCss',
-            'existingSuggestions', 'schoolYear'
+            'existingSuggestions', 'schoolYear',
+            'epocEvaluation', 'schoolHead'
         ));
     }
 
@@ -602,6 +614,12 @@ class ObservationController extends Controller
     public function storeObservationData(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
+
+        // School head observations use the EPOC instrument for their rating
+        // sheet, so route to the dedicated EPOC store path.
+        if ($observation->isSchoolHeadObservation()) {
+            return $this->storeEpocObservationData($request, $observation);
+        }
 
         $cotVersion = $this->cotIndicatorService->getVersionForObservation($observation);
         $scaleValues = array_keys($cotVersion['rating_scale'] ?? config('cot.rating_scale', []));
@@ -718,6 +736,120 @@ class ObservationController extends Controller
     }
 
     /**
+     * Store the EPOC ratings for a school head observation (the school head
+     * is the observee). School head observations use the EPOC instrument
+     * instead of the COT rating sheet.
+     */
+    protected function storeEpocObservationData(Request $request, Observation $observation)
+    {
+        $validated = $request->validate([
+            'epoc_ratings' => ['required', 'array'],
+            'epoc_ratings.*.domain' => ['required', 'string'],
+            'epoc_ratings.*.indicator' => ['required', 'string'],
+            'epoc_ratings.*.rating' => ['nullable', 'integer', 'in:1,2,3,4,5'],
+            'epoc_ratings.*.comments' => ['nullable', 'string'],
+            'epoc_narrative_observation' => ['nullable', 'string'],
+            'epoc_agreement' => ['nullable', 'string'],
+            'other_comments' => ['nullable', 'string'],
+            'star_notes' => ['nullable', 'string'],
+            'supervisor_notes' => ['nullable', 'string'],
+        ]);
+
+        // Delete + recreate the EPOC evaluation (ratings cascade).
+        $observation->epocEvaluation()->delete();
+
+        $epocEvaluation = $observation->epocEvaluation()->create([
+            'school_head_name' => $observation->schoolHead?->name,
+            'observation_date' => $observation->observation_date,
+            'narrative_observation' => $validated['epoc_narrative_observation'] ?? null,
+            'agreement' => $validated['epoc_agreement'] ?? null,
+        ]);
+
+        foreach ($validated['epoc_ratings'] as $item) {
+            $epocEvaluation->ratings()->create([
+                'domain' => $item['domain'],
+                'indicator' => $item['indicator'],
+                'rating' => $item['rating'] ?? null,
+                'comments' => $item['comments'] ?? null,
+            ]);
+        }
+
+        $rated = $epocEvaluation->ratings()->whereNotNull('rating');
+        $avgRating = $rated->exists() ? $rated->avg('rating') : null;
+        $epocEvaluation->update(['overall_score' => $avgRating]);
+
+        // Save evidence file uploads.
+        $evidenceFiles = $observation->evidence_files ?? [];
+        if ($request->hasFile('evidence_files')) {
+            foreach ($request->file('evidence_files') as $file) {
+                $path = $file->store('observation_evidences', 'public');
+                $evidenceFiles[] = [
+                    'path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+        }
+
+        $otherComments = $request->input('other_comments');
+        $observation->update([
+            'evidence_files' => $evidenceFiles,
+            'notes' => $otherComments ? ($observation->notes ? $observation->notes."\n\n".$otherComments : $otherComments) : $observation->notes,
+        ]);
+
+        // Save supervisor/private notes to post-conference.
+        $starNotes = $request->input('star_notes');
+        $supervisorNotes = $request->input('supervisor_notes');
+        if ($starNotes || $supervisorNotes) {
+            $observation->postConference()->updateOrCreate(
+                ['observation_id' => $observation->id],
+                [
+                    'star_notes' => $starNotes,
+                    'supervisor_notes' => $supervisorNotes,
+                ]
+            );
+        }
+
+        // Advance the workflow.
+        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $currentIdx = array_search($observation->stage, $stageOrder);
+        $targetIdx = array_search('post_conference', $stageOrder);
+
+        $updates = ['overall_score' => $avgRating, 'status' => 'cot_completed'];
+        if ($targetIdx === $currentIdx + 1) {
+            $updates['stage'] = 'post_conference';
+            $observation->logChange([
+                'to_stage' => 'post_conference',
+                'to_status' => 'cot_completed',
+                'notes' => 'EPOC ratings completed',
+            ]);
+        } else {
+            $observation->logChange([
+                'to_status' => 'cot_completed',
+                'notes' => 'EPOC ratings updated',
+            ]);
+        }
+        $observation->update($updates);
+
+        $observation->loadMissing(['postConference', 'preObservationPlanning', 'observee']);
+        try {
+            $this->aiFeedback->generatePostConferenceComparison($observation);
+        } catch (\App\AI\Exceptions\AIRateLimitException $e) {
+            \Illuminate\Support\Facades\Log::warning("AI rate limit hit for post-conference comparison on observation {$observation->id}: {$e->getMessage()}");
+        }
+
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $link = route('school-head.observations.show', $observation->id);
+            $this->notificationService->notifyObservationCompleted($observee->user, $link);
+        }
+
+        return redirect()->route('school-head.observations.postConference', $observation->id)
+            ->with('success', 'EPOC ratings have been saved. AI analysis has been generated.');
+    }
+
+    /**
      * Show Post-Conference form.
      */
     public function postConference(Observation $observation)
@@ -728,8 +860,9 @@ class ObservationController extends Controller
         $cotRatings = $observation->cotRatings()->get();
         $planning = $observation->preObservationPlanning;
         $preConference = $observation->preConference;
+        $epocEvaluation = $observation->epocEvaluation()->with('ratings')->get()->first();
 
-        return view('school-head.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference'));
+        return view('school-head.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference', 'epocEvaluation'));
     }
 
     /**
@@ -1294,19 +1427,22 @@ class ObservationController extends Controller
         }
     }
 
-    private function getCurrentQuarter(): int
+    private function getCurrentTerm(): int
     {
-        $currentMonth = now()->month;
+        $now = now();
+        $boundaries = [
+            1 => [Carbon::create($now->year, 6, 8), Carbon::create($now->year, 9, 15)],
+            2 => [Carbon::create($now->year, 9, 16), Carbon::create($now->year, 12, 18)],
+            3 => [Carbon::create($now->year, 1, 4), Carbon::create($now->year, 4, 8)],
+        ];
 
-        if ($currentMonth >= 6 && $currentMonth <= 8) {
-            return 1;
-        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
-            return 2;
-        } elseif ($currentMonth >= 12 || $currentMonth <= 2) {
-            return 3;
-        } else {
-            return 4;
+        foreach ($boundaries as $term => [$start, $end]) {
+            if ($now->between($start, $end)) {
+                return $term;
+            }
         }
+
+        return 1;
     }
 
     private function buildObservationScheduledEmail(string $observeeName, string $observerName, string $date, string $link): string

@@ -105,6 +105,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/observations', [ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [ObservationController::class, 'show'])->name('observations.show');
     Route::get('/observations/{observation}/cot-document', [ObservationController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document');
+    Route::get('/observations/{observation}/epoc-document', [ObservationController::class, 'downloadEpocDocument'])->middleware('throttle:exports')->name('observations.epoc-document');
 
     // Announcement management
     Route::resource('announcements', AnnouncementController::class);
@@ -361,6 +362,11 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     // Teacher management
     Route::get('/teachers', [App\Http\Controllers\SchoolHead\TeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/{teacher}', [App\Http\Controllers\SchoolHead\TeacherController::class, 'show'])->name('teachers.show');
+
+    // Career advancement approvals
+    Route::get('/career-advancements', [App\Http\Controllers\SchoolHead\CareerAdvancementController::class, 'index'])->name('career.advancements.index');
+    Route::post('/career-advancements/{advancement}/approve', [App\Http\Controllers\SchoolHead\CareerAdvancementController::class, 'approve'])->name('career.advancements.approve');
+    Route::post('/career-advancements/{advancement}/reject', [App\Http\Controllers\SchoolHead\CareerAdvancementController::class, 'reject'])->name('career.advancements.reject');
 
     // Lesson Plans
     Route::get('/lesson-plans', [LessonPlanController::class, 'index'])->name('lesson-plans.index');

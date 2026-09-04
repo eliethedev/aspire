@@ -28,21 +28,7 @@
 @endpush
 
 @php
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-    $stageLabels = [
-        'pre_observation_planning' => 'Pre-Observation Planning',
-        'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
-        'post_conference' => 'Post-Conference',
-    ];
-    $stageRoutes = [
-        'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
-        'pre_conference' => 'supervisor.observations.preConference',
-        'observation' => 'supervisor.observations.observation',
-        'post_conference' => 'supervisor.observations.postConference',
-    ];
     $currentStage = $observation->stage;
-    $currentIdx = array_search($currentStage, $stageKeys);
 
     $groupedIndicators = [];
     foreach ($cotIndicators as $indicator) {
@@ -51,6 +37,7 @@
 
     $ratingValues = array_reverse(array_keys($ratingScale ?? config('cot.rating_scale', [])));
     $ratingColspan = 2 + count($ratingValues) + 1;
+    $indicatorIndex = 0;
 @endphp
 
 @section('content')
@@ -61,53 +48,21 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Observation</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Classroom Observation</li>
         </ol>
     </nav>
 
-    @include('partials.observation-progress')
-
     @include('partials.draft-banner')
 
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            @foreach($stageKeys as $i => $key)
-                @php
-                    $isCurrent = $key === $currentStage;
-                    $isCompleted = $i < $currentIdx;
-                    $canAccess = $isCurrent || $isCompleted;
-                @endphp
-                @if($i > 0)
-                    <div class="flex-1 mx-4 h-1 {{ $isCompleted ? 'bg-green-400' : 'bg-gray-200' }}"></div>
-                @endif
-                @if($canAccess)
-                    <a href="{{ $isCurrent ? '#' : route($stageRoutes[$key], $observation) }}"
-                       class="flex items-center group {{ $isCurrent ? 'cursor-default' : 'cursor-pointer' }}">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200' }} font-semibold transition-colors group-hover:shadow-md text-sm">
-                            @if($isCompleted)
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            @else
-                                {{ $i + 1 }}
-                            @endif
-                        </div>
-                        <span class="ml-2 {{ $isCompleted ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium' }} text-sm group-hover:text-indigo-600 dark:text-indigo-400 transition-colors">{{ $stageLabels[$key] }}</span>
-                    </a>
-                @else
-                    <div class="flex items-center opacity-50">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 dark:text-gray-500 font-semibold text-sm">{{ $i + 1 }}</div>
-                        <span class="ml-2 text-gray-400 dark:text-gray-500 text-sm">{{ $stageLabels[$key] }}</span>
-                    </div>
-                @endif
-            @endforeach
-        </div>
-    </div>
+    <!-- Progress Steps -->
+    @include('partials.observation-stepper')
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}
         </h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">
-            Complete the {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} COT Form for {{ $observation->observee->user->name ?? 'Unknown' }}
+            Rate each indicator for {{ $observation->observee->user->name ?? 'Unknown' }}
             &middot; SY {{ $schoolYear }}
         </p>
     </div>
@@ -116,7 +71,7 @@
     <div x-data="{ open: true }" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between p-4 text-left">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Conference Summary</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Observation Conversation Summary</h2>
             <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
         <div x-show="open" x-collapse>
@@ -124,7 +79,7 @@
                 <div class="space-y-2">
                     @if($preConference->finalized_focus)
                     <div>
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">Finalized Focus:</span>
+                        <span class="text-gray-500 dark:text-gray-400 text-sm">Agreed Focus:</span>
                         <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $preConference->finalized_focus }}</p>
                     </div>
                     @endif
@@ -146,11 +101,21 @@
         @csrf
 
         <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            @if($observation->isSchoolHeadObservation())
+                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rate the School Head's post-observation conference practices &middot; SY {{ $schoolYear }}</p>
+                        </div>
+                    </div>
+                </div>
+            @else
             <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">COT Rating Sheet</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Annex E-2 &middot; SY {{ $schoolYear }} &middot; {{ $observation->isTeacherObservation() ? 'PPST' : 'Leadership' }} Indicators</p>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rate what you observed during the lesson &middot; SY {{ $schoolYear }}</p>
                     </div>
                     <button type="button" data-action="mark-all-no"
                             class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
@@ -159,13 +124,17 @@
                     </button>
                 </div>
             </div>
+            @endif
 
+            @if($observation->isSchoolHeadObservation())
+                @include('supervisor.observations.partials.epoc-form', compact('observation', 'epocEvaluation', 'schoolHead'))
+            @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm cot-table">
                     <thead>
                         <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
-                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">PPST Indicators</th>
+                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicator</th>
                             @foreach($ratingValues as $val)
                                 @php $label = $ratingScale[$val] ?? ''; @endphp
                                 <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-20">
@@ -248,20 +217,21 @@
                           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                           placeholder="Additional comments or observations...">{{ $observation->cotRatings->first()?->comments ?? '' }}</textarea>
             </div>
+            @endif
         </div>
 
         <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Supervisor Notes</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">These notes will be passed to the Post-Conference as STAR notes and will inform the AI analysis.</p>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Notes</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">These notes will be used during the Post-Observation Conference and will inform the AI analysis.</p>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">STAR Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(What went well)</span></label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Strengths Observed <span class="text-gray-400 dark:text-gray-500 font-normal">(What went well)</span></label>
                     <textarea name="star_notes" rows="4"
                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                               placeholder="Document specific observations of effective teaching practices observed...">{{ $observation->postConference?->star_notes }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supervisor's Private Notes</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Private Notes</label>
                     <textarea name="supervisor_notes" rows="3"
                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
                               placeholder="Your private notes for future reference...">{{ $observation->postConference?->supervisor_notes }}</textarea>
@@ -296,7 +266,7 @@
             <div class="flex items-center justify-between gap-3 mb-3">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-                    <span class="text-xs text-gray-600 dark:text-gray-400">Saving will auto-generate AI analysis and redirect to the Post-Conference page.</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400">Saving will generate AI analysis and continue to the Post-Observation Conference.</span>
                 </div>
                 <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
             </div>
@@ -305,14 +275,14 @@
                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 font-medium text-sm text-center transition-colors">
                     <span class="flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        Back to Pre-Conference
+                        Back to Pre-Observation Conversation
                     </span>
                 </a>
                 <button type="submit" :disabled="submitting"
                         :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                         class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
                     <span x-show="!submitting" class="flex items-center justify-center gap-2">
-                        Save Ratings &amp; Continue to Post-Conference
+                        Save Ratings &amp; Continue to Post-Observation Conference
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     </span>
                     <span x-show="submitting" class="flex items-center justify-center gap-2">

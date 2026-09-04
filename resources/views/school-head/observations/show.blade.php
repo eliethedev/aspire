@@ -66,7 +66,7 @@
     @php
         $stageConfig = [
             'pre_observation_planning' => [
-                'label' => 'Pre-Observation Planning',
+                'label' => 'Prepare',
                 'desc'   => 'Lesson plan review & preparation',
                 'color'  => 'blue',
                 'bg'     => 'bg-blue-50 dark:bg-blue-900/20',
@@ -76,7 +76,7 @@
                 'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
             ],
             'pre_conference' => [
-                'label' => 'Pre-Conference',
+                'label' => 'Pre-Observation Conversation',
                 'desc'   => 'Pre-observation discussion with teacher',
                 'color'  => 'amber',
                 'bg'     => 'bg-amber-50 dark:bg-amber-900/20',
@@ -96,7 +96,7 @@
                 'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>',
             ],
             'post_conference' => [
-                'label' => 'Post-Conference',
+                'label' => 'Post-Observation Conference',
                 'desc'   => 'Feedback discussion & action plan',
                 'color'  => 'green',
                 'bg'     => 'bg-green-50 dark:bg-green-900/20',
@@ -143,20 +143,29 @@
             'pre_conference' => 'school-head.observations.preConference',
             'observation' => 'school-head.observations.observation',
             'post_conference' => 'school-head.observations.postConference',
+            // School head observations render the EPOC rating sheet on the
+            // observation page, so the EPOC step links there as well.
+            'epoc' => 'school-head.observations.observation',
         ];
         $stageLabels = [
-            'pre_observation_planning' => 'Pre-Observation Planning',
-            'pre_conference' => 'Pre-Conference',
-            'observation' => 'Observation',
-            'post_conference' => 'Post-Conference',
+            'pre_observation_planning' => 'Prepare',
+            'pre_conference' => 'Pre-Observation Conversation',
+            'observation' => 'Classroom Observation',
+            'post_conference' => 'Post-Observation Conference',
+            'epoc' => 'EPOC Evaluation',
         ];
         $stageCompleted = [
             'pre_observation_planning' => (bool) $observation->preObservationPlanning,
             'pre_conference' => (bool) $observation->preConference,
-            'observation' => $observation->cotRatings && $observation->cotRatings->count() > 0,
+            'observation' => $observation->isSchoolHeadObservation()
+                ? ($observation->epocEvaluation?->ratings->isNotEmpty() ?? false)
+                : ($observation->cotRatings && $observation->cotRatings->count() > 0),
+            'epoc' => $observation->epocEvaluation?->ratings->isNotEmpty() ?? false,
             'post_conference' => (bool) $observation->postConference,
         ];
-        $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageKeys = $observation->isSchoolHeadObservation()
+            ? ['pre_observation_planning', 'pre_conference', 'observation', 'epoc', 'post_conference']
+            : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageKeys);
     @endphp
 
@@ -441,7 +450,7 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">COT-based performance assessment</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Observation-based performance assessment</p>
                     </div>
                 </div>
                 <div class="text-right">
@@ -503,7 +512,7 @@
                         <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Evaluation</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h2>
                         <p class="text-xs text-gray-500 dark:text-gray-400">School Head Assessment &middot; DepEd CID Format</p>
                     </div>
                 </div>
@@ -567,8 +576,8 @@
                     <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div class="min-w-0">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Evaluation Not Yet Completed</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">The observer has not yet completed the Enhanced Post-Observation Conference evaluation for the School Head. This section will be updated once it becomes available.</p>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation Not Yet Completed</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">The observer has not yet completed the Post-Observation Conference evaluation for the School Head. This section will be updated once it becomes available.</p>
                 </div>
             </div>
         </div>

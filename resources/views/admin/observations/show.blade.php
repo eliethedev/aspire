@@ -42,6 +42,13 @@
                 Download COT Document
             </a>
             @endif
+            @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
+            <a href="{{ route('admin.observations.epoc-document', $observation) }}"
+               class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                Download EPOC Document
+            </a>
+            @endif
             <a href="{{ route('admin.observations.index') }}"
                class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors">
                 Back to List
@@ -331,6 +338,70 @@
                             <div class="h-1 rounded-full {{ $r >= 5 ? 'bg-emerald-50 dark:bg-emerald-900/200' : ($r >= 4 ? 'bg-blue-50 dark:bg-blue-900/200' : ($r >= 3 ? 'bg-amber-50 dark:bg-amber-900/200' : 'bg-red-50 dark:bg-red-900/200')) }}" style="width: {{ $rPct }}%"></div>
                         </div>
                         @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">EPOC &middot; 23 indicators &middot; 1–5 scale</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Overall Score</p>
+                    <div class="flex items-end gap-1">
+                        <p class="text-gray-900 dark:text-gray-100 font-bold text-3xl tracking-tight">{{ number_format($observation->epocEvaluation->overall_score, 1) }}</p>
+                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ 5</p>
+                    </div>
+                </div>
+            </div>
+
+            @if($observation->epocEvaluation->narrative_observation)
+            <div class="mb-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider">Narrative Observation</span>
+                <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->epocEvaluation->narrative_observation }}</p>
+            </div>
+            @endif
+
+            @if($observation->epocEvaluation->agreement)
+            <div class="mb-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
+                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Agreement</span>
+                <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->epocEvaluation->agreement }}</p>
+            </div>
+            @endif
+
+            <div class="space-y-2.5">
+                @foreach($observation->epocEvaluation->ratings as $rating)
+                    @php
+                        $r = $rating->rating;
+                        $rColor = !$r ? 'bg-gray-100 border-gray-200 dark:border-gray-700' : ($r >= 4 ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20' : ($r >= 3 ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' : 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'));
+                        $rBadge = !$r ? 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500' : ($r >= 4 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : ($r >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'));
+                    @endphp
+                    <div class="rounded-xl p-4 border {{ $rColor }}">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $rating->indicator }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">{{ $rating->domain }}</p>
+                                @if($rating->comments)
+                                <p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700/60">{{ $rating->comments }}</p>
+                                @endif
+                            </div>
+                            <div class="text-center shrink-0">
+                                <div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center">
+                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : '—' }}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">/ 5</p>
+                            </div>
+                        </div>
                     </div>
                 @endforeach
             </div>

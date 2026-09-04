@@ -55,7 +55,7 @@
         <tr><td>Teacher Observed</td><td>{{ $teacher_name }}</td></tr>
         <tr><td>Observer</td><td>{{ $observer_name }}</td></tr>
         <tr><td>Date of Observation</td><td>{{ $observation_date }}</td></tr>
-        <tr><td>Quarter</td><td>{{ $quarter }}</td></tr>
+        <tr><td>Term</td><td>{{ $quarter }}</td></tr>
         <tr><td>Observation Type</td><td>{{ $observation_type }}</td></tr>
         <tr><td>Subject</td><td>{{ $subject }}</td></tr>
         <tr><td>Grade Level</td><td>{{ $grade_level }}</td></tr>

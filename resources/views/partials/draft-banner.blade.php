@@ -2,6 +2,17 @@
     Draft / workflow status banner shown on observation stage pages.
     Expects: $observation.
 --}}
+@php
+    $friendlyStatuses = [
+        'pre_observation_planning' => 'Preparing for Observation',
+        'pre_conference' => 'Pre-Observation Conversation',
+        'observation' => 'Classroom Observation',
+        'post_conference' => 'Post-Observation Conference',
+        'epoc' => 'EPOC Evaluation',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ];
+@endphp
 @if(!in_array($observation->status, ['completed', 'cancelled']))
 <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 mb-6 flex flex-col sm:flex-row sm:items-center gap-3" role="status">
     <div class="flex items-center gap-3">
@@ -14,7 +25,7 @@
     @if($observation->status)
         <span class="sm:ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200">
             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-            {{ ucfirst($observation->status) }}
+            {{ $friendlyStatuses[$observation->status] ?? ucfirst($observation->status) }}
         </span>
     @endif
 </div>

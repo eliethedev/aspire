@@ -178,7 +178,7 @@
       <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
         <div class="flex justify-between items-start">
           <div>
-            <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Avg COT Score</p>
+            <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Avg Observation Score</p>
             <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ number_format($stats['average_score'], 1) }}</p>
             <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">Out of 7.0</p>
           </div>
@@ -292,7 +292,7 @@
       <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-6 section-card">
         <div class="flex items-center justify-between gap-3 mb-4">
           <h2 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span
-              class="w-1.5 h-5 rounded-full bg-indigo-600"></span> COT Score Trend</h2>
+              class="w-1.5 h-5 rounded-full bg-indigo-600"></span> Observation Score Trend</h2>
           <span
             class="text-xs px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-medium">{{ count($cotScores) }}
             scored</span>
@@ -319,7 +319,7 @@
             <div class="w-14 h-14 rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 flex items-center justify-center mb-3"><i
                 class="fas fa-chart-line text-xl text-slate-400 dark:text-gray-500"></i></div>
             <p class="text-sm font-semibold text-slate-700 dark:text-gray-200">No scored observations yet</p>
-            <p class="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-sm">Complete an observation and rate the COT to see your trend over
+            <p class="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-sm">Complete an observation and rate the indicators to see your trend over time.</p>
               time.</p>
             <a href="{{ route('supervisor.observations.create') }}"
               class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Create
@@ -338,7 +338,7 @@
                 class="fas fa-plus"></i></div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">New Observation</p>
-              <p class="text-xs text-slate-500 dark:text-gray-400 truncate">Schedule COT / PPST cycle</p>
+              <p class="text-xs text-slate-500 dark:text-gray-400 truncate">Schedule an observation cycle</p>
             </div><i class="fas fa-chevron-right text-xs text-slate-300 dark:text-gray-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-400"></i>
           </a>
           <a href="{{ route('supervisor.teachers.index') }}"
@@ -480,6 +480,6 @@
   </div>
   @if(count($cotScores) > 0)
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>(function () { const ctx = document.getElementById('cotChart').getContext('2d'); new Chart(ctx, { type: 'line', data: { labels: {!! json_encode($cotLabels) !!}, datasets: [{ label: 'COT', data: {!! json_encode($cotScores) !!}, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2.2, tension: .38, fill: true, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: '#4f46e5' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e1b4b', titleColor: '#fff', bodyColor: '#e0e7ff', padding: 10, cornerRadius: 10 } }, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1, color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(148,163,184,.18)' } }, x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } } } } }); })();</script>
+    <script>(function () { const ctx = document.getElementById('cotChart').getContext('2d'); new Chart(ctx, { type: 'line', data: { labels: {!! json_encode($cotLabels) !!}, datasets: [{ label: 'Observation Score', data: {!! json_encode($cotScores) !!}, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2.2, tension: .38, fill: true, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: '#4f46e5' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e1b4b', titleColor: '#fff', bodyColor: '#e0e7ff', padding: 10, cornerRadius: 10 } }, scales: { y: { min: 1, max: 7, ticks: { stepSize: 1, color: '#64748b', font: { size: 11 } }, grid: { color: 'rgba(148,163,184,.18)' } }, x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { display: false } } } } }); })();</script>
   @endif
 @endsection

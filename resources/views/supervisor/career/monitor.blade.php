@@ -131,6 +131,7 @@
             $dot = $toneMap[$tone][1] ?? $toneMap['slate'][1];
             $ready = $row['next_stage'] !== null;
             $adv = $row['latest_advancement'];
+            $pending = $adv && $adv->isPendingApproval();
         @endphp
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 section-card">
             <div class="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -189,13 +190,13 @@
                 </div>
 
                 {{-- Latest advancement --}}
-                <div class="min-w-0 lg:w-44">
+                <div class="min-w-0 lg:w-48">
                     <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Last action</p>
                     @if($adv)
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border {{ $adv->typeBadgeClass() }}">
-                            <i class="fas {{ $adv->type === 'allow' ? 'fa-check' : 'fa-bullhorn' }} text-[10px]"></i> {{ $adv->typeLabel() }}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border {{ $adv->statusBadgeClass() }}">
+                            <i class="fas {{ $adv->type === 'allow' ? 'fa-check' : 'fa-bullhorn' }} text-[10px]"></i> {{ $adv->statusLabel() }}
                         </span>
-                        <p class="text-[11px] text-slate-400 mt-0.5">to {{ $adv->toStageLabel() }}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">{{ $adv->typeLabel() }} to {{ $adv->toStageLabel() }}</p>
                     @else
                         <span class="text-xs text-slate-400">None yet</span>
                     @endif
@@ -203,7 +204,11 @@
 
                 {{-- Actions --}}
                 <div class="flex items-center gap-2 lg:ml-auto shrink-0">
-                    @if($ready)
+                    @if($pending)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
+                            <i class="fas fa-hourglass-half text-[11px]"></i> Awaiting school head approval
+                        </span>
+                    @elseif($ready)
                         <button type="button"
                             @click="openAction('announce', '{{ route('supervisor.career.announce', $teacher) }}', '{{ $teacher->user->name }}', '{{ $row['next_stage_label'] }}')"
                             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors">

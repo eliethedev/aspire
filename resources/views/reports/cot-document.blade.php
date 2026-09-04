@@ -78,8 +78,8 @@
         <tr>
             <td class="label">School:</td>
             <td>{{ $school_name }}</td>
-            <td class="label">Quarter:</td>
-            <td>Quarter {{ $quarter }}</td>
+            <td class="label">Term:</td>
+            <td>Term {{ $quarter }}</td>
         </tr>
         <tr>
             <td class="label">School Year:</td>

@@ -16,6 +16,7 @@ use App\Models\Observation;
 use App\Models\SchoolHeadProfile;
 use App\Models\Teacher;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Services\AIFeedbackService;
 use App\Services\AISuggestionService;
 use App\Services\AuditLogService;
@@ -495,36 +496,38 @@ class SupervisorController extends Controller
             return back()->with('error', 'This teacher is already at the top of their career track.');
         }
 
+        if (CareerAdvancement::where('teacher_id', $teacher->id)
+            ->where('status', CareerAdvancement::STATUS_PENDING_APPROVAL)
+            ->exists()) {
+            return back()->with('error', 'This teacher already has a career advancement awaiting school head approval.');
+        }
+
         $remarks = $request->input('remarks');
         $remarks = is_string($remarks) ? trim($remarks) : null;
 
-        CareerAdvancement::create([
+        $advancement = CareerAdvancement::create([
             'teacher_id' => $teacher->id,
             'supervisor_id' => $user->id,
             'from_career_stage' => $currentStage,
             'to_career_stage' => $nextStage,
             'type' => $type,
-            'status' => CareerAdvancement::STATUS_RECORDED,
+            'status' => CareerAdvancement::STATUS_PENDING_APPROVAL,
             'remarks' => $remarks ?: null,
             'acted_at' => now()->toDateString(),
         ]);
 
-        if ($teacher->career_stage !== $nextStage) {
-            $teacher->career_stage = $nextStage;
-            $teacher->save();
-        }
-
-        $this->notificationService->notifyCareerAdvancement(
+        // The teacher's career_stage is NOT advanced yet. It is held pending
+        // until the school head reviews and approves this recommendation.
+        $this->notificationService->notifyCareerAdvancementApprovalRequest(
             $teacher->user,
-            $teacher->user->school_id,
             $this->stageLabel($nextStage),
-            $type === CareerAdvancement::TYPE_ALLOW,
-            route('supervisor.teachers.show', $teacher).'#readiness',
+            $type,
+            route('school-head.career.advancements.index'),
         );
 
         $message = $type === CareerAdvancement::TYPE_ALLOW
-            ? 'Career progression allowed. The teacher and school head have been notified.'
-            : 'Career stage achieved and announced. The teacher and school head have been notified.';
+            ? 'Career progression recommended. Awaiting school head approval before the teacher advances.'
+            : 'Career stage recommended. Awaiting school head approval before the teacher advances.';
 
         return back()->with('success', $message);
     }
@@ -741,7 +744,47 @@ class SupervisorController extends Controller
             ])
             ->values();
 
-        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData', 'schoolYear', 'cotTemplates'));
+        // EPOC Rating Instrument domains & indicators (used for the template
+        // preview in the create wizard for School Head observations).
+        $epocDomains = [
+            'Domain 1: Establishing a Warm and Clear Opening of the Post Observation Conference' => [
+                "School Head acknowledges teacher's time (Thanks the teacher for allowing him/her to observe a class)",
+                'School Head states the purpose of the conversation',
+                'Talks in a voice that is warm, friendly and sincere',
+            ],
+            'Domain 2: Focus on what\'s going well' => [
+                'Congratulates teachers for doing a job well (cite specific instances or teacher behavior/activities that are worth mentioning. Refer to the strengths noted)',
+                'Asks the teacher to clearly state the objectives of the lesson',
+                "Paraphrases and affirms the teacher's lesson objective (Asks what the pupils are able to demonstrate at the end of the lesson)",
+                'Asks the teacher what she did to teach the lesson',
+                'Asks teacher what made him/her happy about the delivery of the lesson. The SH listens intently to what the teacher is saying',
+                'The SH affirms what the teacher considered as things that went well in the delivery of the lesson',
+                'The SH extends the positive focus in addition to what the teacher identified as what went well, citing additional specific things referring to the strengths noted',
+            ],
+            'Domain 3: Identify Challenges Facing the Teacher' => [
+                'The SH asks the teacher to tell which part of the lesson she thinks did not go well',
+                "The SH paraphrases teacher's message to check whether they have the same understanding",
+                'The SH enables the teacher to tell additional parts that did not go well by citing specific instances recorded in the strengths noted',
+                'The SH avoids diversion and stays focused on the issues/data/documentation at hand when teacher makes caustic statements',
+                "The SH is able to verify the teacher's perception about the identified areas for improvement",
+            ],
+            'Domain 4: Generating Ideas for Addressing Teacher\'s Challenges' => [
+                'The SH guides the teacher in identifying possible strategies in addressing the challenges',
+                'The SH helps solve the problem by offering ideas for improvement if and when the teacher is not able to do so',
+                'The SH connects the teacher to available and appropriate resources to help address the challenges',
+                'The SH avoids compromising statements that provide an excuse for poor performance',
+            ],
+            'Domain 5: Prioritizing the Next Steps' => [
+                'The Teacher and the principal reviews ideas for improvement and assign priority to possible options',
+            ],
+            'Domain 6: Ending the Post Observation Conference' => [
+                'The SH makes the teacher agree on the next steps by asking the teacher to choose whose help he/she would want to ask to assist in improving the identified challenges',
+                'The SH enables the teacher to make a commitment regarding the next steps identified',
+                'The SH thanks the teacher for the conversation',
+            ],
+        ];
+
+        return view('supervisor.observations.create', compact('teacherData', 'schoolHeadData', 'schoolYear', 'cotTemplates', 'epocDomains'));
     }
 
     /**
@@ -817,7 +860,9 @@ class SupervisorController extends Controller
 
             // The chosen COT template must be published, belong to the school
             // year, and apply to the selected observation type.
-            if ($request->filled('cot_indicator_version_id')) {
+            // School Head observations use the EPOC instrument instead, so no
+            // COT template validation is performed for that observation type.
+            if ($request->filled('cot_indicator_version_id') && $request->input('observation_type') !== 'school_head_observation') {
                 $cotTemplate = CotIndicatorVersion::find($request->input('cot_indicator_version_id'));
 
                 if (! $cotTemplate) {
@@ -879,9 +924,13 @@ class SupervisorController extends Controller
 
         // Use the supervisor-selected COT template when provided; otherwise
         // resolve the published version for the school year / observee.
-        $cotIndicatorVersion = ! empty($validated['cot_indicator_version_id'])
-            ? CotIndicatorVersion::find($validated['cot_indicator_version_id'])
-            : $this->cotIndicatorService->getVersionModel($schoolYear);
+        // School Head observations use the EPOC instrument instead, so no COT
+        // template is resolved or stored for that observation type.
+        $cotIndicatorVersion = $validated['observation_type'] === 'school_head_observation'
+            ? null
+            : (! empty($validated['cot_indicator_version_id'])
+                ? CotIndicatorVersion::find($validated['cot_indicator_version_id'])
+                : $this->cotIndicatorService->getVersionModel($schoolYear));
 
         if ($observeeType === Teacher::class) {
             $observee = Teacher::find($validated['observee_id']);
@@ -892,7 +941,7 @@ class SupervisorController extends Controller
                     $observee->career_stage,
                 ) ?? $cotIndicatorVersion;
             }
-        } else {
+        } elseif ($validated['observation_type'] !== 'school_head_observation') {
             $cotIndicatorVersion = $this->cotIndicatorService->resolveVersionForObservee(
                 $schoolYear,
                 'school_head',
@@ -914,7 +963,7 @@ class SupervisorController extends Controller
             'notes' => $validated['notes'] ?? null,
             'status' => $status,
             'school_year' => $schoolYear,
-            'quarter' => $validated['quarter'] ?? $this->getCurrentQuarter(),
+            'quarter' => $validated['quarter'] ?? $this->getCurrentTerm(),
             'observation_number' => $validated['observation_number'] ?? 1,
             'subject' => $validated['subject'] ?? null,
             'grade_level' => $validated['grade_level'] ?? null,
@@ -1080,7 +1129,7 @@ class SupervisorController extends Controller
             'notes' => 'Linked PPSSH observation for ' . $observation->subject,
             'status' => 'in_progress',
             'school_year' => $schoolYear,
-            'quarter' => $observation->quarter ?? $this->getCurrentQuarter(),
+            'quarter' => $observation->quarter ?? $this->getCurrentTerm(),
             'observation_number' => 1,
             'subject' => $observation->subject ?? null,
             'grade_level' => $observation->grade_level ?? null,
@@ -1160,21 +1209,28 @@ class SupervisorController extends Controller
     }
 
     /**
-     * Get current quarter.
+     * Get current DepEd term (trimester).
+     *
+     * TERM 1: Jun 8 – Sep 15
+     * TERM 2: Sep 16 – Dec 18
+     * TERM 3: Jan 4 – Apr 8
      */
-    private function getCurrentQuarter(): int
+    private function getCurrentTerm(): int
     {
-        $currentMonth = now()->month;
+        $now = now();
+        $boundaries = [
+            1 => [Carbon::create($now->year, 6, 8), Carbon::create($now->year, 9, 15)],
+            2 => [Carbon::create($now->year, 9, 16), Carbon::create($now->year, 12, 18)],
+            3 => [Carbon::create($now->year, 1, 4), Carbon::create($now->year, 4, 8)],
+        ];
 
-        if ($currentMonth >= 6 && $currentMonth <= 8) {
-            return 1;
-        } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
-            return 2;
-        } elseif ($currentMonth >= 12 || $currentMonth <= 2) {
-            return 3;
-        } else {
-            return 4;
+        foreach ($boundaries as $term => [$start, $end]) {
+            if ($now->between($start, $end)) {
+                return $term;
+            }
         }
+
+        return 1;
     }
 
     /**
@@ -1523,19 +1579,37 @@ class SupervisorController extends Controller
         $ratingScaleCss = $cotVersion['rating_scale_css'] ?? config('cot.rating_scale_css', []);
         $existingSuggestions = $observation->preObservationPlanning?->ai_insights;
 
+        // School Head observations use the EPOC instrument instead of the COT
+        // rating sheet, so load the EPOC relationships for the integrated form.
+        $epocEvaluation = null;
+        $schoolHead = null;
+        if ($observation->isSchoolHeadObservation()) {
+            $observation->loadMissing(['epocEvaluation.ratings', 'schoolHead']);
+            $epocEvaluation = $observation->epocEvaluation;
+            $schoolHead = $observation->schoolHead;
+        }
+
         return view('supervisor.observations.observation', compact(
             'observation', 'cotRatings', 'preConference',
             'cotIndicators', 'ratingScale', 'ratingScaleCss',
-            'existingSuggestions', 'schoolYear'
+            'existingSuggestions', 'schoolYear',
+            'epocEvaluation', 'schoolHead'
         ));
     }
 
     /**
-     * Store Observation data (COT Ratings)
+     * Store Observation data (COT Ratings for teacher observations,
+     * EPOC ratings for school head observations)
      */
     public function storeObservationData(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
+
+        // School Head observations use the EPOC instrument instead of the COT
+        // rating sheet, so save EPOC ratings + narrative/agreement.
+        if ($observation->isSchoolHeadObservation()) {
+            return $this->storeEpocObservationData($request, $observation);
+        }
 
         $cotVersion = $this->cotIndicatorService->getVersionForObservation($observation);
         $scaleValues = array_keys($cotVersion['rating_scale'] ?? config('cot.rating_scale', []));
@@ -1664,6 +1738,119 @@ class SupervisorController extends Controller
 
         return redirect()->route('supervisor.observations.postConference', $observation->id)
             ->with('success', 'Observation ratings have been saved. AI analysis has been generated.');
+    }
+
+    /**
+     * Store Observation data for School Head observations (EPOC instrument).
+     *
+     * Saves the EPOC ratings, narrative observation and agreement into the
+     * epoc_evaluations / epoc_ratings tables, then advances the workflow the
+     * same way as the COT path (status -> cot_completed, stage -> post_conference).
+     */
+    protected function storeEpocObservationData(Request $request, Observation $observation)
+    {
+        $validated = $request->validate([
+            'epoc_ratings' => ['required', 'array'],
+            'epoc_ratings.*.domain' => ['required', 'string'],
+            'epoc_ratings.*.indicator' => ['required', 'string'],
+            'epoc_ratings.*.rating' => ['nullable', 'integer', 'in:1,2,3,4,5'],
+            'epoc_ratings.*.comments' => ['nullable', 'string'],
+            'epoc_narrative_observation' => ['nullable', 'string'],
+            'epoc_agreement' => ['nullable', 'string'],
+            'other_comments' => ['nullable', 'string'],
+            'star_notes' => ['nullable', 'string'],
+            'supervisor_notes' => ['nullable', 'string'],
+        ]);
+
+        // Delete + recreate the EPOC evaluation (ratings cascade).
+        $observation->epocEvaluation()->delete();
+
+        $epocEvaluation = $observation->epocEvaluation()->create([
+            'school_head_name' => $observation->schoolHead?->name,
+            'observation_date' => $observation->observation_date,
+            'narrative_observation' => $validated['epoc_narrative_observation'] ?? null,
+            'agreement' => $validated['epoc_agreement'] ?? null,
+        ]);
+
+        foreach ($validated['epoc_ratings'] as $item) {
+            $epocEvaluation->ratings()->create([
+                'domain' => $item['domain'],
+                'indicator' => $item['indicator'],
+                'rating' => $item['rating'] ?? null,
+                'comments' => $item['comments'] ?? null,
+            ]);
+        }
+
+        $rated = $epocEvaluation->ratings()->whereNotNull('rating');
+        $avgRating = $rated->exists() ? $rated->avg('rating') : null;
+        $epocEvaluation->update(['overall_score' => $avgRating]);
+
+        // Save evidence file uploads
+        $evidenceFiles = $observation->evidence_files ?? [];
+        if ($request->hasFile('evidence_files')) {
+            foreach ($request->file('evidence_files') as $file) {
+                $path = $file->store('observation_evidences', 'public');
+                $evidenceFiles[] = [
+                    'path' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+        }
+
+        $otherComments = $request->input('other_comments');
+        $observation->update([
+            'evidence_files' => $evidenceFiles,
+            'notes' => $otherComments ? ($observation->notes ? $observation->notes."\n\n".$otherComments : $otherComments) : $observation->notes,
+        ]);
+
+        // Save supervisor/private notes to post-conference
+        $starNotes = $request->input('star_notes');
+        $supervisorNotes = $request->input('supervisor_notes');
+        if ($starNotes || $supervisorNotes) {
+            $observation->postConference()->updateOrCreate(
+                ['observation_id' => $observation->id],
+                [
+                    'star_notes' => $starNotes,
+                    'supervisor_notes' => $supervisorNotes,
+                ]
+            );
+        }
+
+        // Advance the workflow (same as COT path). School head observations
+        // always require post-conference.
+        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $currentIdx = array_search($observation->stage, $stageOrder);
+        $targetIdx = array_search('post_conference', $stageOrder);
+
+        $updates = ['overall_score' => $avgRating, 'status' => 'cot_completed'];
+        if ($targetIdx === $currentIdx + 1) {
+            $updates['stage'] = 'post_conference';
+            $observation->logChange([
+                'to_stage' => 'post_conference',
+                'to_status' => 'cot_completed',
+                'notes' => 'EPOC ratings completed',
+            ]);
+        } else {
+            $observation->logChange([
+                'to_status' => 'cot_completed',
+                'notes' => 'EPOC ratings updated',
+            ]);
+        }
+        $observation->update($updates);
+
+        // Notify the observee that their observation is complete
+        $observee = $observation->observee;
+        if ($observee && $observee->user) {
+            $link = $observee instanceof SchoolHeadProfile
+                ? route('school-head.observations.show', $observation->id)
+                : route('supervisor.observations.show', $observation->id);
+            $this->notificationService->notifyObservationCompleted($observee->user, $link);
+        }
+
+        return redirect()->route('supervisor.observations.postConference', $observation->id)
+            ->with('success', 'Observation ratings have been saved.');
     }
 
     /**
@@ -2887,7 +3074,42 @@ class SupervisorController extends Controller
         $obsType = $observation->observation_type;
 
         if ($stage === 'observation') {
-            if ($request->has('ratings') && is_array($request->input('ratings'))) {
+            // School Head observations use the EPOC instrument.
+            if ($observation->isSchoolHeadObservation()) {
+                if ($request->has('epoc_ratings') && is_array($request->input('epoc_ratings'))) {
+                    $epoc = $observation->epocEvaluation ?? new \App\Models\EpocEvaluation();
+                    if (! $epoc->exists) {
+                        $epoc = $observation->epocEvaluation()->create([
+                            'school_head_name' => $observation->schoolHead?->name,
+                            'observation_date' => $observation->observation_date,
+                        ]);
+                    }
+                    foreach ($request->input('epoc_ratings') as $item) {
+                        $hasRating = array_key_exists('rating', $item) && $item['rating'] !== null && $item['rating'] !== '';
+                        // Untouched rows carry no rating value; preserve previously
+                        // saved ratings rather than overwriting them with null.
+                        if (! $hasRating) {
+                            continue;
+                        }
+                        \App\Models\EpocRating::updateOrCreate(
+                            ['epoc_evaluation_id' => $epoc->id, 'indicator' => $item['indicator']],
+                            [
+                                'domain' => $item['domain'] ?? null,
+                                'rating' => $item['rating'],
+                                'comments' => $item['comments'] ?? null,
+                            ]
+                        );
+                    }
+                    if ($request->has('epoc_narrative_observation')) {
+                        $epoc->narrative_observation = $request->input('epoc_narrative_observation');
+                    }
+                    if ($request->has('epoc_agreement')) {
+                        $epoc->agreement = $request->input('epoc_agreement');
+                    }
+                    $epoc->save();
+                    $savedFields[] = 'epoc_ratings';
+                }
+            } elseif ($request->has('ratings') && is_array($request->input('ratings'))) {
                 foreach ($request->input('ratings') as $item) {
                     if (empty($item['indicator_code'])) {
                         continue;

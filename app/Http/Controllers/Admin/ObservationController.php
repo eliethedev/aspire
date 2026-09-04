@@ -56,6 +56,8 @@ class ObservationController extends Controller
             'preConference',
             'postConference',
             'cotRatings',
+            'epocEvaluation.ratings',
+            'schoolHead.user',
         ]);
 
         return view('admin.observations.show', compact('observation'));
@@ -87,6 +89,22 @@ class ObservationController extends Controller
                 return redirect()->back()->with('error', 'Failed to generate the COT document. Please try again.');
             }
         }
+
+        return Storage::disk(CotDocumentService::DISK)->download($path, basename($path));
+    }
+
+    /**
+     * Download the EPOC evaluation document (DOCX) for a School Head
+     * observation, when an EPOC evaluation exists.
+     */
+    public function downloadEpocDocument(Observation $observation)
+    {
+        if (! $observation->epocEvaluation) {
+            return redirect()->back()->with('error', 'No EPOC evaluation has been completed for this observation.');
+        }
+
+        $service = app(CotDocumentService::class);
+        $path = $service->generateEpocDocument($observation);
 
         return Storage::disk(CotDocumentService::DISK)->download($path, basename($path));
     }

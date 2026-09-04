@@ -413,6 +413,19 @@
             @endif
 
             @if(auth()->user()->isSchoolHead())
+            @php
+                $schoolHeadUser = auth()->user();
+                $schoolHeadProfile = \App\Models\SchoolHeadProfile::where('user_id', $schoolHeadUser->id)->first();
+                $scheduledObservationCount = \App\Models\Observation::where('status', 'scheduled')
+                    ->where(function ($q) use ($schoolHeadUser, $schoolHeadProfile) {
+                        $q->where('observee_id', $schoolHeadProfile?->id)
+                            ->where('observee_type', \App\Models\SchoolHeadProfile::class)
+                            ->orWhere('observer_id', $schoolHeadUser->id)
+                            ->where('observer_type', \App\Models\User::class)
+                            ->orWhere('school_head_id', $schoolHeadUser->id);
+                    })
+                    ->count();
+            @endphp
             <!-- School Head: Core Supervision Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
                 <button x-show="!$store.sidebar.isCollapsed()" @click="supervisionOpen = !supervisionOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
@@ -433,6 +446,18 @@
                                 </svg>
                             </span>
                             <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Teachers</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('school-head.career.advancements.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.career.advancements.*') ? 'sidebar-link-active icon-coaching' : '' }}"
+                           :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-coaching" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Career Advancements</span>
                         </a>
                     </li>
                     <li>
@@ -463,13 +488,19 @@
                         <a href="{{ route('school-head.observations.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.index') || request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-observations" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-observations relative" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
+                                @if($scheduledObservationCount > 0)
+                                <span class="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                                @endif
                             </span>
                             <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Classroom Observations</span>
+                            @if($scheduledObservationCount > 0)
+                            <span x-show="!$store.sidebar.isCollapsed()" class="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">{{ $scheduledObservationCount }}</span>
+                            @endif
                         </a>
                     </li>
                     <li>

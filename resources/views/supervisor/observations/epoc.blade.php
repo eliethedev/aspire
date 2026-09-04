@@ -24,13 +24,6 @@
 @endpush
 
 @php
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-    $stageLabels = [
-        'pre_observation_planning' => 'Pre-Observation Planning',
-        'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
-        'post_conference' => 'Post-Conference',
-    ];
     $currentStage = $observation->stage;
 
     $ratingValues = [1, 2, 3, 4, 5];
@@ -44,40 +37,40 @@
     $ratingColspan = 2 + count($ratingValues);
 
     $domains = [
-        'Domain 1: Establishing a Warm and Clear Opening of the Post Observation Conference' => [
-            'Instructional Leader acknowledges teacher\'s time (Thanks the teacher for allowing him/her to observe a class)',
-            'Instructional Leader states the purpose of the conversation',
+            'Domain 1: Establishing a Warm and Clear Opening of the Post Observation Conference' => [
+            'School Head acknowledges teacher\'s time (Thanks the teacher for allowing him/her to observe a class)',
+            'School Head states the purpose of the conversation',
             'Talks in a voice that is warm, friendly and sincere',
         ],
         'Domain 2: Focus on what\'s going well' => [
-            'Congratulates teachers for doing a job well (cite specific instances or teacher behavior/activities that are worth mentioning. Refer to the STAR notes)',
+            'Congratulates teachers for doing a job well (cite specific instances or teacher behavior/activities that are worth mentioning. Refer to the strengths noted)',
             'Asks the teacher to clearly state the objectives of the lesson',
             'Paraphrases and affirms the teacher\'s lesson objective (Asks what the pupils are able to demonstrate at the end of the lesson)',
             'Asks the teacher what she did to teach the lesson',
-            'Asks teacher what made him/her happy about the delivery of the lesson. The IL listens intently to what the teacher is saying',
-            'The IL affirms what the teacher considered as things that went well in the delivery of the lesson',
-            'The IL extends the positive focus in addition to what the teacher identified as what went well, citing additional specific things referring to the STAR notes',
+            'Asks teacher what made him/her happy about the delivery of the lesson. The SH listens intently to what the teacher is saying',
+            'The SH affirms what the teacher considered as things that went well in the delivery of the lesson',
+            'The SH extends the positive focus in addition to what the teacher identified as what went well, citing additional specific things referring to the strengths noted',
         ],
         'Domain 3: Identify Challenges Facing the Teacher' => [
-            'The IL asks the teacher to tell which part of the lesson she thinks did not go well',
-            'The IL paraphrases teacher\'s message to check whether they have the same understanding',
-            'The IL enables the teacher to tell additional parts that did not go well by citing specific instances recorded in the STAR notes',
-            'The IL avoids diversion and stays focused on the issues/data/documentation at hand when teacher makes caustic statements',
-            'The IL is able to verify the teacher\'s perception about the identified areas for improvement',
+            'The SH asks the teacher to tell which part of the lesson she thinks did not go well',
+            'The SH paraphrases teacher\'s message to check whether they have the same understanding',
+            'The SH enables the teacher to tell additional parts that did not go well by citing specific instances recorded in the strengths noted',
+            'The SH avoids diversion and stays focused on the issues/data/documentation at hand when teacher makes caustic statements',
+            'The SH is able to verify the teacher\'s perception about the identified areas for improvement',
         ],
         'Domain 4: Generating Ideas for Addressing Teacher\'s Challenges' => [
-            'The IL guides the teacher in identifying possible strategies in addressing the challenges',
-            'The IL helps solve the problem by offering ideas for improvement if and when the teacher is not able to do so',
-            'The IL connects the teacher to available and appropriate resources to help address the challenges',
-            'The IL avoids compromising statements that provide an excuse for poor performance',
+            'The SH guides the teacher in identifying possible strategies in addressing the challenges',
+            'The SH helps solve the problem by offering ideas for improvement if and when the teacher is not able to do so',
+            'The SH connects the teacher to available and appropriate resources to help address the challenges',
+            'The SH avoids compromising statements that provide an excuse for poor performance',
         ],
         'Domain 5: Prioritizing the Next Steps' => [
             'The Teacher and the principal reviews ideas for improvement and assign priority to possible options',
         ],
         'Domain 6: Ending the Post Observation Conference' => [
-            'The IL makes the teacher agree on the next steps by asking the teacher to choose whose help he/she would want to ask to assist in improving the identified challenges',
-            'The IL enables the teacher to make a commitment regarding the next steps identified',
-            'The IL thanks the teacher for the conversation',
+            'The SH makes the teacher agree on the next steps by asking the teacher to choose whose help he/she would want to ask to assist in improving the identified challenges',
+            'The SH enables the teacher to make a commitment regarding the next steps identified',
+            'The SH thanks the teacher for the conversation',
         ],
     ];
 
@@ -93,16 +86,17 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">EPOC Evaluation</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Observation Conference Evaluation</li>
         </ol>
     </nav>
 
-    @include('partials.observation-progress')
-
     @include('partials.draft-banner')
 
+    <!-- Progress Steps -->
+    @include('partials.observation-stepper')
+
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">
             Rate the School Head's post-observation conference practices
             @if($schoolHead)
@@ -120,8 +114,8 @@
             <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Rating Sheet</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">DepEd CID Format &middot; Enhanced Post-Observation Conference Evaluation</p>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">DepEd CID Format &middot; Post-Observation Conference</p>
                     </div>
                     @if($schoolHead)
                     <div class="text-right">
@@ -137,7 +131,7 @@
                     <thead>
                         <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
-                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">EPOC Indicators</th>
+                            <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicators</th>
                             @foreach($ratingValues as $val)
                                 <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-20">
                                     <div class="text-xs font-bold">{{ $val }}</div>

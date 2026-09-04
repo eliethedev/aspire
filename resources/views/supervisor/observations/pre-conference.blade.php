@@ -1,6 +1,6 @@
 @extends('layouts.supervisor')
 
-@section('title', 'Pre-Conference')
+@section('title', 'Pre-Observation Conversation')
 
 @push('styles')
 <style>
@@ -22,21 +22,7 @@
 @endpush
 
 @php
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-    $stageLabels = [
-        'pre_observation_planning' => 'Pre-Observation Planning',
-        'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
-        'post_conference' => 'Post-Conference',
-    ];
-    $stageRoutes = [
-        'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
-        'pre_conference' => 'supervisor.observations.preConference',
-        'observation' => 'supervisor.observations.observation',
-        'post_conference' => 'supervisor.observations.postConference',
-    ];
     $currentStage = $observation->stage;
-    $currentIdx = array_search($currentStage, $stageKeys);
     $aiInsights = $planning?->ai_insights;
     $aiReviewed = $planning?->ai_insights_reviewed ?? false;
     $lessonPlanMissing = $planning && !$planning->lesson_plan_file;
@@ -51,50 +37,17 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Pre-Conference</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Pre-Observation Conversation</li>
         </ol>
     </nav>
-
-    @include('partials.observation-progress')
 
     @include('partials.draft-banner')
 
     <!-- Progress Steps -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            @foreach($stageKeys as $i => $key)
-                @php
-                    $isCurrent = $key === $currentStage;
-                    $isCompleted = $i < $currentIdx;
-                    $canAccess = $isCurrent || $isCompleted;
-                @endphp
-                @if($i > 0)
-                    <div class="flex-1 mx-4 h-1 {{ $isCompleted ? 'bg-green-400' : 'bg-gray-200' }}"></div>
-                @endif
-                @if($canAccess)
-                    <a href="{{ $isCurrent ? '#' : route($stageRoutes[$key], $observation) }}"
-                       class="flex items-center group {{ $isCurrent ? 'cursor-default' : 'cursor-pointer' }}">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200' }} font-semibold transition-colors group-hover:shadow-md text-sm">
-                            @if($isCompleted)
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            @else
-                                {{ $i + 1 }}
-                            @endif
-                        </div>
-                        <span class="ml-2 {{ $isCompleted ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium' }} text-sm group-hover:text-indigo-600 dark:text-indigo-400 transition-colors">{{ $stageLabels[$key] }}</span>
-                    </a>
-                @else
-                    <div class="flex items-center opacity-50">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 dark:text-gray-500 font-semibold text-sm">{{ $i + 1 }}</div>
-                        <span class="ml-2 text-gray-400 dark:text-gray-500 text-sm">{{ $stageLabels[$key] }}</span>
-                    </div>
-                @endif
-            @endforeach
-        </div>
-    </div>
+    @include('partials.observation-stepper')
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Pre-Conference</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Pre-Observation Conversation</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
     </div>
 
@@ -124,8 +77,8 @@
                 <div class="flex items-center justify-between p-4 border-b border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-xl">
                     <div class="flex items-center gap-2">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Pre-Observation Insights</h2>
-                        <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 px-2 py-0.5 rounded-full font-medium">AI-Powered</span>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Observation Assistant</h2>
+                        <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 px-2 py-0.5 rounded-full font-medium">Optional</span>
                         @if($aiReviewed)
                             <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full font-medium">Reviewed</span>
                         @endif
@@ -204,7 +157,7 @@
                             <button type="button" onclick="generateAiInsights(event)"
                                     class="generate-ai-btn px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 rounded-lg transition-colors inline-flex items-center gap-2">
                                 <svg class="generate-spinner hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                <span class="generate-btn-text">Generate AI Insights</span>
+                                <span class="generate-btn-text">Get AI Suggestions</span>
                             </button>
                         </div>
                     @endif
@@ -216,7 +169,7 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100" x-data="{ open: {{ $observation->stage === 'pre_conference' ? 'true' : 'false' }} }">
                 <button type="button" @click="open = !open"
                         class="w-full flex items-center justify-between p-4 text-left">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Observation Planning Summary</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Preparation Summary</h2>
                     <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
                 <div x-show="open" x-collapse>
@@ -233,7 +186,7 @@
                             @endif
                             @if($planning->supervisor_notes)
                             <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Supervisor Notes</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Supervisor's Notes</span>
                                 <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">{{ Str::limit($planning->supervisor_notes, 120) }}</p>
                             </div>
                             @endif
@@ -245,7 +198,7 @@
                             @endif
                             @if($planning->observation_tool)
                             <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Observation Tool</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Observation Form</span>
                                 <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 font-medium">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
                             </div>
                             @endif
@@ -255,11 +208,10 @@
             </div>
             @endif
 
-            <!-- Section 1: Lesson Information -->
+            <!-- Section 1: About the Lesson -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Information</h2>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Pre-Conference</span>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">About the Lesson</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -288,6 +240,7 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Learning Objectives</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What should learners be able to do by the end of the lesson?</p>
                         <textarea name="learning_objectives" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="What are the learning objectives for this lesson?">{{ old('learning_objectives', $preConference?->learning_objectives) }}</textarea>
@@ -297,14 +250,11 @@
 
             <!-- Section 2: Lesson Plan & Strategy -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan & Strategy</h2>
-                    <button type="button" onclick="useAiSuggestions(this)"
-                            class="text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        Use AI Suggestions
-                    </button>
+                <div class="flex items-center gap-2 mb-1">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Things to Think About</h2>
+                    <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">Optional</span>
                 </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">A few prompts to guide your pre-observation conversation with the teacher.</p>
                 <div id="suggestions-notice" class="mb-3"></div>
                 <div class="space-y-4">
                     <div>
@@ -334,19 +284,21 @@
             <!-- Section 3: Teacher's Anticipated Concerns (Optional) -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Teacher's Anticipated Concerns</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Teacher Reflection</h2>
                     <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">Optional</span>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Is there anything about this lesson that you anticipate may be challenging?</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Is there anything you would like the observer to pay particular attention to?</p>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Challenges</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Are there any parts of the lesson you expect may need attention?</p>
                         <textarea name="expected_challenges" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="e.g. Students may struggle with abstract concepts, limited materials for group work...">{{ old('expected_challenges', $preConference?->expected_challenges) }}</textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Areas Where You'd Like Feedback</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Any specific parts of the lesson you would like to discuss?</p>
                         <textarea name="feedback_areas" rows="2"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="e.g. I'd like feedback on my questioning techniques and student engagement...">{{ old('feedback_areas', $preConference?->feedback_areas) }}</textarea>
@@ -359,7 +311,7 @@
                 <div class="flex items-center justify-between gap-3 mb-4">
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Observation stage when the pre-conference is complete.</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Classroom Observation when the conversation is complete.</span>
                     </div>
                     <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
                 </div>
@@ -380,7 +332,7 @@
                             :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                             class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
                         <span x-show="!submitting" class="flex items-center justify-center gap-2">
-                            Save &amp; Continue to Observation
+                            Save &amp; Continue to Classroom Observation
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                         </span>
                         <span x-show="submitting" class="flex items-center justify-center gap-2">
@@ -421,10 +373,10 @@
                 </div>
             </div>
 
-            <!-- Observation Tool Info -->
+            <!-- Observation Form Info -->
             @if($planning?->observation_tool)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Observation Tool</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Observation Form</h3>
                 <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
                     <p class="text-sm font-medium text-blue-800">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
                     @if($planning->observation_tool === 'ppst')
@@ -438,10 +390,10 @@
             </div>
             @endif
 
-            <!-- Previous COT Performance Summary -->
+            <!-- Previous Observation Performance Summary -->
             @if(isset($prevStrengths) && $prevStrengths->isNotEmpty())
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Previous COT Performance</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Previous Observation Performance</h3>
                 <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 mb-3">
                     <p class="text-xs font-semibold text-green-800 dark:text-green-300 uppercase tracking-wider mb-2">Strengths</p>
                     <ul class="space-y-1.5">
@@ -479,7 +431,7 @@
 
             <!-- Agenda Checklist -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Pre-Conference Checklist</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Conversation Checklist</h3>
                 <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="0" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
@@ -738,7 +690,7 @@ function hideAiLoading() {
 function restoreAiBtn(btn, btnText, spinner, isRegenerate) {
     if (btn) btn.disabled = false;
     if (spinner) spinner.classList.add('hidden');
-    if (btnText) btnText.textContent = isRegenerate ? 'Regenerate' : 'Generate AI Insights';
+    if (btnText) btnText.textContent = isRegenerate ? 'Regenerate' : 'Get AI Suggestions';
 }
 
 document.getElementById('regenerate-ai-btn')?.addEventListener('click', function(e) {
@@ -897,7 +849,7 @@ document.getElementById('cancel-modal')?.addEventListener('click', function(e) {
 document.getElementById('pre-conference-form')?.addEventListener('submit', function(e) {
     var date = document.getElementById('conference_date');
     if (date && !date.value) {
-        alert('Please select a Pre-Conference Date for your records, but you may continue.');
+        alert('Please select a conference date for your records, but you may continue.');
         // Allow submission to proceed - the controller will handle stage advancement
     }
 });

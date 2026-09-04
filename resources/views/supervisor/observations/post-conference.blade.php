@@ -1,6 +1,6 @@
 @extends('layouts.supervisor')
 
-@section('title', 'Post-Conference')
+@section('title', 'Post-Observation Conference')
 
 @push('styles')
 <style>
@@ -13,21 +13,7 @@
 @endpush
 
 @php
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-    $stageLabels = [
-        'pre_observation_planning' => 'Pre-Observation Planning',
-        'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
-        'post_conference' => 'Post-Conference',
-    ];
-    $stageRoutes = [
-        'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
-        'pre_conference' => 'supervisor.observations.preConference',
-        'observation' => 'supervisor.observations.observation',
-        'post_conference' => 'supervisor.observations.postConference',
-    ];
     $currentStage = $observation->stage;
-    $currentIdx = array_search($currentStage, $stageKeys);
 @endphp
 
 @section('content')
@@ -39,50 +25,17 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Conference</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Observation Conference</li>
         </ol>
     </nav>
-
-    @include('partials.observation-progress')
 
     @include('partials.draft-banner')
 
     <!-- Progress Steps -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            @foreach($stageKeys as $i => $key)
-                @php
-                    $isCurrent = $key === $currentStage;
-                    $isCompleted = $i < $currentIdx;
-                    $canAccess = $isCurrent || $isCompleted;
-                @endphp
-                @if($i > 0)
-                    <div class="flex-1 mx-4 h-1 {{ $isCompleted ? 'bg-green-400' : 'bg-gray-200' }}"></div>
-                @endif
-                @if($canAccess)
-                    <a href="{{ $isCurrent ? '#' : route($stageRoutes[$key], $observation) }}"
-                       class="flex items-center group {{ $isCurrent ? 'cursor-default' : 'cursor-pointer' }}">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200' }} font-semibold transition-colors group-hover:shadow-md text-sm">
-                            @if($isCompleted)
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            @else
-                                {{ $i + 1 }}
-                            @endif
-                        </div>
-                        <span class="ml-2 {{ $isCompleted ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium' }} text-sm group-hover:text-indigo-600 dark:text-indigo-400 transition-colors">{{ $stageLabels[$key] }}</span>
-                    </a>
-                @else
-                    <div class="flex items-center opacity-50">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 dark:text-gray-500 font-semibold text-sm">{{ $i + 1 }}</div>
-                        <span class="ml-2 text-gray-400 dark:text-gray-500 text-sm">{{ $stageLabels[$key] }}</span>
-                    </div>
-                @endif
-            @endforeach
-        </div>
-    </div>
+    @include('partials.observation-stepper')
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Conference</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
     </div>
 
@@ -91,11 +44,11 @@
         <!-- Left Column -->
         <div class="lg:col-span-2 space-y-6">
 
-            <!-- COT Ratings Summary -->
+            <!-- Observation Ratings -->
             @if($cotRatings && $cotRatings->count() > 0)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">COT Ratings Summary</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
                     <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 6.00</span></span>
                 </div>
                 <div class="overflow-x-auto">
@@ -180,8 +133,8 @@
                 <!-- Section 1: Conference Schedule -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Details</h2>
-                        <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-1 rounded-full font-medium">Post-Conference</span>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Details</h2>
+                        <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-1 rounded-full font-medium">Post-Observation Conference</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -190,7 +143,7 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ $observation->observee->position ?? 'Teacher' }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Post-Conference Date</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Conference Date</label>
                             <input type="date" name="conference_date" id="conference_date"
                                    value="{{ old('conference_date', $postConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
@@ -204,10 +157,10 @@
                 <!-- Enhanced Post Observation Conference Guide -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post-Observation Conference Guide</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Guide</h2>
                         <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-1 rounded-full font-medium">DepEd CID Format</span>
                     </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Follow this structured guide for a productive post-observation conference.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Follow this structured guide for a productive post-observation conversation.</p>
 
                     <!-- Step 1: Warm and Clear Opening -->
                     <div class="border-l-4 border-blue-400 bg-blue-50 rounded-r-lg p-4 mb-4">
@@ -215,10 +168,10 @@
                         <p class="text-xs text-blue-600 mt-1">Establish rapport and set the purpose of the conference.</p>
                     </div>
 
-                    <!-- Step 2: STAR Notes - What's Going Well -->
+                    <!-- Step 2: What's Going Well -->
                     <div class="border border-green-200 rounded-lg p-4 mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 2: What's Going Well <span class="text-xs font-normal text-green-600 dark:text-green-400">(STAR Notes)</span></h3>
+                            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 2: What's Going Well</h3>
                             <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full">Strengths</span>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Document specific observations of effective teaching practices observed.</p>
@@ -297,7 +250,7 @@
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100" x-data="{ generating: false }">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Comparison & Feedback</h2>
-                        <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 px-2 py-1 rounded-full font-medium">AI-Powered</span>
+                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">Optional</span>
                     </div>
                     <div class="space-y-4">
                         <div id="ai-comparison-notice"></div>
@@ -320,7 +273,7 @@
                                     <svg id="ai-comparison-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                     </svg>
-                                    <span id="ai-comparison-btn-text">Generate AI Comparison</span>
+                                    <span id="ai-comparison-btn-text">Get AI Comparison</span>
                                 </button>
                                 <button type="button" id="write-manual-comparison-btn"
                                         class="px-4 py-2 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-gray-900 hover:bg-indigo-50 border border-indigo-200 text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-1.5">
@@ -330,7 +283,7 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supervisor Feedback</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Feedback</label>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Overall feedback summary for the teacher.</p>
                             <textarea name="feedback" rows="4"
                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -339,10 +292,10 @@
                     </div>
                 </div>
 
-                <!-- Supervisor Notes (Private) -->
+                <!-- Private Notes -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Supervisor's Private Notes</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Private Notes</h2>
                         <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">Private</span>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">These notes are for your reference only and will not be visible to the teacher.</p>
@@ -365,7 +318,7 @@
                            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 font-medium text-sm text-center transition-colors">
                             <span class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                                Back to Observation
+                                Back to Classroom Observation
                             </span>
                         </a>
                         <button type="submit" :disabled="submitting"
@@ -446,7 +399,7 @@
                     @endif
                     @if($preConference?->finalized_focus)
                     <div>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Finalized Focus</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Agreed Focus</span>
                         <p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($preConference->finalized_focus, 80) }}</p>
                     </div>
                     @endif
@@ -534,7 +487,7 @@ document.getElementById('generate-ai-comparison-btn')?.addEventListener('click',
     .finally(() => {
         btn.disabled = false;
         spinner.classList.add('hidden');
-        btnText.textContent = 'Generate AI Comparison';
+        btnText.textContent = 'Get AI Comparison';
     });
 });
 </script>

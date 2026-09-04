@@ -149,10 +149,10 @@
                     <div class="md:col-span-3">
                         <select name="stage" class="w-full px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-xs outline-none">
                             <option value="">All Stages</option>
-                            <option value="pre_observation_planning" {{ request('stage') == 'pre_observation_planning' ? 'selected' : '' }}>Planning</option>
-                            <option value="pre_conference" {{ request('stage') == 'pre_conference' ? 'selected' : '' }}>Pre-Conf</option>
-                            <option value="observation" {{ request('stage') == 'observation' ? 'selected' : '' }}>Observation</option>
-                            <option value="post_conference" {{ request('stage') == 'post_conference' ? 'selected' : '' }}>Post-Conf</option>
+                            <option value="pre_observation_planning" {{ request('stage') == 'pre_observation_planning' ? 'selected' : '' }}>Prepare</option>
+                            <option value="pre_conference" {{ request('stage') == 'pre_conference' ? 'selected' : '' }}>Pre-Observation Conversation</option>
+                            <option value="observation" {{ request('stage') == 'observation' ? 'selected' : '' }}>Classroom Observation</option>
+                            <option value="post_conference" {{ request('stage') == 'post_conference' ? 'selected' : '' }}>Post-Observation Conference</option>
                         </select>
                     </div>
                     <div class="md:col-span-3">
@@ -188,11 +188,13 @@
             $statusConfig = match($observation->status) {
                 'completed' => ['label' => 'Completed', 'bg' => 'bg-emerald-100 text-emerald-700 border-emerald-200'],
                 'scheduled' => ['label' => 'Scheduled', 'bg' => 'bg-amber-100 text-amber-700 border-amber-200'],
+                'in_progress' => ['label' => 'In Progress', 'bg' => 'bg-blue-100 text-blue-700 border-blue-200'],
+                'cot_completed' => ['label' => 'Ratings Completed', 'bg' => 'bg-purple-100 text-purple-700 border-purple-200'],
                 'cancelled' => ['label' => 'Cancelled', 'bg' => 'bg-red-100 text-red-700 border-red-200'],
                 default => ['label' => ucwords(str_replace('_',' ', $observation->status)), 'bg' => 'bg-blue-100 text-blue-700 border-blue-200'],
             };
             $accent = $observation->status === 'cancelled' ? 'border-l-red-500' : ($observation->status === 'completed' ? 'border-l-emerald-500' : 'border-l-indigo-500');
-            $stages = ['pre_observation_planning' => 'Planning','pre_conference' => 'Pre-Conf','observation' => 'Observe','post_conference' => 'Post-Conf'];
+            $stages = ['pre_observation_planning' => 'Prepare','pre_conference' => 'Pre-Obs Conv','observation' => 'Observe','post_conference' => 'Post-Obs Conv'];
             $stageKeys = array_keys($stages);
             $currentIdx = array_search($observation->stage, $stageKeys);
             if($currentIdx===false) $currentIdx=0;
@@ -342,6 +344,8 @@
                         $statusConfig = match($observation->status) {
                             'completed' => ['label' => 'Completed', 'bg' => 'bg-emerald-100 text-emerald-700 border-emerald-200'],
                             'scheduled' => ['label' => 'Scheduled', 'bg' => 'bg-amber-100 text-amber-700 border-amber-200'],
+                            'in_progress' => ['label' => 'In Progress', 'bg' => 'bg-blue-100 text-blue-700 border-blue-200'],
+                            'cot_completed' => ['label' => 'Ratings Completed', 'bg' => 'bg-purple-100 text-purple-700 border-purple-200'],
                             'cancelled' => ['label' => 'Cancelled', 'bg' => 'bg-red-100 text-red-700 border-red-200'],
                             default => ['label' => ucwords(str_replace('_',' ', $observation->status)), 'bg' => 'bg-blue-100 text-blue-700 border-blue-200'],
                         };
@@ -369,7 +373,7 @@
                             && !$epoc
                             && $observation->status !== 'cancelled'
                             && !$observation->isFinalized();
-                        $stages = ['pre_observation_planning' => 'Planning','pre_conference' => 'Pre-Conf','observation' => 'Observe','post_conference' => 'Post-Conf'];
+            $stages = ['pre_observation_planning' => 'Prepare','pre_conference' => 'Pre-Observation Conversation','observation' => 'Classroom Observation','post_conference' => 'Post-Observation Conference'];
                         $stageKeys = array_keys($stages);
                         $currentIdx = array_search($observation->stage, $stageKeys);
                         if($currentIdx===false) $currentIdx=0;

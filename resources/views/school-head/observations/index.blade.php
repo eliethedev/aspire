@@ -115,6 +115,13 @@
                         'completed' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
                         'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
                     ];
+                    $friendlyStatuses = [
+                        'scheduled' => 'Scheduled',
+                        'in_progress' => 'In Progress',
+                        'cot_completed' => 'Ratings Completed',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ];
                     $stageLabels = [
                         'pre_observation_planning' => 'Pre-Observation Planning',
                         'pre_conference' => 'Pre-Conference',
@@ -142,7 +149,7 @@
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Assigned School Head</span>
                                     @endif
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 text-gray-600' }}">
-                                        {{ ucfirst(str_replace('_', ' ', $observation->status)) }}
+                                        {{ $friendlyStatuses[$observation->status] ?? ucfirst(str_replace('_', ' ', $observation->status)) }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -185,7 +192,7 @@
                     <div class="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
                         <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <p class="text-xs text-amber-800 dark:text-amber-300">
-                            <span class="font-semibold">Enhanced Post-Observation Conference</span>
+                            <span class="font-semibold">Post-Observation Conference</span>
                             (School Head Evaluation) is not yet completed.
                         </p>
                     </div>

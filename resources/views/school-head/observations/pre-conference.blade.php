@@ -1,6 +1,6 @@
 @extends('layouts.teacher')
 
-@section('title', 'Pre-Conference')
+@section('title', 'Pre-Observation Conversation')
 
 @push('styles')
 <style>
@@ -22,11 +22,12 @@
 @endpush
 
 @php
+    $isSchoolHeadObs = $observation->isSchoolHeadObservation();
     $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
     $stageLabels = [
         'pre_observation_planning' => 'Pre-Observation Planning',
         'pre_conference' => 'Pre-Conference',
-        'observation' => 'Observation',
+        'observation' => $isSchoolHeadObs ? 'School Head Observation' : 'Observation',
         'post_conference' => 'Post-Conference',
     ];
     $stageRoutes = [
@@ -51,7 +52,7 @@
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li><a href="{{ route('school-head.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Pre-Conference</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Pre-Observation Conversation</li>
         </ol>
     </nav>
 
@@ -90,11 +91,11 @@
     </div>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Pre-Conference</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Pre-Observation Conversation</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
     </div>
 
-    @if($lessonPlanMissing)
+    @if($lessonPlanMissing && !$isSchoolHeadObs)
     <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-lg flex items-start gap-3">
         <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
         <div>
@@ -114,6 +115,7 @@
         <!-- Left Column -->
         <div class="lg:col-span-2 space-y-6">
 
+            @if(!$isSchoolHeadObs)
             <!-- AI Pre-Observation Insights Panel -->
             <div id="ai-insights-panel"
                  class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-purple-200 ai-panel-enter {{ $aiReviewed ? 'opacity-75' : '' }}">
@@ -206,6 +208,7 @@
                     @endif
                 </div>
             </div>
+            @endif
 
             <!-- Pre-Observation Planning Summary (collapsible) -->
             @if($planning)
@@ -229,7 +232,7 @@
                             @endif
                             @if($planning->supervisor_notes)
                             <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Supervisor Notes</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Supervisor's Notes</span>
                                 <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">{{ Str::limit($planning->supervisor_notes, 120) }}</p>
                             </div>
                             @endif
@@ -252,6 +255,7 @@
             @endif
 
             <!-- Section 1: Lesson Information -->
+            @if(!$isSchoolHeadObs)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Information</h2>
@@ -290,8 +294,49 @@
                     </div>
                 </div>
             </div>
+            @else
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Session Context</h2>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">Pre-Conference</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">School</label>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Leadership Domain</label>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold">Instructional Supervision &amp; School Management</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Date / Time *</label>
+                        <input type="date" name="conference_date" id="conference_date"
+                               value="{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
+                               class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        @error('conference_date')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supervision Session Topic</label>
+                        <input type="text" name="topic"
+                               value="{{ old('topic', $preConference?->topic) }}"
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                               placeholder="e.g. Class supervision schedule, faculty development planning...">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supervision Goals / Expected Outcomes</label>
+                        <textarea name="learning_objectives" rows="3"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                  placeholder="What supervision practices and school outcomes are being planned for this session?">{{ old('learning_objectives', $preConference?->learning_objectives) }}</textarea>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Section 2: Lesson Plan & Strategy -->
+            @if(!$isSchoolHeadObs)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan & Strategy</h2>
@@ -326,26 +371,57 @@
                     </div>
                 </div>
             </div>
+            @else
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Supervision Practices &amp; Focus</h2>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">EPOC</span>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Supervision Practices to Observe</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What school supervision / leadership practices will be the focus of this observation?</p>
+                        <textarea name="teaching_strategies" id="teaching_strategies" rows="3"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                  placeholder="e.g. Class observation, teacher coaching, faculty meetings, instructional resource management...">{{ old('teaching_strategies', $preConference?->teaching_strategies) }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Support Systems / Schedule</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What systems, schedules, or resources support the school head's supervision work?</p>
+                        <textarea name="instructional_materials" rows="2"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                  placeholder="e.g. Class schedules, teacher development plans, school improvement plans...">{{ old('instructional_materials', $preConference?->instructional_materials) }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Success Indicators / Evaluation</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">How will the school head's supervision effectiveness be assessed?</p>
+                        <textarea name="assessment_activity" id="assessment_activity" rows="2"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                  placeholder="e.g. Teacher improvement progress, monitoring tool completion, feedback quality...">{{ old('assessment_activity', $preConference?->assessment_activity) }}</textarea>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Section 3: Teacher's Anticipated Concerns (Optional) -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Teacher's Anticipated Concerns</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? "School Head's Anticipated Concerns" : "Teacher's Anticipated Concerns" }}</h2>
                     <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">Optional</span>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Is there anything about this lesson that you anticipate may be challenging?</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ $isSchoolHeadObs ? 'Are there any supervision or leadership challenges the school head anticipates for this session?' : 'Is there anything about this lesson that you anticipate may be challenging?' }}</p>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Challenges</label>
                         <textarea name="expected_challenges" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="e.g. Students may struggle with abstract concepts, limited materials for group work...">{{ old('expected_challenges', $preConference?->expected_challenges) }}</textarea>
+                                  placeholder="{{ $isSchoolHeadObs ? 'e.g. Teacher resistance, time constraints, staffing/resource gaps...' : 'e.g. Students may struggle with abstract concepts, limited materials for group work...' }}">{{ old('expected_challenges', $preConference?->expected_challenges) }}</textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Areas Where You'd Like Feedback</label>
                         <textarea name="feedback_areas" rows="2"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="e.g. I'd like feedback on my questioning techniques and student engagement...">{{ old('feedback_areas', $preConference?->feedback_areas) }}</textarea>
+                                  placeholder="{{ $isSchoolHeadObs ? "e.g. I'd like feedback on my supervision style and staff engagement approach..." : "e.g. I'd like feedback on my questioning techniques and student engagement..." }}">{{ old('feedback_areas', $preConference?->feedback_areas) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -393,7 +469,7 @@
         <div class="space-y-6 sidebar-sticky">
             <!-- Teacher Info Card -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Teacher Information</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h3>
                 <div class="space-y-3">
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Name</span>
@@ -401,7 +477,7 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Position</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->position ?? 'Teacher' }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position ?? 'Teacher') }}</p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>
@@ -415,26 +491,31 @@
             </div>
 
             <!-- Observation Tool Info -->
-            @if($planning?->observation_tool)
+            @if($isSchoolHeadObs || $planning?->observation_tool)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Observation Tool</h3>
-                <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                    <p class="text-sm font-medium text-blue-800">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
-                    @if($planning->observation_tool === 'ppst')
-                        <p class="text-xs text-blue-600 mt-1">5 Domains &middot; 27 Indicators</p>
-                    @elseif($planning->observation_tool === 'classroom_observation_tool')
-                        <p class="text-xs text-blue-600 mt-1">9 Performance Indicators</p>
-                    @elseif($planning->observation_tool === 'tisuyon')
-                        <p class="text-xs text-blue-600 mt-1">Peer Observation &middot; Collaborative</p>
+                <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 border border-indigo-100">
+                    @if($isSchoolHeadObs)
+                        <p class="text-sm font-medium text-indigo-800 dark:text-indigo-300">EPOC</p>
+                        <p class="text-xs text-indigo-600 mt-1">Evaluation of Practices &amp; Observation of Competencies</p>
+                    @else
+                        <p class="text-sm font-medium text-blue-800">{{ str_replace('_', ' ', ucfirst($planning->observation_tool)) }}</p>
+                        @if($planning->observation_tool === 'ppst')
+                            <p class="text-xs text-blue-600 mt-1">5 Domains &middot; 27 Indicators</p>
+                        @elseif($planning->observation_tool === 'classroom_observation_tool')
+                            <p class="text-xs text-blue-600 mt-1">9 Performance Indicators</p>
+                        @elseif($planning->observation_tool === 'tisuyon')
+                            <p class="text-xs text-blue-600 mt-1">Peer Observation &middot; Collaborative</p>
+                        @endif
                     @endif
                 </div>
             </div>
             @endif
 
-            <!-- Previous COT Performance Summary -->
+            <!-- Previous Observation Performance Summary -->
             @if(isset($prevStrengths) && $prevStrengths->isNotEmpty())
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Previous COT Performance</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Previous Observation Performance</h3>
                 <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 mb-3">
                     <p class="text-xs font-semibold text-green-800 dark:text-green-300 uppercase tracking-wider mb-2">Strengths</p>
                     <ul class="space-y-1.5">
@@ -476,23 +557,23 @@
                 <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="0" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Lesson information reviewed</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">{{ $isSchoolHeadObs ? 'Supervision session context reviewed' : 'Lesson information reviewed' }}</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="1" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teaching strategies discussed</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">{{ $isSchoolHeadObs ? 'Supervision practices discussed' : 'Teaching strategies discussed' }}</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="2" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Instructional materials confirmed</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">{{ $isSchoolHeadObs ? 'Support systems / schedule confirmed' : 'Instructional materials confirmed' }}</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="3" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teacher concerns addressed</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">{{ $isSchoolHeadObs ? 'School head concerns addressed' : 'Teacher concerns addressed' }}</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="4" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Assessment and activities confirmed</label>
+                        <label class="text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">{{ $isSchoolHeadObs ? 'Success indicators confirmed' : 'Assessment and activities confirmed' }}</label>
                     </li>
                     <li class="agenda-item flex items-start gap-2.5">
                         <input type="checkbox" data-index="5" class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
