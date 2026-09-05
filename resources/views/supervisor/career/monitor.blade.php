@@ -37,6 +37,19 @@
         closeAction() {
             this.actionOpen = false;
             document.body.classList.remove('overflow-y-hidden');
+        },
+        cancelOpen: false,
+        cancelUrl: '',
+        cancelTeacher: '',
+        openCancel(url, teacher) {
+            this.cancelUrl = url;
+            this.cancelTeacher = teacher;
+            this.cancelOpen = true;
+            document.body.classList.add('overflow-y-hidden');
+        },
+        closeCancel() {
+            this.cancelOpen = false;
+            document.body.classList.remove('overflow-y-hidden');
         }
     }">
 
@@ -132,11 +145,19 @@
             $ready = $row['next_stage'] !== null;
             $adv = $row['latest_advancement'];
             $pending = $adv && $adv->isPendingApproval();
+            $descriptor = \App\Models\CotRating::descriptiveTotal($row['avg_score']);
+            $descBadge = [
+                'Outstanding' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'Very Satisfactory' => 'bg-blue-50 text-blue-700 border-blue-200',
+                'Satisfactory' => 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                'Poor' => 'bg-red-50 text-red-700 border-red-200',
+                'Needs Improvement' => 'bg-orange-50 text-orange-700 border-orange-200',
+            ][$descriptor] ?? 'bg-slate-50 text-slate-600 border-slate-200';
         @endphp
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 section-card">
-            <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+            <div class="flex flex-col xl:flex-row xl:items-center gap-4">
                 {{-- Teacher --}}
-                <div class="flex items-center gap-3 min-w-0 lg:w-72">
+                <div class="flex items-center gap-3 min-w-0 xl:w-60 xl:shrink-0">
                     <span class="w-11 h-11 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-100 flex items-center justify-center text-base font-bold shrink-0">
                         {{ strtoupper(mb_substr($teacher->user->name, 0, 1)) }}
                     </span>
@@ -148,80 +169,98 @@
                     </div>
                 </div>
 
-                {{-- Alignment --}}
-                <div class="min-w-0 lg:w-44">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Alignment</p>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border {{ $pill }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $dot }}"></span> {{ $row['alignment_label'] }}
-                    </span>
-                </div>
+                {{-- Stats grid: wraps on smaller screens instead of overlapping --}}
+                <div class="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 min-w-0">
 
-                {{-- Stages --}}
-                <div class="min-w-0 lg:w-52">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Career stage</p>
-                    <div class="flex items-center gap-2 text-sm">
-                        <span class="font-semibold text-slate-700">{{ $row['current_stage_label'] ?: '—' }}</span>
+                    {{-- Alignment --}}
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Alignment</p>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border {{ $pill }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $dot }}"></span> {{ $row['alignment_label'] }}
+                        </span>
+                    </div>
+
+                    {{-- Career stage --}}
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Career stage</p>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="font-semibold text-slate-700">{{ $row['current_stage_label'] ?: '—' }}</span>
+                            @if($ready)
+                                <i class="fas fa-arrow-right text-[11px] text-indigo-400"></i>
+                                <span class="font-semibold text-indigo-700">{{ $row['next_stage_label'] }}</span>
+                            @endif
+                        </div>
                         @if($ready)
-                            <i class="fas fa-arrow-right text-[11px] text-indigo-400"></i>
-                            <span class="font-semibold text-indigo-700">{{ $row['next_stage_label'] }}</span>
+                            <p class="text-[11px] text-indigo-500/80">Next stage available</p>
+                        @else
+                            <p class="text-[11px] text-slate-400">Top of track</p>
                         @endif
                     </div>
-                    @if($ready)
-                        <p class="text-[11px] text-indigo-500/80">Next stage available</p>
-                    @else
-                        <p class="text-[11px] text-slate-400">Top of track</p>
-                    @endif
-                </div>
 
-                {{-- Evidence --}}
-                <div class="min-w-0 lg:w-40">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Evidence</p>
-                    <p class="text-sm text-slate-700">
+                    {{-- COT result --}}
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">COT result</p>
+                        <p class="text-sm text-slate-700 leading-tight">
+                            @if($row['avg_score'] !== null)
+                                <span class="font-extrabold {{ $row['avg_score'] >= 4.5 ? 'text-emerald-600' : ($row['avg_score'] >= 3.5 ? 'text-amber-600' : 'text-red-600') }}">{{ number_format($row['avg_score'], 2) }}/6</span>
+                                <span class="text-slate-400">· {{ $row['observations_count'] }} obs</span>
+                            @else
+                                <span class="text-slate-400">No scored data</span>
+                            @endif
+                        </p>
                         @if($row['avg_score'] !== null)
-                            <span class="font-extrabold {{ $row['avg_score'] >= 4.5 ? 'text-emerald-600' : ($row['avg_score'] >= 3.5 ? 'text-amber-600' : 'text-red-600') }}">{{ number_format($row['avg_score'], 2) }}/6</span>
-                            <span class="text-slate-400">· {{ $row['observations_count'] }} obs</span>
-                        @else
-                            <span class="text-slate-400">No scored data</span>
+                            <span class="mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $descBadge }}">
+                                <i class="fas {{ $descriptor === 'Outstanding' ? 'fa-circle-check' : ($descriptor === 'Needs Improvement' ? 'fa-triangle-exclamation' : ($descriptor === 'Poor' ? 'fa-circle-xmark' : 'fa-circle-half-stroke')) }} text-[10px]"></i>
+                                {{ $descriptor }}
+                            </span>
+                        @elseif($row['last_observation_date'])
+                            <p class="text-[11px] text-slate-400"></p>
                         @endif
-                    </p>
-                    @if($row['last_observation_date'])
-                        <p class="text-[11px] text-slate-400">{{ $row['last_observation_date'] }}</p>
-                    @endif
+                        @if($row['last_observation_date'])
+                            <p class="text-[11px] text-slate-400">{{ $row['last_observation_date'] }}</p>
+                        @endif
+                    </div>
                 </div>
 
-                {{-- Latest advancement --}}
-                <div class="min-w-0 lg:w-48">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Last action</p>
-                    @if($adv)
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border {{ $adv->statusBadgeClass() }}">
-                            <i class="fas {{ $adv->type === 'allow' ? 'fa-check' : 'fa-bullhorn' }} text-[10px]"></i> {{ $adv->statusLabel() }}
-                        </span>
-                        <p class="text-[11px] text-slate-400 mt-0.5">{{ $adv->typeLabel() }} to {{ $adv->toStageLabel() }}</p>
-                    @else
-                        <span class="text-xs text-slate-400">None yet</span>
-                    @endif
-                </div>
+                {{-- Last action + Actions --}}
+                <div class="flex flex-wrap items-center gap-3 xl:ml-auto xl:shrink-0 pt-2 xl:pt-0 border-t border-slate-100 xl:border-t-0 mt-2 xl:mt-0">
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">Last action</p>
+                        @if($adv)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border {{ $adv->statusBadgeClass() }}">
+                                <i class="fas {{ $adv->type === 'allow' ? 'fa-check' : 'fa-bullhorn' }} text-[10px]"></i> {{ $adv->statusLabel() }}
+                            </span>
+                            <p class="text-[11px] text-slate-400 mt-0.5">{{ $adv->typeLabel() }} to {{ $adv->toStageLabel() }}</p>
+                        @else
+                            <span class="text-xs text-slate-400">None yet</span>
+                        @endif
+                    </div>
 
-                {{-- Actions --}}
-                <div class="flex items-center gap-2 lg:ml-auto shrink-0">
-                    @if($pending)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
-                            <i class="fas fa-hourglass-half text-[11px]"></i> Awaiting school head approval
-                        </span>
-                    @elseif($ready)
-                        <button type="button"
-                            @click="openAction('announce', '{{ route('supervisor.career.announce', $teacher) }}', '{{ $teacher->user->name }}', '{{ $row['next_stage_label'] }}')"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors">
-                            <i class="fas fa-bullhorn text-[11px]"></i> Announce
-                        </button>
-                        <button type="button"
-                            @click="openAction('allow', '{{ route('supervisor.career.allow', $teacher) }}', '{{ $teacher->user->name }}', '{{ $row['next_stage_label'] }}')"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors">
-                            <i class="fas fa-check text-[11px]"></i> Allow
-                        </button>
-                    @else
-                        <span class="text-xs text-slate-400 italic">No next stage</span>
-                    @endif
+                    <div class="flex items-center gap-2 shrink-0">
+                        @if($pending)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
+                                <i class="fas fa-hourglass-half text-[11px]"></i> Awaiting school head approval
+                            </span>
+                            <button type="button"
+                                @click="openCancel('{{ route('supervisor.career.cancel', $adv) }}', '{{ $teacher->user->name }}')"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 hover:text-slate-800 transition-colors">
+                                <i class="fas fa-xmark text-[11px]"></i> Cancel
+                            </button>
+                        @elseif($ready)
+                            <button type="button"
+                                @click="openAction('announce', '{{ route('supervisor.career.announce', $teacher) }}', '{{ $teacher->user->name }}', '{{ $row['next_stage_label'] }}')"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors">
+                                <i class="fas fa-bullhorn text-[11px]"></i> Announce
+                            </button>
+                            <button type="button"
+                                @click="openAction('allow', '{{ route('supervisor.career.allow', $teacher) }}', '{{ $teacher->user->name }}', '{{ $row['next_stage_label'] }}')"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors">
+                                <i class="fas fa-check text-[11px]"></i> Allow
+                            </button>
+                        @else
+                            <span class="text-xs text-slate-400 italic">No next stage</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -280,6 +319,45 @@
                                 class="inline-flex items-center gap-1.5 px-5 py-2.5 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors">
                                 <i :class="actionType === 'announce' ? 'fas fa-bullhorn' : 'fas fa-check'" class="text-xs"></i>
                                 <span x-text="actionType === 'announce' ? 'Announce & Notify' : 'Allow & Notify'"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Cancel modal --}}
+    <div x-show="cancelOpen" x-cloak class="fixed inset-0 z-[90] overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeCancel()"></div>
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 my-6"
+                x-show="cancelOpen"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-4"
+                x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                    <div>
+                        <h4 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fas fa-xmark text-slate-500 text-xs"></i> Cancel Career Advancement
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Withdraw this recommendation before the school head reviews it.</p>
+                    </div>
+                    <button type="button" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" @click="closeCancel()">
+                        <i class="fas fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="px-6 py-5 space-y-4">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm">
+                        <div class="flex justify-between gap-3"><span class="text-slate-500">Teacher</span><span class="font-semibold text-slate-900" x-text="cancelTeacher"></span></div>
+                    </div>
+                    <p class="text-sm text-slate-500">Cancelling keeps the teacher at their current career stage and notifies them that the recommendation was withdrawn.</p>
+                    <form method="POST" :action="cancelUrl" class="space-y-4">
+                        @csrf
+                        <div class="flex items-center justify-end gap-2">
+                            <button type="button" class="px-4 py-2.5 border border-slate-300 text-slate-700 bg-white rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors" @click="closeCancel()">Keep recommendation</button>
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-900 transition-colors">
+                                <i class="fas fa-xmark text-xs"></i> Cancel Advancement
                             </button>
                         </div>
                     </form>

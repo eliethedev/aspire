@@ -25,6 +25,12 @@ class AIFeedbackService extends AIService
 
     protected function generateWithProvider(CotRating $cotRating): ?AiFeedback
     {
+        // Not Applicable indicators have no score to analyze — skip them.
+        if ($cotRating->isNotApplicable()) {
+            Log::info("Skipping AI feedback for COT Rating {$cotRating->id} (marked Not Applicable)");
+            return null;
+        }
+
         $observation = $cotRating->observation;
         $teacherName = $observation?->observee?->user?->name ?? 'Unknown';
         $subject = $observation->subject ?? 'N/A';

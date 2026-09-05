@@ -14,7 +14,7 @@
         </a>
         <a href="{{ route('school-head.career.advancements.index', ['tab' => 'history']) }}"
            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $tab === 'history' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50' }}">
-            Approved & Rejected
+            Reviewed
         </a>
     </div>
 
@@ -29,7 +29,7 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {{ $tab === 'pending'
                     ? 'There are no supervisor recommendations awaiting your approval right now.'
-                    : 'Approved and rejected career advancements will appear here.' }}
+                    : 'Reviewed career advancements will appear here.' }}
             </p>
         </div>
     @else
@@ -40,8 +40,8 @@
             @endphp
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
                 <div class="flex flex-wrap items-start gap-4">
-                    <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 {{ $isPending ? 'bg-amber-50 dark:bg-amber-900/20' : ($advancement->isApproved() ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20') }}">
-                        <span class="font-semibold text-sm {{ $isPending ? 'text-amber-600 dark:text-amber-400' : ($advancement->isApproved() ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400') }}">{{ strtoupper(substr($advancement->teacher->user->name, 0, 1)) }}</span>
+                    <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 {{ $isPending ? 'bg-amber-50 dark:bg-amber-900/20' : ($advancement->isApproved() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ($advancement->isCancelled() ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/20')) }}">
+                        <span class="font-semibold text-sm {{ $isPending ? 'text-amber-600 dark:text-amber-400' : ($advancement->isApproved() ? 'text-emerald-600 dark:text-emerald-400' : ($advancement->isCancelled() ? 'text-gray-500 dark:text-gray-400' : 'text-red-600 dark:text-red-400')) }}">{{ strtoupper(substr($advancement->teacher->user->name, 0, 1)) }}</span>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2">

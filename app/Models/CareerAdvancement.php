@@ -31,6 +31,8 @@ class CareerAdvancement extends Model
 
     public const STATUS_REJECTED = 'rejected';
 
+    public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_RECORDED = 'recorded';
 
     public const STATUS_ACKNOWLEDGED = 'acknowledged';
@@ -88,6 +90,11 @@ class CareerAdvancement extends Model
         return $this->status === self::STATUS_REJECTED;
     }
 
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
     public function typeLabel(): string
     {
         return $this->type === self::TYPE_ALLOW ? 'Allowed' : 'Announced';
@@ -116,6 +123,7 @@ class CareerAdvancement extends Model
             self::STATUS_PENDING_APPROVAL => 'Pending School Head Approval',
             self::STATUS_APPROVED => 'Approved',
             self::STATUS_REJECTED => 'Rejected',
+            self::STATUS_CANCELLED => 'Cancelled',
             default => ucfirst((string) $this->status),
         };
     }
@@ -126,6 +134,7 @@ class CareerAdvancement extends Model
             self::STATUS_PENDING_APPROVAL => 'bg-amber-100 text-amber-700 border-amber-200',
             self::STATUS_APPROVED => 'bg-emerald-100 text-emerald-700 border-emerald-200',
             self::STATUS_REJECTED => 'bg-red-100 text-red-700 border-red-200',
+            self::STATUS_CANCELLED => 'bg-gray-100 text-gray-600 border-gray-200',
             default => 'bg-gray-100 text-gray-600 border-gray-200',
         };
     }

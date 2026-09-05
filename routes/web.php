@@ -219,6 +219,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/career-monitor', [SupervisorController::class, 'careerMonitor'])->name('career.monitor');
     Route::post('/teachers/{teacher}/career-stage/allow', [SupervisorController::class, 'allowCareerStage'])->name('career.allow');
     Route::post('/teachers/{teacher}/career-stage/announce', [SupervisorController::class, 'announceCareerStage'])->name('career.announce');
+    Route::post('/career-advancements/{advancement}/cancel', [SupervisorController::class, 'cancelCareerAdvancement'])->name('career.cancel');
     Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
     Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');

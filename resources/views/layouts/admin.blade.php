@@ -81,7 +81,7 @@
             <div x-show="$store.sidebar.mobileOpen" x-cloak @click="$store.sidebar.closeMobile()" class="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-sm lg:hidden" aria-hidden="true"></div>
 
             <!-- Main Content -->
-            <div class="flex-1 pt-16 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:ml-16' : 'lg:ml-56'">
+            <div class="flex-1 min-w-0 pt-16 transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:ml-16' : 'lg:ml-56'">
                 <!-- Header -->
                 @include('layouts.header')
                 

@@ -51,7 +51,7 @@ class SupervisorObsRenderTest extends TestCase
         ]);
         $r = $this->get("/supervisor/observations/{$shObs->id}/observation");
         $r->assertStatus(200);
-        $this->assertStringContainsString('EPOC', $r->getContent());
+        $this->assertStringContainsString('Enhanced Post Observation Conference', $r->getContent());
         $this->assertStringNotContainsString('totalIndicators', $r->getContent());
     }
 

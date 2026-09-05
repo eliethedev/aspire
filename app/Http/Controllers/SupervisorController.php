@@ -480,6 +480,36 @@ class SupervisorController extends Controller
         return $this->handleAdvancement($teacher, $request, CareerAdvancement::TYPE_ANNOUNCE);
     }
 
+    /**
+     * Cancel a supervisor's pending career advancement recommendation
+     * before the school head has reviewed it. The teacher stays at their
+     * current stage and the school head is notified of the withdrawal.
+     */
+    public function cancelCareerAdvancement(CareerAdvancement $advancement, Request $request)
+    {
+        $user = Auth::user();
+
+        if ($advancement->supervisor_id !== $user->id) {
+            abort(403, 'You can only cancel your own career advancement recommendations.');
+        }
+
+        if (! $advancement->isPendingApproval()) {
+            return back()->with('error', 'This career advancement has already been reviewed and cannot be cancelled.');
+        }
+
+        $advancement->update([
+            'status' => CareerAdvancement::STATUS_CANCELLED,
+            'school_head_remarks' => null,
+        ]);
+
+        $teacher = $advancement->teacher;
+        $stageLabel = $this->stageLabel($advancement->to_career_stage);
+
+        $this->notificationService->notifyCareerAdvancementCancelled($teacher->user, $stageLabel);
+
+        return back()->with('success', "Career advancement recommendation for {$teacher->user->name} has been cancelled.");
+    }
+
     private function handleAdvancement(Teacher $teacher, Request $request, string $type)
     {
         $user = Auth::user();
@@ -1647,9 +1677,12 @@ class SupervisorController extends Controller
             ]);
         }
 
-        // Generate AI feedback for each rating (dispatched to queue to avoid rate limits)
+        // Generate AI feedback for each rating (dispatched to queue to avoid rate limits).
+        // Not Applicable indicators are intentionally excluded — they have no score to analyze.
         foreach ($createdRatings as $cotRating) {
-            GeneratePostObservationFeedback::dispatch($cotRating);
+            if (! $cotRating->isNotApplicable()) {
+                GeneratePostObservationFeedback::dispatch($cotRating);
+            }
         }
 
         // Handle evidence file uploads

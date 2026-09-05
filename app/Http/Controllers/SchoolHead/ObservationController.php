@@ -656,8 +656,11 @@ class ObservationController extends Controller
             ]);
         }
 
+        // Not Applicable indicators are intentionally excluded — they have no score to analyze.
         foreach ($createdRatings as $cotRating) {
-            \App\Jobs\GeneratePostObservationFeedback::dispatch($cotRating);
+            if (! $cotRating->isNotApplicable()) {
+                \App\Jobs\GeneratePostObservationFeedback::dispatch($cotRating);
+            }
         }
 
         $evidenceFiles = $observation->evidence_files ?? [];

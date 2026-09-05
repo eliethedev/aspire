@@ -33,6 +33,66 @@ class CotRatingTest extends TestCase
         $this->assertSame(0, $rating->numericRating());
     }
 
+    public function test_numeric_rating_returns_zero_when_not_applicable(): void
+    {
+        $rating = CotRating::factory()->notApplicable()->create();
+
+        $this->assertSame(0, $rating->numericRating());
+        $this->assertTrue($rating->isNotApplicable());
+        $this->assertFalse($rating->isNotObserved());
+    }
+
+    public function test_percentage_is_zero_when_not_applicable(): void
+    {
+        $rating = CotRating::factory()->notApplicable()->create();
+
+        $this->assertSame(0.0, $rating->percentage());
+    }
+
+    public function test_descriptive_label_is_not_applicable_when_not_applicable(): void
+    {
+        $rating = CotRating::factory()->notApplicable()->create();
+
+        $this->assertSame('Not Applicable', $rating->descriptiveLabel());
+        $this->assertSame('bg-gray-100 text-gray-500', $rating->ratingBadgeClass());
+    }
+
+    public function test_high_ratings_scope_excludes_not_applicable_and_not_observed(): void
+    {
+        $observation = Observation::factory()->create();
+
+        CotRating::factory()->withRating(6)->create(['observation_id' => $observation->id]);
+        CotRating::factory()->notApplicable()->create(['observation_id' => $observation->id]);
+        CotRating::factory()->notObserved()->create(['observation_id' => $observation->id]);
+
+        $high = CotRating::where('observation_id', $observation->id)->highRatings()->get();
+
+        $this->assertCount(1, $high);
+    }
+
+    public function test_scored_scope_excludes_not_applicable_and_not_observed(): void
+    {
+        $observation = Observation::factory()->create();
+
+        CotRating::factory()->withRating(4)->create(['observation_id' => $observation->id]);
+        CotRating::factory()->notApplicable()->create(['observation_id' => $observation->id]);
+        CotRating::factory()->notObserved()->create(['observation_id' => $observation->id]);
+
+        $scored = CotRating::where('observation_id', $observation->id)->scored()->get();
+
+        $this->assertCount(1, $scored);
+    }
+
+    public function test_descriptive_total_bands(): void
+    {
+        $this->assertSame('No Score Yet', CotRating::descriptiveTotal(null));
+        $this->assertSame('Outstanding', CotRating::descriptiveTotal(5.5));
+        $this->assertSame('Very Satisfactory', CotRating::descriptiveTotal(4.5));
+        $this->assertSame('Satisfactory', CotRating::descriptiveTotal(3.5));
+        $this->assertSame('Poor', CotRating::descriptiveTotal(2.5));
+        $this->assertSame('Needs Improvement', CotRating::descriptiveTotal(2.4));
+    }
+
     public function test_percentage_uses_six_point_scale(): void
     {
         $this->assertSame(100.0, CotRating::factory()->withRating(6)->create()->percentage());

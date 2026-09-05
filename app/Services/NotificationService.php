@@ -365,6 +365,24 @@ class NotificationService
         );
     }
 
+    /**
+     * Notify the teacher that the supervisor withdrew their pending career
+     * advancement recommendation before the school head reviewed it.
+     */
+    public function notifyCareerAdvancementCancelled(
+        User $teacher,
+        string $stageLabel,
+    ): void {
+        $this->notify(
+            $teacher,
+            NotificationType::SYSTEM,
+            'Career advancement recommendation withdrawn',
+            "Your supervisor has withdrawn the recommendation to advance you to the {$stageLabel} career stage.",
+            null,
+            null,
+        );
+    }
+
     private function advancementRejectedSubject(string $teacherName): string
     {
         return "{$teacherName}'s advancement to";

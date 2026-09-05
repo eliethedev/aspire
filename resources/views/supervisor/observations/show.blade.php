@@ -300,15 +300,21 @@
                     </div>
                     <div class="p-5 space-y-2.5">
                         @foreach($observation->cotRatings as $rating)
-                            @php $na=$rating->not_applicable; $r=$na?null:($rating->not_observed?null:$rating->rating); $rPct=$r?($r/6)*100:0; $rWrap=!$r?'border-gray-200 bg-gray-50':($r>=5?'border-emerald-200 bg-emerald-50/70':($r>=4?'border-blue-200 bg-blue-50/70':($r>=3?'border-amber-200 bg-amber-50/70':'border-red-200 bg-red-50/70'))); $rBadge=!$r?($na?'bg-amber-50 text-amber-600':'bg-gray-100 text-gray-500'):($r>=5?'bg-emerald-600 text-white':($r>=4?'bg-blue-600 text-white':($r>=3?'bg-amber-500 text-white':'bg-red-600 text-white'))); @endphp
+                            @php $na=$rating->not_applicable; $no=$rating->not_observed; $r=($na||$no)?null:$rating->rating; $rPct=$r?($r/6)*100:0; $rWrap=!$r?($na?'border-amber-200 bg-amber-50/70':'border-gray-200 bg-gray-50'):($r>=5?'border-emerald-200 bg-emerald-50/70':($r>=4?'border-blue-200 bg-blue-50/70':($r>=3?'border-amber-200 bg-amber-50/70':'border-red-200 bg-red-50/70'))); $rBadge=!$r?($na?'bg-amber-50 text-amber-700 ring-1 ring-amber-200':'bg-gray-100 text-gray-500'):($r>=5?'bg-emerald-600 text-white':($r>=4?'bg-blue-600 text-white':($r>=3?'bg-amber-500 text-white':'bg-red-600 text-white'))); @endphp
                             <div class="rounded-xl border {{ $rWrap }} p-4">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1"><p class="text-sm font-semibold text-gray-900 leading-snug">{{ $rating->indicator }}</p><p class="text-xs text-gray-500 mt-0.5">{{ $rating->domain }}</p>@if($rating->comments)<p class="text-sm text-gray-600 mt-2 pt-2 border-t border-black/5">{{ $rating->comments }}</p>@endif</div>
-                                    <div class="shrink-0 text-center"><div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center text-sm font-bold shadow-sm">{{ $r?number_format($r,1):($na?'N/A':'NO') }}</div><p class="text-[10px] text-gray-400 mt-1">{{ $na ? 'Not recorded' : '/ 6' }}</p></div>
+                                    <div class="shrink-0 text-center"><div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center text-sm font-bold shadow-sm">{{ $r?number_format($r,1):($na?'N/A':'NO') }}</div><p class="text-[10px] text-gray-400 mt-1">{{ $na ? 'Not Applicable' : ($no ? 'Not Observed' : '/ 6') }}</p></div>
                                 </div>
                                 @if($r)<div class="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full {{ $r>=5?'bg-emerald-500':($r>=4?'bg-blue-500':($r>=3?'bg-amber-500':'bg-red-500')) }}" style="width: {{ $rPct }}%"></div></div>@endif
                             </div>
                         @endforeach
+                        @if($observation->cotRatings->contains(fn($x)=>$x->not_observed||$x->not_applicable))
+                        <div class="pt-1 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-gray-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-gray-100 border border-gray-300 inline-block shrink-0"></span> NO — Not observed</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-50 border border-amber-200 inline-block shrink-0"></span> N/A — Not applicable (excluded from score)</span>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 @endif

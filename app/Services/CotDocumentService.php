@@ -363,19 +363,26 @@ class CotDocumentService
 
         foreach ($ratings as $rating) {
             $table->addRow();
-            $indicatorCell = $table->addCell($widths[0], $this->cellStyle());
+            $indicatorStyle = $rating->isNotApplicable()
+                    ? array_merge($this->cellStyle(), ['shading' => ['fill' => 'F2F2F2']])
+                    : $this->cellStyle();
+            $indicatorCell = $table->addCell($widths[0], $indicatorStyle);
             $run = $indicatorCell->addTextRun(['name' => 'Arial', 'size' => 8.2]);
             $run->addText($rating->indicator . ' ', ['size' => 8.2]);
             $run->addText('(' . $rating->indicator_code . ')', ['size' => 8.2]);
+            if ($rating->isNotApplicable()) {
+                $run->addText(' (Not Applicable)', ['italic' => true, 'size' => 8]);
+            }
 
             foreach ([2, 3, 4, 5, 6] as $value) {
-                $marked = !$rating->not_observed && (int) $rating->rating === $value;
+                $marked = !$rating->not_observed && !$rating->not_applicable && (int) $rating->rating === $value;
                 $table->addCell($widths[1], $this->cellStyle())
                     ->addText($marked ? '✓' : '', ['name' => 'Arial', 'size' => 9, 'bold' => true], $center);
             }
 
+            $noLabel = $rating->isNotApplicable() ? 'N/A' : ($rating->not_observed ? '✓' : '');
             $table->addCell($widths[6], $this->cellStyle())
-                ->addText($rating->not_observed ? '✓' : '', ['name' => 'Arial', 'size' => 9, 'bold' => true], $center);
+                ->addText($noLabel, ['name' => 'Arial', 'size' => 9, 'bold' => true], $center);
 
             $commentText = $rating->comments ?? '';
             $table->addCell($widths[7], $this->cellStyle())
@@ -419,7 +426,7 @@ class CotDocumentService
         $section->addText('');
         $section->addText('__________________________________________________________________________________________', ['name' => 'Arial', 'size' => 8.5]);
         $section->addTextBreak(1);
-        $section->addText('* NO stands for Not Observed which automatically gets a rating of 2.', ['name' => 'Arial', 'size' => 8, 'italic' => true]);
+        $section->addText('* NO stands for Not Observed which automatically gets a rating of 2. \'N/A\' means the indicator is Not Applicable and is excluded from the overall rating.', ['name' => 'Arial', 'size' => 8, 'italic' => true]);
         $section->addTextBreak(1);
     }
 
@@ -641,13 +648,19 @@ class CotDocumentService
 
                 $table->addCell($widths[0], $this->cellStyle())->addText((string) $index, $headerStyle, $center);
 
-                $indicatorCell = $table->addCell($widths[1], $this->cellStyle());
+                $indicatorStyle = $rating->isNotApplicable()
+                    ? array_merge($this->cellStyle(), ['shading' => ['fill' => 'F2F2F2']])
+                    : $this->cellStyle();
+                $indicatorCell = $table->addCell($widths[1], $indicatorStyle);
                 $run = $indicatorCell->addTextRun(['name' => 'Times New Roman', 'size' => 9]);
                 $run->addText($rating->indicator_code . '. ', ['bold' => true, 'size' => 9]);
                 $run->addText($rating->indicator);
+                if ($rating->isNotApplicable()) {
+                    $run->addText(' (Not Applicable)', ['italic' => true, 'size' => 8]);
+                }
 
                 foreach ([6, 5, 4, 3, 2] as $value) {
-                    $marked = !$rating->not_observed && (int) $rating->rating === $value;
+                    $marked = !$rating->not_observed && !$rating->not_applicable && (int) $rating->rating === $value;
                     $style = $this->cellStyle();
                     if ($marked) {
                         $style['shading'] = ['fill' => 'C6EFCE'];
@@ -656,8 +669,9 @@ class CotDocumentService
                     $cell->addText($marked ? 'X' : '', ['name' => 'Times New Roman', 'size' => 9, 'bold' => true], $center);
                 }
 
+                $noLabel = $rating->isNotApplicable() ? 'N/A' : ($rating->not_observed ? 'X' : '');
                 $noCell = $table->addCell($widths[7], $this->cellStyle());
-                $noCell->addText($rating->not_observed ? 'X' : '', ['name' => 'Times New Roman', 'size' => 9, 'bold' => true], $center);
+                $noCell->addText($noLabel, ['name' => 'Times New Roman', 'size' => 9, 'bold' => true], $center);
 
                 $commentsCell = $table->addCell($widths[8], $this->cellStyle());
                 if ($rating->comments) {

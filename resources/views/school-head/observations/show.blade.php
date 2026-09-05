@@ -475,7 +475,8 @@
                 @foreach($observation->cotRatings as $rating)
                     @php
                         $na = $rating->not_applicable;
-                        $r = $na ? null : ($rating->not_observed ? null : $rating->rating);
+                        $no = $rating->not_observed;
+                        $r = ($na || $no) ? null : $rating->rating;
                         $rPct = $r ? ($r / 6) * 100 : 0;
                         $rColor = !$r ? ($na ? 'border-amber-200 bg-amber-50 dark:bg-amber-900/10' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700') : ($r >= 5 ? 'border-emerald-200 bg-emerald-50' : ($r >= 4 ? 'border-blue-200 bg-blue-50' : ($r >= 3 ? 'border-amber-200 bg-amber-50 dark:bg-amber-900/20' : 'border-red-200 bg-red-50 dark:bg-red-900/20')));
                         $rBadge = !$r ? ($na ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400') : ($r >= 5 ? 'bg-emerald-100 text-emerald-700' : ($r >= 4 ? 'bg-blue-100 text-blue-700' : ($r >= 3 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700' : 'bg-red-100 dark:bg-red-900/30 text-red-700')));
@@ -491,9 +492,9 @@
                             </div>
                             <div class="text-center shrink-0">
                                 <div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center">
-                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : 'NO' }}</span>
+                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : ($na ? 'N/A' : 'NO') }}</span>
                                 </div>
-                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">/ 6</p>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ $na ? 'Not Applicable' : ($no ? 'Not Observed' : '/ 6') }}</p>
                             </div>
                         </div>
                         @if($r)
@@ -503,6 +504,12 @@
                         @endif
                     </div>
                 @endforeach
+                @if($observation->cotRatings->contains(fn($x) => $x->not_observed || $x->not_applicable))
+                <div class="pt-1 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-gray-400 dark:text-gray-500">
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 inline-block shrink-0"></span> NO — Not observed</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 inline-block shrink-0"></span> N/A — Not applicable (excluded from score)</span>
+                </div>
+                @endif
             </div>
         </div>
         @endif

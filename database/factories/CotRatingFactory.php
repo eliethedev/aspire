@@ -43,6 +43,14 @@ class CotRatingFactory extends Factory
         ]);
     }
 
+    public function notApplicable(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'rating' => null,
+            'not_applicable' => true,
+        ]);
+    }
+
     public function withRating(int $rating): static
     {
         return $this->state(fn (array $attributes) => [

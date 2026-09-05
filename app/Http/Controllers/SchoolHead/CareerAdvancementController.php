@@ -44,7 +44,11 @@ class CareerAdvancementController extends Controller
                 ->withQueryString();
         } else {
             $advancements = $query
-                ->whereIn('status', [CareerAdvancement::STATUS_APPROVED, CareerAdvancement::STATUS_REJECTED])
+                ->whereIn('status', [
+                    CareerAdvancement::STATUS_APPROVED,
+                    CareerAdvancement::STATUS_REJECTED,
+                    CareerAdvancement::STATUS_CANCELLED,
+                ])
                 ->latest('created_at')
                 ->paginate(15)
                 ->withQueryString();

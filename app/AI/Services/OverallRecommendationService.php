@@ -38,9 +38,9 @@ class OverallRecommendationService extends AIService
             return null;
         }
 
-        // Ratings summary: one line per rated indicator.
+        // Ratings summary: one line per rated indicator (Not Applicable rows are excluded).
         $lines = [];
-        foreach ($ratings as $rating) {
+        foreach ($ratings->reject(fn ($r) => $r->isNotApplicable()) as $rating) {
             $score = $rating->isNotObserved()
                 ? 'NO (Not Observed)'
                 : $rating->numericRating().'/6';
