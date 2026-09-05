@@ -37,8 +37,6 @@ class SchoolHeadProfileUpdateRequest extends FormRequest
             'school_type' => ['nullable', 'string', 'max:255'],
             'additional_roles' => ['nullable', 'string'],
             'position' => ['nullable', 'string', 'max:255'],
-            'subject' => ['nullable', 'string', 'max:255'],
-            'grade_level' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

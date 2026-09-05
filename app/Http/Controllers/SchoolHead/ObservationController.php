@@ -631,6 +631,7 @@ class ObservationController extends Controller
             'ratings.*.indicator' => ['required', 'string'],
             'ratings.*.rating' => ['nullable', 'integer', Rule::in($scaleValues)],
             'ratings.*.not_observed' => ['nullable', 'boolean'],
+            'ratings.*.not_applicable' => ['nullable', 'boolean'],
             'ratings.*.has_rating' => ['nullable', 'string'],
             'ratings.*.comments' => ['nullable', 'string'],
             'other_comments' => ['nullable', 'string'],
@@ -648,8 +649,9 @@ class ObservationController extends Controller
                 'indicator_code' => $item['indicator_code'],
                 'domain' => $item['domain'],
                 'indicator' => $item['indicator'],
-                'rating' => !empty($item['not_observed']) ? null : ($item['rating'] ?? null),
+                'rating' => (!empty($item['not_observed']) || !empty($item['not_applicable'])) ? null : ($item['rating'] ?? null),
                 'not_observed' => !empty($item['not_observed']),
+                'not_applicable' => !empty($item['not_applicable']),
                 'comments' => $item['comments'] ?? null,
             ]);
         }
@@ -689,7 +691,7 @@ class ObservationController extends Controller
             );
         }
 
-        $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
+        $rated = $observation->cotRatings()->where('not_observed', false)->where('not_applicable', false)->whereNotNull('rating');
         $avgRating = $rated->exists() ? $rated->avg('rating') : null;
 
         $requiresPostConference = true;

@@ -140,7 +140,7 @@ MD;
         foreach ($cotRatings as $rating) {
             $i++;
             $comments = $rating->comments ?? '-';
-            $ratingDisplay = $rating->not_observed ? 'NO' : number_format($rating->rating, 1);
+            $ratingDisplay = $rating->not_applicable ? 'N/A' : ($rating->not_observed ? 'NO' : number_format($rating->rating, 1));
             $md .= "| {$i} | {$rating->domain} | {$rating->indicator} | {$ratingDisplay} | {$comments} |\n";
         }
 

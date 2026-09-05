@@ -235,7 +235,7 @@ class CareerProgressionService
             ->where('observee_type', $ratee->getMorphClass())
             ->where('status', 'completed')
             ->whereHas('cotRatings')
-            ->with(['cotRatings' => fn ($query) => $query->where('not_observed', false)])
+            ->with(['cotRatings' => fn ($query) => $query->where('not_observed', false)->where('not_applicable', false)])
             ->orderBy('observation_date', 'desc');
     }
 

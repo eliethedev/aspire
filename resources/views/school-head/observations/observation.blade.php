@@ -10,10 +10,14 @@
     .rating-btn-no { transition: all 0.15s ease; cursor: pointer; }
     .rating-btn-no:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .rating-btn-no.active { background-color: #6b7280; color: white; border-color: #6b7280; transform: scale(1.12); }
+    .rating-btn-na { transition: all 0.15s ease; cursor: pointer; }
+    .rating-btn-na:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .rating-btn-na.active { background-color: #f59e0b; color: white; border-color: #f59e0b; transform: scale(1.12); }
     .indicator-row { transition: background-color 0.15s ease; }
     .indicator-row:hover { background-color: #f9fafb; }
     .indicator-row.selected { background-color: #eef2ff; }
     .indicator-row.no-selected { background-color: #f9fafb; }
+    .indicator-row.na-selected { background-color: #fffbeb; }
     .cot-table th { font-size: 0.7rem; letter-spacing: 0.05em; }
     .cot-table td, .cot-table th { vertical-align: middle; }
     .comment-toggle { transition: all 0.15s ease; cursor: pointer; }
@@ -37,7 +41,7 @@
     }
 
     $ratingValues = array_reverse(array_keys($ratingScale ?? config('cot.rating_scale', [])));
-    $ratingColspan = 2 + count($ratingValues) + 1;
+    $ratingColspan = 2 + count($ratingValues) + 2;
 @endphp
 
 @section('content')
@@ -52,9 +56,7 @@
         </ol>
     </nav>
 
-    <div class="mb-8">
-        @include('partials.observation-stepper', ['routeBase' => 'school-head'])
-    </div>
+    @include('partials.observation-stepper', ['routeBase' => 'school-head'])
 
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -133,16 +135,20 @@
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicator</th>
                             @foreach($ratingValues as $val)
                                 @php $label = $ratingScale[$val] ?? ''; @endphp
-                                <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-20">
+                                <th class="text-center px-1 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">
                                     <div class="text-xs font-bold">{{ $val }}</div>
                                     @if($label)
-                                        <div class="text-[9px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">{{ Str::limit($label, 12) }}</div>
+                                        <div class="text-[10px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">{{ Str::limit($label, 12) }}</div>
                                     @endif
                                 </th>
                             @endforeach
-                            <th class="text-center px-1.5 py-3 text-gray-600 dark:text-gray-400 font-semibold w-16">
+                            <th class="text-center px-1 py-3 text-gray-600 dark:text-gray-400 font-semibold w-14">
                                 <div class="text-xs font-bold">NO</div>
-                                <div class="text-[9px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">Not Obs.</div>
+                                <div class="text-[10px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">Not Obs.</div>
+                            </th>
+                            <th class="text-center px-1 py-3 text-gray-600 dark:text-gray-400 font-semibold w-14">
+                                <div class="text-xs font-bold">N/A</div>
+                                <div class="text-[10px] font-normal text-gray-400 dark:text-gray-500 leading-tight mt-0.5">Not Appl.</div>
                             </th>
                         </tr>
                     </thead>
@@ -157,6 +163,7 @@
                                     $existingRating = $cotRatings->where('indicator_code', $indicator['code'])->first();
                                     $savedRating = $existingRating?->rating;
                                     $savedNo = $existingRating?->not_observed;
+                                    $savedNa = $existingRating?->not_applicable;
                                     $savedComment = $existingRating?->comments ?? '';
                                 @endphp
                                 <tr class="indicator-row border-b border-gray-100" data-index="{{ $indicatorIndex }}" data-code="{{ $indicator['code'] }}">
@@ -164,7 +171,7 @@
                                     <td class="px-4 py-2.5">
                                         <div class="flex items-start gap-2">
                                             <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5">{{ $indicator['code'] }}</span>
-                                            <span class="text-gray-800 text-xs leading-relaxed">{{ $indicator['description'] }}</span>
+                                            <span class="text-gray-800 text-sm leading-relaxed">{{ $indicator['description'] }}</span>
                                             <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
                                                     class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
                                                     title="Add comment for this indicator">
@@ -177,19 +184,27 @@
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator]" value="{{ $indicator['description'] }}">
                                     </td>
                                     @foreach($ratingValues as $val)
-                                        <td class="text-center px-1.5 py-2.5">
+                                        <td class="text-center px-0.5 py-2.5">
                                             <button type="button"
                                                     data-action="select-rating" data-index="{{ $indicatorIndex }}" data-value="{{ $val }}"
-                                                    class="rating-btn w-10 h-10 rounded-full text-xs font-bold border-2 {{ $savedRating === $val && !$savedNo ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' }}">
+                                                    class="rating-btn w-10 h-10 rounded-full text-xs font-bold border-2 {{ $savedRating === $val && !$savedNo && !$savedNa ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' }}">
                                                 {{ $val }}
                                             </button>
                                         </td>
                                     @endforeach
-                                    <td class="text-center px-1.5 py-2.5">
+                                    <td class="text-center px-0.5 py-2.5">
                                         <button type="button"
                                                 data-action="select-no" data-index="{{ $indicatorIndex }}"
                                                 class="rating-btn-no w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNo ? 'active bg-gray-500 text-white border-gray-500' : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
                                             NO
+                                        </button>
+                                    </td>
+                                    <td class="text-center px-0.5 py-2.5">
+                                        <button type="button"
+                                                data-action="select-na" data-index="{{ $indicatorIndex }}"
+                                                title="Not Applicable: indicator will not be recorded"
+                                                class="rating-btn-na w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNa ? 'active bg-amber-400 text-white border-amber-400' : 'bg-white dark:bg-gray-900 text-amber-500 dark:text-amber-400 border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20' }}">
+                                            N/A
                                         </button>
                                     </td>
                                 </tr>
@@ -328,7 +343,13 @@
             noBtn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-500', 'dark:text-gray-500', 'border-gray-300', 'dark:border-gray-600');
         }
 
-        row.classList.remove('no-selected');
+        var naBtn = row.querySelector('.rating-btn-na');
+        if (naBtn) {
+            naBtn.classList.remove('active', 'bg-amber-400', 'text-white', 'border-amber-400');
+            naBtn.classList.add('bg-white', 'dark:bg-gray-900', 'text-amber-500', 'dark:text-amber-400', 'border-gray-300', 'dark:border-gray-600');
+        }
+
+        row.classList.remove('no-selected', 'na-selected');
         row.classList.add('selected');
 
         var existing = document.getElementById('rating-input-' + index);
@@ -336,6 +357,9 @@
 
         var noHidden = document.getElementById('no-input-' + index);
         if (noHidden) noHidden.remove();
+
+        var naHidden = document.getElementById('na-input-' + index);
+        if (naHidden) naHidden.remove();
 
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
@@ -365,11 +389,20 @@
             noBtn.classList.add('active', 'bg-gray-500', 'text-white', 'border-gray-500');
         }
 
-        row.classList.remove('selected');
+        var naBtn = row.querySelector('.rating-btn-na');
+        if (naBtn) {
+            naBtn.classList.remove('active', 'bg-amber-400', 'text-white', 'border-amber-400');
+            naBtn.classList.add('bg-white', 'dark:bg-gray-900', 'text-amber-500', 'dark:text-amber-400', 'border-gray-300', 'dark:border-gray-600');
+        }
+
+        row.classList.remove('selected', 'na-selected');
         row.classList.add('no-selected');
 
         var existing = document.getElementById('rating-input-' + index);
         if (existing) existing.remove();
+
+        var naHidden = document.getElementById('na-input-' + index);
+        if (naHidden) naHidden.remove();
 
         var noHidden = document.createElement('input');
         noHidden.type = 'hidden';
@@ -379,6 +412,49 @@
         row.appendChild(noHidden);
 
         selections[index] = 'no';
+        updateRowHidden(row, index);
+
+        if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
+    }
+
+    function selectNA(index) {
+        var row = document.querySelector('.indicator-row[data-index="' + index + '"]');
+        if (!row) return;
+
+        row.querySelectorAll('.rating-btn').forEach(function(btn) {
+            btn.classList.remove('active', 'bg-green-600', 'text-white', 'border-green-600');
+            btn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-600', 'dark:text-gray-400', 'border-gray-300', 'dark:border-gray-600');
+        });
+
+        var noBtn = row.querySelector('.rating-btn-no');
+        if (noBtn) {
+            noBtn.classList.remove('active', 'bg-gray-500', 'text-white', 'border-gray-500');
+            noBtn.classList.add('bg-white', 'dark:bg-gray-900', 'text-gray-500', 'dark:text-gray-500', 'border-gray-300', 'dark:border-gray-600');
+        }
+
+        var naBtn = row.querySelector('.rating-btn-na');
+        if (naBtn) {
+            naBtn.classList.remove('bg-white', 'dark:bg-gray-900', 'text-amber-500', 'dark:text-amber-400', 'border-gray-300', 'dark:border-gray-600');
+            naBtn.classList.add('active', 'bg-amber-400', 'text-white', 'border-amber-400');
+        }
+
+        row.classList.remove('selected', 'no-selected');
+        row.classList.add('na-selected');
+
+        var existing = document.getElementById('rating-input-' + index);
+        if (existing) existing.remove();
+
+        var noHidden = document.getElementById('no-input-' + index);
+        if (noHidden) noHidden.remove();
+
+        var naHidden = document.createElement('input');
+        naHidden.type = 'hidden';
+        naHidden.name = 'ratings[' + index + '][not_applicable]';
+        naHidden.value = '1';
+        naHidden.id = 'na-input-' + index;
+        row.appendChild(naHidden);
+
+        selections[index] = 'na';
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
@@ -450,6 +526,8 @@
             selectRating(parseInt(btn.getAttribute('data-index')), parseInt(btn.getAttribute('data-value')));
         } else if (action === 'select-no') {
             selectNo(parseInt(btn.getAttribute('data-index')));
+        } else if (action === 'select-na') {
+            selectNA(parseInt(btn.getAttribute('data-index')));
         } else if (action === 'mark-all-no') {
             markAllNo();
         } else if (action === 'toggle-comment') {

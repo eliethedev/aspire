@@ -41,8 +41,6 @@ class EnsureProfileComplete
             'school_head' => [
                 'mobile_number' => $user->profile?->mobile_number,
                 'school_type' => $user->schoolHeadProfile?->school_type,
-                'grade_level' => $user->schoolHeadProfile?->grade_level,
-                'subject' => $user->schoolHeadProfile?->subject,
             ],
             default => [],
         };

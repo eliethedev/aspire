@@ -194,15 +194,15 @@
                 <div class="grid grid-cols-1 gap-2">
                     @foreach($observation->cotRatings as $rating)
                         @php
-                            $r = $rating->not_observed ? null : $rating->rating;
-                            $scoreBadge = !$r ? 'bg-gray-100 text-gray-500' : ($r >= 5 ? 'bg-emerald-100 text-emerald-700' : ($r >= 4 ? 'bg-blue-100 text-blue-700' : ($r >= 3 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700')));
+                            $r = $rating->not_applicable ? null : ($rating->not_observed ? null : $rating->rating);
+                            $scoreBadge = !$r ? ($rating->not_applicable ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500') : ($r >= 5 ? 'bg-emerald-100 text-emerald-700' : ($r >= 4 ? 'bg-blue-100 text-blue-700' : ($r >= 3 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700')));
                         @endphp
                         <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 border border-gray-100 dark:border-gray-700">
                             @if($rating->indicator_code)
                             <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">{{ $rating->indicator_code }}</span>
                             @endif
                             <span class="text-xs text-gray-600 dark:text-gray-300 truncate flex-1" title="{{ $rating->indicator }}">{{ $rating->indicator }}</span>
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-md text-[11px] font-bold shrink-0 {{ $scoreBadge }}">{{ $r ?? 'NO' }}</span>
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-md text-[11px] font-bold shrink-0 {{ $scoreBadge }}">{{ $r ?? ($rating->not_applicable ? 'N/A' : 'NO') }}</span>
                         </div>
                     @endforeach
                 </div>

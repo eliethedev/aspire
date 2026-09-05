@@ -1621,6 +1621,7 @@ class SupervisorController extends Controller
             'ratings.*.indicator' => ['required', 'string'],
             'ratings.*.rating' => ['nullable', 'integer', Rule::in($scaleValues)],
             'ratings.*.not_observed' => ['nullable', 'boolean'],
+            'ratings.*.not_applicable' => ['nullable', 'boolean'],
             'ratings.*.has_rating' => ['nullable', 'string'],
             'ratings.*.comments' => ['nullable', 'string'],
             'other_comments' => ['nullable', 'string'],
@@ -1639,8 +1640,9 @@ class SupervisorController extends Controller
                 'indicator_code' => $item['indicator_code'],
                 'domain' => $item['domain'],
                 'indicator' => $item['indicator'],
-                'rating' => ! empty($item['not_observed']) ? null : ($item['rating'] ?? null),
+                'rating' => (! empty($item['not_observed']) || ! empty($item['not_applicable'])) ? null : ($item['rating'] ?? null),
                 'not_observed' => ! empty($item['not_observed']),
+                'not_applicable' => ! empty($item['not_applicable']),
                 'comments' => $item['comments'] ?? null,
             ]);
         }
@@ -1684,8 +1686,8 @@ class SupervisorController extends Controller
             );
         }
 
-        // Calculate overall score (average of numeric ratings excluding NO)
-        $rated = $observation->cotRatings()->where('not_observed', false)->whereNotNull('rating');
+        // Calculate overall score (average of numeric ratings excluding NO/N/A)
+        $rated = $observation->cotRatings()->where('not_observed', false)->where('not_applicable', false)->whereNotNull('rating');
         $avgRating = $rated->exists() ? $rated->avg('rating') : null;
 
         // Only advance stage forward (prevent regression).
@@ -2562,6 +2564,7 @@ class SupervisorController extends Controller
 
         $domainAverages = CotRating::whereHas('observation', fn ($query) => $query->where('observer_id', $user->id))
             ->where('not_observed', false)
+            ->where('not_applicable', false)
             ->whereNotNull('domain')
             ->selectRaw('domain, AVG(rating) as average, COUNT(*) as total')
             ->groupBy('domain')
@@ -2575,6 +2578,7 @@ class SupervisorController extends Controller
 
         $indicatorStats = CotRating::whereHas('observation', fn ($query) => $query->where('observer_id', $user->id))
             ->where('not_observed', false)
+            ->where('not_applicable', false)
             ->selectRaw('indicator_code, MAX(indicator) as indicator, AVG(rating) as average, COUNT(*) as total')
             ->groupBy('indicator_code')
             ->havingRaw('COUNT(*) > 0')
@@ -3115,11 +3119,12 @@ class SupervisorController extends Controller
                         continue;
                     }
 
-                    // Untouched rows carry no rating or not_observed value; do not
-                    // overwrite previously saved data with a null rating.
+                    // Untouched rows carry no rating, not_observed or not_applicable value; do
+                    // not overwrite previously saved data with a null rating.
                     $hasRating = array_key_exists('rating', $item) && $item['rating'] !== null && $item['rating'] !== '';
                     $hasNo = ! empty($item['not_observed']);
-                    if (! $hasRating && ! $hasNo) {
+                    $hasNa = ! empty($item['not_applicable']);
+                    if (! $hasRating && ! $hasNo && ! $hasNa) {
                         continue;
                     }
 
@@ -3128,8 +3133,9 @@ class SupervisorController extends Controller
                         [
                             'domain' => $item['domain'] ?? null,
                             'indicator' => $item['indicator'] ?? null,
-                            'rating' => $hasNo ? null : $item['rating'],
+                            'rating' => ($hasNo || $hasNa) ? null : $item['rating'],
                             'not_observed' => $hasNo,
+                            'not_applicable' => $hasNa,
                             'comments' => $item['comments'] ?? null,
                         ]
                     );

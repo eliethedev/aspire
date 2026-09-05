@@ -14,7 +14,7 @@
         'pre_conference' => 'Pre-Observation Conversation',
         'observation' => $isSchoolHeadObs ? 'School Head Observation' : 'Classroom Observation',
         'post_conference' => 'Post-Observation Conference',
-        'epoc' => 'EPOC Evaluation',
+        'epoc' => 'Enhanced Post Observation Conference',
         'completed' => 'Completed',
     ];
     $stageKeys = $isSchoolHeadObs

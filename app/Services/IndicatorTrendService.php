@@ -14,7 +14,7 @@ class IndicatorTrendService
             ->where('observee_type', $observeeType)
             ->where('status', 'completed')
             ->whereNotNull('overall_score')
-            ->with(['cotRatings' => fn($q) => $q->where('not_observed', false)])
+            ->with(['cotRatings' => fn($q) => $q->where('not_observed', false)->where('not_applicable', false)])
             ->orderBy('observation_date', 'asc')
             ->get();
 
@@ -37,6 +37,7 @@ class IndicatorTrendService
             ->where('status', 'completed')
         )
         ->where('not_observed', false)
+        ->where('not_applicable', false)
         ->get();
 
         $grouped = $allRatings->groupBy('indicator_code');
@@ -106,8 +107,8 @@ class IndicatorTrendService
 
     public function compareObservations(Observation $current, Observation $previous): array
     {
-        $currentRatings = $current->cotRatings->where('not_observed', false);
-        $previousRatings = $previous->cotRatings->where('not_observed', false);
+        $currentRatings = $current->cotRatings->where('not_observed', false)->where('not_applicable', false);
+        $previousRatings = $previous->cotRatings->where('not_observed', false)->where('not_applicable', false);
 
         $currentByCode = $currentRatings->keyBy('indicator_code');
         $previousByCode = $previousRatings->keyBy('indicator_code');

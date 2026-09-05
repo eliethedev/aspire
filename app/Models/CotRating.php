@@ -20,12 +20,14 @@ class CotRating extends Model
         'indicator',
         'rating',
         'not_observed',
+        'not_applicable',
         'comments',
     ];
 
     protected $casts = [
         'rating' => 'integer',
         'not_observed' => 'boolean',
+        'not_applicable' => 'boolean',
     ];
 
     /**
@@ -56,11 +58,11 @@ class CotRating extends Model
     }
 
     /**
-     * Get the numeric rating value, or 0 if Not Observed
+     * Get the numeric rating value, or 0 if Not Observed / Not Applicable
      */
     public function numericRating(): int
     {
-        return $this->not_observed ? 0 : ($this->rating ?? 0);
+        return ($this->not_observed || $this->not_applicable) ? 0 : ($this->rating ?? 0);
     }
 
     /**
@@ -68,7 +70,7 @@ class CotRating extends Model
      */
     public function percentage(): float
     {
-        if ($this->isNotObserved()) {
+        if ($this->isNotObserved() || $this->isNotApplicable()) {
             return 0;
         }
         return round(($this->rating / 6) * 100, 1);
@@ -79,7 +81,31 @@ class CotRating extends Model
      */
     public function isNotObserved(): bool
     {
-        return $this->not_observed;
+        return (bool) $this->not_observed;
+    }
+
+    /**
+     * Check if the indicator was marked Not Applicable (excluded from scoring)
+     */
+    public function isNotApplicable(): bool
+    {
+        return (bool) $this->not_applicable;
+    }
+
+    /**
+     * Get the descriptive label for the overall COT score (2-6 scale).
+     * DepEd bands: Outstanding, Very Satisfactory, Satisfactory, Poor, Needs Improvement.
+     */
+    public static function descriptiveTotal(?float $score): string
+    {
+        return match (true) {
+            $score === null => 'No Score Yet',
+            $score >= 5.5 => 'Outstanding',
+            $score >= 4.5 => 'Very Satisfactory',
+            $score >= 3.5 => 'Satisfactory',
+            $score >= 2.5 => 'Poor',
+            default => 'Needs Improvement',
+        };
     }
 
     /**
@@ -87,6 +113,10 @@ class CotRating extends Model
      */
     public function descriptiveLabel(): string
     {
+        if ($this->not_applicable) {
+            return 'Not Applicable';
+        }
+
         if ($this->not_observed) {
             return 'Not Observed';
         }
@@ -106,6 +136,10 @@ class CotRating extends Model
      */
     public function ratingBadgeClass(): string
     {
+        if ($this->not_applicable) {
+            return 'bg-gray-100 text-gray-500';
+        }
+
         if ($this->not_observed) {
             return 'bg-gray-200 text-gray-600';
         }
@@ -133,6 +167,16 @@ class CotRating extends Model
      */
     public function scopeHighRatings($query)
     {
-        return $query->where('rating', '>=', 5)->where('not_observed', false);
+        return $query->where('rating', '>=', 5)
+            ->where('not_observed', false)
+            ->where('not_applicable', false);
+    }
+
+    /**
+     * Scope excluding indicators marked Not Applicable
+     */
+    public function scopeScored($query)
+    {
+        return $query->where('not_observed', false)->where('not_applicable', false);
     }
 }

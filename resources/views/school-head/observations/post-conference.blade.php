@@ -148,7 +148,16 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
-                    <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 6.00</span></span>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 6.00</span></span>
+                        @if($observation->overall_score !== null)
+                        @php
+                            $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score);
+                            $descClass = $observation->overall_score >= 5.5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= 4.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= 3.5 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= 2.5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                        @endphp
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mt-1 {{ $descClass }}">{{ $descTotal }}</span>
+                        @endif
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -166,10 +175,14 @@
                                 <td class="px-3 py-2 text-gray-700 dark:text-gray-300 text-xs">{{ $rating->domain }}</td>
                                 <td class="px-3 py-2 text-gray-700 dark:text-gray-300 text-xs">{{ $rating->indicator }}</td>
                                 <td class="px-3 py-2 text-center">
+                                    @if($rating->not_applicable)
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">N/A</span>
+                                    @else
                                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
                                         {{ $rating->rating >= 4 ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : ($rating->rating >= 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 dark:bg-red-900/30 text-red-700') }}">
-                                        {{ number_format($rating->rating, 1) }}
+                                        {{ $rating->not_observed ? 'NO' : number_format($rating->rating, 1) }}
                                     </span>
+                                    @endif
                                 </td>
                                 <td class="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs">{{ $rating->comments ?? '-' }}</td>
                             </tr>

@@ -299,21 +299,6 @@
                             <x-text-input id="number_of_teachers_supervised" name="number_of_teachers_supervised" type="number" min="0" class="mt-1 block w-full" :value="old('number_of_teachers_supervised', $user->schoolHeadProfile?->number_of_teachers_supervised)" />
                             <x-input-error class="mt-2" :messages="$errors->get('number_of_teachers_supervised')" />
                         </div>
-                        <div>
-                            <x-input-label for="grade_level" :value="__('Grade Level')" />
-                            <select id="grade_level" name="grade_level" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Select Grade Level</option>
-                                <option value="elementary" @selected(old('grade_level', $user->schoolHeadProfile?->grade_level) === 'elementary')>Elementary</option>
-                                <option value="junior_high" @selected(old('grade_level', $user->schoolHeadProfile?->grade_level) === 'junior_high')>Junior High School</option>
-                                <option value="senior_high" @selected(old('grade_level', $user->schoolHeadProfile?->grade_level) === 'senior_high')>Senior High School</option>
-                            </select>
-                            <x-input-error class="mt-2" :messages="$errors->get('grade_level')" />
-                        </div>
-                        <div>
-                            <x-input-label for="subject" :value="__('Subject')" />
-                            <x-text-input id="subject" name="subject" type="text" class="mt-1 block w-full" :value="old('subject', $user->schoolHeadProfile?->subject)" />
-                            <x-input-error class="mt-2" :messages="$errors->get('subject')" />
-                        </div>
                     </div>
                     <div class="mt-6">
                         <x-input-label for="leadership_training" :value="__('Leadership Training')" />

@@ -178,25 +178,19 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-4">
                     <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 3v3m3-3v3m-9 14V10a1 1 0 011-1h16a1 1 0 011 1v10m-18 0a1 1 0 001 1h16a1 1 0 001-1m-18 0l3-3 3 3 3-3 3 3 3-3v3M6 7h12"/></svg>
+                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Pre-Observation Context</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">EPOC evaluates school supervision &amp; leadership practices rather than a single lesson plan.</p>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post Observation Conference &mdash; Pre-Observation Context</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">The Enhanced Post Observation Conference evaluates school supervision &amp; leadership practices rather than a single lesson plan.</p>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    This observation uses the <strong>Evaluation of Practices and Observation of Competencies (EPOC)</strong> instrument
+                    This observation uses the <strong>Enhanced Post Observation Conference</strong> instrument
                     to assess the school head's supervision, instructional leadership, and school management practices. Focus your
                     review on the school head's supervision targets and the leadership practices to be observed during the session.
                 </p>
-                @if($planning?->suggested_focus)
-                <div class="mt-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100">
-                    <span class="text-xs font-semibold text-purple-800 dark:text-purple-300 uppercase tracking-wider">Suggested Focus Area</span>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">{{ is_array($planning->suggested_focus) ? implode(', ', $planning->suggested_focus) : $planning->suggested_focus }}</p>
                 </div>
-                @endif
-            </div>
             @endif
 
             @if(!$isSchoolHeadObs)
@@ -385,18 +379,7 @@
                         @enderror
                     </div>
 
-                    <!-- Suggested Focus Areas -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suggested Focus Areas</label>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Based on previous observations and AI analysis.</p>
-                        <textarea name="suggested_focus" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                  placeholder="{{ $isSchoolHeadObs ? 'e.g. Instructional supervision, staff development, resource management...' : 'e.g. Classroom management, questioning techniques, learner engagement...' }}">{{ old('suggested_focus', $planning?->suggested_focus) }}</textarea>
-                        @error('suggested_focus')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
                     </div>
-                </div>
 
                 <!-- Pre-Conference Details -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">

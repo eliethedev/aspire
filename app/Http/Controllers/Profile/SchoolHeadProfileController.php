@@ -64,8 +64,6 @@ class SchoolHeadProfileController extends Controller
             'school_type' => $validated['school_type'] ?? null,
             'additional_roles' => $validated['additional_roles'] ?? null,
             'position' => $validated['position'] ?? null,
-            'subject' => $validated['subject'] ?? null,
-            'grade_level' => $validated['grade_level'] ?? null,
         ];
 
         $user->schoolHeadProfile()->updateOrCreate(['user_id' => $user->id], $schoolHeadData);

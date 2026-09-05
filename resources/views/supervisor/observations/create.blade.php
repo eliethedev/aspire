@@ -821,7 +821,7 @@
                                 <div><span class="text-gray-500 dark:text-gray-400">Time</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="timeLabel || '—'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Location</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.location || '—'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">School Year</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.school_year"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Quarter</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="'Quarter ' + form.quarter"></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Term</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="'Term ' + form.quarter"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.subject || 'Not set'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.grade_level || 'Not set'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Observation #</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_number === '2' ? '2nd' : '1st'"></p></div>

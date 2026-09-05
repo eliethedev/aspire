@@ -30,6 +30,7 @@ class CotRatingFactory extends Factory
             'indicator' => fake()->sentence(8),
             'rating' => fake()->randomElement([2, 3, 4, 5, 6]),
             'not_observed' => false,
+            'not_applicable' => false,
             'comments' => fake()->sentence(),
         ];
     }

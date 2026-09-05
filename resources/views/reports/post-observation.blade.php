@@ -86,7 +86,9 @@
                 <td>{{ $rating->domain }}</td>
                 <td>{{ $rating->indicator }}</td>
                 <td>
-                    @if($rating->not_observed)
+                    @if($rating->not_applicable)
+                        <span class="badge badge-neutral">N/A</span>
+                    @elseif($rating->not_observed)
                         <span class="badge badge-orange">NO</span>
                     @else
                         <span class="badge

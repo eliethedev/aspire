@@ -301,21 +301,25 @@
                         <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ 6</p>
                     </div>
                     @php
+                        $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score);
+                        $descClass = $observation->overall_score >= 5.5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= 4.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= 3.5 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= 2.5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
                         $scorePct = $observation->overall_score ? ($observation->overall_score / 6) * 100 : 0;
                         $scoreBg = $scorePct >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/200' : ($scorePct >= 60 ? 'bg-amber-50 dark:bg-amber-900/200' : 'bg-red-50 dark:bg-red-900/200');
                     @endphp
                     <div class="w-24 h-1.5 bg-gray-100 rounded-full mt-1 ml-auto">
                         <div class="{{ $scoreBg }} h-1.5 rounded-full" style="width: {{ $scorePct }}%"></div>
                     </div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-auto {{ $descClass }}">{{ $descTotal }}</span>
                 </div>
             </div>
             <div class="space-y-2.5">
                 @foreach($observation->cotRatings as $rating)
                     @php
-                        $r = $rating->not_observed ? null : $rating->rating;
+                        $na = $rating->not_applicable;
+                        $r = $na ? null : ($rating->not_observed ? null : $rating->rating);
                         $rPct = $r ? ($r / 6) * 100 : 0;
-                        $rColor = !$r ? 'bg-gray-100 border-gray-200 dark:border-gray-700' : ($r >= 5 ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20' : ($r >= 4 ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' : ($r >= 3 ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20')));
-                        $rBadge = !$r ? 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500' : ($r >= 5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($r >= 4 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($r >= 3 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                        $rColor = !$r ? ($na ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/10' : 'bg-gray-100 border-gray-200 dark:border-gray-700') : ($r >= 5 ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20' : ($r >= 4 ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' : ($r >= 3 ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20')));
+                        $rBadge = !$r ? ($na ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500') : ($r >= 5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($r >= 4 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($r >= 3 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
                     @endphp
                     <div class="rounded-xl p-4 border {{ $rColor }}">
                         <div class="flex items-start justify-between gap-4">
@@ -328,9 +332,9 @@
                             </div>
                             <div class="text-center shrink-0">
                                 <div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center">
-                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : 'NO' }}</span>
+                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : ($na ? 'N/A' : 'NO') }}</span>
                                 </div>
-                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">/ 6</p>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ $na ? 'Not recorded' : '/ 6' }}</p>
                             </div>
                         </div>
                         @if($r)

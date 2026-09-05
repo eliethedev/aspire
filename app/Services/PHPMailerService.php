@@ -217,7 +217,7 @@ class PHPMailerService
             file_put_contents($bodyPath, $body);
 
             // Some SAPI contexts (e.g. `php artisan serve`) expose a stripped
-            // $_SERVER, which Symfony Process would otherwise use as the child
+            // $_SERVER, which the spawned process would otherwise use as its
             // environment. Without SystemRoot etc., Windows networking (DNS)
             // cannot initialize in the child, so pass the essentials explicitly.
             $env = [];
@@ -228,7 +228,7 @@ class PHPMailerService
                 }
             }
 
-            $process = new \Symfony\Component\Process\Process(array_filter([
+            $command = array_filter([
                 PHP_BINARY,
                 defined('ARTISAN_BINARY') ? ARTISAN_BINARY : base_path('artisan'),
                 'aspire:send-deferred-email',
@@ -236,7 +236,38 @@ class PHPMailerService
                 '--name='.((string) $name),
                 '--subject='.((string) $subject),
                 '--body-path='.$bodyPath,
-            ]), base_path(), $env);
+            ]);
+
+            if (PHP_OS_FAMILY === 'Windows') {
+                // Raw proc_open with CREATE_NO_WINDOW so the deferred email
+                // still runs detached, but no cmd window flashes on screen.
+                // The socket handles get freed when the request ends; the child
+                // process is independent and keeps running. proc_close() is NOT
+                // called because it would block until the child (SMTP) finishes.
+                $stdout = tempnam(sys_get_temp_dir(), 'aspire_mail_out_');
+                $stderr = tempnam(sys_get_temp_dir(), 'aspire_mail_err_');
+
+                $descriptors = [
+                    0 => ['file', 'NUL', 'r'],
+                    1 => ['file', $stdout, 'w'],
+                    2 => ['file', $stderr, 'w'],
+                ];
+
+                $proc = @proc_open($command, $descriptors, $pipes, base_path(), $env, [
+                    'bypass_shell' => true,
+                    'create_no_window' => true,
+                ]);
+
+                if ($proc === false) {
+                    Log::warning('Could not spawn deferred email process, skipping email.');
+                    @unlink($stdout);
+                    @unlink($stderr);
+                }
+
+                return;
+            }
+
+            $process = new \Symfony\Component\Process\Process($command, base_path(), $env);
             $process->setOptions(['create_new_console' => true]);
             $process->start();
 

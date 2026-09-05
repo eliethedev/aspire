@@ -112,7 +112,9 @@ class COTService
      */
     public function calculateOverallRating(int $observationId): float
     {
-        $ratings = CotRating::where('observation_id', $observationId)->get();
+        $ratings = CotRating::where('observation_id', $observationId)
+            ->where('not_applicable', false)
+            ->get();
         
         if ($ratings->isEmpty()) {
             return 0;
