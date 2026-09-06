@@ -164,7 +164,7 @@
             'post_conference' => (bool) $observation->postConference,
         ];
         $stageKeys = $observation->isSchoolHeadObservation()
-            ? ['pre_observation_planning', 'pre_conference', 'observation', 'epoc', 'post_conference']
+            ? ['pre_observation_planning', 'observation', 'epoc', 'post_conference']
             : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageKeys);
     @endphp
@@ -335,7 +335,7 @@
         @endif
 
         <!-- Pre-Conference -->
-        @if($observation->preConference)
+        @if($observation->preConference && !$observation->isSchoolHeadObservation())
         <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
@@ -605,16 +605,16 @@
                     <p class="text-gray-900 dark:text-gray-100">{{ $observation->postConference->conference_date->format('M d, Y') }}</p>
                 </div>
                 @endif
-                @if($observation->postConference->ai_comparison)
-                <div>
-                    <span class="text-gray-500 dark:text-gray-400 text-sm">AI Comparison (Plan vs Actual):</span>
-                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->ai_comparison }}</p>
-                </div>
-                @endif
-                @if($observation->postConference->feedback)
+                @if($observation->postConference->feedback && !$observation->isSchoolHeadObservation())
                 <div>
                     <span class="text-gray-500 dark:text-gray-400 text-sm">Feedback:</span>
                     <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->feedback }}</p>
+                </div>
+                @endif
+                @if($observation->postConference->ai_comparison && !$observation->isSchoolHeadObservation())
+                <div>
+                    <span class="text-gray-500 dark:text-gray-400 text-sm">AI Comparison (Plan vs Actual):</span>
+                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->ai_comparison }}</p>
                 </div>
                 @endif
             </div>

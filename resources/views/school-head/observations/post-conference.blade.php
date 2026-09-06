@@ -14,7 +14,9 @@
 
 @php
     $isSchoolHeadObs = $observation->isSchoolHeadObservation();
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageKeys = $isSchoolHeadObs
+        ? ['pre_observation_planning', 'observation', 'post_conference']
+        : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
     $stageLabels = [
         'pre_observation_planning' => 'Pre-Observation Planning',
         'pre_conference' => 'Pre-Conference',
@@ -243,6 +245,7 @@
                 @csrf
 
                 <!-- Enhanced Post Observation Conference Guide -->
+                @if(!$isSchoolHeadObs)
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Guide</h2>
@@ -324,6 +327,7 @@
                         <p class="text-xs text-green-600 dark:text-green-400 mt-1">Summarize key points, acknowledge the teacher's efforts, and express confidence in their growth.</p>
                     </div>
                 </div>
+                @endif
 
                 <!-- Teacher Reflection -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
@@ -335,6 +339,7 @@
                 </div>
 
                 <!-- AI Comparison -->
+                @if(!$isSchoolHeadObs)
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100" x-data="{ generating: false }">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Comparison & Feedback</h2>
@@ -343,7 +348,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AI Comparison (Plan vs Actual)</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">AI-generated comparison between the lesson plan and actual classroom observation.</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? 'AI-generated comparison between the preparation plan and actual supervision session.' : 'AI-generated comparison between the lesson plan and actual classroom observation.' }}</p>
                             <textarea name="ai_comparison" id="ai_comparison_textarea" rows="4"
                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                       placeholder="AI-generated comparison analysis will appear here...">{{ old('ai_comparison', $postConference?->ai_comparison) }}</textarea>
@@ -357,13 +362,14 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supervisor Feedback</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Overall feedback summary for the teacher.</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? 'Overall feedback summary for the school head.' : 'Overall feedback summary for the teacher.' }}</p>
                             <textarea name="feedback" rows="4"
                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                       placeholder="Provide overall feedback summarizing the observation and conference...">{{ old('feedback', $postConference?->feedback) }}</textarea>
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Private Notes -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
@@ -371,7 +377,7 @@
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Private Notes</h2>
                         <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">Private</span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">These notes are for your reference only and will not be visible to the teacher.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? 'These notes are for your reference only and will not be visible to the school head.' : 'These notes are for your reference only and will not be visible to the teacher.' }}</p>
                     <textarea name="supervisor_notes" rows="3"
                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                               placeholder="Your private notes and reminders for future reference...">{{ old('supervisor_notes', $postConference?->supervisor_notes) }}</textarea>
@@ -381,7 +387,7 @@
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-                        <span class="text-xs text-gray-600 dark:text-gray-400">Completing the observation will finalize all ratings and notify the teacher.</span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400">{{ $isSchoolHeadObs ? 'Completing the observation will finalize all ratings and notify the school head.' : 'Completing the observation will finalize all ratings and notify the teacher.' }}</span>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <a href="{{ route('school-head.observations.observation', $observation) }}" 
@@ -394,7 +400,7 @@
                         <button type="submit" :disabled="submitting"
                                 :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                                 class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors"
-                                onclick="return confirm('Mark this observation as complete? This will finalize all ratings and notify the teacher.')">
+                                onclick="return confirm('Mark this observation as complete? This will finalize all ratings and notify {{ $isSchoolHeadObs ? 'the school head' : 'the teacher' }}.')">
                             <span x-show="!submitting" class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Complete Observation

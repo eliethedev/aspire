@@ -397,6 +397,7 @@
                     </div>
 
                 <!-- Pre-Observation Conversation Details -->
+                @if(!$isSchoolHeadObs)
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Conversation</h2>
                     @if($preConference && $preConference->conference_date)
@@ -418,6 +419,7 @@
                         </div>
                     @endif
                 </div>
+                @endif
 
                 <!-- Action Buttons -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
@@ -447,7 +449,7 @@
                 <button type="submit" name="continue" value="pre_conference"
                         class="inline-flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    Continue to Pre-Observation Conversation
+                    {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Pre-Observation Conversation' }}
                 </button>
                 @if($observation->canCancel())
                 <a href="{{ route('school-head.observations.cancel-form', $observation) }}"

@@ -18,7 +18,7 @@
         'completed' => 'Completed',
     ];
     $stageKeys = $isSchoolHeadObs
-        ? ['pre_observation_planning', 'pre_conference', 'observation', 'epoc', 'post_conference']
+        ? ['pre_observation_planning', 'observation', 'epoc', 'post_conference']
         : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
     $stageRoutes = [
         'pre_observation_planning' => $routePrefix . '.observations.preObservationPlanning',

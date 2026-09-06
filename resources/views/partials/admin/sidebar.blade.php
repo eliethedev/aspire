@@ -77,6 +77,19 @@
                             <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Profile</span>
                         </a>
                     </li>
+                    <!-- Calendar -->
+                    <li>
+                        <a href="{{ route('admin.calendar.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('admin.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }}"
+                           :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-calendar" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Calendar</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 

@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/status', [App\Http\Controllers\Admin\DashboardController::class, 'systemStatus'])->name('dashboard.status');
+    Route::get('/calendar', [App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('calendar.index');
 
     // Profile
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -180,6 +181,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:teacher', 'profile.complete'])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [App\Http\Controllers\Teacher\DashboardController::class, 'analytics'])->name('analytics');
+    Route::get('/calendar', [App\Http\Controllers\Teacher\CalendarController::class, 'index'])->name('calendar.index');
 
     // Profile
     Route::get('/profile', [TeacherProfileController::class, 'edit'])->name('profile.edit');
@@ -313,6 +315,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
 // School Head routes
 Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('school-head')->name('school-head.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/calendar', [App\Http\Controllers\SchoolHead\CalendarController::class, 'index'])->name('calendar.index');
 
     // Profile
     Route::get('/profile', [SchoolHeadProfileController::class, 'edit'])->name('profile.edit');

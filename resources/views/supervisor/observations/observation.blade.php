@@ -71,7 +71,7 @@
         </p>
     </div>
 
-    @if($preConference)
+    @if($preConference && !$observation->isSchoolHeadObservation())
     <div x-data="{ open: true }" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between p-4 text-left">
@@ -288,6 +288,7 @@
                 <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
+                @if(!$observation->isSchoolHeadObservation())
                 <a href="{{ route('supervisor.observations.preConference', $observation) }}"
                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 font-medium text-sm text-center transition-colors">
                     <span class="flex items-center justify-center gap-2">
@@ -295,6 +296,7 @@
                         Back to Pre-Observation Conversation
                     </span>
                 </a>
+                @endif
                 <button type="submit" :disabled="submitting"
                         :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                         class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">

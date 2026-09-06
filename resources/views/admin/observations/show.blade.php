@@ -422,13 +422,13 @@
                     <p class="text-gray-900 dark:text-gray-100">{{ $observation->postConference->conference_date->format('M d, Y') }}</p>
                 </div>
                 @endif
-                @if($observation->postConference->ai_comparison)
+                @if($observation->postConference->ai_comparison && !$observation->isSchoolHeadObservation())
                 <div>
                     <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">AI Comparison (Plan vs Actual):</span>
                     <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->ai_comparison }}</p>
                 </div>
                 @endif
-                @if($observation->postConference->feedback)
+                @if($observation->postConference->feedback && !$observation->isSchoolHeadObservation())
                 <div>
                     <span class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Feedback:</span>
                     <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->feedback }}</p>

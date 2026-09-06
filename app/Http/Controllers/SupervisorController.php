@@ -1350,6 +1350,25 @@ class SupervisorController extends Controller
         );
 
         if ($request->input('continue') === 'pre_conference') {
+            // School head observations skip the pre-conference step and
+            // proceed directly to the observation (which uses the EPOC sheet).
+            if ($observation->isSchoolHeadObservation()) {
+                $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
+                $currentIdx = array_search($observation->stage, $stageOrder);
+                $targetIdx = array_search('observation', $stageOrder);
+
+                if ($targetIdx === $currentIdx + 1) {
+                    $observation->logChange([
+                        'to_stage' => 'observation',
+                        'notes' => 'Pre-Observation Planning completed',
+                    ]);
+                    $observation->update(['stage' => 'observation']);
+                }
+
+                return redirect()->route('supervisor.observations.observation', $observation->id)
+                    ->with('success', 'Pre-Observation Planning has been saved. Proceed to the School Head Observation.');
+            }
+
             $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
             $currentIdx = array_search($observation->stage, $stageOrder);
             $targetIdx = array_search('pre_conference', $stageOrder);
@@ -1478,6 +1497,12 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
+        // School head observations skip the pre-conference step entirely.
+        if ($observation->isSchoolHeadObservation()) {
+            return redirect()->route('supervisor.observations.observation', $observation->id)
+                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
+        }
+
         $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
 
         $preConference = $observation->preConference;
@@ -1516,6 +1541,12 @@ class SupervisorController extends Controller
     public function storePreConference(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
+
+        // School head observations skip the pre-conference step entirely.
+        if ($observation->isSchoolHeadObservation()) {
+            return redirect()->route('supervisor.observations.observation', $observation->id)
+                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
+        }
 
         $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y').'-'.(date('Y') + 1));
         $obsType = $observation->observation_type;
@@ -2007,8 +2038,9 @@ class SupervisorController extends Controller
         $cotRatings = $observation->cotRatings;
         $planning = $observation->preObservationPlanning;
         $preConference = $observation->preConference;
+        $epocEvaluation = $observation->epocEvaluation;
 
-        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference'));
+        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference', 'epocEvaluation'));
     }
 
     /**
@@ -2035,9 +2067,11 @@ class SupervisorController extends Controller
             'supervisor_notes' => ['nullable', 'string'],
         ], $templateRules));
 
+        $existingPostConference = $observation->postConference;
+
         $data = [
-            'ai_comparison' => $validated['ai_comparison'] ?? null,
-            'feedback' => $validated['feedback'] ?? null,
+            'ai_comparison' => $request->has('ai_comparison') ? ($validated['ai_comparison'] ?? null) : ($existingPostConference?->ai_comparison ?? null),
+            'feedback' => $request->has('feedback') ? ($validated['feedback'] ?? null) : ($existingPostConference?->feedback ?? null),
             'conference_date' => $validated['conference_date'] ?? now(),
             'star_notes' => $validated['star_notes'] ?? null,
             'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
