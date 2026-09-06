@@ -22,6 +22,7 @@ class LessonPlanSuggestionService extends AIService
         \App\AI\RAG\PPSTRubricRepository $rubrics,
         protected DocumentExtractorService $documentExtractor,
         protected \App\AI\RAG\CotIndicatorRepository $indicators,
+        protected TeacherContextBuilder $teacherContextBuilder,
         ?\App\AI\Providers\AIProviderManager $manager = null,
     ) {
         parent::__construct($provider, $rubrics, $manager);
@@ -57,6 +58,9 @@ class LessonPlanSuggestionService extends AIService
             ))->pluck('code')->all()
         );
 
+        $teacherContext = $this->teacherContextBuilder->fromObservation($observation);
+        $teacherContextBlock = $this->teacherContextBuilder->formatForPrompt($teacherContext);
+
         $prompt = LessonPlanSuggestionPrompt::build([
             'teacher_name' => $observation->observee?->user?->name ?? 'Unknown',
             'subject' => $observation->subject ?? 'N/A',
@@ -67,6 +71,7 @@ class LessonPlanSuggestionService extends AIService
             'assessment' => $planning?->assessment_methods ?? 'Not specified',
             'lesson_plan_content' => $lessonPlanContent,
             'rubrics' => $relevant !== '' ? $relevant : $this->rubrics->getSystemContext(),
+            'teacher_context' => $teacherContextBlock,
         ]);
 
         $data = $this->generateJson($prompt);

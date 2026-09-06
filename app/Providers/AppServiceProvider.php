@@ -56,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\AI\Services\LessonPlanSummaryService::class);
         $this->app->singleton(\App\AI\Services\CotIndicatorAnalysisService::class);
         $this->app->singleton(\App\AI\Services\OverallRecommendationService::class);
+        $this->app->singleton(\App\AI\Services\TeacherContextBuilder::class);
     }
 
     public static function createProvider(string $provider, string $model = ''): AIServiceInterface

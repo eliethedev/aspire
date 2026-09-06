@@ -10,12 +10,18 @@ class LessonPlanSummaryPrompt
         $subject = $context['subject'] ?? 'N/A';
         $gradeLevel = $context['grade_level'] ?? 'N/A';
         $lessonPlanContent = $context['lesson_plan_content'] ?? '';
+        $teacherContext = $context['teacher_context'] ?? '';
+
+        $teacherProfileSection = $teacherContext
+            ? "--- Teacher Profile ---\n{$teacherContext}"
+            : '';
 
         return <<<PROMPT
 You are an assistant to a DepEd (Philippines) school supervisor.
 
 GOAL: Summarize ONLY the instructionally relevant content of the lesson plan below. Be concise; avoid unnecessary text, boilerplate, or administrative details.
 
+{$teacherProfileSection}
 Teacher: {$teacherName}
 Subject: {$subject}
 Grade Level: {$gradeLevel}

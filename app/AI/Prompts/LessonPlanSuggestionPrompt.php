@@ -15,16 +15,22 @@ class LessonPlanSuggestionPrompt
         $assessment = $context['assessment'] ?? 'Not specified';
         $lessonPlanContent = $context['lesson_plan_content'] ?? '';
         $rubrics = $context['rubrics'] ?? '';
+        $teacherContext = $context['teacher_context'] ?? '';
 
         $lessonPlanSection = $lessonPlanContent
             ? "--- Lesson Plan Content ---\n{$lessonPlanContent}"
             : "Lesson Plan: not uploaded. Base suggestions on the planning details below.";
+
+        $teacherProfileSection = $teacherContext
+            ? "--- Teacher Profile ---\n{$teacherContext}"
+            : '';
 
         return <<<PROMPT
 You are an expert instructional coach supporting a DepEd (Philippines) school supervisor.
 
 GOAL: Review the lesson plan below and provide improvement suggestions for the supervisor to discuss with the teacher.
 
+{$teacherProfileSection}
 Teacher: {$teacherName}
 Subject: {$subject}
 Grade Level: {$gradeLevel}

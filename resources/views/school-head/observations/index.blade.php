@@ -30,7 +30,7 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
@@ -41,7 +41,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
@@ -52,7 +52,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
@@ -66,9 +66,9 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
-        <button type="button" @click="open = !open"
-                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left border-b border-gray-100 dark:border-gray-800">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
+        <button type="button" @click="open = !open" :aria-expanded="open.toString()"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-xl">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                 Filters
@@ -78,15 +78,15 @@
             </span>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div x-show="open">
-            <div class="px-3 py-3 border-b border-gray-100 dark:border-gray-800">
+        <div x-show="open" x-cloak x-transition>
+            <div class="px-3 py-3 border-t border-gray-100 dark:border-gray-800">
                 <form method="GET" class="flex flex-wrap items-center gap-2">
                     <div class="relative flex-1 min-w-[200px]">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by subject, school year..."
-                               class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                               class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
-                    <select name="status" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    <select name="status" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         <option value="">All Status</option>
                         <option value="scheduled" {{ request('status') === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -133,7 +133,7 @@
                         && $observation->status !== 'cancelled'
                         && !$observation->isFinalized();
                 @endphp
-                <a href="{{ $isObserver ? route('school-head.observations.show', $observation) : route('school-head.observations.show', $observation) }}"
+                <a href="{{ route('school-head.observations.show', $observation) }}"
                    class="obs-card block p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex items-start gap-4 min-w-0">
@@ -197,7 +197,6 @@
                         </p>
                     </div>
                 @endif
-            </div>
         </a>
             @empty
                 <div class="text-center py-16">

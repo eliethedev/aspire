@@ -109,6 +109,12 @@
           x-data="{ submitting: false }" x-on:submit="submitting = true">
     @csrf
     <input type="hidden" name="ai_insights_reviewed" id="ai_insights_reviewed_input" value="{{ $aiReviewed ? '1' : '0' }}">
+    @if(!$isSchoolHeadObs)
+    {{-- Teacher observations: no lesson section on this form, so the
+         conference date is submitted with its default value. --}}
+    <input type="hidden" name="conference_date" id="conference_date"
+           value="{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}">
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -254,47 +260,10 @@
             </div>
             @endif
 
-            <!-- Section 1: Lesson Information -->
-            @if(!$isSchoolHeadObs)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Information</h2>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Pre-Conference</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->subject ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Grade / Section</label>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Date / Time *</label>
-                        <input type="date" name="conference_date" id="conference_date"
-                               value="{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
-                               class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                        @error('conference_date')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
-                        <input type="text" name="topic"
-                               value="{{ old('topic', $preConference?->topic) }}"
-                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                               placeholder="e.g. Photosynthesis, Linear Equations...">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Learning Objectives</label>
-                        <textarea name="learning_objectives" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="What are the learning objectives for this lesson?">{{ old('learning_objectives', $preConference?->learning_objectives) }}</textarea>
-                    </div>
-                </div>
-            </div>
-            @else
+            {{-- Teacher observations no longer show a lesson section here: the subject
+                 and conference date live in the Teacher Information card, and the
+                 date is submitted with its default value (see hidden input above). --}}
+            @if($isSchoolHeadObs)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Session Context</h2>
@@ -483,6 +452,20 @@
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>
                         <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->school->name ?? 'N/A' }}</p>
                     </div>
+                    @if(!$isSchoolHeadObs)
+                    <div>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Subject</span>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->subject ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Grade / Section</span>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Conference Date</span>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ old('conference_date', $preConference?->conference_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}</p>
+                    </div>
+                    @endif
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($observation->status) }}</span>

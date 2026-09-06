@@ -20,6 +20,7 @@ class LessonPlanSummaryService extends AIService
         \App\AI\Contracts\AIServiceInterface $provider,
         \App\AI\RAG\PPSTRubricRepository $rubrics,
         protected DocumentExtractorService $documentExtractor,
+        protected TeacherContextBuilder $teacherContextBuilder,
         ?\App\AI\Providers\AIProviderManager $manager = null,
     ) {
         parent::__construct($provider, $rubrics, $manager);
@@ -49,11 +50,15 @@ class LessonPlanSummaryService extends AIService
 
         // No rubric context required for this task — summary stays focused
         // on the lesson plan itself.
+        $teacherContext = $this->teacherContextBuilder->fromObservation($observation);
+        $teacherContextBlock = $this->teacherContextBuilder->formatForPrompt($teacherContext);
+
         $prompt = LessonPlanSummaryPrompt::build([
             'teacher_name' => $observation->observee?->user?->name ?? 'Unknown',
             'subject' => $observation->subject ?? 'N/A',
             'grade_level' => $observation->grade_level ?? 'N/A',
             'lesson_plan_content' => $lessonPlanContent,
+            'teacher_context' => $teacherContextBlock,
         ]);
 
         $data = $this->generateJson($prompt);
