@@ -86,12 +86,14 @@ class CalendarEventService
         $events = [];
 
         foreach ($observations as $observation) {
-            if ($observation->observation_date) {
-                $events[] = $this->observationEvent($observation, $showRouteName);
-            }
+            // Every observation appears on the calendar regardless of status
+            // (scheduled, in progress, completed, or cancelled). Records
+            // without a set date fall back to their creation date so they
+            // are never silently dropped from the calendar.
+            $eventDate = $observation->observation_date ?? $observation->created_at;
 
-            if ($observation->status === 'cancelled') {
-                continue;
+            if ($eventDate) {
+                $events[] = $this->observationEvent($observation, $showRouteName, $eventDate);
             }
 
             if ($observation->relationLoaded('preConference') && $observation->preConference?->conference_date) {
@@ -108,14 +110,16 @@ class CalendarEventService
         return $events;
     }
 
-    private function observationEvent(Observation $observation, string $showRouteName): array
+    private function observationEvent(Observation $observation, string $showRouteName, mixed $date = null): array
     {
+        $date ??= $observation->observation_date;
+
         return array_merge($this->basePayload($observation, $showRouteName), [
             'id' => 'observation-'.$observation->id,
             'type' => 'observation',
             'type_label' => 'Observation',
             'color' => self::COLORS['observation'],
-            'date' => $observation->observation_date->format('Y-m-d'),
+            'date' => $date->format('Y-m-d'),
             'start_time' => $observation->start_time_label,
             'end_time' => $observation->end_time_label,
             'location' => $observation->location,

@@ -102,7 +102,37 @@
                                 <div class="flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full shrink-0" :style="'background-color:' + e.color"></span>
                                     <span class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400" x-text="e.title"></span>
-                                    <span x-show="e.date === today" class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Today</span>
+                                    <span x-show="e.date === today" class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase shrink-0">Today</span>
+                                    <span class="inline-flex items-center px-1.5 py-px rounded-full text-[10px] leading-4 font-semibold text-white shrink-0" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="e.type_label + ' · ' + e.subtitle"></p>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Past schedules (completed / cancelled / done) -->
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-semibold text-slate-900 dark:text-white">Past schedules</h3>
+                    <span class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-[11px] font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-full" x-text="past.length"></span>
+                </div>
+                <template x-if="past.length === 0">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No past schedules.</p>
+                </template>
+                <div class="space-y-3">
+                    <template x-for="e in past" :key="e.id">
+                        <a :href="e.link" class="flex items-start gap-3 group focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg p-1 -m-1">
+                            <div class="w-11 shrink-0 rounded-lg border border-gray-200 dark:border-gray-700 text-center py-1 bg-gray-50 dark:bg-gray-800/60">
+                                <div class="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500" x-text="monthShort(e.date)"></div>
+                                <div class="text-base font-bold leading-5 text-slate-800 dark:text-white" x-text="dayNum(e.date)"></div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full shrink-0" :style="'background-color:' + e.color"></span>
+                                    <span class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400" x-text="e.title"></span>
+                                    <span class="inline-flex items-center px-1.5 py-px rounded-full text-[10px] leading-4 font-semibold text-white shrink-0" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
                                 </div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="e.type_label + ' · ' + e.subtitle"></p>
                             </div>
@@ -251,6 +281,12 @@
                     return this.events
                         .filter(e => e.date >= this.today)
                         .sort((a, b) => a.date === b.date ? 0 : a.date < b.date ? -1 : 1)
+                        .slice(0, 8);
+                },
+                get past() {
+                    return this.events
+                        .filter(e => e.date < this.today)
+                        .sort((a, b) => a.date === b.date ? 0 : a.date > b.date ? -1 : 1)
                         .slice(0, 8);
                 },
                 monthShort(iso) {

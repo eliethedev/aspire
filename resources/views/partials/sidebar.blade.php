@@ -57,7 +57,7 @@
                     <!-- Dashboard -->
                     <li>
                         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @else {{ request()->routeIs('school-head.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @endif"
+                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @else {{ request()->routeIs('school-head.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @endif"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-dashboard" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,7 +348,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.career.monitor') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.monitor') ? 'sidebar-link-active icon-activity' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.monitor') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-activity" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

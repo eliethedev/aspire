@@ -97,7 +97,7 @@
                 @endisset
 
                 <!-- Page Content -->
-                <main id="main-content" class="p-6">
+                <main id="main-content" class="p-4 sm:p-6">
                     <div class="mx-auto">
                         @yield('content')
                     </div>

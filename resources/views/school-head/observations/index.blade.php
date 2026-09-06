@@ -29,40 +29,22 @@
     </x-page-header>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
-                    <p class="text-lg font-bold text-gray-900 dark:text-gray-100 mt-0.5">{{ $stats['total'] }}</p>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
-                    <p class="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">{{ $stats['upcoming'] }}</p>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
-                    <p class="text-lg font-bold text-green-600 dark:text-green-400 mt-0.5">{{ $stats['completed'] }}</p>
-                </div>
-                <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-            </div>
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3" role="list" aria-label="Observation summary">
+        <x-stat-card label="Total" :value="$stats['total']" accent="indigo" role="listitem">
+            <x-slot name="icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </x-slot>
+        </x-stat-card>
+        <x-stat-card label="Upcoming" :value="$stats['upcoming']" accent="amber" role="listitem">
+            <x-slot name="icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </x-slot>
+        </x-stat-card>
+        <x-stat-card label="Completed" :value="$stats['completed']" accent="green" role="listitem">
+            <x-slot name="icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </x-slot>
+        </x-stat-card>
     </div>
 
     <!-- Filters -->
@@ -199,15 +181,14 @@
                 @endif
         </a>
             @empty
-                <div class="text-center py-16">
-                    <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    <p class="text-gray-500 dark:text-gray-400 font-medium">No observations found</p>
-                    <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Schedule your first teacher observation to get started.</p>
-                    <a href="{{ route('school-head.observations.create') }}" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                        Schedule Observation
-                    </a>
-                </div>
+                <x-empty-state title="No observations found"
+                               hint="Schedule your first teacher observation to get started."
+                               :actionUrl="route('school-head.observations.create')"
+                               actionLabel="Schedule Observation">
+                    <x-slot name="icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </x-slot>
+                </x-empty-state>
             @endforelse
         </div>
     </div>
