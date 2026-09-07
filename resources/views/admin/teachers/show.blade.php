@@ -128,7 +128,7 @@
                     </div>
                     <div>
                         <h4 class="text-gray-700 dark:text-gray-300 font-medium text-sm">Position</h4>
-                        <p class="text-gray-900 dark:text-gray-100">{{ $teacher->position ?? 'N/A' }}</p>
+                        <p class="text-gray-900 dark:text-gray-100">{{ $teacher->position_label ?? 'N/A' }}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

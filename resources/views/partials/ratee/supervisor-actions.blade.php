@@ -27,15 +27,15 @@
         </a>
         @endif
         @if($actions['post_conference'])
-        <a href="{{ $actions['post_conference']['url'] }}" class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 hover:bg-amber-100 hover:border-amber-300 transition-all group">
+        <a href="{{ $actions['post_conference']['url'] }}" class="flex items-center gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:border-amber-300 dark:hover:border-amber-700 transition-all group">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
                 <i class="fas fa-comments text-sm"></i>
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-amber-900">Post-Observation Conference</p>
-                <p class="text-xs text-amber-800/80 mt-0.5">{{ $actions['post_conference']['label'] }}</p>
+                <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">Post-Observation Conference</p>
+                <p class="text-xs text-amber-800/80 dark:text-amber-300 mt-0.5">{{ $actions['post_conference']['label'] }}</p>
             </div>
-            <i class="fas fa-chevron-right text-xs text-amber-700/50"></i>
+            <i class="fas fa-chevron-right text-xs text-amber-700/50 dark:text-amber-400/70"></i>
         </a>
         @endif
     </div>

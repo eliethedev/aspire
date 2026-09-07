@@ -9,11 +9,11 @@
     <!-- Tabs -->
     <div class="flex items-center gap-2 mb-5">
         <a href="{{ route('school-head.career.advancements.index', ['tab' => 'pending']) }}"
-           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $tab === 'pending' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50' }}">
+           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $tab === 'pending' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
             Pending Approval
         </a>
         <a href="{{ route('school-head.career.advancements.index', ['tab' => 'history']) }}"
-           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $tab === 'history' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50' }}">
+           class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ $tab === 'history' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
             Reviewed
         </a>
     </div>
@@ -86,7 +86,7 @@
                             Approve
                         </button>
                         <button type="button" @click="openReject({{ $advancement->id }}, '{{ route('school-head.career.advancements.reject', $advancement) }}')"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors border border-red-200">
+                                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-200 dark:border-red-800">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             Reject
                         </button>
@@ -109,7 +109,7 @@
             <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md">
                 <div class="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
                     <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Approve Advancement</h3>
-                    <button type="button" @click="closeApprove()" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+                    <button type="button" @click="closeApprove()" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -139,7 +139,7 @@
             <div class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md">
                 <div class="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
                     <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Reject Advancement</h3>
-                    <button type="button" @click="closeReject()" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+                    <button type="button" @click="closeReject()" class="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>

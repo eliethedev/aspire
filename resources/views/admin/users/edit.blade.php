@@ -158,7 +158,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('admin.users.index') }}" 
-                       class="px-4 py-2 text-dark bg-white border glass-card rounded-lg hover:bg-slate-50 transition-colors">
+                       class="px-4 py-2 text-dark dark:text-gray-200 bg-white dark:bg-gray-800 border dark:border-gray-700 glass-card rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
                         Cancel
                     </a>
                     <button type="submit" 

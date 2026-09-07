@@ -92,7 +92,7 @@
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->department ?? 'N/A' }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->position ?? 'N/A' }}</span>
+                            <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->position_label ?? 'N/A' }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->years_of_service ?? 'N/A' }}</span>

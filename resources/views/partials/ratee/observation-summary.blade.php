@@ -9,17 +9,17 @@
             <p class="text-2xl font-extrabold text-slate-900 dark:text-gray-100">{{ $stats['total'] }}</p>
             <p class="text-xs font-medium text-slate-500 dark:text-gray-400">Total Observations</p>
         </div>
-        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <p class="text-2xl font-extrabold text-emerald-700">{{ $stats['completed'] }}</p>
-            <p class="text-xs font-medium text-emerald-700/70">Completed</p>
+        <div class="rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
+            <p class="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{{ $stats['completed'] }}</p>
+            <p class="text-xs font-medium text-emerald-700/70 dark:text-emerald-300/70">Completed</p>
         </div>
-        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p class="text-2xl font-extrabold text-amber-700">{{ $stats['in_progress'] }}</p>
-            <p class="text-xs font-medium text-amber-700/70">In Progress</p>
+        <div class="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4">
+            <p class="text-2xl font-extrabold text-amber-700 dark:text-amber-300">{{ $stats['in_progress'] }}</p>
+            <p class="text-xs font-medium text-amber-700/70 dark:text-amber-300/70">In Progress</p>
         </div>
-        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-            <p class="text-xl font-extrabold text-indigo-700">{{ $stats['average_rating'] !== null ? number_format($stats['average_rating'], 2) . ' / 6' : '—' }}</p>
-            <p class="text-xs font-medium text-indigo-700/70">Average Rating</p>
+        <div class="rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 p-4">
+            <p class="text-xl font-extrabold text-indigo-700 dark:text-indigo-300">{{ $stats['average_rating'] !== null ? number_format($stats['average_rating'], 2) . ' / 6' : '—' }}</p>
+            <p class="text-xs font-medium text-indigo-700/70 dark:text-indigo-300/70">Average Rating</p>
         </div>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

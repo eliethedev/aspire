@@ -79,6 +79,15 @@ class CareerProgressionAssessment extends Model
         return $enum !== null ? "{$enum->label()} · {$stageLabel}" : $stageLabel;
     }
 
+    /**
+     * User-friendly label for the snapshotted position
+     * (e.g. "teacher_i" → "Teacher I"). Falls back to the raw value.
+     */
+    public function positionLabel(): ?string
+    {
+        return \App\Models\Teacher::positionLabelFor($this->position) ?? $this->position;
+    }
+
     public function statusLabel(): string
     {
         return self::statusLabelFor($this->status);

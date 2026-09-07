@@ -47,18 +47,18 @@
             @if($canAccess)
                 <a href="{{ $isCurrent ? '#' : route($stageRoutes[$key], $observation) }}"
                    class="flex items-center group {{ $isCurrent ? 'cursor-default' : 'cursor-pointer' }}">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200' }} font-semibold transition-colors group-hover:shadow-md text-sm">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white ring-2 ring-indigo-200 dark:ring-indigo-800' }} font-semibold transition-colors group-hover:shadow-md text-sm">
                         @if($isCompleted)
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
                         @else
                             {{ $i + 1 }}
                         @endif
                     </div>
-                    <span class="ml-2 {{ $isCompleted ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium' }} text-sm group-hover:text-indigo-600 dark:text-indigo-400 transition-colors">{{ $friendlyStages[$key] }}</span>
+                    <span class="ml-2 {{ $isCompleted ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 font-medium' }} text-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ $friendlyStages[$key] }}</span>
                 </a>
             @else
                 <div class="flex items-center opacity-50">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 dark:text-gray-500 font-semibold text-sm">{{ $i + 1 }}</div>
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 font-semibold text-sm">{{ $i + 1 }}</div>
                     <span class="ml-2 text-gray-400 dark:text-gray-500 text-sm">{{ $friendlyStages[$key] }}</span>
                 </div>
             @endif

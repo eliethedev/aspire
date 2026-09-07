@@ -185,7 +185,7 @@ class RateeProfileService
     private function positionFor(Model $ratee): string
     {
         if ($ratee instanceof Teacher) {
-            return $ratee->position ?? 'Teacher';
+            return $ratee->position_label ?? 'Teacher';
         }
 
         if ($ratee->position_level) {

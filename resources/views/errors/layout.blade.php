@@ -68,7 +68,7 @@
     <main class="flex-1 flex items-center justify-center p-4">
         <div class="w-full max-w-md glass-card rounded-2xl p-8 sm:p-10 text-center">
 
-            <div class="float-icon inline-flex items-center justify-center w-20 h-20 rounded-2xl {{ $iconBg ?? 'bg-blue-50 border border-blue-100' }} mb-6">
+            <div class="float-icon inline-flex items-center justify-center w-20 h-20 rounded-2xl {{ $iconBg ?? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20' }} mb-6">
                 {!! $icon ?? '' !!}
             </div>
 

@@ -66,9 +66,9 @@
             <p class="text-2xl font-extrabold text-slate-900 dark:text-gray-100">{{ $careerEvidence['total_observations'] }}</p>
             <p class="text-xs font-medium text-slate-500 dark:text-gray-400">Total Observations</p>
         </div>
-        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-            <p class="text-xl font-extrabold text-indigo-700">{{ $careerEvidence['average_rating'] !== null ? number_format($careerEvidence['average_rating'], 2) . ' / 6' : '—' }}</p>
-            <p class="text-xs font-medium text-indigo-700/70">Average Rating</p>
+        <div class="rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 p-4">
+            <p class="text-xl font-extrabold text-indigo-700 dark:text-indigo-300">{{ $careerEvidence['average_rating'] !== null ? number_format($careerEvidence['average_rating'], 2) . ' / 6' : '—' }}</p>
+            <p class="text-xs font-medium text-indigo-700/70 dark:text-indigo-300/70">Average Rating</p>
         </div>
         <div class="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
             <p class="text-lg font-extrabold text-slate-900 dark:text-gray-100">{{ $careerEvidence['recent_observation_rating'] !== null ? number_format($careerEvidence['recent_observation_rating'], 2) : '—' }}</p>
@@ -145,8 +145,8 @@
                         </button>
                     </div>
                 </div>
-                @error('status')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
-                @error('target_career_stage')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                @error('status')<p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                @error('target_career_stage')<p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
             </form>
         </div>
     @endif
@@ -173,7 +173,7 @@
                                 <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->assessed_at?->format('M d, Y') }}</td>
                                 <td class="py-2.5 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span></td>
                                 <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->targetStageLabel() ?: '—' }}</td>
-                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->position ?: '—' }}@if($entry->career_stage)<span class="text-slate-400 dark:text-gray-500"> · {{ $entry->career_stage }}</span>@endif</td>
+                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->positionLabel() ?: '—' }}@if($entry->career_stage)<span class="text-slate-400 dark:text-gray-500"> · {{ $entry->career_stage }}</span>@endif</td>
                                 <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->evaluator?->name ?? '—' }}</td>
                                 <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->remarks ?: '—' }}</td>
                                 @if($canEditAssessment)

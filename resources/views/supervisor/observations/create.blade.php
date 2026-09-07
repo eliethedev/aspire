@@ -287,7 +287,7 @@
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-gray-900 dark:text-gray-100 text-sm" x-text="item.name"></div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-2 mt-0.5">
-                                    <span x-text="item.position"></span>
+                                    <span x-text="item.position_label || item.position"></span>
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span class="inline-flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="item.school_name"></span></span>
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -322,7 +322,7 @@
                                             <a :href="selectedObservee.profile_url" target="_blank" class="text-xs font-medium text-indigo-600 hover:underline">View Profile →</a>
                                         </template>
                                     </div>
-                                    <p class="text-xs text-gray-500" x-text="selectedObservee.position"></p>
+                                    <p class="text-xs text-gray-500" x-text="selectedObservee.position_label || selectedObservee.position"></p>
                                 </div>
                             </div>
                             <button type="button" @click="selectedObservee = null; searchQuery = ''" class="text-gray-400 hover:text-gray-600 p-1">
@@ -341,7 +341,7 @@
                             </template>
                             <template x-if="selectedType !== 'teacher_observation'">
                                 <span class="contents">
-                                    <div><span class="text-gray-400">Position Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.position_level"></p></div>
+                                    <div><span class="text-gray-400">Position Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.position_level_label || selectedObservee.position_level"></p></div>
                                     <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.subject"></p></div>
                                     <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.grade_level"></p></div>
                                 </span>
@@ -607,7 +607,7 @@
                                 class="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 outline-none">
                             <option value="">— Choose School Head —</option>
                             @foreach($schoolHeadData as $sh)
-                                <option value="{{ $sh['user_id'] }}">{{ $sh['name'] }} — {{ $sh['position'] }} · {{ $sh['school_name'] }}</option>
+                                <option value="{{ $sh['user_id'] }}">{{ $sh['name'] }} — {{ $sh['position_label'] ?? $sh['position'] }} · {{ $sh['school_name'] }}</option>
                             @endforeach
                         </select>
                         @error('school_head_id')
@@ -619,7 +619,7 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedSchoolHead?.name"></p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                        <span x-text="selectedSchoolHead?.position"></span>
+                                        <span x-text="selectedSchoolHead?.position_label || selectedSchoolHead?.position"></span>
                                         <span class="text-gray-300">·</span>
                                         <span class="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="selectedSchoolHead?.school_name"></span></span>
                                     </p>
@@ -807,7 +807,7 @@
                                 <div class="w-11 h-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0" x-text="selectedObservee?.name?.charAt(0) || '?'"></div>
                                 <div>
                                     <p class="font-semibold text-gray-900 dark:text-gray-100" x-text="selectedObservee?.name"></p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee?.position + (selectedObservee?.department ? ' · ' + selectedObservee?.department : '')"></p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="(selectedObservee?.position_label || selectedObservee?.position) + (selectedObservee?.department ? ' · ' + selectedObservee?.department : '')"></p>
                                 </div>
                             </div>
                         </div>
@@ -865,7 +865,7 @@
                         <div x-show="form.school_head_id" class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Co-Observation</p>
                             <p class="text-sm font-medium text-gray-800 dark:text-gray-200" x-text="selectedSchoolHead?.name"></p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="[selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="[selectedSchoolHead?.position_label || selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
                         </div>
                     </div>
 
@@ -1056,7 +1056,7 @@
                     <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold shrink-0" x-text="selectedObservee?.name?.charAt(0)?.toUpperCase() || '?'"></div>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedObservee?.name"></p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="selectedObservee?.position"></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="selectedObservee?.position_label || selectedObservee?.position"></p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate inline-flex items-center gap-1"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg><span x-text="selectedObservee?.school_name"></span></p>
                     </div>
                 </div>
@@ -1070,7 +1070,7 @@
                         <div class="min-w-0">
                             <p class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Co-Observer</p>
                             <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" x-text="selectedSchoolHead?.name"></p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="[selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="[selectedSchoolHead?.position_label || selectedSchoolHead?.position, selectedSchoolHead?.school_name].filter(Boolean).join(' · ')"></p>
                         </div>
                     </div>
                 </template>

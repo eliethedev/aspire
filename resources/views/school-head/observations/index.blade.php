@@ -130,28 +130,28 @@
                                     @elseif($isCoObserver)
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Assigned School Head</span>
                                     @endif
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
                                         {{ $friendlyStatuses[$observation->status] ?? ucfirst(str_replace('_', ' ', $observation->status)) }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     @if($observation->subject)
                                         <span>{{ $observation->subject }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     @if($observation->grade_level)
                                         <span>Grade {{ $observation->grade_level }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     <span>{{ $observation->school_year ?? 'N/A' }}</span>
-                                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                    <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     <span>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</span>
                                     @if($observation->has_time_schedule)
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         <span>{{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif</span>
                                     @endif
                                     @if($observation->location)
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         <span>{{ $observation->location }}</span>
                                     @endif
                                 </div>

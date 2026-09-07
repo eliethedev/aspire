@@ -8,8 +8,8 @@
     <div class="bg-dark rounded-xl shadow-sm border glass-card p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-dark">User Management</h1>
-                <p class="text-dark mt-1">Manage system users and their roles.</p>
+                <h1 class="text-2xl font-bold text-dark dark:text-white">User Management</h1>
+                <p class="text-dark dark:text-gray-400 mt-1">Manage system users and their roles.</p>
             </div>
             <a href="{{ route('admin.users.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,15 +25,15 @@
         <form method="GET" action="{{ route('admin.users.index') }}" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label for="search" class="block text-sm font-medium text-dark mb-1">Search</label>
+                    <label for="search" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Search</label>
                     <input type="text" id="search" name="search" value="{{ request('search') }}" 
-                           class="w-full px-3 py-2 border glass-card rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Name or email...">
+                           class="w-full px-3 py-2 border glass-card dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Name or email...">
                 </div>
                 
                 <div>
-                    <label for="role" class="block text-sm font-medium text-dark mb-1">Role</label>
-                    <select id="role" name="role" class="w-full px-3 py-2 border bg-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="role" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Role</label>
+                    <select id="role" name="role" class="w-full px-3 py-2 border bg-dark dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All Roles</option>
                         @foreach($roles as $role)
                         <option value="{{ $role }}" {{ request('role') == $role ? 'selected' : '' }}>
@@ -44,8 +44,8 @@
                 </div>
                 
                 <div>
-                    <label for="school_id" class="block text-sm font-medium text-dark mb-1">School</label>
-                    <select id="school_id" name="school_id" class="w-full px-3 py-2 border bg-dark rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="school_id" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">School</label>
+                    <select id="school_id" name="school_id" class="w-full px-3 py-2 border bg-dark dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All Schools</option>
                         @foreach($schools as $school)
                         <option value="{{ $school->id }}" {{ request('school_id') == $school->id ? 'selected' : '' }}>
@@ -76,43 +76,43 @@
     <div class="bg-dark rounded-xl shadow-sm border glass-card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-slate-50 border-b glass-card">
+                <thead class="bg-slate-50 dark:bg-gray-800 border-b dark:border-gray-700 glass-card">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">User</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">School</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Created</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">School</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200">
+                <tbody class="divide-y divide-slate-200 dark:divide-gray-800">
                     @forelse($users as $user)
-                    <tr class="hover:bg-dark">
+                    <tr class="hover:bg-dark dark:hover:bg-gray-700">
                         <td class="px-6 py-4 darkspace-nowrap">
                             <div>
-                                <div class="text-sm font-medium text-dark">{{ $user->name }}</div>
-                                <div class="text-sm text-dark">{{ $user->email }}</div>
+                                <div class="text-sm font-medium text-dark dark:text-gray-100">{{ $user->name }}</div>
+                                <div class="text-sm text-dark dark:text-gray-400">{{ $user->email }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4 darkspace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                @if($user->role === 'admin') bg-purple-100 dark:bg-purple-900/30 text-purple-800
-                                @elseif($user->role === 'school_head') bg-blue-100 dark:bg-blue-900/30 text-blue-800
+                                @if($user->role === 'admin') bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300
+                                @elseif($user->role === 'school_head') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300
                                 @elseif($user->role === 'supervisor') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
-                                @elseif($user->role === 'teacher') bg-yellow-100 text-yellow-800
+                                @elseif($user->role === 'teacher') bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-300
                                 @endif">
                                 {{ ucfirst(str_replace('_', ' ', $user->role)) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 darkspace-nowrap">
-                            <span class="text-sm text-dark">
+                            <span class="text-sm text-dark dark:text-gray-300">
                                 {{ $user->school?->name ?? 'No School' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 darkspace-nowrap">
                             @if($user->status === 'invited')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-300">
                                     <i class="fas fa-clock mr-1"></i>
                                     Waiting for Password
                                 </span>
@@ -122,18 +122,18 @@
                                     Active
                                 </span>
                             @elseif($user->status === 'suspended')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
                                     <i class="fas fa-ban mr-1"></i>
                                     Suspended
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
                                     {{ ucfirst($user->status) }}
                                 </span>
                             @endif
                         </td>
                         <td class="px-6 py-4 darkspace-nowrap">
-                            <span class="text-sm text-dark">{{ $user->created_at->format('M j, Y') }}</span>
+                            <span class="text-sm text-dark dark:text-gray-300">{{ $user->created_at->format('M j, Y') }}</span>
                         </td>
                         <td class="px-6 py-4 darkspace-nowrap text-sm">
                             <div class="flex items-center space-x-2">
@@ -180,8 +180,8 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-6 py-12 text-center">
-                            <div class="text-dark">
-                                <svg class="mx-auto h-12 w-12 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="text-dark dark:text-gray-400">
+                                <svg class="mx-auto h-12 w-12 text-dark dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                 </svg>
                                 <p class="mt-2">No users found</p>
@@ -198,7 +198,7 @@
         
         <!-- Pagination -->
         @if($users->hasPages())
-        <div class="px-6 py-4 border-t glass-card">
+        <div class="px-6 py-4 border-t dark:border-gray-800 glass-card">
             {{ $users->links() }}
         </div>
         @endif

@@ -14,22 +14,22 @@
             </div>
         </div>
     @elseif($items->isEmpty())
-        <div class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <div class="w-8 h-8 rounded-xl bg-white dark:bg-gray-900 border border-emerald-200 flex items-center justify-center shrink-0"><i class="fas fa-check text-emerald-600 text-sm"></i></div>
+        <div class="flex items-start gap-3 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
+            <div class="w-8 h-8 rounded-xl bg-white dark:bg-gray-900 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center shrink-0"><i class="fas fa-check text-emerald-600 dark:text-emerald-400 text-sm"></i></div>
             <div>
-                <p class="text-sm font-semibold text-emerald-800">No areas require attention right now.</p>
-                <p class="text-xs text-emerald-700/80 mt-1">All rated domains average at or above 4.0.</p>
+                <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-200">No areas require attention right now.</p>
+                <p class="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">All rated domains average at or above 4.0.</p>
             </div>
         </div>
     @else
         <ul class="space-y-2.5">
             @foreach($items as $item)
-                <li class="flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <li class="flex items-center justify-between gap-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4">
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-slate-900 dark:text-gray-100">{{ $item['domain'] }}</p>
                         <p class="text-xs text-slate-600 dark:text-gray-300 mt-0.5">Average across {{ $item['observation_count'] }} observations</p>
                     </div>
-                    <span class="shrink-0 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-gray-900 border border-amber-200 text-amber-700 text-sm font-bold">{{ number_format($item['average_rating'], 2) }} <span class="text-xs font-medium opacity-70">/ 6</span></span>
+                    <span class="shrink-0 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 text-sm font-bold">{{ number_format($item['average_rating'], 2) }} <span class="text-xs font-medium opacity-70">/ 6</span></span>
                 </li>
             @endforeach
         </ul>

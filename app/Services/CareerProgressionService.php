@@ -107,7 +107,7 @@ class CareerProgressionService
             $framework = 'ppst';
             $track = 'classroom_teaching';
             $stageKey = $ratee->career_stage ?? $ratee->inferCareerStage()?->value;
-            $position = $ratee->position ?? 'Teacher';
+            $position = $ratee->position_label ?? 'Teacher';
         } else {
             $framework = 'ppssh';
             $track = 'school_administration';

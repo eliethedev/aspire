@@ -261,7 +261,7 @@
                             <input type="hidden" name="position" value="{{ old('position', $user->teacher?->position) }}">
                             <input id="position" type="text" disabled
                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
-                                   value="{{ old('position', $user->teacher?->position) }}">
+                                   value="{{ old('position', $user->teacher?->position_label ?? $user->teacher?->position) }}">
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('position')" />
                         </div>
@@ -292,7 +292,7 @@
                                 @foreach ($subjects as $subjectItem)
                                     <label class="flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm cursor-pointer">
                                         <input type="checkbox" name="subjects[]" value="{{ $subjectItem->id }}"
-                                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:ring-offset-gray-800"
+                                               class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-indigo-600 focus:ring-indigo-500 dark:ring-offset-gray-800"
                                                @checked(in_array($subjectItem->id, $checkedSubjects))>
                                         <span class="text-gray-700 dark:text-gray-200">{{ $subjectItem->name }}</span>
                                     </label>

@@ -7,7 +7,7 @@
     $requiredMark = $isRequired ? ' <span class="text-red-500">*</span>' : '';
     $hasError = isset($errors[$fieldKey]);
     $errorMsg = $hasError ? (is_array($errors[$fieldKey]) ? implode(', ', $errors[$fieldKey]) : $errors[$fieldKey]) : null;
-    $inputClass = 'w-full px-3 py-2 rounded-lg border ' . ($hasError ? 'border-red-400' : 'border-gray-300') . ' text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
+    $inputClass = 'w-full px-3 py-2 rounded-lg border ' . ($hasError ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-gray-700') . ' dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
     $errorClass = 'mt-1 text-sm text-red-400';
 @endphp
 
@@ -44,7 +44,7 @@
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <select name="{{ $fieldKey }}" id="{{ $fieldKey }}"
-                    class="w-full px-3 py-2 rounded-lg border {{ $hasError ? 'border-red-400' : 'border-gray-300' }} text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                    class="w-full px-3 py-2 rounded-lg border {{ $hasError ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-gray-700' }} text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800">
                 <option value="">Select {{ $field->label }}...</option>
                 @foreach($getOptions() as $opt)
                     @php

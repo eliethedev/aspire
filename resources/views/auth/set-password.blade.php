@@ -13,6 +13,17 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            if (localStorage.getItem('app_text_large') === '1') {
+                document.documentElement.classList.add('text-large');
+            }
+        })();
+    </script>
+
     <style>
         .light-bg {
             background-color: #f0f5ff;
@@ -64,19 +75,38 @@
                 padding: 1.25rem;
             }
         }
+
+        .dark .light-bg {
+            background-color: #030712;
+        }
+
+        .dark .glass-card {
+            background-color: #111827;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .dark .light-input {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+
+        .dark .light-input::placeholder {
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
     <!-- Top Nav -->
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
+        <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">
             <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
             ASPIRE
         </a>
-        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition-colors font-medium">
+        <a href="{{ route('home') }}" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
             Homepage
         </a>
     </nav>
@@ -87,12 +117,12 @@
 
         <!-- Header Section -->
         <div class="text-center mb-2">
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Set Your Password</h1>
-            <p class="text-gray-500 text-sm">Hello, <span class="font-semibold text-gray-700">{{ $name }}</span></p>
-            <p class="text-xs sm:text-sm text-gray-500 mt-1">
-                You've been invited as a <span class="font-medium text-gray-700">{{ ucwords(str_replace('_', ' ', $role)) }}</span>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Set Your Password</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Hello, <span class="font-semibold text-gray-700 dark:text-gray-200">{{ $name }}</span></p>
+            <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                You've been invited as a <span class="font-medium text-gray-700 dark:text-gray-200">{{ ucwords(str_replace('_', ' ', $role)) }}</span>
                 @if($school)
-                    at <span class="font-medium text-gray-700">{{ $school->name }}</span>
+                    at <span class="font-medium text-gray-700 dark:text-gray-200">{{ $school->name }}</span>
                 @endif
             </p>
         </div>
@@ -103,14 +133,14 @@
 
             <!-- Password Field -->
             <div>
-                <label for="password" class="block text-sm font-semibold text-gray-700 ">Password</label>
+                <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-200">Password</label>
                 <div class="relative">
                     <input type="password" id="password" name="password" required
                            class="light-input w-full px-4 py-3 rounded-xl pr-12"
                            placeholder="Enter your password"
                            oninput="checkPasswordStrength(this.value)">
                     <button type="button" onclick="togglePasswordVisibility('password', 'password-icon')"
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1">
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1">
                         <svg id="password-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -121,12 +151,12 @@
                 <!-- Password Strength Indicator -->
                 <div class="mt-2">
                     <div class="flex space-x-1">
-                        <div id="strength-1" class="h-1 flex-1 bg-gray-200 rounded"></div>
-                        <div id="strength-2" class="h-1 flex-1 bg-gray-200 rounded"></div>
-                        <div id="strength-3" class="h-1 flex-1 bg-gray-200 rounded"></div>
-                        <div id="strength-4" class="h-1 flex-1 bg-gray-200 rounded"></div>
+                        <div id="strength-1" class="h-1 flex-1 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div id="strength-2" class="h-1 flex-1 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div id="strength-3" class="h-1 flex-1 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div id="strength-4" class="h-1 flex-1 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     </div>
-                    <p id="strength-text" class="text-xs text-gray-500 mt-1">Password strength</p>
+                    <p id="strength-text" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Password strength</p>
                 </div>
 
                 @error('password')
@@ -141,14 +171,14 @@
 
             <!-- Confirm Password Field -->
             <div>
-                <label for="password_confirmation" class="block text-sm font-semibold text-gray-700">Confirm Password</label>
+                <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 dark:text-gray-200">Confirm Password</label>
                 <div class="relative">
                     <input type="password" id="password_confirmation" name="password_confirmation" required
                            class="light-input w-full px-4 py-3 rounded-xl pr-12"
                            placeholder="Confirm your password"
                            oninput="checkPasswordMatch()">
                     <button type="button" onclick="togglePasswordVisibility('password_confirmation', 'confirm-password-icon')"
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1">
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1">
                         <svg id="confirm-password-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -166,9 +196,9 @@
             </div>
 
             <!-- Password Requirements -->
-            <div class="bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100">
-                <p class="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Password Requirements:</p>
-                <ul class="text-xs text-gray-600 space-y-1.5 sm:space-y-2">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-gray-700">
+                <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 sm:mb-3">Password Requirements:</p>
+                <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1.5 sm:space-y-2">
                     <li class="flex items-center">
                         <svg id="req-length" class="w-3 h-3 mr-2 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                             <circle cx="10" cy="10" r="3"/>
@@ -214,7 +244,7 @@
 
         <!-- Security Notice -->
         <div class="mt-2 text-center">
-            <p class="text-xs text-gray-400">
+            <p class="text-xs text-gray-400 dark:text-gray-500">
                 <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
@@ -304,7 +334,7 @@
             
             for (let i = 1; i <= 4; i++) {
                 const bar = document.getElementById('strength-' + i);
-                bar.className = 'h-1 flex-1 rounded transition-colors';
+                bar.className = 'h-1 flex-1 rounded transition-colors dark:bg-gray-700';
                 if (i <= strength) {
                     bar.classList.add(colors[strength - 1]);
                 } else {
@@ -315,7 +345,7 @@
             const strengthText = document.getElementById('strength-text');
             if (password.length === 0) {
                 strengthText.textContent = 'Password strength';
-                strengthText.className = 'text-xs text-gray-500 mt-1';
+                strengthText.className = 'text-xs text-gray-500 dark:text-gray-400 mt-1';
             } else if (strength <= 1) {
                 strengthText.textContent = 'Weak';
                 strengthText.className = 'text-xs text-red-500 mt-1';

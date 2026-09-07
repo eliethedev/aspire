@@ -10,14 +10,14 @@
     $pendingActions = $stats['pending_confirmation'] ?? 0;
 @endphp
 
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-4">
 
     <!-- Welcome Section -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                    <i class="fas fa-school"></i>
+                    <i class="fas fa-school text-indigo-600"></i>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Welcome back, {{ $user->name }}!</h1>
@@ -25,12 +25,12 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">
                     <i class="fas fa-school"></i>
                     School Head
                 </span>
                 @if($pendingActions > 0)
-                <a href="{{ route('school-head.observations.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors">
+                <a href="{{ route('school-head.observations.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors">
                     <i class="fas fa-clock text-sm"></i>
                     {{ $pendingActions }} pending confirmation{{ $pendingActions > 1 ? 's' : '' }}
                 </a>
@@ -49,7 +49,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $stats['total'] }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                    <i class="fas fa-clipboard-list text-sm"></i>
+                    <i class="fas fa-clipboard-list text-sm text-indigo-600"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-2 text-xs">
@@ -67,7 +67,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($avgScore, 1) }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                    <i class="fas fa-circle text-xs text-gray-400"></i>
+                    <i class="fas fa-circle text-xs text-indigo-600"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-1.5 text-xs">
@@ -93,7 +93,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $stats['completed'] }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-                    <i class="fas fa-check-circle text-sm"></i>
+                    <i class="fas fa-check-circle text-sm text-indigo-600"></i>
                 </div>
             </div>
             <div class="mt-3">
@@ -112,7 +112,7 @@
                     <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $teacherCount }}</p>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center shrink-0">
-                    <i class="fas fa-circle text-xs text-gray-400"></i>
+                    <i class="fas fa-circle text-xs text-indigo-600"></i>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-1.5 text-xs">
@@ -198,9 +198,9 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Upcoming Leadership Observation</h3>
                     @if($nextObservation->canConfirm())
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-700">Awaiting Confirmation</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">Awaiting Confirmation</span>
                     @elseif($nextObservation->confirmation_status === 'confirmed')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 text-green-700">Confirmed</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-300">Confirmed</span>
                     @endif
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">

@@ -61,7 +61,7 @@
                     <div class="col-span-2">
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">Full Name</span>
                         <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1 text-lg">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position ?? 'Teacher') }}</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position_label ?? 'Teacher') }}</p>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">School</span>

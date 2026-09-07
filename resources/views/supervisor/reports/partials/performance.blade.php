@@ -47,7 +47,7 @@
                     </span>
                     <div class="min-w-0">
                         <a href="{{ route('supervisor.teachers.show', $teacher) }}" class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block">{{ $teacher->user->name }}</a>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $row['position'] }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $row['position_label'] ?? $row['position'] }}</p>
                     </div>
                 </div>
                 <!-- Count -->

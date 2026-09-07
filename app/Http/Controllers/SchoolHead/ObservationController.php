@@ -188,6 +188,7 @@ class ObservationController extends Controller
                 'grade_level' => $teacher->grade_level ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
+                'position_label' => $teacher->position_label ?? 'Teacher',
                 'employee_number' => $teacher->employee_number ?? '—',
                 'recent_observations' => $observations,
                 'obs_stats' => [

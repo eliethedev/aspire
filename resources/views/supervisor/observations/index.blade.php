@@ -240,7 +240,7 @@
                         </div>
                     </div>
                     <div class="text-right shrink-0">
-                        <a href="{{ route('supervisor.observations.show', $observation) }}" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-semibold leading-none hover:opacity-90 transition-opacity">
+                        <a href="{{ route('supervisor.observations.show', $observation) }}" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-600 text-white text-xs font-semibold leading-none hover:bg-blue-700 transition-colors">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
                         </a>

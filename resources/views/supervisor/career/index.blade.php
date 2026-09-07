@@ -83,7 +83,7 @@
                     </span>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $teacher->user->name }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $teacher->position ?? 'Teacher' }} &middot; {{ $teacher->user->email }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $teacher->position_label ?? 'Teacher' }} &middot; {{ $teacher->user->email }}</p>
                     </div>
                 </div>
                 <!-- Current stage -->

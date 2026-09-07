@@ -29,7 +29,7 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
@@ -51,7 +51,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-3">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left border-b border-gray-100 dark:border-gray-800">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -83,9 +83,9 @@
                     <div class="relative flex-1 min-w-[200px]">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by subject, school year..."
-                               class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                               class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
-                    <select name="status" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    <select name="status" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                         <option value="">All Status</option>
                         <option value="scheduled" {{ request('status') === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -134,28 +134,28 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm">{{ $observee?->user?->name ?? 'Unknown' }}</p>
                                     <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Co-observer</span>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
                                         {{ ucfirst(str_replace('_', ' ', $observation->status)) }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     @if($observation->subject)
                                         <span>{{ $observation->subject }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     @if($observation->grade_level)
                                         <span>Grade {{ $observation->grade_level }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     <span>{{ $observation->school_year ?? 'N/A' }}</span>
-                                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                    <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     <span>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</span>
                                     @if($observation->has_time_schedule)
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         <span>{{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif</span>
                                     @endif
                                     @if($observation->location)
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         <span>{{ $observation->location }}</span>
                                     @endif
                                 </div>
@@ -163,7 +163,7 @@
                                     <i class="fas fa-circle text-[6px]"></i>
                                     <span>Observed by {{ $observation->observer?->name ?? 'Unknown' }}</span>
                                     @if(isset($stageLabels[$observation->stage]))
-                                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         <span>Stage: {{ $stageLabels[$observation->stage] }}</span>
                                     @endif
                                 </div>

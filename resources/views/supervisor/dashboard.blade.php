@@ -255,7 +255,7 @@
                   <p class="text-sm font-semibold text-slate-900 dark:text-gray-100 truncate">{{ $t->user->name }}</p><span
                     class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $level === 'high' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30' : ($level === 'medium' ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30' : 'bg-amber-50 dark:bg-yellow-500/10 text-amber-700 dark:text-yellow-400 border border-amber-200 dark:border-yellow-500/30') }}">{{ ucfirst($level) }}</span>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-gray-400 truncate">{{ $t->position ?? 'Teacher' }} · {{ $t->user->email }}</p>
+                <p class="text-xs text-slate-500 dark:text-gray-400 truncate">{{ $t->position_label ?? 'Teacher' }} · {{ $t->user->email }}</p>
                 <div class="mt-2 space-y-1">
                   @foreach($flags as $f)
                     <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-gray-300"><i

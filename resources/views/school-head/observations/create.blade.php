@@ -78,7 +78,7 @@
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Search or browse to find the teacher you want to observe.</p>
 
                 <!-- COT Badge -->
-                <div class="mb-5 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100 flex items-center gap-2">
+                <div class="mb-5 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100 dark:border-purple-800 flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="text-xs font-medium text-purple-700 dark:text-purple-300">This observation will use the <strong>Classroom Observation Tool (COT)</strong> with PPST indicators.</span>
                 </div>
@@ -87,7 +87,7 @@
                 <div class="relative mb-5">
                     <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" x-model="searchQuery" @input="searchQuery = $event.target.value"
-                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                            placeholder="Type name, subject, grade level, or department...">
                 </div>
 
@@ -95,12 +95,12 @@
                 <div x-show="filteredList.length > 0 && !selectedObservee" class="space-y-2 max-h-72 overflow-y-auto pr-1">
                     <template x-for="item in filteredList" :key="item.id">
                         <button type="button" @click="selectObservee(item)"
-                                class="observee-card w-full text-left rounded-lg px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 hover:bg-indigo-50/30 flex items-center gap-4">
-                            <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-sm font-semibold shrink-0" x-text="item.name.charAt(0).toUpperCase()"></div>
+                                class="observee-card w-full text-left rounded-lg px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 flex items-center gap-4">
+                            <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-sm font-semibold shrink-0" x-text="item.name.charAt(0).toUpperCase()"></div>
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-gray-900 dark:text-gray-100 text-sm" x-text="item.name"></div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-2 mt-0.5">
-                                    <span x-text="item.position"></span>
+                                    <span x-text="item.position_label || item.position"></span>
                                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                     <span x-text="item.subject"></span>
                                     <template x-if="item.department">
@@ -125,12 +125,12 @@
                     <div class="rounded-xl border-2 border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-900/20 p-5">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-lg font-bold" x-text="selectedObservee.name.charAt(0).toUpperCase()"></div>
+                                <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-lg font-bold" x-text="selectedObservee.name.charAt(0).toUpperCase()"></div>
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-base" x-text="selectedObservee.name"></h3>
                                     </div>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee.position"></p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee.position_label || selectedObservee.position"></p>
                                 </div>
                             </div>
                             <button type="button" @click="selectedObservee = null; searchQuery = ''"
@@ -161,7 +161,7 @@
                                                     <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0 w-16" x-text="obs.date"></span>
                                                     <span class="text-sm text-gray-700 dark:text-gray-300 truncate" x-text="obs.subject || 'Observation'"></span>
                                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-                                                          :class="obs.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : obs.status === 'cancelled' ? 'bg-red-100 dark:bg-red-900/30 text-red-700' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700'"
+                                                          :class="obs.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : obs.status === 'cancelled' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'"
                                                           x-text="obs.status.charAt(0).toUpperCase() + obs.status.slice(1)"></span>
                                                 </div>
                                                 <template x-if="obs.score">
@@ -200,7 +200,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">School Year</label>
                         <input type="text" name="school_year" x-model="form.school_year"
-                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                placeholder="e.g., 2024-2025">
                     </div>
 
@@ -208,7 +208,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Term</label>
                         <select name="quarter" x-model="form.quarter"
-                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="">Select term</option>
                             <option value="1">1st Term</option>
                             <option value="2">2nd Term</option>
@@ -220,7 +220,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Number</label>
                         <select name="observation_number" x-model="form.observation_number"
-                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="1">1st Observation</option>
                             <option value="2">2nd Observation</option>
                         </select>
@@ -230,7 +230,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observation Mode</label>
                         <select name="observation_mode" x-model="form.observation_mode"
-                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="in_person">In-Person</option>
                             <option value="virtual">Virtual</option>
                             <option value="hybrid">Hybrid</option>
@@ -242,14 +242,14 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subject</label>
                         <div class="relative">
                             <select name="subject" x-model="form.subject" x-show="selectedSubjList.length"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                                 <option value="" disabled>Select subject</option>
                                 <template x-for="s in selectedSubjList" :key="s">
                                     <option :value="s" x-text="s"></option>
                                 </template>
                             </select>
                             <input type="text" name="subject" x-model="form.subject" x-show="!selectedSubjList.length"
-                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Auto-filled from profile">
                             <template x-if="selectedObservee && selectedObservee.subject && selectedObservee.subject !== 'Not set'">
                                 <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
@@ -262,7 +262,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Grade Level</label>
                         <div class="relative">
                             <input type="text" name="grade_level" x-model="form.grade_level"
-                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Auto-filled from profile">
                             <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
                                 <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
@@ -303,7 +303,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Schedule Type</label>
                         <div class="grid sm:grid-cols-2 gap-3">
                             <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'scheduled' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
+                                   :class="form.schedule_type === 'scheduled' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-500'">
                                 <input type="radio" name="schedule_type" value="scheduled"
                                        x-model="form.schedule_type" class="sr-only">
                                 <div class="flex items-start gap-3">
@@ -318,7 +318,7 @@
                                 </div>
                             </label>
                             <label class="relative rounded-xl border-2 p-4 cursor-pointer transition-all"
-                                   :class="form.schedule_type === 'immediate' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:border-gray-600'">
+                                   :class="form.schedule_type === 'immediate' ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-500'">
                                 <input type="radio" name="schedule_type" value="immediate"
                                        x-model="form.schedule_type" class="sr-only">
                                 <div class="flex items-start gap-3">
@@ -342,7 +342,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Notes <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
                         <textarea name="notes" x-model="form.notes" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                   placeholder="Add any additional notes or context..."></textarea>
                     </div>
                 </div>
@@ -386,10 +386,10 @@
                     <!-- Preview Content -->
                     <div class="space-y-5">
                         <!-- Observee Info -->
-                        <div class="rounded-xl bg-indigo-50/60 border border-indigo-100 p-4">
+                        <div class="rounded-xl bg-indigo-50/60 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 p-4">
                             <p class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">Teacher</p>
                             <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-base font-bold shrink-0" x-text="selectedObservee?.name?.charAt(0) || '?'"></div>
+                                <div class="w-11 h-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base font-bold shrink-0" x-text="selectedObservee?.name?.charAt(0) || '?'"></div>
                                 <div>
                                     <p class="font-semibold text-gray-900 dark:text-gray-100" x-text="selectedObservee?.name"></p>
                                     <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee?.department + ' · ' + selectedObservee?.subject"></p>

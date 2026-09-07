@@ -63,6 +63,57 @@ class Teacher extends Model
     }
 
     /**
+     * Canonical display labels for known teaching position codes
+     * (e.g. `teacher_i` → "Teacher I").
+     */
+    public const POSITION_LABELS = [
+        'teacher_i' => 'Teacher I',
+        'teacher_ii' => 'Teacher II',
+        'teacher_iii' => 'Teacher III',
+        'master_teacher_i' => 'Master Teacher I',
+        'master_teacher_ii' => 'Master Teacher II',
+        'master_teacher_iii' => 'Master Teacher III',
+        'master_teacher_iv' => 'Master Teacher IV',
+        'master_teacher_v' => 'Master Teacher V',
+        'special_education' => 'Special Education Teacher',
+    ];
+
+    /**
+     * User-friendly label for a raw position value.
+     * Returns null when the position is blank so callers can fall back.
+     */
+    public static function positionLabelFor(?string $position): ?string
+    {
+        if ($position === null || trim($position) === '') {
+            return null;
+        }
+
+        $key = strtolower(trim($position));
+
+        if (isset(self::POSITION_LABELS[$key])) {
+            return self::POSITION_LABELS[$key];
+        }
+
+        // Generic fallback: "teacher_i" → "Teacher I" (roman numerals uppercased).
+        $words = explode(' ', str_replace('_', ' ', $key));
+        $words = array_map(function (string $word): string {
+            return in_array($word, ['i', 'ii', 'iii', 'iv', 'v'], true)
+                ? strtoupper($word)
+                : ucfirst($word);
+        }, $words);
+
+        return implode(' ', $words);
+    }
+
+    /**
+     * User-friendly label for this teacher's position.
+     */
+    public function getPositionLabelAttribute(): ?string
+    {
+        return self::positionLabelFor($this->position);
+    }
+
+    /**
      * The career stage resolved from the teacher's position, if any.
      */
     public function careerStage(): ?TeacherCareerStage

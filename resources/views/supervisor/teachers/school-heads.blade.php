@@ -10,7 +10,11 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6"
+     x-data="{
+        view: (function () { try { return localStorage.getItem('supervisorSchoolHeadsView') || 'list'; } catch (e) { return 'list'; } })(),
+        setView(v) { this.view = v; try { localStorage.setItem('supervisorSchoolHeadsView', v); } catch (e) {} },
+     }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">School Heads</h1>
@@ -90,9 +94,21 @@
             to <span class="font-medium text-gray-700 dark:text-gray-300">{{ $schoolHeads->lastItem() }}</span>
             of <span class="font-medium text-gray-700 dark:text-gray-300">{{ $schoolHeads->total() }}</span> school heads
         </p>
+        <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-0.5" role="group" aria-label="List layout">
+            <button type="button" @click="setView('list')" :aria-pressed="(view === 'list').toString()" title="List view" aria-label="List view"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+                    :class="view === 'list' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <button type="button" @click="setView('table')" :aria-pressed="(view === 'table').toString()" title="Table view" aria-label="Table view"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+                    :class="view === 'table' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div x-show="view === 'list'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($schoolHeads as $schoolHead)
             @php
                 $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
@@ -157,6 +173,69 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">There are no school heads registered in the system yet.</p>
             </div>
         @endforelse
+    </div>
+
+    <div x-show="view === 'table'" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" aria-label="School heads table">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
+                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">School Head</th>
+                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">School</th>
+                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Position</th>
+                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Obs</th>
+                        <th scope="col" class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                @forelse($schoolHeads as $schoolHead)
+                    @php
+                        $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
+                        $shEmail = $schoolHead->user?->email ?? '';
+                        $initial = strtoupper(substr($shName, 0, 1));
+                        $avatarColors = ['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-violet-500', 'bg-rose-500', 'bg-amber-500', 'bg-cyan-500', 'bg-pink-500'];
+                        $avatarColor = $avatarColors[crc32($shEmail ?: $shName) % count($avatarColors)];
+                    @endphp
+                    <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors">
+                        <td class="px-3 py-2.5">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-7 h-7 rounded-full {{ $avatarColor }} flex items-center justify-center text-white text-xs font-bold shrink-0" aria-hidden="true">{{ $initial }}</div>
+                                <div class="min-w-0">
+                                    <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="block text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $shName }}</a>
+                                    @if($shEmail)
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">{{ $shEmail }}</p>
+                                    @endif
+                                    @if($schoolHead->current_designation)
+                                        <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate leading-tight">{{ $schoolHead->current_designation_label }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-3 py-2.5">
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->school ? $schoolHead->school->name : '—' }}</span>
+                        </td>
+                        <td class="px-3 py-2.5 whitespace-nowrap">
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->position_level ? $schoolHead->position_level_label : '—' }}</span>
+                        </td>
+                        <td class="px-3 py-2.5 whitespace-nowrap">
+                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $schoolHead->total_observations ?? 0 }}</span>
+                        </td>
+                        <td class="px-3 py-2.5 text-right whitespace-nowrap">
+                            <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="inline-flex items-center px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-semibold transition-colors">View Profile</a>
+                            <a href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}" class="inline-flex items-center px-2.5 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Schedule</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-3 py-8 text-center">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">No school heads found</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">There are no school heads registered in the system yet.</p>
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     @if($schoolHeads->hasPages())

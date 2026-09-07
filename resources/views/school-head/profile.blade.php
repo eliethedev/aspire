@@ -267,7 +267,7 @@
                             <input type="hidden" name="position_level" value="{{ old('position_level', $user->schoolHeadProfile?->position_level) }}">
                             <input id="position_level" type="text" disabled
                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed"
-                                   value="{{ $user->schoolHeadProfile?->position_level ? str_replace('_', ' ', ucwords(str_replace('_', ' ', $user->schoolHeadProfile->position_level))) : '—' }}">
+                                   value="{{ $user->schoolHeadProfile?->position_level ? $user->schoolHeadProfile->position_level_label : '—' }}">
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Set by the administrator when your account was created.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('position_level')" />
                         </div>

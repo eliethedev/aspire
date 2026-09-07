@@ -1,4 +1,4 @@
-<header class="fixed top-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:left-16' : 'lg:left-56'">
+<header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:left-16' : 'lg:left-56'">
   <div class="max-w-full mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
     <!-- Left side: mobile menu button + brand -->
     <div class="flex items-center gap-2 lg:hidden shrink-0">

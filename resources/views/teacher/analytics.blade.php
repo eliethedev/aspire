@@ -26,41 +26,41 @@
         <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500">Total Observations</p>
+                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Total Observations</p>
                     <p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['total'] }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Cancelled excluded</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cancelled excluded</p>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fas fa-clipboard-list"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-clipboard-list"></i></div>
             </div>
         </div>
         <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500">Completed</p>
+                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Completed</p>
                     <p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['completed'] }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Full observation cycles</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Full observation cycles</p>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fas fa-check-circle"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400"><i class="fas fa-check-circle"></i></div>
             </div>
         </div>
         <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500">Average COT</p>
+                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Average COT</p>
                     <p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ number_format($stats['average_score'], 2) }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Out of 6.00</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Out of 6.00</p>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fas fa-chart-column"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-chart-column"></i></div>
             </div>
         </div>
         <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500">Best Score</p>
+                    <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Best Score</p>
                     <p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['best_score'] !== null ? number_format($stats['best_score'], 2) : '-' }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Your highest so far</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Your highest so far</p>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600"><i class="fas fa-star"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400"><i class="fas fa-star"></i></div>
             </div>
         </div>
     </div>

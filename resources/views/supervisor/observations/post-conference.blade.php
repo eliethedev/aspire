@@ -226,7 +226,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ $isSchoolHeadObs ? 'School Head' : 'Teacher' }}</label>
                             <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position ?? 'Teacher') }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position_label ?? 'Teacher') }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Conference Date</label>
@@ -442,7 +442,7 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Position</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position ?? 'Teacher') }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position_label ?? 'Teacher') }}</p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>

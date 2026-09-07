@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -75,10 +76,14 @@ function HeroGeometric({
     badge = "Design Collective",
     title1 = "Elevate Your Digital Vision",
     title2 = "Crafting Exceptional Websites",
+    description = "Crafting exceptional digital experiences through innovative design and cutting-edge technology.",
+    actions,
 }: {
     badge?: string;
     title1?: string;
     title2?: string;
+    description?: string;
+    actions?: ReactNode;
 }) {
     const fadeUpVariants = {
         hidden: { opacity: 0, y: 30 },
@@ -188,9 +193,9 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-                            Crafting exceptional digital experiences through
-                            innovative design and cutting-edge technology.
+                            {description}
                         </p>
+                        {actions ? <div className="px-4">{actions}</div> : null}
                     </motion.div>
                 </div>
             </div>

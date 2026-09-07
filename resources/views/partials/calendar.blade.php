@@ -18,7 +18,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <button type="button"
                         @click="prev()"
-                        class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         :aria-label="'Previous month'"
                         title="Previous month">
                     <i class="fa-solid fa-chevron-left"></i>
@@ -27,12 +27,12 @@
                 <div class="flex items-center gap-2">
                     <button type="button"
                             @click="today()"
-                            class="inline-flex items-center px-3 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:text-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="inline-flex items-center px-3 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         Today
                     </button>
                     <button type="button"
                             @click="next()"
-                            class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             :aria-label="'Next month'"
                             title="Next month">
                         <i class="fa-solid fa-chevron-right"></i>
@@ -52,7 +52,7 @@
                             @click="selectedDate = cell.iso"
                             :class="{
                                 'bg-indigo-600 text-white border-indigo-600 shadow-md': cell.iso === selectedDate,
-                                'bg-gray-50 hover:bg-indigo-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-700 text-slate-700 dark:text-gray-200': cell.iso !== selectedDate && cell.inMonth,
+                                'bg-gray-50 dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 border-gray-100 dark:border-gray-700 text-slate-700 dark:text-gray-200': cell.iso !== selectedDate && cell.inMonth,
                                 'bg-transparent border-transparent text-gray-300 dark:text-gray-600': !cell.inMonth && cell.iso !== selectedDate,
                                 'ring-2 ring-indigo-500 ring-offset-1 dark:ring-offset-gray-900': cell.isToday
                             }"
@@ -77,6 +77,56 @@
                         <span x-text="l.label"></span>
                     </span>
                 </template>
+            </div>
+            
+            <!-- Selected day details -->
+            <div x-show="selectedDate" x-cloak class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold text-slate-900 dark:text-white" x-text="selectedLabel"></h3>
+                    <button type="button"
+                            @click="selectedDate = null"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            :aria-label="'Close day details'"
+                            title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <template x-if="selectedEvents.length === 0">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No activities scheduled for this day.</p>
+                </template>
+                <div class="space-y-3">
+                    <template x-for="e in selectedEvents" :key="e.id">
+                        <div class="flex items-start gap-3 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                            <span class="mt-1.5 w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color:' + e.color"></span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold text-white" :style="'background-color:' + e.color" x-text="e.type_label"></span>
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-gray-100 truncate" x-text="e.title"></span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold text-white" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="e.subtitle"></p>
+                                <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                    <template x-if="e.stage_label">
+                                        <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-flag text-gray-300 dark:text-gray-600"></i><span x-text="e.stage_label"></span></span>
+                                    </template>
+                                    <template x-if="e.start_time">
+                                        <span class="inline-flex items-center gap-1.5"><i class="fa-regular fa-clock text-gray-300 dark:text-gray-600"></i><span x-text="timeWindow(e)"></span></span>
+                                    </template>
+                                    <template x-if="e.location">
+                                        <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-300 dark:text-gray-600"></i><span x-text="e.location"></span></span>
+                                    </template>
+                                    <template x-if="e.score !== null && e.score !== ''">
+                                        <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-gauge-high text-gray-300 dark:text-gray-600"></i><span x-text="'Score: ' + e.score"></span></span>
+                                    </template>
+                                </div>
+                            </div>
+                            <a :href="e.link"
+                            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-slate-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                View <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </template>
+                </div>
             </div>
         </div>
 
@@ -143,58 +193,8 @@
         </div>
     </div>
 
-    <!-- Selected day details -->
-    <div x-show="selectedDate" x-cloak class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-slate-900 dark:text-white" x-text="selectedLabel"></h3>
-            <button type="button"
-                    @click="selectedDate = null"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    :aria-label="'Close day details'"
-                    title="Close">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <template x-if="selectedEvents.length === 0">
-            <p class="text-sm text-gray-500 dark:text-gray-400">No activities scheduled for this day.</p>
-        </template>
-        <div class="space-y-3">
-            <template x-for="e in selectedEvents" :key="e.id">
-                <div class="flex items-start gap-3 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
-                    <span class="mt-1.5 w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color:' + e.color"></span>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold text-white" :style="'background-color:' + e.color" x-text="e.type_label"></span>
-                            <span class="text-sm font-semibold text-slate-800 dark:text-gray-100 truncate" x-text="e.title"></span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold text-white" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="e.subtitle"></p>
-                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                            <template x-if="e.stage_label">
-                                <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-flag text-gray-300 dark:text-gray-600"></i><span x-text="e.stage_label"></span></span>
-                            </template>
-                            <template x-if="e.start_time">
-                                <span class="inline-flex items-center gap-1.5"><i class="fa-regular fa-clock text-gray-300 dark:text-gray-600"></i><span x-text="timeWindow(e)"></span></span>
-                            </template>
-                            <template x-if="e.location">
-                                <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-300 dark:text-gray-600"></i><span x-text="e.location"></span></span>
-                            </template>
-                            <template x-if="e.score !== null && e.score !== ''">
-                                <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-gauge-high text-gray-300 dark:text-gray-600"></i><span x-text="'Score: ' + e.score"></span></span>
-                            </template>
-                        </div>
-                    </div>
-                    <a :href="e.link"
-                       class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-slate-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        View <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                    </a>
-                </div>
-            </template>
-        </div>
-    </div>
-
     <script id="calendar-data" type="application/json">
-        @js([
+        @json([
             'events' => $events,
             'today' => now()->toDateString(),
         ])

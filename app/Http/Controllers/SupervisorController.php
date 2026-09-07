@@ -703,6 +703,7 @@ class SupervisorController extends Controller
                 'grade_level' => $teacher->grade_level ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
+                'position_label' => $teacher->position_label ?? 'Teacher',
                 'employee_number' => $teacher->employee_number ?? '—',
                 'school_name' => $teacher->school?->name ?? 'No school assigned',
                 'profile_url' => route('supervisor.teachers.show', $teacher),
@@ -730,6 +731,7 @@ class SupervisorController extends Controller
                 'subject' => $schoolHead->subject ?? 'Not set',
                 'grade_level' => $schoolHead->grade_level ?? 'Not set',
                 'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
+                'position_label' => $schoolHead->position_level ? $schoolHead->position_level_label : ($schoolHead->position ?? $schoolHead->current_designation ?? 'School Head'),
                 'position_level' => $schoolHead->position_level ?? '—',
                 'school_name' => $schoolHead->school?->name ?? 'No school assigned',
             ];
@@ -2697,6 +2699,7 @@ class SupervisorController extends Controller
             return [
                 'teacher' => $teacher,
                 'position' => $teacher->position ?: 'Teacher',
+                'position_label' => $teacher->position_label ?: 'Teacher',
                 'observations_count' => $scores->count(),
                 'average' => $average,
                 'band' => $this->performanceBand($average),
