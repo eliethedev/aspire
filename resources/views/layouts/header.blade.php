@@ -9,7 +9,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
-      <span class="text-lg font-bold text-slate-900 dark:text-gray-100 tracking-tight">ASPIRE</span>
+      <x-application-logo class="h-10 w-auto max-w-[170px]" />
     </div>
 
     <!-- Right side: user menu, notifications -->

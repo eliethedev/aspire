@@ -13,11 +13,10 @@
                     </svg>
                 </button>
 
-                <!-- ASPIRE Logo -->
+                <!-- ASPIRE Logo (theme-aware: white theme in light mode, dark theme in dark mode) -->
                 <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @elseif(auth()->user()->isSchoolHead()) {{ route('school-head.dashboard') }} @else {{ route('admin.dashboard') }} @endif"
                    class="flex items-center gap-2.5">
-                    <x-application-logo class="w-8 h-8" />
-                    <span class="text-lg font-bold text-slate-900 dark:text-gray-100 tracking-tight">ASPIRE</span>
+                    <x-application-logo class="h-10 w-auto max-w-[200px]" />
                 </a>
             </div>
 

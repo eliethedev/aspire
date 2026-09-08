@@ -7,7 +7,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="group">
-                        <x-application-logo class="block h-9 w-auto fill-current dark:text-white text-gray-800 transition-transform group-hover:scale-105 duration-300" />
+                        <x-application-logo class="h-9 w-auto transition-transform group-hover:scale-105 duration-300" />
                     </a>
                 </div>
 

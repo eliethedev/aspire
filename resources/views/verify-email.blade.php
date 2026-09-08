@@ -75,7 +75,7 @@
     <!-- Top Nav -->
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">
-            ASPIRE
+            <x-application-logo class="h-10 w-auto" />
         </a>
         <div class="flex items-center gap-4">
             <button type="button" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" class="text-xs sm:text-sm text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">

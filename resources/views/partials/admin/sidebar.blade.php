@@ -4,18 +4,10 @@
     <!-- Logo - fixed at top (friendly brand lockup, same h-16 size) -->
     <div class="h-16 flex items-center justify-between gap-2 px-4 border-b border-gray-200/80 dark:border-gray-800/80 shrink-0 bg-white dark:bg-transparent">
         <a href="{{ route('admin.dashboard') }}" :class="$store.sidebar.isCollapsed() ? 'hidden' : ''"
-           class="sidebar-brand flex items-center gap-2.5 min-w-0 rounded-lg focus:outline-none"
+           class="sidebar-brand flex flex-1 items-center justify-center min-w-0 rounded-lg focus:outline-none"
            title="ASPIRE — Go to Home (Dashboard)"
            aria-label="ASPIRE — Go to Home Dashboard">
-            <x-deped-logo class="w-16 h-auto shrink-0" />
-            <span class="flex flex-col leading-none min-w-0">
-                <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    ASPIRE
-                </span>
-                <span class="text-[11px] font-medium text-slate-500 dark:text-gray-400 leading-tight truncate">
-                    Admin Panel
-                </span>
-            </span>
+            <x-application-logo class="h-12 w-auto max-w-full" />
         </a>
         {{-- Desktop collapse/expand toggle: plain-language labels for older users. Same p-2 / w-5 h-5 sizes. --}}
         <button @click="$store.sidebar.toggle()"

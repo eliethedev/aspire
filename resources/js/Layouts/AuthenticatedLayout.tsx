@@ -21,8 +21,17 @@ export default function AuthenticatedLayout({ user, header, children }: Authenti
                     <div className="flex justify-between h-16">
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
-                                <Link href="/dashboard" className="text-xl font-bold text-blue-600">
-                                    ASPIRE
+                                <Link href="/dashboard" className="flex items-center" aria-label="ASPIRE home">
+                                    <img
+                                        src="/images/whitelogotheme.jpg"
+                                        alt="ASPIRE — Learn • Grow • Serve"
+                                        className="block h-9 w-auto rounded object-contain dark:hidden"
+                                    />
+                                    <img
+                                        src="/images/darklogotheme.jpg"
+                                        alt="ASPIRE — Learn • Grow • Serve"
+                                        className="hidden h-9 w-auto rounded object-contain dark:block"
+                                    />
                                 </Link>
                             </div>
                             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

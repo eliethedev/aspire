@@ -9,7 +9,6 @@ import {
     Check,
     ClipboardCheck,
     FileCheck,
-    GraduationCap,
     Lock,
     Mail,
     MapPin,
@@ -170,17 +169,11 @@ export default function LandingPage(): React.JSX.Element {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
                     {/* Brand */}
                     <a href="/" className="flex items-center gap-3" aria-label="ASPIRE home">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
-                            <GraduationCap className="h-5 w-5 text-white" />
-                        </span>
-                        <span className="leading-tight">
-                            <span className="block text-lg font-bold tracking-tight text-white">
-                                ASPIRE
-                            </span>
-                            <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-white/50">
-                                Instructional Excellence
-                            </span>
-                        </span>
+                        <img
+                            src="/images/darklogotheme.jpg"
+                            alt="ASPIRE — Learn • Grow • Serve"
+                            className="h-10 w-auto rounded-md object-contain"
+                        />
                     </a>
 
                     {/* Desktop nav */}
@@ -661,12 +654,11 @@ export default function LandingPage(): React.JSX.Element {
                     <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
                         <div>
                             <div className="mb-4 flex items-center gap-3">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
-                                    <GraduationCap className="h-5 w-5 text-white" />
-                                </span>
-                                <span className="text-lg font-bold tracking-tight text-white">
-                                    ASPIRE
-                                </span>
+                                <img
+                                    src="/images/darklogotheme.jpg"
+                                    alt="ASPIRE — Learn • Grow • Serve"
+                                    className="h-12 w-auto rounded-md object-contain"
+                                />
                             </div>
                             <p className="max-w-xs text-sm leading-relaxed text-white/55">
                                 Automated Supervision Platform for Instructional Reform

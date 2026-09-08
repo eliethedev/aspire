@@ -44,7 +44,15 @@ class DashboardController extends Controller
         // System status
         $systemStatus = $this->runStatusChecks();
 
-        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'systemStatus'));
+        // Chart data for dashboard visualizations
+        $charts = [
+            'monthly' => $this->monthlyObservations(),
+            'scores' => $this->monthlyAverageScores(),
+            'byStatus' => $this->observationsByStatus(),
+            'usersByRole' => $this->usersByRole(),
+        ];
+
+        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'systemStatus', 'charts'));
     }
 
     public function systemStatus(): JsonResponse
@@ -105,15 +113,28 @@ class DashboardController extends Controller
     }
 
     /**
-     * Check API services status
+     * Check API / routing services status.
+     * Uses direct service checks instead of a self-request,
+     * which is unreliable on XAMPP / local dev servers.
      */
     private function checkApiStatus(): string
     {
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(5)->get(url('/up'));
-            return $response->successful() ? 'Operational' : 'Degraded';
+            // If the page loaded and this method is running, routing works.
+            // Verify the app can still resolve routes and respond.
+            $route = \Illuminate\Support\Facades\Route::getRoutes();
+            if (! $route || $route->count() === 0) {
+                return 'Degraded';
+            }
+
+            // Verify the key HTTP-related services are registered
+            if (! app()->bound('url') || ! app()->bound('router')) {
+                return 'Degraded';
+            }
+
+            return 'Operational';
         } catch (\Exception $e) {
-            return 'Unreachable';
+            return 'Degraded';
         }
     }
 
@@ -175,5 +196,81 @@ class DashboardController extends Controller
             'memory_peak' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB',
             'load_average' => function_exists('sys_getloadavg') ? sys_getloadavg()[0] ?? 0 : 0,
         ];
+    }
+
+    /**
+     * Observations created per month for the last 6 months.
+     */
+    private function monthlyObservations(): array
+    {
+        $labels = [];
+        $counts = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $d = now()->subMonths($i);
+            $labels[] = $d->format('M Y');
+            $counts[] = Observation::whereYear('created_at', $d->year)
+                ->whereMonth('created_at', $d->month)
+                ->count();
+        }
+
+        return ['labels' => $labels, 'counts' => $counts];
+    }
+
+    /**
+     * Average overall observation score per month for the last 6 months.
+     */
+    private function monthlyAverageScores(): array
+    {
+        $averages = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $d = now()->subMonths($i);
+            $avg = Observation::whereYear('created_at', $d->year)
+                ->whereMonth('created_at', $d->month)
+                ->whereNotNull('overall_score')
+                ->avg('overall_score');
+            $averages[] = $avg !== null ? round((float) $avg, 2) : null;
+        }
+
+        return $averages;
+    }
+
+    /**
+     * Observation counts grouped by status.
+     */
+    private function observationsByStatus(): array
+    {
+        $rows = Observation::selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $labels = [];
+        $counts = [];
+        foreach (['pending', 'scheduled', 'in_progress', 'cot_completed', 'completed', 'cancelled'] as $status) {
+            if (isset($rows[$status]) && (int) $rows[$status] > 0) {
+                $labels[] = ucwords(str_replace('_', ' ', $status));
+                $counts[] = (int) $rows[$status];
+            }
+        }
+
+        return ['labels' => $labels, 'counts' => $counts];
+    }
+
+    /**
+     * User counts grouped by role.
+     */
+    private function usersByRole(): array
+    {
+        $rows = User::selectRaw('role, COUNT(*) as total')
+            ->groupBy('role')
+            ->pluck('total', 'role');
+
+        $labels = [];
+        $counts = [];
+        foreach (['admin', 'supervisor', 'school_head', 'teacher'] as $role) {
+            $labels[] = ucwords(str_replace('_', ' ', $role));
+            $counts[] = (int) ($rows[$role] ?? 0);
+        }
+
+        return ['labels' => $labels, 'counts' => $counts];
     }
 }

@@ -147,12 +147,10 @@
         
         <!-- Header Section -->
         <div class="text-center mb-10">
-            <!-- Logo Icon -->
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-rose-500 mb-6 shadow-lg shadow-indigo-500/30">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
+            <!-- Logo -->
+            <a href="{{ route('home') }}" class="inline-block mb-6" aria-label="ASPIRE home">
+                <x-application-logo class="h-16 w-auto max-w-[240px]" />
+            </a>
             
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Join ASPIRE</h1>
             <p class="text-gray-500 dark:text-gray-400 text-sm">Create your account to get started</p>

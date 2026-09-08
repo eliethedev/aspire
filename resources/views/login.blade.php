@@ -106,7 +106,7 @@
     <!-- Top Nav -->
     <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">        
-            ASPIRE
+            <x-application-logo class="h-10 w-auto" />
         </a>
         <div class="flex items-center gap-4">
             <button type="button" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" class="text-xs sm:text-sm text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
@@ -124,12 +124,10 @@
         
         <!-- Header Section -->
         <div class="text-center mb-6 sm:mb-10">
-            <!-- Logo Icon -->
-            <!-- <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-rose-500 mb-6 shadow-lg shadow-indigo-500/30">
-              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div> -->
+            <!-- Logo -->
+            <a href="{{ route('home') }}" class="inline-block mb-6" aria-label="ASPIRE home">
+                <x-application-logo class="h-16 w-auto max-w-[240px]" />
+            </a>
             
             <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Login to Aspire</h1>
             <p class="text-gray-500 dark:text-gray-400 text-sm">Sign in to access your ASPIRE account</p>

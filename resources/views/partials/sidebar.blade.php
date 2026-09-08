@@ -7,18 +7,10 @@
     <div class="h-16 flex items-center justify-between gap-2 px-4 border-b border-gray-200/80 dark:border-gray-800/80 shrink-0 bg-white dark:bg-transparent">
         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif"
            :class="$store.sidebar.isCollapsed() ? 'hidden' : ''"
-           class="sidebar-brand flex items-center gap-2.5 min-w-0 rounded-lg focus:outline-none"
+           class="sidebar-brand flex flex-1 items-center justify-center min-w-0 rounded-lg focus:outline-none"
            title="ASPIRE — Go to Home (Dashboard)"
            aria-label="ASPIRE — Go to Home Dashboard">
-            <span class="sidebar-brand-mark flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white text-sm font-extrabold shrink-0" aria-hidden="true">A</span>
-            <span class="flex flex-col leading-none min-w-0">
-                <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    ASPIRE
-                </span>
-                <span class="text-[11px] font-medium text-slate-500 dark:text-gray-400 leading-tight truncate">
-                    Classroom Guidance
-                </span>
-            </span>
+            <x-application-logo class="h-12 w-auto max-w-full" />
         </a>
         {{-- Desktop collapse/expand toggle: plain-language labels for older users. Same p-2 / w-5 h-5 sizes. --}}
         <button @click="$store.sidebar.toggle()"
