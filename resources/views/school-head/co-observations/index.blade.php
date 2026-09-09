@@ -144,7 +144,7 @@
                                         <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     @if($observation->grade_level)
-                                        <span>Grade {{ $observation->grade_level }}</span>
+                                        <span>{{ $observation->grade_level_label }}</span>
                                         <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                     @endif
                                     <span>{{ $observation->school_year ?? 'N/A' }}</span>

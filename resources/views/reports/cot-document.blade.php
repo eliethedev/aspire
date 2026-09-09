@@ -53,7 +53,7 @@
         <p class="header-line">Department of Education</p>
         <p class="school-name">{{ $school_name }}</p>
         <p class="title">CLASSROOM OBSERVATION TOOL</p>
-        <p class="subtitle">(for {{ $framework_label }})</p>
+        <p class="subtitle">(for {{ $framework_label }} &middot; {{ $career_stage_label }})</p>
     </div>
 
     <table class="info-table bordered">
@@ -100,11 +100,9 @@
             <tr>
                 <th>#</th>
                 <th>PPST Indicators</th>
-                <th>6</th>
-                <th>5</th>
-                <th>4</th>
-                <th>3</th>
-                <th>2</th>
+                @foreach(array_reverse($scale_keys) as $val)
+                    <th>{{ $val }}</th>
+                @endforeach
                 <th>NO</th>
                 <th>Comments</th>
             </tr>
@@ -113,19 +111,17 @@
             @php $index = 0; @endphp
             @foreach($grouped_ratings as $group)
                 <tr class="domain-row">
-                    <td colspan="9">{{ $group['domain'] }}</td>
+                    <td colspan="{{ (2 + count($scale_keys) + 2) }}">{{ $group['domain'] }}</td>
                 </tr>
                 @foreach($group['items'] as $rating)
                     @php $index++; @endphp
                     <tr>
                         <td class="col-num">{{ $index }}</td>
                         <td class="col-indicator"><strong>{{ $rating->indicator_code }}.</strong> {{ $rating->indicator }}</td>
-                        <td class="col-rating {{ !$rating->not_observed && $rating->rating == 6 ? 'marked' : '' }}">{{ !$rating->not_observed && $rating->rating == 6 ? 'X' : '' }}</td>
-                        <td class="col-rating {{ !$rating->not_observed && $rating->rating == 5 ? 'marked' : '' }}">{{ !$rating->not_observed && $rating->rating == 5 ? 'X' : '' }}</td>
-                        <td class="col-rating {{ !$rating->not_observed && $rating->rating == 4 ? 'marked' : '' }}">{{ !$rating->not_observed && $rating->rating == 4 ? 'X' : '' }}</td>
-                        <td class="col-rating {{ !$rating->not_observed && $rating->rating == 3 ? 'marked' : '' }}">{{ !$rating->not_observed && $rating->rating == 3 ? 'X' : '' }}</td>
-                        <td class="col-rating {{ !$rating->not_observed && $rating->rating == 2 ? 'marked' : '' }}">{{ !$rating->not_observed && $rating->rating == 2 ? 'X' : '' }}</td>
-                        <td class="col-no {{ $rating->not_observed ? 'marked' : '' }}">{{ $rating->not_observed ? 'X' : '' }}</td>
+                        @foreach(array_reverse($scale_keys) as $val)
+                            <td class="col-rating {{ !$rating->not_observed && !$rating->not_applicable && $rating->rating == $val ? 'marked' : '' }}">{{ !$rating->not_observed && !$rating->not_applicable && $rating->rating == $val ? 'X' : '' }}</td>
+                        @endforeach
+                        <td class="col-no {{ ($rating->not_observed && !$rating->not_applicable) ? 'marked' : '' }}">{{ $rating->not_applicable ? 'N/A' : ($rating->not_observed ? 'X' : '') }}</td>
                         <td class="col-comments">{{ $rating->comments ?? '' }}</td>
                     </tr>
                 @endforeach
@@ -135,7 +131,7 @@
 
     <p class="summary">
         <strong>Total:</strong> {{ number_format($total, 1) }}&nbsp;&nbsp;&nbsp;
-        <strong>Average:</strong> {{ number_format($average, 2) }} / 6.00&nbsp;&nbsp;&nbsp;
+        <strong>Average:</strong> {{ number_format($average, 2) }} / {{ number_format($scale_max, 2) }}&nbsp;&nbsp;&nbsp;
         <strong>Percentage:</strong> {{ number_format($percentage, 2) }}%
     </p>
 

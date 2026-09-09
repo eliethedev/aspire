@@ -46,7 +46,7 @@ class PDFReportService
             'quarter' => $observation->quarter ?? 'N/A',
             'observation_type' => $observation->observation_type ?? 'N/A',
             'subject' => $observation->subject ?? 'N/A',
-            'grade_level' => $observation->grade_level ?? 'N/A',
+            'grade_level' => $observation->grade_level_label ?? 'N/A',
             'school_year' => $observation->school_year ?? 'N/A',
             'overall_score' => $observation->overall_score,
             'cot_ratings' => $observation->cotRatings,
@@ -66,7 +66,8 @@ class PDFReportService
             );
             $data['pd_plan'] = $this->pdService->generatePDPlan(
                 $lowIndicators->toArray(),
-                $teacherName
+                $teacherName,
+                $observation->ratingScaleMax()
             );
         } else {
             $data['pd_plan'] = null;

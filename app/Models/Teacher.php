@@ -114,6 +114,14 @@ class Teacher extends Model
     }
 
     /**
+     * User-friendly label for this teacher's grade level.
+     */
+    public function getGradeLevelLabelAttribute(): ?string
+    {
+        return \App\Enums\GradeLevel::labelFor($this->grade_level);
+    }
+
+    /**
      * The career stage resolved from the teacher's position, if any.
      */
     public function careerStage(): ?TeacherCareerStage

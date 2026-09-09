@@ -10,6 +10,34 @@ class AdminAISettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Byte-exact snapshot of the real .env taken before any test runs.
+     *
+     * These tests exercise AIController::update() which writes provider keys
+     * (AI_PROVIDER, AI_MODEL_DEFAULT, provider flags, …) straight into
+     * base_path('.env'). Without isolation, running the suite silently resets
+     * the operator's configured default AI provider back to the baseline
+     * (`gemini`) — the config-reset bug. Every test restores the original
+     * file so the development/production configuration is never mutated.
+     */
+    protected string $envSnapshot = '';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->envSnapshot = (string) file_get_contents(base_path('.env'));
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->envSnapshot !== '') {
+            file_put_contents(base_path('.env'), $this->envSnapshot);
+        }
+
+        parent::tearDown();
+    }
+
     public function test_admin_can_save_ai_settings_from_form_payload(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -57,6 +85,34 @@ class AdminAISettingsTest extends TestCase
 
         $env = file_get_contents(base_path('.env'));
         $this->assertStringContainsString('AI_MODEL_DEFAULT=gemini-test-model-x', $env);
+    }
+
+    public function test_changed_default_provider_persists_in_env_and_runtime_config(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('admin.ai.update'), [
+            'ai_provider' => 'openai',
+            'ai_model_default' => 'gpt-4o',
+            'ai_gemini_enabled' => '1',
+            'ai_gemini_api_key' => '',
+            'ai_gemini_model' => 'gemini-3.6-flash',
+            'ai_skip_verify' => '1',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Persisted to the env file so a fresh process (e.g. after a system
+        // restart) boots the chosen provider rather than the baseline.
+        $env = file_get_contents(base_path('.env'));
+        $this->assertMatchesRegularExpression('/^AI_PROVIDER=openai$/m', $env);
+        $this->assertMatchesRegularExpression('/^AI_MODEL_DEFAULT=gpt-4o$/m', $env);
+
+        // Reflected in the running process so the admin page immediately shows
+        // the new selection instead of a stale value.
+        $this->assertSame('openai', config('ai.provider'));
+        $this->assertSame('gpt-4o', config('ai.models.default'));
     }
 
     public function test_custom_model_option_writes_custom_value(): void

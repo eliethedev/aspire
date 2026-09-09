@@ -21,8 +21,9 @@ class FinalReportService extends AIService
 
         $teacherName = $observation->observee?->user?->name ?? 'Unknown';
         $schoolName = $this->getSchoolName($observation);
+        $scaleMax = $observation->ratingScaleMax();
         $overallScore = $observation->overall_score;
-        $descriptiveRating = $this->getDescriptiveRating($overallScore ? (float) $overallScore : 0);
+        $descriptiveRating = $this->getDescriptiveRating($overallScore ? (float) $overallScore : 0, $scaleMax);
 
         $guidanceService = app(ObservationGuidanceService::class);
         $summary = $guidanceService->compileOverallSummary($observation);
@@ -36,7 +37,7 @@ class FinalReportService extends AIService
                 'subject' => $observation->subject ?? 'N/A',
                 'grade_level' => $observation->grade_level ?? 'N/A',
                 'school_year' => $observation->school_year ?? 'N/A',
-                'overall_score' => $overallScore ? number_format($overallScore, 2) . ' / 6.00' : 'N/A',
+                'overall_score' => $overallScore ? number_format($overallScore, 2) . ' / ' . number_format($scaleMax, 2) : 'N/A',
                 'descriptive_rating' => $descriptiveRating,
                 'strengths' => $summary['strengths'] ?? [],
                 'areas_for_improvement' => $summary['areas_for_improvement'] ?? [],
@@ -83,7 +84,7 @@ class FinalReportService extends AIService
         $obsDate = $observation->observation_date?->format('F d, Y') ?? 'N/A';
         $postCon = $observation->postConference;
 
-        $scoreText = $overallScore ? number_format($overallScore, 2) . ' / 6.00' : 'N/A';
+        $scoreText = $overallScore ? number_format($overallScore, 2) . ' / ' . number_format($observation->ratingScaleMax(), 2) : 'N/A';
         $strengthsText = !empty($summary['strengths'])
             ? implode("\n  - ", $summary['strengths'])
             : 'No specific strengths identified';
@@ -153,13 +154,14 @@ class FinalReportService extends AIService
         return 'School Not Specified';
     }
 
-    protected function getDescriptiveRating(float $score): string
+    protected function getDescriptiveRating(float $score, int $scaleMax = 6): string
     {
+        $max = (float) $scaleMax;
         return match (true) {
-            $score >= 5.50 => 'Outstanding',
-            $score >= 4.50 => 'Very Satisfactory',
-            $score >= 3.50 => 'Satisfactory',
-            $score >= 2.50 => 'Fair',
+            $score >= $max * 5.5 / 6.0 => 'Outstanding',
+            $score >= $max * 4.5 / 6.0 => 'Very Satisfactory',
+            $score >= $max * 3.5 / 6.0 => 'Satisfactory',
+            $score >= $max * 2.5 / 6.0 => 'Fair',
             default => 'Needs Improvement',
         };
     }

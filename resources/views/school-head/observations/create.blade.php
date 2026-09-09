@@ -133,7 +133,7 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400" x-text="selectedObservee.position_label || selectedObservee.position"></p>
                                 </div>
                             </div>
-                            <button type="button" @click="selectedObservee = null; searchQuery = ''"
+                            <button type="button" @click="clearObservee()"
                                     class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 p-1">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -141,7 +141,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2.5 text-sm">
                             <div><span class="text-gray-500 dark:text-gray-400">Department</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.department"></p></div>
                             <div><span class="text-gray-500 dark:text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.subject"></p></div>
-                            <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.grade_level"></p></div>
+                            <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.grade_level_label || selectedObservee.grade_level"></p></div>
                             <div><span class="text-gray-500 dark:text-gray-400">Employee No.</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedObservee.employee_number"></p></div>
 
                             <!-- Recent Observations -->
@@ -173,6 +173,50 @@
                                 </div>
                             </template>
                         </div>
+                    </div>
+                </div>
+
+                <!-- COT Rating Template (auto-selected for the observee's position) -->
+                <div x-show="selectedObservee" class="mt-4 fade-in">
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">COT Rating Template</h3>
+                            <span x-show="suggestedTemplate && String(selectedCotTemplateId) === String(suggestedTemplate.id)"
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">Recommended</span>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3"
+                           x-text="selectedObservee ? ('Auto-selected for ' + (selectedObservee.position_label || selectedObservee.position) + ' — you can change it.') : ''"></p>
+
+                        <div x-show="teacherTemplateOptions.length === 0" class="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
+                            No published COT templates for this school year. Ask admin to publish one.
+                        </div>
+
+                        <div class="space-y-2">
+                            <template x-for="template in teacherTemplateOptions" :key="template.id">
+                                <label class="flex items-start gap-3 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 cursor-pointer transition-colors"
+                                       :class="String(selectedCotTemplateId) === String(template.id) ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-1 ring-indigo-200' : 'bg-white dark:bg-gray-900'">
+                                    <input type="radio" name="cot_indicator_version_id" :value="template.id"
+                                           x-model="selectedCotTemplateId" @change="templateManuallySet = true" class="sr-only">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100" x-text="template.label"></span>
+                                            <span x-show="template.id === suggestedTemplateId" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-600 text-white">Recommended</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            <span x-text="template.framework_label + ' · ' + template.instrument_label"></span>
+                                            <template x-if="template.career_stage_label"><span x-text="' · ' + template.career_stage_label"></span></template>
+                                        </p>
+                                    </div>
+                                    <span class="shrink-0 inline-flex items-center px-2 py-1 rounded text-[11px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                                          x-text="template.indicators_count + ' indicators'"></span>
+                                </label>
+                            </template>
+                        </div>
+
+                        <p x-show="templateManuallySet && suggestedTemplate && String(selectedCotTemplateId) !== String(suggestedTemplate.id)"
+                           class="mt-3 text-xs text-amber-600 dark:text-amber-400">
+                            <span x-text="'Note: the recommended template for ' + (selectedObservee?.position_label || selectedObservee?.position) + ' is ' + suggestedTemplate.label + '.'"></span>
+                        </p>
                     </div>
                 </div>
 
@@ -264,7 +308,7 @@
                             <input type="text" name="grade_level" x-model="form.grade_level"
                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Auto-filled from profile">
-                            <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
+                            <template x-if="selectedObservee && selectedObservee.grade_level_label && selectedObservee.grade_level_label !== 'Not set'">
                                 <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">Auto</span>
                             </template>
                         </div>
@@ -409,7 +453,7 @@
                                 <div><span class="text-gray-500 dark:text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.grade_level || 'Not set'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Observation #</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_number === '2' ? '2nd' : '1st'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Mode</span><p class="font-medium text-gray-800 dark:text-gray-100 capitalize" x-text="form.observation_mode?.replace('_', ' ')"></p></div>
-                                <div><span class="text-gray-500 dark:text-gray-400">Tool</span><p class="font-medium text-gray-800 dark:text-gray-100">Classroom Observation Tool (COT)</p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Tool</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedCotTemplate?.label || 'Classroom Observation Tool (COT)'"></p></div>
                             </div>
                         </div>
 
@@ -482,6 +526,34 @@
             submitting: false,
 
             teacherData: @json($teacherData),
+            cotTemplates: @json($cotTemplates),
+
+            selectedCotTemplateId: '',
+            suggestedTemplateId: '',
+            templateManuallySet: false,
+
+            get teacherTemplateOptions() {
+                return (this.cotTemplates || []).filter(t => t.ratee_role === 'teacher');
+            },
+
+            get selectedCotTemplate() {
+                return (this.cotTemplates || []).find(t => String(t.id) === String(this.selectedCotTemplateId)) || null;
+            },
+
+            get suggestedTemplate() {
+                return (this.cotTemplates || []).find(t => String(t.id) === String(this.suggestedTemplateId)) || null;
+            },
+
+            suggestTemplateForObservee(observee) {
+                if (!observee) return null;
+                const opts = this.teacherTemplateOptions;
+                if (!opts.length) return null;
+                const stage = observee.career_stage || null;
+                const exact = opts.find(t => t.career_stage === stage);
+                if (exact) return exact;
+                const generic = opts.find(t => !t.career_stage || t.career_stage === 'all');
+                return generic || opts[0] || null;
+            },
 
             get filteredList() {
                 if (!this.searchQuery) return this.teacherData;
@@ -491,6 +563,7 @@
                     (item.subjects || []).join(' ').toLowerCase().includes(q) ||
                     item.subject?.toLowerCase().includes(q) ||
                     item.grade_level?.toLowerCase().includes(q) ||
+                    item.grade_level_label?.toLowerCase().includes(q) ||
                     item.department?.toLowerCase().includes(q) ||
                     item.position?.toLowerCase().includes(q) ||
                     item.email?.toLowerCase().includes(q)
@@ -506,18 +579,36 @@
                 this.selectedObservee = item;
                 this.observeeId = item.id;
                 this.searchQuery = '';
+                const suggested = this.suggestTemplateForObservee(item);
+                this.suggestedTemplateId = suggested ? suggested.id : '';
+                if (suggested && (!this.templateManuallySet || !this.selectedCotTemplateId)) {
+                    this.selectedCotTemplateId = suggested.id;
+                    this.templateManuallySet = false;
+                }
+            },
+
+            clearObservee() {
+                this.selectedObservee = null;
+                this.observeeId = '';
+                this.searchQuery = '';
+                this.suggestedTemplateId = '';
+                if (!this.templateManuallySet) {
+                    this.selectedCotTemplateId = '';
+                }
             },
 
             autoFillDetails() {
                 if (this.selectedObservee) {
                     const subjList = this.selectedObservee.subjects || [];
-                    if (subjList.length) {
-                        this.form.subject = subjList[0];
-                    } else if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
-                        this.form.subject = this.selectedObservee.subject;
+                    if (!this.form.subject) {
+                        if (subjList.length) {
+                            this.form.subject = subjList[0];
+                        } else if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
+                            this.form.subject = this.selectedObservee.subject;
+                        }
                     }
-                    if (this.selectedObservee.grade_level && this.selectedObservee.grade_level !== 'Not set') {
-                        this.form.grade_level = this.selectedObservee.grade_level;
+                    if (!this.form.grade_level && this.selectedObservee.grade_level_label && this.selectedObservee.grade_level_label !== 'Not set') {
+                        this.form.grade_level = this.selectedObservee.grade_level_label;
                     }
                 }
             },

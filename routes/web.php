@@ -189,6 +189,7 @@ Route::middleware(['auth', 'role:teacher', 'profile.complete'])->prefix('teacher
 
     Route::get('/observations', [App\Http\Controllers\Teacher\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/{observation}', [App\Http\Controllers\Teacher\ObservationController::class, 'show'])->name('observations.show');
+    Route::get('/observations/{observation}/cot-document', [App\Http\Controllers\Teacher\ObservationController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document');
     Route::post('/observations/{observation}/upload-lesson-plan', [App\Http\Controllers\Teacher\ObservationController::class, 'uploadLessonPlan'])->middleware('throttle:uploads')->name('observations.upload-lesson-plan');
     Route::patch('/observations/{observation}/update-location', [App\Http\Controllers\Teacher\ObservationController::class, 'updateLocation'])->name('observations.update-location');
     Route::post('/observations/{observation}/confirm', [App\Http\Controllers\Teacher\ObservationController::class, 'confirm'])->name('observations.confirm');
@@ -357,6 +358,8 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     // Report download
     Route::get('/observations/{observation}/report', [App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
     Route::get('/observations/{observation}/report/pdf', [App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
+    Route::get('/observations/{observation}/cot-document', [App\Http\Controllers\SchoolHead\ObservationController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document');
+    Route::get('/teachers/{observeeId}/observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'teacherHistory'])->name('observations.teacher-history');
 
     // Indicator Trends & Progress Comparison
     Route::get('/observations/{observation}/indicator-trends', [App\Http\Controllers\SchoolHead\ObservationController::class, 'indicatorTrends'])->name('observations.indicator-trends');

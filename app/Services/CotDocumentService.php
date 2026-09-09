@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CotIndicatorVersion;
 use App\Models\Observation;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -13,6 +14,12 @@ use PhpOffice\PhpWord\SimpleType\Jc;
 
 class CotDocumentService
 {
+    private const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+    private const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+    private const XML_SPACE = 'http://www.w3.org/XML/1998/namespace';
+
     public function __construct()
     {
         Settings::setOutputEscapingEnabled(true);
@@ -82,11 +89,9 @@ class CotDocumentService
             throw new \RuntimeException(implode(' ', $errors));
         }
 
-        $phpWord = $this->buildDocx($observation);
         $filename = $this->filenameFor($observation) . '.docx';
 
-        $tempPath = tempnam(sys_get_temp_dir(), 'cot_doc_');
-        IOFactory::createWriter($phpWord, 'Word2007')->save($tempPath);
+        $tempPath = $this->renderDocumentPath($observation);
 
         try {
             $path = Storage::disk(self::DISK)->putFileAs(self::DIRECTORY, $tempPath, $filename);
@@ -138,7 +143,17 @@ class CotDocumentService
         $average = $observation->overall_score !== null
             ? (float) $observation->overall_score
             : ($ratedCount > 0 ? round($total / $ratedCount, 2) : 0);
-        $percentage = $ratedCount > 0 ? round(($average / 6) * 100, 2) : 0;
+
+        $ratingScale = $observation->ratingScale();
+        $scaleKeys = array_keys($ratingScale);
+        $scaleMax = $observation->ratingScaleMax();
+        $scaleMin = $observation->ratingScaleMin();
+        $percentage = $ratedCount > 0 ? round(($average / $scaleMax) * 100, 2) : 0;
+
+        $version = $observation->cotIndicatorVersion;
+        $stage = $version?->career_stage ?? config('cot.default_stage');
+        $careerStageLabel = $version?->careerStageLabel()
+            ?? (config("career_stages.stages.{$stage}") ?: ucwords(str_replace('_', ' ', (string) $stage)));
 
         return [
             'observation' => $observation,
@@ -155,6 +170,14 @@ class CotDocumentService
             'quarter' => $observation->quarter ?: '____________',
             'observation_number' => $observation->observation_number ?: '____________',
             'framework_label' => $this->frameworkLabel($observation),
+            'career_stage' => $stage,
+            'career_stage_label' => $careerStageLabel,
+            'stage_title' => strtoupper((string) $careerStageLabel),
+            'rating_scale' => $ratingScale,
+            'scale_keys' => $scaleKeys,
+            'scale_max' => $scaleMax,
+            'scale_min' => $scaleMin,
+            'template_file' => $this->templateFileForStage($stage),
             'grouped_ratings' => $this->groupByDomain($ratings),
             'ratings' => $ratings,
             'post_conference' => $observation->postConference,
@@ -169,12 +192,59 @@ class CotDocumentService
     }
 
     /**
-     * Build the Word2007 (DOCX) document replicating the official COT layout.
+     * Build the Word2007 (DOCX) document for a completed observation.
+     *
+     * Prefers the official Annex E-2 template for the observation's career
+     * stage (single SY form filled with the ratings), falling back to the
+     * programmatic layout when no template is available.
      */
     public function buildDocx(Observation $observation): PhpWord
     {
+        $tempPath = $this->renderDocumentPath($observation);
+
+        try {
+            return IOFactory::load($tempPath);
+        } finally {
+            @unlink($tempPath);
+        }
+    }
+
+    /**
+     * Render the COT document for an observation to a temporary .docx path.
+     *
+     * When the observation's career stage has an official template, the
+     * matching school-year form is extracted and filled; otherwise the
+     * programmatic layout is used as fallback.
+     */
+    private function renderDocumentPath(Observation $observation): string
+    {
         $data = $this->viewData($observation);
 
+        $template = $this->templatePathForStage($data['career_stage'] ?? null);
+        if ($template) {
+            try {
+                return $this->renderCotTemplateDocx($template, $observation->school_year, $data);
+            } catch (\Throwable $e) {
+                Log::warning('COT template render failed; using programmatic layout.', [
+                    'observation_id' => $observation->id,
+                    'stage' => $data['career_stage'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'cot_doc_');
+        IOFactory::createWriter($this->buildProgrammaticDocx($data), 'Word2007')->save($tempPath);
+
+        return $tempPath;
+    }
+
+    /**
+     * Programmatic fallback COT layout (used when no official template exists
+     * for the observation's career stage).
+     */
+    private function buildProgrammaticDocx(array $data): PhpWord
+    {
         $phpWord = new PhpWord();
         $phpWord->setDefaultFontName('Arial');
         $phpWord->setDefaultFontSize(9);
@@ -182,18 +252,17 @@ class CotDocumentService
         $section = $phpWord->addSection([
             'orientation' => 'portrait',
             'paperSize' => 'A4',
-            // Closely follows the supplied official Teacher I-III COT sheet.
             'marginTop' => 300,
             'marginBottom' => 650,
             'marginLeft' => 720,
             'marginRight' => 720,
         ]);
 
-        $this->addOfficialCotHeader($section, $data['school_year']);
+        $this->addOfficialCotHeader($section, $data['school_year'] ?? '____________', $data['stage_title'] ?? 'TEACHER I-III');
         $this->addObservationInfo($section, $data, false);
         $this->addOfficialDirections($section);
-        $this->addOfficialRatingTable($section, $data['ratings']);
-        $this->addOtherCommentsBlock($section);
+        $this->addOfficialRatingTable($section, $data['ratings'] ?? [], $data['scale_keys'] ?? [2, 3, 4, 5, 6]);
+        $this->addOtherCommentsBlock($section, (int) ($data['scale_min'] ?? 2));
         $this->addOfficialSignatureBlock($section, $data);
 
         return $phpWord;
@@ -211,11 +280,67 @@ class CotDocumentService
     }
 
     /**
+     * Render a blank, single-SY official COT template for a version to a
+     * temporary .docx path, falling back to the programmatic blank layout.
+     *
+     * The returned file is streamed/downloaded directly; do NOT round-trip it
+     * through PhpWord's Word2007 writer (templates carry section-background
+     * images that the writer cannot re-serialize).
+     */
+    public function templateDocumentPath(CotIndicatorVersion $version): string
+    {
+        $template = $this->templatePathForStage($version->career_stage);
+
+        if ($template) {
+            try {
+                return $this->renderCotTemplateDocx($template, $version->school_year, $this->blankTemplateData($version));
+            } catch (\Throwable $e) {
+                Log::warning('COT template render failed; using programmatic blank template.', [
+                    'version_id' => $version->id,
+                    'stage' => $version->career_stage,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'cot_tpl_');
+        IOFactory::createWriter($this->buildTemplateDocx($version), 'Word2007')->save($tempPath);
+
+        return $tempPath;
+    }
+
+    /**
      * Build a blank, printable COT template (Word2007) for the given indicator
      * version. Only the indicator list is filled in — all other fields are left
      * blank for manual completion.
      */
     public function buildTemplateDocx(CotIndicatorVersion $version): PhpWord
+    {
+        return $this->buildProgrammaticTemplateDocx($version);
+    }
+
+    /**
+     * Blank field data used when rendering an official COT template for a
+     * version (nothing is pre-filled).
+     */
+    private function blankTemplateData(CotIndicatorVersion $version): array
+    {
+        $stage = $version->career_stage ?? config('cot.default_stage');
+        $careerStageLabel = $version->careerStageLabel()
+            ?? (config("career_stages.stages.{$stage}") ?: ucwords(str_replace('_', ' ', (string) $stage)));
+
+        return [
+            'school_year' => $version->school_year ?: '____________',
+            'career_stage' => $stage,
+            'career_stage_label' => $careerStageLabel,
+            'stage_title' => strtoupper((string) $careerStageLabel),
+        ];
+    }
+
+    /**
+     * Programmatic fallback blank COT template.
+     */
+    private function buildProgrammaticTemplateDocx(CotIndicatorVersion $version): PhpWord
     {
         $indicators = $version->indicators()
             ->orderBy('sort_order')
@@ -256,6 +381,430 @@ class CotDocumentService
     }
 
     /**
+     * The official COT template file (relative to public/) for a career stage,
+     * or null when the stage has no template in config/cot.php.
+     */
+    public function templateFileForStage(?string $stage): ?string
+    {
+        if (!$stage) {
+            return null;
+        }
+
+        return config("cot.templates.{$stage}");
+    }
+
+    /**
+     * Absolute path of the official COT template for a career stage, or null
+     * when no template exists for the stage.
+     */
+    private function templatePathForStage(?string $stage): ?string
+    {
+        $file = $this->templateFileForStage($stage);
+        if (!$file) {
+            return null;
+        }
+
+        $path = public_path($file);
+
+        return is_file($path) ? $path : null;
+    }
+
+    /**
+     * Render an official Annex E-2 COT template to a filled .docx file.
+     *
+     * Opens the template, keeps only the single form matching the target
+     * school year, fills the observation fields/ratings/remarks/signatures via
+     * direct WordprocessingML (DOM) surgery (PhpWord has no section deletion),
+     * then repackages the file keeping every other part of the package.
+     *
+     * @param  array<string, mixed>  $data  viewData-style payload (or blank template data)
+     *
+     * @throws \RuntimeException when the template cannot be read or transformed
+     */
+    private function renderCotTemplateDocx(string $templatePath, ?string $targetSy, array $data): string
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($templatePath) !== true) {
+            throw new \RuntimeException("Cannot open COT template [{$templatePath}].");
+        }
+
+        $xml = $zip->getFromName('word/document.xml');
+        if ($xml === false) {
+            $zip->close();
+            throw new \RuntimeException('COT template is missing word/document.xml.');
+        }
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $loaded = $dom->loadXML($xml, LIBXML_NONET);
+        if (!$loaded) {
+            $zip->close();
+            throw new \RuntimeException('COT template XML is malformed.');
+        }
+
+        $xpath = new \DOMXPath($dom);
+        $xpath->registerNamespace('w', self::W_NS);
+        $xpath->registerNamespace('r', self::R_NS);
+
+        $body = $xpath->query('/w:document/w:body')->item(0);
+        if (!$body) {
+            $zip->close();
+            throw new \RuntimeException('COT template has no document body.');
+        }
+
+        // ── collect body children (trailing body-level sectPr kept separately) ──
+        $children = [];
+        $trailingSectPr = null;
+        foreach ($body->childNodes as $child) {
+            if ($child->nodeType === XML_ELEMENT_NODE) {
+                if ($child->localName === 'sectPr') {
+                    $trailingSectPr = $child;
+                    continue;
+                }
+                $children[] = $child;
+            }
+        }
+
+        // ── locate form boundaries (each form opens with the PMES paragraph) ──
+        $pmesIndexes = [];
+        foreach ($children as $i => $child) {
+            if (strpos($child->textContent, 'PERFORMANCE MANAGEMENT AND EVALUATION SYSTEM') !== false) {
+                $pmesIndexes[] = $i;
+            }
+        }
+        if (count($pmesIndexes) < 1) {
+            $zip->close();
+            throw new \RuntimeException('COT template contains no PMES-form anchors.');
+        }
+
+        // ── map each form to its school year ──
+        $formSy = [];
+        foreach ($children as $i => $child) {
+            if (preg_match('/\(SY\s+(\d{4}-\d{4})\)/', $child->textContent, $m)) {
+                for ($f = 0; $f < count($pmesIndexes); $f++) {
+                    $end = $pmesIndexes[$f + 1] ?? count($children);
+                    if ($i >= $pmesIndexes[$f] && $i < $end) {
+                        $formSy[$f] = $m[1];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // ── select the form for the target school year ──
+        $selected = null;
+        foreach ($formSy as $k => $sy) {
+            if ($sy === $targetSy) {
+                $selected = $k;
+                break;
+            }
+        }
+        if ($selected === null) {
+            $selected = 0;
+        }
+
+        $keepStart = $selected === 0 ? 0 : $pmesIndexes[$selected];
+        $keepEndExclusive = $pmesIndexes[$selected + 1] ?? count($children);
+
+        foreach ($children as $i => $child) {
+            if ($i < $keepStart || $i >= $keepEndExclusive) {
+                $body->removeChild($child);
+            }
+        }
+        if ($trailingSectPr && $trailingSectPr->parentNode === null) {
+            $body->appendChild($trailingSectPr);
+        }
+
+        $keep = [];
+        foreach ($body->childNodes as $child) {
+            if ($child->nodeType === XML_ELEMENT_NODE && $child->localName !== 'sectPr') {
+                $keep[] = $child;
+            }
+        }
+
+        // ── fill observation info ──
+        if (!empty($data['observer_name']) || !empty($data['date_label'])) {
+            $obsPara = $this->templateFindParagraph($keep, 'OBSERVER:');
+            if ($obsPara && !empty($data['observer_name'])) {
+                $this->templateReplaceField($obsPara, 'OBSERVER:', (string) $data['observer_name']);
+            }
+            if ($obsPara && !empty($data['date_label'])) {
+                $this->templateReplaceField($obsPara, 'DATE:', (string) $data['date_label']);
+            }
+        }
+
+        if (!empty($data['teacher_name']) || !empty($data['quarter'])) {
+            $teacherPara = $this->templateFindParagraph($keep, 'TEACHER OBSERVED:');
+            if ($teacherPara && !empty($data['teacher_name'])) {
+                $this->templateReplaceField($teacherPara, 'TEACHER OBSERVED:', (string) $data['teacher_name']);
+            }
+            if ($teacherPara && !empty($data['quarter'])) {
+                $this->templateReplaceField($teacherPara, 'QUARTER:', (string) $data['quarter']);
+            }
+        }
+
+        $subjectPart = trim((string) ($data['subject'] ?? ''));
+        $gradePart = trim((string) ($data['grade_section'] ?? ''));
+        $subjectGrade = trim($subjectPart . ($gradePart !== '' ? ' — ' . $gradePart : ''));
+        if ($subjectGrade !== '') {
+            $subjectPara = $this->templateFindParagraph($keep, 'SUBJECT');
+            if ($subjectPara) {
+                $this->templateReplaceField($subjectPara, 'SUBJECT & GRADE LEVEL TAUGHT:', $subjectGrade);
+            }
+        }
+
+        if (!empty($data['observation_number'])) {
+            $obsNumPara = $this->templateFindParagraph($keep, 'OBSERVATION:');
+            if ($obsNumPara) {
+                $boxes = [];
+                foreach ($obsNumPara->getElementsByTagNameNS(self::W_NS, 't') as $t) {
+                    if (trim($t->textContent) === '□') {
+                        $boxes[] = $t;
+                    }
+                }
+                foreach ($boxes as $i => $box) {
+                    if ($i + 1 === (int) $data['observation_number']) {
+                        $this->templateSetText($box, '☑');
+                    }
+                }
+            }
+        }
+
+        // ── mark ratings in the indicator table ──
+        $ratings = $data['ratings'] ?? [];
+        $table = null;
+        foreach ($keep as $c) {
+            if ($c->localName === 'tbl' && strpos($c->textContent, 'INDICATORS') !== false) {
+                $table = $c;
+                break;
+            }
+        }
+
+        $remarks = [];
+        foreach ($ratings as $rating) {
+            $comment = $rating->comments ?? null;
+            if ($comment !== null && trim((string) $comment) !== '') {
+                $remarks[] = $rating->indicator_code . ' — ' . trim((string) $comment);
+            }
+        }
+
+        if ($table) {
+            $rows = [];
+            foreach ($table->childNodes as $r) {
+                if ($r->nodeType === XML_ELEMENT_NODE && $r->localName === 'tr') {
+                    $rows[] = $r;
+                }
+            }
+
+            if (count($rows) > 1) {
+                // header row -> scale column mapping
+                $headerCells = [];
+                foreach ($rows[0]->childNodes as $tc) {
+                    if ($tc->nodeType === XML_ELEMENT_NODE && $tc->localName === 'tc') {
+                        $headerCells[] = trim($tc->textContent);
+                    }
+                }
+                $scaleCol = [];
+                foreach ($headerCells as $ci => $label) {
+                    if (preg_match('/^(\d+)$/', $label, $m)) {
+                        $scaleCol[(int) $m[1]] = $ci;
+                    }
+                }
+                $noCol = count($headerCells) - 1;
+
+                foreach ($rows as $ri => $row) {
+                    if ($ri === 0) {
+                        continue;
+                    }
+                    $cells = [];
+                    foreach ($row->childNodes as $tc) {
+                        if ($tc->nodeType === XML_ELEMENT_NODE && $tc->localName === 'tc') {
+                            $cells[] = $tc;
+                        }
+                    }
+                    if (count($cells) < 2) {
+                        continue;
+                    }
+                    if (!preg_match('/\((\d+(?:\.\d+)+)\)/', $cells[0]->textContent, $m)) {
+                        continue;
+                    }
+                    $code = $m[1];
+
+                    $matching = null;
+                    foreach ($ratings as $rating) {
+                        if ($rating->indicator_code === $code) {
+                            $matching = $rating;
+                            break;
+                        }
+                    }
+                    if (!$matching) {
+                        continue;
+                    }
+
+                    $mark = '';
+                    $targetCol = null;
+                    if ($matching->isNotApplicable()) {
+                        $mark = 'N/A';
+                        $targetCol = $noCol;
+                    } elseif (!empty($matching->not_observed) && !$matching->isNotApplicable()) {
+                        $mark = '✓';
+                        $targetCol = $noCol;
+                    } elseif ($matching->rating !== null && array_key_exists((int) $matching->rating, $scaleCol)) {
+                        $mark = '✓';
+                        $targetCol = $scaleCol[(int) $matching->rating];
+                    }
+
+                    if ($targetCol !== null && isset($cells[$targetCol])) {
+                        $para = null;
+                        foreach ($cells[$targetCol]->childNodes as $cn) {
+                            if ($cn->nodeType === XML_ELEMENT_NODE && $cn->localName === 'p') {
+                                $para = $cn;
+                                break;
+                            }
+                        }
+                        if ($para) {
+                            $run = $dom->createElementNS(self::W_NS, 'w:r');
+                            $t = $dom->createElementNS(self::W_NS, 'w:t');
+                            $t->setAttributeNS(self::XML_SPACE, 'xml:space', 'preserve');
+                            $t->appendChild($dom->createTextNode($mark));
+                            $run->appendChild($t);
+                            $para->appendChild($run);
+                        }
+                    }
+                }
+
+                // remarks go inside the OTHER COMMENTS row (last, merged cell)
+                if ($remarks) {
+                    $lastRow = $rows[count($rows) - 1];
+                    if (strpos($lastRow->textContent, 'OTHER COMMENTS:') !== false) {
+                        $cell = null;
+                        foreach ($lastRow->childNodes as $tc) {
+                            if ($tc->nodeType === XML_ELEMENT_NODE && $tc->localName === 'tc') {
+                                $cell = $tc;
+                                break;
+                            }
+                        }
+                        if ($cell) {
+                            $lastPara = null;
+                            foreach ($cell->childNodes as $pn) {
+                                if ($pn->nodeType === XML_ELEMENT_NODE && $pn->localName === 'p') {
+                                    $lastPara = $pn;
+                                }
+                            }
+                            if ($lastPara) {
+                                foreach ($remarks as $remarkText) {
+                                    $clone = $lastPara->cloneNode(true);
+                                    foreach ($clone->getElementsByTagNameNS(self::W_NS, 't') as $t) {
+                                        $this->templateSetText($t, $remarkText);
+                                    }
+                                    $cell->insertBefore($clone, $lastPara->nextSibling);
+                                    $lastPara = $clone;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── signature names (prefixed to the signature label paragraphs) ──
+        if (!empty($data['observer_name']) || !empty($data['teacher_name'])) {
+            $signaturePairs = [
+                'Signature over Printed Name of the Observer' => $data['observer_name'] ?? null,
+                'Signature over Printed Name of the Teacher' => $data['teacher_name'] ?? null,
+            ];
+            foreach ($signaturePairs as $label => $name) {
+                if (empty($name)) {
+                    continue;
+                }
+                $labelPara = $this->templateFindParagraph($keep, $label);
+                if (!$labelPara) {
+                    continue;
+                }
+                $prev = null;
+                for ($n = $labelPara->previousSibling; $n; $n = $n->previousSibling) {
+                    if ($n->nodeType === XML_ELEMENT_NODE && $n->localName === 'p') {
+                        $prev = $n;
+                        break;
+                    }
+                }
+                if ($prev) {
+                    $namePara = $prev->cloneNode(true);
+                    foreach ($namePara->getElementsByTagNameNS(self::W_NS, 't') as $t) {
+                        $this->templateSetText($t, (string) $name);
+                    }
+                    $prev->parentNode->insertBefore($namePara, $labelPara);
+                }
+            }
+        }
+
+        $newXml = $dom->saveXML($dom->documentElement);
+
+        // ── repackage: copy every other part verbatim, replace document.xml ──
+        $outPath = tempnam(sys_get_temp_dir(), 'cot_') . '.docx';
+        @unlink($outPath);
+
+        $out = new \ZipArchive();
+        if ($out->open($outPath, \ZipArchive::CREATE) !== true) {
+            $zip->close();
+            throw new \RuntimeException('Cannot create rendered COT document.');
+        }
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->statIndex($i)['name'];
+            if ($name === 'word/document.xml') {
+                continue;
+            }
+            $out->addFromString($name, $zip->getFromIndex($i));
+        }
+        $out->addFromString('word/document.xml', $newXml);
+        $out->close();
+        $zip->close();
+
+        return $outPath;
+    }
+
+    /**
+     * First kept body paragraph whose text contains the needle.
+     *
+     * @param  array<int, \DOMElement>  $children
+     */
+    private function templateFindParagraph(array $children, string $needle): ?\DOMElement
+    {
+        foreach ($children as $c) {
+            if ($c->localName === 'p' && strpos($c->textContent, $needle) !== false) {
+                return $c;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Replace the text inside a w:t node (safe for '&' and other entities).
+     */
+    private function templateSetText(\DOMElement $t, string $value): void
+    {
+        while ($t->firstChild) {
+            $t->removeChild($t->firstChild);
+        }
+        $t->appendChild($t->ownerDocument->createTextNode($value));
+    }
+
+    /**
+     * Fill a labelled template field whose w:t contains the given label text.
+     */
+    private function templateReplaceField(\DOMElement $node, string $label, string $value): void
+    {
+        foreach ($node->getElementsByTagNameNS(self::W_NS, 't') as $t) {
+            if (strpos($t->textContent, $label) !== false) {
+                $this->templateSetText($t, $label . ' ' . $value);
+
+                return;
+            }
+        }
+    }
+
+    /**
      * Build the PDF version of the COT document.
      */
     public function generatePdf(Observation $observation): \Barryvdh\DomPDF\PDF
@@ -268,7 +817,7 @@ class CotDocumentService
     }
 
 
-    private function addOfficialCotHeader(\PhpOffice\PhpWord\Element\Section $section, string $schoolYear): void
+    private function addOfficialCotHeader(\PhpOffice\PhpWord\Element\Section $section, string $schoolYear, string $stageTitle = 'TEACHER I-III'): void
     {
         $center = ['alignment' => Jc::CENTER, 'spaceAfter' => 0, 'spaceBefore' => 0];
 
@@ -285,7 +834,7 @@ class CotDocumentService
         $section->addText('FOR TEACHERS', ['name' => 'Arial', 'size' => 10, 'bold' => true], $center);
         $section->addText('(SY ' . $schoolYear . ')', ['name' => 'Arial', 'size' => 10, 'bold' => true], $center);
         $section->addTextBreak(1);
-        $section->addText('TEACHER I-III', ['name' => 'Arial', 'size' => 13, 'bold' => true], $center);
+        $section->addText($stageTitle, ['name' => 'Arial', 'size' => 13, 'bold' => true], $center);
         $section->addText('CLASSROOM OBSERVATION TOOL (COT) –', ['name' => 'Arial', 'size' => 12, 'bold' => true], $center);
         $section->addText('RATING SHEET', ['name' => 'Arial', 'size' => 12, 'bold' => true], $center);
         $section->addTextBreak(1);
@@ -347,13 +896,19 @@ class CotDocumentService
         $section->addTextBreak(1);
     }
 
-    private function addOfficialRatingTable(\PhpOffice\PhpWord\Element\Section $section, $ratings): void
+    private function addOfficialRatingTable(\PhpOffice\PhpWord\Element\Section $section, $ratings, array $scaleValues = [2, 3, 4, 5, 6]): void
     {
         $widths = [5800, 620, 620, 620, 620, 620, 620, 2200];
         $table = $section->addTable($this->gridStyle());
-        $headers = ['INDICATORS', '2', '3', '4', '5', '6', 'NO*', 'COMMENTS'];
         $headerStyle = ['name' => 'Arial', 'size' => 8.5, 'bold' => true];
         $center = ['alignment' => Jc::CENTER, 'valign' => 'center'];
+
+        $headers = ['INDICATORS'];
+        foreach ($scaleValues as $value) {
+            $headers[] = (string) $value;
+        }
+        $headers[] = 'NO*';
+        $headers[] = 'COMMENTS';
 
         $table->addRow();
         foreach ($headers as $i => $label) {
@@ -374,18 +929,18 @@ class CotDocumentService
                 $run->addText(' (Not Applicable)', ['italic' => true, 'size' => 8]);
             }
 
-            foreach ([2, 3, 4, 5, 6] as $value) {
-                $marked = !$rating->not_observed && !$rating->not_applicable && (int) $rating->rating === $value;
+            foreach ($scaleValues as $ci => $value) {
+                $marked = !$rating->not_observed && !$rating->not_applicable && (int) $rating->rating === (int) $value;
                 $table->addCell($widths[1], $this->cellStyle())
                     ->addText($marked ? '✓' : '', ['name' => 'Arial', 'size' => 9, 'bold' => true], $center);
             }
 
             $noLabel = $rating->isNotApplicable() ? 'N/A' : ($rating->not_observed ? '✓' : '');
-            $table->addCell($widths[6], $this->cellStyle())
+            $table->addCell($widths[1 + count($scaleValues)], $this->cellStyle())
                 ->addText($noLabel, ['name' => 'Arial', 'size' => 9, 'bold' => true], $center);
 
             $commentText = $rating->comments ?? '';
-            $table->addCell($widths[7], $this->cellStyle())
+            $table->addCell($widths[2 + count($scaleValues)], $this->cellStyle())
                 ->addText($commentText, ['name' => 'Arial', 'size' => 7.5, 'italic' => true], ['valign' => 'top']);
         }
     }
@@ -419,14 +974,14 @@ class CotDocumentService
         }
     }
 
-    private function addOtherCommentsBlock(\PhpOffice\PhpWord\Element\Section $section): void
+    private function addOtherCommentsBlock(\PhpOffice\PhpWord\Element\Section $section, int $scaleMin = 2): void
     {
         $section->addTextBreak(1);
         $section->addText('OTHER COMMENTS:', ['name' => 'Arial', 'size' => 9, 'bold' => true]);
         $section->addText('');
         $section->addText('__________________________________________________________________________________________', ['name' => 'Arial', 'size' => 8.5]);
         $section->addTextBreak(1);
-        $section->addText('* NO stands for Not Observed which automatically gets a rating of 2. \'N/A\' means the indicator is Not Applicable and is excluded from the overall rating.', ['name' => 'Arial', 'size' => 8, 'italic' => true]);
+        $section->addText('* NO stands for Not Observed which automatically gets a rating of ' . $scaleMin . '. \'N/A\' means the indicator is Not Applicable and is excluded from the overall rating.', ['name' => 'Arial', 'size' => 8, 'italic' => true]);
         $section->addTextBreak(1);
     }
 

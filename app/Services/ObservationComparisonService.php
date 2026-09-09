@@ -54,6 +54,7 @@ class ObservationComparisonService
             return null;
         }
 
+        $scaleMax = $current->ratingScaleMax();
         $teacherName = $current->observee?->user?->name ?? 'the teacher';
         $currentScore = $comparison['current_overall'];
         $previousScore = $comparison['previous_overall'];
@@ -78,7 +79,7 @@ class ObservationComparisonService
             $narrative .= "### Most Improved Areas\n\n";
             $sorted = $comparison['improved']->sortByDesc('delta');
             foreach ($sorted as $item) {
-                $narrative .= "- **{$item['code']}: {$item['indicator']}** — improved from {$item['previous_rating']}/6 to {$item['current_rating']}/6 (+{$item['delta']})\n";
+                $narrative .= "- **{$item['code']}: {$item['indicator']}** — improved from {$item['previous_rating']}/{$scaleMax} to {$item['current_rating']}/{$scaleMax} (+{$item['delta']})\n";
             }
             $narrative .= "\n";
         }
@@ -87,7 +88,7 @@ class ObservationComparisonService
             $narrative .= "### Areas That Need Attention\n\n";
             $sorted = $comparison['declined']->sortBy('delta');
             foreach ($sorted as $item) {
-                $narrative .= "- **{$item['code']}: {$item['indicator']}** — declined from {$item['previous_rating']}/6 to {$item['current_rating']}/6 ({$item['delta']})\n";
+                $narrative .= "- **{$item['code']}: {$item['indicator']}** — declined from {$item['previous_rating']}/{$scaleMax} to {$item['current_rating']}/{$scaleMax} ({$item['delta']})\n";
             }
             $narrative .= "\n";
         }
@@ -95,7 +96,7 @@ class ObservationComparisonService
         if ($comparison['same']->isNotEmpty()) {
             $narrative .= "### Consistent Performance\n\n";
             foreach ($comparison['same'] as $item) {
-                $narrative .= "- {$item['code']}: {$item['indicator']} — maintained at {$item['current_rating']}/6\n";
+                $narrative .= "- {$item['code']}: {$item['indicator']} — maintained at {$item['current_rating']}/{$scaleMax}\n";
             }
             $narrative .= "\n";
         }

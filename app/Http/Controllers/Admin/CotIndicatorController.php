@@ -12,7 +12,6 @@ use App\Services\CotIndicatorService;
 use App\Services\CotDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use PhpOffice\PhpWord\IOFactory;
 
 class CotIndicatorController extends Controller
 {
@@ -40,11 +39,8 @@ class CotIndicatorController extends Controller
     {
         $service = app(CotDocumentService::class);
 
-        $phpWord = $service->buildTemplateDocx($cotIndicatorVersion);
         $filename = $service->templateFilename($cotIndicatorVersion) . '.docx';
-
-        $temp = tempnam(sys_get_temp_dir(), 'cot_tpl_');
-        IOFactory::createWriter($phpWord, 'Word2007')->save($temp);
+        $temp = $service->templateDocumentPath($cotIndicatorVersion);
 
         return response()->download($temp, $filename)->deleteFileAfterSend(true);
     }

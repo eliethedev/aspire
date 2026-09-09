@@ -39,11 +39,12 @@ class AIFeedbackService extends AIService
         $domain = $cotRating->domain;
         $indicator = $cotRating->indicator;
         $rating = $cotRating->numericRating();
-        $percentage = $cotRating->isNotObserved() ? 0 : round(($rating / 6) * 100, 1);
-        $scoreLabel = $cotRating->isNotObserved() ? 'NO (Not Observed)' : "{$rating}/6";
+        $scaleMax = $observation?->ratingScaleMax() ?? 6;
+        $percentage = $cotRating->isNotObserved() ? 0 : round(($rating / $scaleMax) * 100, 1);
+        $scoreLabel = $cotRating->isNotObserved() ? 'NO (Not Observed)' : "{$rating}/{$scaleMax}";
 
         $rubricContext = $this->rubrics->getDomainContext($domain);
-        $ratingScaleContext = $this->rubrics->getRatingScaleContext();
+        $ratingScaleContext = $this->rubrics->getRatingScaleContext($observation?->ratingScale() ?: config('cot.rating_scale', []));
 
         $prompt = PostObservationPrompt::build([
             'teacher_name' => $teacherName,

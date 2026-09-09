@@ -164,19 +164,36 @@
             </div>
         </div>
 
-        <!-- ===== STEP 2: SELECT COT TEMPLATE ===== -->
-        <div x-show="currentStep === 2" class="fade-in">
+        <!-- ===== STEP 3: SELECT COT TEMPLATE ===== -->
+        <div x-show="currentStep === 3" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">2</span>
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">3</span>
                     <div>
                         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Select Rating Template</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            <template x-if="selectedType === 'teacher_observation'">For teacher observation</template>
-                            <template x-if="selectedType === 'school_head_observation'">For school head observation</template>
-                            · SY {{ $schoolYear }}
-                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400" x-text="(selectedType === 'teacher_observation' ? 'For teacher observation' : 'For school head observation') + ' · SY {{ $schoolYear }}'"></p>
                     </div>
+                </div>
+
+                <div x-show="selectedType === 'teacher_observation' && selectedObservee && suggestedTemplate"
+                     class="mb-3 flex items-start gap-2.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-900/20 px-3.5 py-2.5">
+                    <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed min-w-0">
+                        <p x-text="'Aligned with ' + (selectedObservee.position_label || selectedObservee.position) + ' — the matching COT template was preselected.'"></p>
+                        <p class="text-emerald-700/80 dark:text-emerald-300/80 mt-0.5">You can still switch to any other template below.</p>
+                    </div>
+                </div>
+
+                <div x-show="selectedType === 'teacher_observation' && templateManuallySet && suggestedTemplate && String(selectedCotTemplateId) !== String(suggestedTemplate.id)"
+                     class="mb-3 flex items-center justify-between gap-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/20 px-3.5 py-2.5">
+                    <p class="text-xs text-amber-800 dark:text-amber-200">
+                        <span class="font-semibold">Overridden.</span>
+                        <span x-text="'The recommended one for ' + (selectedObservee?.position_label || selectedObservee?.position) + ' is ' + suggestedTemplate.label + '.'"></span>
+                    </p>
+                    <button type="button" @click="applySuggestedTemplate()"
+                            class="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-900 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                        Use recommended
+                    </button>
                 </div>
 
                 <div x-show="templateOptions.length === 0 && selectedType !== 'school_head_observation'" class="text-center py-6 text-gray-400 dark:text-gray-500">
@@ -197,6 +214,7 @@
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm" x-text="template.label"></h3>
                                         <span x-show="template.is_default" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">Default</span>
+                                        <span x-show="template.id === suggestedTemplateId" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-600 text-white">Recommended</span>
                                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[13px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300" x-text="template.indicators_count + ' indicators'"></span>
                                     </div>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
@@ -243,12 +261,12 @@
             </div>
 
             <div class="flex justify-between items-center mt-4">
-                <button type="button" @click="goToStep(1)"
+                <button type="button" @click="goToStep(2)"
                         class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 font-medium inline-flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Back
                 </button>
-                <button type="button" @click="goToStep(3)"
+                <button type="button" @click="goToStep(4)"
                         :disabled="selectedType !== 'school_head_observation' && !selectedCotTemplateId"
                         class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
                     Continue <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -256,16 +274,13 @@
             </div>
         </div>
 
-        <!-- ===== STEP 3: BROWSE & SELECT OBSERVEE ===== -->
-        <div x-show="currentStep === 3" class="fade-in">
+        <!-- ===== STEP 2: BROWSE & SELECT OBSERVEE ===== -->
+        <div x-show="currentStep === 2" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">3</span>
+                    <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">2</span>
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            <template x-if="selectedType === 'teacher_observation'">Select a Teacher</template>
-                            <template x-if="selectedType === 'school_head_observation'">Select a School Head</template>
-                        </h2>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="selectedType === 'teacher_observation' ? 'Select a Teacher' : 'Select a School Head'"></h2>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Search or browse</p>
                     </div>
                 </div>
@@ -325,7 +340,7 @@
                                     <p class="text-xs text-gray-500" x-text="selectedObservee.position_label || selectedObservee.position"></p>
                                 </div>
                             </div>
-                            <button type="button" @click="selectedObservee = null; searchQuery = ''" class="text-gray-400 hover:text-gray-600 p-1">
+                            <button type="button" @click="clearObservee()" class="text-gray-400 hover:text-gray-600 p-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -335,7 +350,7 @@
                                 <span class="contents">
                                     <div><span class="text-gray-400">Department</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.department"></p></div>
                                     <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.subject"></p></div>
-                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.grade_level"></p></div>
+                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.grade_level_label || selectedObservee.grade_level"></p></div>
                                     <div><span class="text-gray-400">Employee No.</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.employee_number"></p></div>
                                 </span>
                             </template>
@@ -343,7 +358,7 @@
                                 <span class="contents">
                                     <div><span class="text-gray-400">Position Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.position_level_label || selectedObservee.position_level"></p></div>
                                     <div><span class="text-gray-400">Subject</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.subject"></p></div>
-                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.grade_level"></p></div>
+                                    <div><span class="text-gray-400">Grade Level</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.grade_level_label || selectedObservee.grade_level"></p></div>
                                 </span>
                             </template>
                             <div><span class="text-gray-400">Email</span><p class="font-medium text-gray-800 dark:text-gray-100 truncate" x-text="selectedObservee.email"></p></div>
@@ -392,12 +407,12 @@
             </div>
 
             <div class="flex justify-between items-center mt-6">
-                <button type="button" @click="selectedObservee = null; goToStep(2)"
+                <button type="button" @click="clearObservee(); goToStep(1)"
                         class="px-5 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors inline-flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Back
                 </button>
-                <button type="button" @click="autoFillDetails(); goToStep(4)" :disabled="!selectedObservee"
+                <button type="button" @click="autoFillDetails(); goToStep(3)" :disabled="!selectedObservee"
                         class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
                     Continue
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -538,7 +553,7 @@
                                 <input type="text" name="grade_level" x-model="form.grade_level"
                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                                        placeholder="Auto-filled">
-                                <template x-if="selectedObservee && selectedObservee.grade_level && selectedObservee.grade_level !== 'Not set'">
+                                <template x-if="selectedObservee && selectedObservee.grade_level_label && selectedObservee.grade_level_label !== 'Not set'">
                                     <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-full">Auto</span>
                                 </template>
                             </div>
@@ -663,12 +678,7 @@
                     <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">5</span>
                     <div>
                         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference</h2>
-                        <template x-if="selectedType === 'teacher_observation'">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Optional — schedule feedback later if needed</p>
-                        </template>
-                        <template x-if="selectedType === 'school_head_observation'">
-                            <p class="text-xs text-gray-500 dark:text-gray-400" x-text="selectedCotTemplateRequiresPostConference ? 'Included by PPSSH template — will be scheduled' : 'Not included by this PPSSH template — workflow skips conference'"></p>
-                        </template>
+                        <p class="text-xs text-gray-500 dark:text-gray-400" x-text="selectedType === 'teacher_observation' ? 'Optional — schedule feedback later if needed' : (selectedCotTemplateRequiresPostConference ? 'Included by PPSSH template — will be scheduled' : 'Not included by this PPSSH template — workflow skips conference')"></p>
                     </div>
                 </div>
 
@@ -816,7 +826,7 @@
                         <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 p-4">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Observation Info</p>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800 dark:text-gray-100"><template x-if="selectedType === 'teacher_observation'">Teacher Observation</template><template x-if="selectedType !== 'teacher_observation'">School Head Observation</template></p></div>
+                                <div><span class="text-gray-500 dark:text-gray-400">Type</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="selectedTypeLabel"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Date</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.observation_date"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Time</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="timeLabel || '—'"></p></div>
                                 <div><span class="text-gray-500 dark:text-gray-400">Location</span><p class="font-medium text-gray-800 dark:text-gray-100" x-text="form.location || '—'"></p></div>
@@ -1138,8 +1148,8 @@
         return {
             steps: [
                 { label: 'Who', status: 'active' },
-                { label: 'Template', status: 'pending' },
                 { label: 'Observee', status: 'pending' },
+                { label: 'Template', status: 'pending' },
                 { label: 'Schedule', status: 'pending' },
                 { label: 'Conference', status: 'pending' },
                 { label: 'Review', status: 'pending' },
@@ -1147,6 +1157,8 @@
             currentStep: 1,
             selectedType: @json(old('observation_type')),
             selectedCotTemplateId: @json(old('cot_indicator_version_id')),
+            suggestedTemplateId: '',
+            templateManuallySet: !!@json(old('cot_indicator_version_id')),
             selectedObservee: null,
             observeeId: @json(old('observee_id')),
             searchQuery: '',
@@ -1192,6 +1204,29 @@
 
             get selectedCotTemplate() {
                 return (this.cotTemplates || []).find(t => String(t.id) === String(this.selectedCotTemplateId)) || null;
+            },
+
+            get suggestedTemplate() {
+                return (this.cotTemplates || []).find(t => String(t.id) === String(this.suggestedTemplateId)) || null;
+            },
+
+            suggestTemplateForObservee(observee) {
+                if (!observee || this.selectedType !== 'teacher_observation') return null;
+                const opts = (this.cotTemplates || []).filter(t => t.ratee_role === 'teacher');
+                if (!opts.length) return null;
+                const stage = observee.career_stage || null;
+                const exact = opts.find(t => t.career_stage === stage);
+                if (exact) return exact;
+                const generic = opts.find(t => !t.career_stage || t.career_stage === 'all');
+                return generic || opts[0] || null;
+            },
+
+            applySuggestedTemplate() {
+                if (this.suggestedTemplate) {
+                    this.selectedCotTemplateId = this.suggestedTemplate.id;
+                    this.templateManuallySet = false;
+                    this.updateSteps();
+                }
             },
 
             get selectedCotTemplateRequiresPostConference() {
@@ -1243,6 +1278,7 @@
                 if (this.previewTemplate) {
                     this.selectedCotTemplateId = this.previewTemplate.id;
                 }
+                this.templateManuallySet = true;
                 this.closeTemplatePreview();
             },
 
@@ -1274,6 +1310,7 @@
                     (item.subjects || []).join(' ').toLowerCase().includes(q) ||
                     item.subject?.toLowerCase().includes(q) ||
                     item.grade_level?.toLowerCase().includes(q) ||
+                    item.grade_level_label?.toLowerCase().includes(q) ||
                     item.department?.toLowerCase().includes(q) ||
                     item.position?.toLowerCase().includes(q) ||
                     item.school_name?.toLowerCase().includes(q) ||
@@ -1313,10 +1350,13 @@
                 this.observeeId = '';
                 this.searchQuery = '';
                 this.selectedCotTemplateId = '';
+                this.suggestedTemplateId = '';
+                this.templateManuallySet = false;
                 this.updateSteps();
             },
 
             onTemplateChange() {
+                this.templateManuallySet = true;
                 this.updateSteps();
             },
 
@@ -1324,6 +1364,22 @@
                 this.selectedObservee = item;
                 this.observeeId = item.id;
                 this.searchQuery = '';
+                const suggested = this.suggestTemplateForObservee(item);
+                this.suggestedTemplateId = suggested ? suggested.id : '';
+                if (suggested && (!this.templateManuallySet || !this.selectedCotTemplateId)) {
+                    this.selectedCotTemplateId = suggested.id;
+                    this.templateManuallySet = false;
+                }
+            },
+
+            clearObservee() {
+                this.selectedObservee = null;
+                this.observeeId = '';
+                this.searchQuery = '';
+                this.suggestedTemplateId = '';
+                if (!this.templateManuallySet) {
+                    this.selectedCotTemplateId = '';
+                }
             },
 
             toggleSchoolHead() {
@@ -1337,13 +1393,15 @@
             autoFillDetails() {
                 if (this.selectedObservee) {
                     const subjList = this.selectedObservee.subjects || [];
-                    if (subjList.length) {
-                        this.form.subject = subjList[0];
-                    } else if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
-                        this.form.subject = this.selectedObservee.subject;
+                    if (!this.form.subject) {
+                        if (subjList.length) {
+                            this.form.subject = subjList[0];
+                        } else if (this.selectedObservee.subject && this.selectedObservee.subject !== 'Not set') {
+                            this.form.subject = this.selectedObservee.subject;
+                        }
                     }
-                    if (this.selectedObservee.grade_level && this.selectedObservee.grade_level !== 'Not set') {
-                        this.form.grade_level = this.selectedObservee.grade_level;
+                    if (!this.form.grade_level && this.selectedObservee.grade_level_label && this.selectedObservee.grade_level_label !== 'Not set') {
+                        this.form.grade_level = this.selectedObservee.grade_level_label;
                     }
                 }
             },
@@ -1368,11 +1426,14 @@
 
             updateSteps() {
                 const hasType = !!this.selectedType;
-                const hasTemplate = !!this.selectedCotTemplateId;
                 const hasObservee = !!this.selectedObservee;
+                const isSchoolHead = this.selectedType === 'school_head_observation';
+                const hasTemplate = !!this.selectedCotTemplateId;
+                const templateSettled = isSchoolHead || hasTemplate;
+
                 this.steps[0].status = hasType ? 'complete' : 'active';
-                this.steps[1].status = hasTemplate ? 'complete' : (hasType ? 'active' : 'pending');
-                this.steps[2].status = hasObservee ? 'complete' : (hasTemplate ? 'active' : 'pending');
+                this.steps[1].status = hasObservee ? 'complete' : (hasType ? 'active' : 'pending');
+                this.steps[2].status = templateSettled ? 'complete' : (hasObservee ? 'active' : 'pending');
                 this.steps[3].status = hasObservee ? 'active' : 'pending';
                 this.steps[4].status = 'pending';
                 this.steps[5].status = 'pending';
@@ -1422,7 +1483,7 @@
                 if (preselected && this.selectedObservee && ! oldObserveeId) {
                     // Skip the "Who" and "Observee" steps: land on the next
                     // step that still needs input.
-                    this.goToStep(this.selectedCotTemplateId ? 4 : 2);
+                    this.goToStep(this.selectedCotTemplateId ? 4 : 3);
                 } else if (this.selectedType) {
                     // Restore the correct step when re-rendering after validation error
                     const typeErrors = @if($errors->has('observation_type')) true @else false @endif;
@@ -1434,9 +1495,9 @@
                     if (typeErrors) {
                         this.goToStep(1);
                     } else if (templateErrors) {
-                        this.goToStep(2);
-                    } else if (observeeErrors) {
                         this.goToStep(3);
+                    } else if (observeeErrors) {
+                        this.goToStep(2);
                     } else if (scheduleErrors) {
                         this.goToStep(4);
                     } else if (conferenceErrors) {
@@ -1444,7 +1505,7 @@
                     } else if (this.selectedCotTemplateId && this.selectedObservee) {
                         this.goToStep(5);
                     } else if (this.selectedCotTemplateId) {
-                        this.goToStep(3);
+                        this.goToStep(2);
                     } else {
                         this.goToStep(2);
                     }

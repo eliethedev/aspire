@@ -47,7 +47,7 @@
             </div>
             <div>
                 <dt class="text-xs text-gray-500 dark:text-gray-400">Grade Level</dt>
-                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->grade_level ? 'Grade ' . $teacher->grade_level : '--' }}</dd>
+                <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $teacher->grade_level ? $teacher->grade_level_label : '--' }}</dd>
             </div>
             <div>
                 <dt class="text-xs text-gray-500 dark:text-gray-400">Years of Service</dt>

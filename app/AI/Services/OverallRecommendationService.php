@@ -38,12 +38,14 @@ class OverallRecommendationService extends AIService
             return null;
         }
 
+        $scaleMax = $observation->ratingScaleMax();
+
         // Ratings summary: one line per rated indicator (Not Applicable rows are excluded).
         $lines = [];
         foreach ($ratings->reject(fn ($r) => $r->isNotApplicable()) as $rating) {
             $score = $rating->isNotObserved()
                 ? 'NO (Not Observed)'
-                : $rating->numericRating().'/6';
+                : $rating->numericRating()."/{$scaleMax}";
 
             $comment = $rating->comments ? " — Comments: ".mb_substr($rating->comments, 0, 300) : '';
             $lines[] = "- {$rating->indicator_code} ({$rating->domain}): {$score}{$comment}";
@@ -55,10 +57,10 @@ class OverallRecommendationService extends AIService
         $indicatorContext = $this->rubrics->getIndicatorsContext($indicatorCodes);
 
         // Development needs: indicators rated below the attention threshold.
-        $lowThreshold = 3;
+        $lowThreshold = (int) round($scaleMax / 2);
         $needs = $ratings
             ->filter(fn ($r) => ! $r->isNotObserved() && $r->numericRating() > 0 && $r->numericRating() <= $lowThreshold)
-            ->map(fn ($r) => "{$r->indicator_code}: {$r->numericRating()}/6")
+            ->map(fn ($r) => "{$r->indicator_code}: {$r->numericRating()}/{$scaleMax}")
             ->implode('; ');
 
         $prompt = OverallRecommendationPrompt::build([
@@ -67,7 +69,7 @@ class OverallRecommendationService extends AIService
             'grade_level' => $observation->grade_level ?? 'N/A',
             'ratings_summary' => $ratingsSummary,
             'indicator_context' => $indicatorContext !== '' ? $indicatorContext : $this->rubrics->getSystemContext(),
-            'rating_scale' => $this->rubrics->getRatingScaleContext(),
+            'rating_scale' => $this->rubrics->getRatingScaleContext($observation->ratingScale()),
             'development_needs' => $needs !== '' ? $needs : 'None below threshold.',
         ]);
 

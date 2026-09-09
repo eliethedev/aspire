@@ -1,7 +1,7 @@
 <!-- Unified Sidebar for Teacher, Supervisor, School Head -->
-<aside class="sidebar-glass h-screen fixed left-0 top-0 z-[70] lg:z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" 
+<aside class="sidebar-glass h-screen fixed left-0 top-0 z-[70] md:z-40 transition-all duration-300 ease-sidebar flex flex-col overflow-hidden" 
        x-data="@if(auth()->user()->isTeacher()) { observationsOpen: $persist(true), feedbackOpen: $persist(true), analyticsOpen: $persist(true) } @elseif(auth()->user()->isSupervisor()) { observationsOpen: $persist(false), rateesOpen: $persist(true), postObsOpen: $persist(true), reportsOpen: $persist(true) } @else { supervisionOpen: $persist(true), aiInsightsOpen: $persist(true), othersOpen: $persist(false) } @endif" 
-       :class="[$store.sidebar.isCollapsed() ? 'w-16' : 'w-56', $store.sidebar.mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0']">
+       :class="[$store.sidebar.isCollapsed() ? 'w-16' : 'w-56', $store.sidebar.mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
 
     <!-- Logo - fixed at top (friendly brand lockup, same h-16 size) -->
     <div class="h-16 flex items-center justify-between gap-2 px-4 border-b border-gray-200/80 dark:border-gray-800/80 shrink-0 bg-white dark:bg-transparent">
@@ -15,7 +15,7 @@
         {{-- Desktop collapse/expand toggle: plain-language labels for older users. Same p-2 / w-5 h-5 sizes. --}}
         <button @click="$store.sidebar.toggle()"
                 :class="$store.sidebar.isCollapsed() ? 'mx-auto' : ''"
-                class="sidebar-toggle-btn hidden lg:flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 dark:hover:bg-gray-800 dark:hover:text-indigo-300 dark:hover:border-indigo-800 transition-colors focus:outline-none"
+                class="sidebar-toggle-btn hidden md:flex items-center justify-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 dark:hover:bg-gray-800 dark:hover:text-indigo-300 dark:hover:border-indigo-800 transition-colors focus:outline-none"
                 :title="$store.sidebar.isCollapsed() ? 'Show side menu' : 'Hide side menu'"
                 :aria-label="$store.sidebar.isCollapsed() ? 'Show side menu' : 'Hide side menu'"
                 :aria-expanded="!$store.sidebar.isCollapsed()"
@@ -29,7 +29,7 @@
             </svg>
         </button>
         <button @click="$store.sidebar.closeMobile()"
-                class="lg:hidden p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+                class="md:hidden p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 text-slate-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
                 title="Close side menu" aria-label="Close side menu">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -49,7 +49,7 @@
                     <!-- Dashboard -->
                     <li>
                         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.dashboard') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.dashboard') }} @else {{ route('school-head.dashboard') }} @endif"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @else {{ request()->routeIs('school-head.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @endif"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @else {{ request()->routeIs('school-head.dashboard') ? 'sidebar-link-active icon-dashboard' : '' }} @endif"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-dashboard" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +62,7 @@
                     <!-- Profile -->
                     <li>
                         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.profile.edit') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.profile.edit') }} @else {{ route('school-head.profile.edit') }} @endif"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @else {{ request()->routeIs('school-head.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @endif"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @else {{ request()->routeIs('school-head.profile.*') ? 'sidebar-link-active icon-profile' : '' }} @endif"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-profile" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,7 @@
                     <!-- Calendar -->
                     <li>
                         <a href="@if(auth()->user()->isTeacher()) {{ route('teacher.calendar.index') }} @elseif(auth()->user()->isSupervisor()) {{ route('supervisor.calendar.index') }} @else {{ route('school-head.calendar.index') }} @endif"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @else {{ request()->routeIs('school-head.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @endif"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 @if(auth()->user()->isTeacher()) {{ request()->routeIs('teacher.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @elseif(auth()->user()->isSupervisor()) {{ request()->routeIs('supervisor.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @else {{ request()->routeIs('school-head.calendar.index') ? 'sidebar-link-active icon-calendar' : '' }} @endif"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-calendar" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +91,7 @@
             @if(auth()->user()->isTeacher())
             <!-- Teacher: Observations Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Observations</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -101,7 +101,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? observationsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('teacher.observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +122,7 @@
                     @endphp
                     <li>
                         <a href="{{ route('teacher.observations.index', ['status' => 'scheduled']) }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.*') && request('status') === 'scheduled' ? 'sidebar-link-active icon-calendar' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.*') && request('status') === 'scheduled' ? 'sidebar-link-active icon-calendar' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-calendar relative" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +143,7 @@
 
             <!-- Teacher: Feedback Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="feedbackOpen = !feedbackOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="feedbackOpen = !feedbackOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Feedback</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': feedbackOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -153,7 +153,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? feedbackOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('teacher.feedback.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.feedback.*') ? 'sidebar-link-active icon-feedback' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.feedback.*') ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-feedback" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@
                     </li>
                     <li>
                         <a href="{{ route('teacher.coaching.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-coaching" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@
 
             <!-- Teacher: Analytics Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : ''">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="analyticsOpen = !analyticsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="analyticsOpen = !analyticsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Analytics</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': analyticsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -190,7 +190,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? analyticsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('teacher.analytics') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.analytics') ? 'sidebar-link-active icon-analytics' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.analytics') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-analytics" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +207,7 @@
             @if(auth()->user()->isSupervisor())
             <!-- Supervisor: Observations Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="observationsOpen = !observationsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Observations</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': observationsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -217,7 +217,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? observationsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('supervisor.observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && !request('status') && !request('stage') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && !request('status') && !request('stage') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +230,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.observations.create') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-register" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +242,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.observations.index', ['status' => 'completed']) }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('status') === 'completed' ? 'sidebar-link-active icon-coaching' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('status') === 'completed' ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-coaching" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +257,7 @@
 
             <!-- Supervisor: Ratees Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="rateesOpen = !rateesOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="rateesOpen = !rateesOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Ratees</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': rateesOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -267,7 +267,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? rateesOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('supervisor.teachers.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-users" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +279,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.school-heads.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.school-heads.*') ? 'sidebar-link-active icon-schools' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.school-heads.*') ? 'sidebar-link-active icon-schools' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-schools" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@
 
             <!-- Supervisor: Post-Observation Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="postObsOpen = !postObsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="postObsOpen = !postObsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Post-Observation</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': postObsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -304,7 +304,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? postObsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('supervisor.observations.index', ['stage' => 'post_conference']) }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('stage') === 'post_conference' ? 'sidebar-link-active icon-feedback' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('stage') === 'post_conference' ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-feedback" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,7 +316,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.coaching.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-coaching" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,7 +328,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.career.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.*') ? 'sidebar-link-active icon-analytics' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.*') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-analytics" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,7 +340,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.career.monitor') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.monitor') ? 'sidebar-link-active icon-analytics' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.monitor') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-activity" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -355,7 +355,7 @@
 
             <!-- Supervisor: Reports Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : ''">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="reportsOpen = !reportsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="reportsOpen = !reportsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Reports</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': reportsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -365,7 +365,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? reportsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('supervisor.reports.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.*') && !request('view') ? 'sidebar-link-active icon-reports' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.*') && !request('view') ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-reports" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,7 +377,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.reports.index', ['view' => 'analytics']) }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'analytics' ? 'sidebar-link-active icon-analytics' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'analytics' ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-analytics" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,7 +389,7 @@
                     </li>
                     <li>
                         <a href="{{ route('supervisor.reports.index', ['view' => 'performance']) }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'performance' ? 'sidebar-link-active icon-reports' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'performance' ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-reports" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,7 +405,7 @@
             <!-- Supervisor: Notifications -->
             <li>
                 <a href="{{ route('notifications.index') }}"
-                   class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
+                   class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
                    :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                     <span class="sidebar-icon-wrap icon-announcements" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,7 +433,7 @@
             @endphp
             <!-- School Head: Core Supervision Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="supervisionOpen = !supervisionOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="supervisionOpen = !supervisionOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors">
                     <span>Core Supervision</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': supervisionOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -443,7 +443,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? supervisionOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('school-head.teachers.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-users" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,7 +455,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.career.advancements.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.career.advancements.*') ? 'sidebar-link-active icon-coaching' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.career.advancements.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-coaching" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -467,7 +467,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.lesson-plans.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.lesson-plans.*') ? 'sidebar-link-active icon-lesson' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.lesson-plans.*') ? 'sidebar-link-active icon-lesson' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-lesson" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +479,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.observations.create') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-register" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,7 +491,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.index') || request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.index') || request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations relative" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -510,7 +510,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.co-observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.co-observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.co-observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,7 +525,7 @@
 
             <!-- School Head: AI & Insights Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="aiInsightsOpen = !aiInsightsOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="aiInsightsOpen = !aiInsightsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>AI & Insights</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': aiInsightsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -535,7 +535,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? aiInsightsOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('school-head.feedback.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.feedback.*') || request()->routeIs('school-head.coaching.*') ? 'sidebar-link-active icon-feedback' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.feedback.*') || request()->routeIs('school-head.coaching.*') ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-feedback" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,7 +547,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.reports.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.reports.*') ? 'sidebar-link-active icon-reports' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.reports.*') ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-reports" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,7 +562,7 @@
 
             <!-- School Head: Others Section -->
             <li :class="$store.sidebar.isCollapsed() ? 'mb-1' : 'mb-1'">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="othersOpen = !othersOpen" class="sidebar-section-header w-full px-3 py-1 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="othersOpen = !othersOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-indigo-400 dark:text-indigo-500 uppercase tracking-wider hover:text-indigo-600 transition-colors">
                     <span>Others</span>
                     <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': othersOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -572,7 +572,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? othersOpen : true" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="space-y-0.5 mt-0.5">
                     <li>
                         <a href="{{ route('notifications.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-announcements" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -584,7 +584,7 @@
                     </li>
                     <li>
                         <a href="{{ route('school-head.profile.edit') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-1.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.profile.*') ? 'sidebar-link-active icon-profile' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.profile.*') ? 'sidebar-link-active icon-profile' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-profile" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

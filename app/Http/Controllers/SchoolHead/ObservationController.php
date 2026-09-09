@@ -9,7 +9,9 @@ use App\Models\Observation;
 use App\Models\SchoolHeadProfile;
 use App\Models\User;
 use App\Models\CotRating;
+use App\Models\CotIndicatorVersion;
 use App\Services\AuditLogService;
+use App\Services\CotDocumentService;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use App\Services\AIFeedbackService;
@@ -18,6 +20,7 @@ use App\Services\CotIndicatorService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ObservationController extends Controller
@@ -141,6 +144,83 @@ class ObservationController extends Controller
     }
 
     /**
+     * Download the completed COT document (DOCX) for an observation.
+     *
+     * Generates it on demand when it does not exist yet, reusing the exact
+     * document the supervisor workflow produces. Only teacher observations
+     * use the COT instrument; EPOC observations are handled separately.
+     */
+    public function downloadCotDocument(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if ($observation->observee_type !== Teacher::class) {
+            return redirect()->back()->with('error', 'COT documents are only available for teacher observations.');
+        }
+
+        $service = app(CotDocumentService::class);
+
+        $errors = $service->canGenerate($observation);
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot download the COT document: '.implode(' ', $errors));
+        }
+
+        $path = $service->documentPath($observation);
+
+        if (!$path) {
+            try {
+                $path = $service->generateDocument($observation);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('School head COT document generation failed', ['observation_id' => $observation->id, 'error' => $e->getMessage()]);
+
+                return redirect()->back()->with('error', 'Failed to generate the COT document. Please try again.');
+            }
+        }
+
+        return Storage::disk(CotDocumentService::DISK)->download($path, basename($path));
+    }
+
+    /**
+     * Show all observations for a given observee (teacher or school head)
+     * that the school head is a party to.
+     */
+    public function teacherHistory(Request $request, $observeeId)
+    {
+        $user = Auth::user();
+        $observeeType = $request->type;
+
+        if (! $observeeType) {
+            return redirect()->route('school-head.observations.index')
+                ->with('error', 'Observee type is required.');
+        }
+
+        $baseQuery = Observation::with(['observee.user', 'preObservationPlanning', 'preConference', 'postConference', 'cotRatings'])
+            ->where('observee_id', $observeeId)
+            ->where('observee_type', $observeeType)
+            ->where(function ($q) use ($user) {
+                $q->where('observer_id', $user->id)
+                    ->orWhere('school_head_id', $user->id)
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->where('observee_id', $user->schoolHeadProfile?->id)
+                            ->where('observee_type', SchoolHeadProfile::class);
+                    });
+            });
+
+        $observations = $baseQuery->latest()->paginate(10);
+
+        $observeeName = $observations->first()?->observee?->user?->name ?? 'Unknown';
+
+        $allForStats = $baseQuery->get();
+        $stats = [
+            'total' => $allForStats->count(),
+            'completed' => $allForStats->where('stage', 'post_conference')->count(),
+            'avg_score' => $allForStats->whereNotNull('overall_score')->avg('overall_score'),
+        ];
+
+        return view('school-head.observations.teacher-history', compact('observations', 'observeeName', 'observeeId', 'observeeType', 'stats'));
+    }
+
+    /**
      * Show the form for creating a new teacher observation.
      */
     public function createObservation()
@@ -186,9 +266,11 @@ class ObservationController extends Controller
                 'subject' => $teacher->subjectsLabel ?? 'Not set',
                 'subjects' => $teacher->subjects->pluck('name')->values()->all(),
                 'grade_level' => $teacher->grade_level ?? 'Not set',
+                'grade_level_label' => $teacher->grade_level_label ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
                 'position_label' => $teacher->position_label ?? 'Teacher',
+                'career_stage' => $teacher->career_stage,
                 'employee_number' => $teacher->employee_number ?? '—',
                 'recent_observations' => $observations,
                 'obs_stats' => [
@@ -199,7 +281,38 @@ class ObservationController extends Controller
             ];
         })->values();
 
-        return view('school-head.observations.create', compact('teacherData'));
+        $schoolYear = $this->getCurrentSchoolYear();
+
+        // Published COT rating instruments for the current school year. The
+        // School Head form preselects the template aligned with the teacher's
+        // career stage, but the observer can override it manually.
+        $cotTemplates = CotIndicatorVersion::query()
+            ->withCount('indicators')
+            ->where('school_year', $schoolYear)
+            ->where('ratee_role', 'teacher')
+            ->published()
+            ->orderByDesc('is_default')
+            ->orderBy('career_stage')
+            ->orderBy('label')
+            ->get()
+            ->map(fn (CotIndicatorVersion $version) => [
+                'id' => $version->id,
+                'label' => $version->label,
+                'school_year' => $version->school_year,
+                'is_default' => $version->is_default,
+                'ratee_role' => $version->rateeRole(),
+                'ratee_role_label' => $version->rateeRoleLabel(),
+                'ratee_position' => $version->ratee_position,
+                'career_stage' => $version->career_stage,
+                'career_stage_label' => $version->careerStageLabel(),
+                'framework_label' => $version->frameworkLabel(),
+                'instrument_label' => $version->instrumentLabel(),
+                'indicators_count' => $version->indicators_count,
+                'requires_post_conference' => $version->requiresPostConference(),
+            ])
+            ->values();
+
+        return view('school-head.observations.create', compact('teacherData', 'cotTemplates', 'schoolYear'));
     }
 
     /**
@@ -218,6 +331,7 @@ class ObservationController extends Controller
             'grade_level' => ['nullable', 'string'],
             'observation_mode' => ['nullable', 'in:in_person,virtual,hybrid'],
             'schedule_type' => ['required', 'in:scheduled,immediate'],
+            'cot_indicator_version_id' => ['nullable', 'integer'],
         ]);
 
         $status = $validated['schedule_type'] === 'scheduled' ? 'scheduled' : 'in_progress';
@@ -227,13 +341,31 @@ class ObservationController extends Controller
         $activeTemplate = $this->formTemplateService->getActiveTemplate($schoolYear, 'teacher_observation');
 
         $observee = Teacher::find($validated['observee_id']);
-        $cotIndicatorVersion = $this->cotIndicatorService->getVersionModel($schoolYear);
-        if ($observee) {
-            $cotIndicatorVersion = $this->cotIndicatorService->resolveVersionForObservee(
-                $schoolYear,
-                'teacher',
-                $observee->career_stage,
-            ) ?? $cotIndicatorVersion;
+
+        // A manually overridden template wins when it is a published teacher
+        // instrument for the school year; otherwise fall back to the template
+        // aligned with the teacher's career stage.
+        $cotIndicatorVersion = null;
+        $overrideId = $validated['cot_indicator_version_id'] ?? null;
+        if ($overrideId) {
+            $override = CotIndicatorVersion::find($overrideId);
+            if ($override
+                && $override->school_year === $schoolYear
+                && $override->isPublished()
+                && $override->rateeRole() === 'teacher') {
+                $cotIndicatorVersion = $override;
+            }
+        }
+
+        if (! $cotIndicatorVersion) {
+            $cotIndicatorVersion = $this->cotIndicatorService->getVersionModel($schoolYear);
+            if ($observee) {
+                $cotIndicatorVersion = $this->cotIndicatorService->resolveVersionForObservee(
+                    $schoolYear,
+                    'teacher',
+                    $observee->career_stage,
+                ) ?? $cotIndicatorVersion;
+            }
         }
 
         $observation = Observation::create([
@@ -1302,7 +1434,7 @@ class ObservationController extends Controller
         );
 
         $pdService = app(\App\Services\ProfessionalDevelopmentService::class);
-        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher', $observation->ratingScaleMax());
 
         return view('school-head.observations.progress-comparison', [
             'observation' => $observation,
@@ -1327,7 +1459,7 @@ class ObservationController extends Controller
 
         $pdService = app(\App\Services\ProfessionalDevelopmentService::class);
         $recommendations = $pdService->getRecommendations($lowIndicators->toArray());
-        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher', $observation->ratingScaleMax());
 
         return view('school-head.observations.pd-recommendations', [
             'observation' => $observation,
@@ -1589,7 +1721,7 @@ class ObservationController extends Controller
                                 </p>
                                 <table style='background-color: #fffbeb; border-left: 4px solid #d97706; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level_label}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                 </table>
                             </td>

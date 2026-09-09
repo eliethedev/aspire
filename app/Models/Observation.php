@@ -257,6 +257,44 @@ class Observation extends Model
     }
 
     /**
+     * Get the rating scale (value => label) for this observation's pinned COT
+     * version, falling back to the global config default (Teacher I-III).
+     */
+    public function ratingScale(): array
+    {
+        if ($this->relationLoaded('cotIndicatorVersion') && $this->cotIndicatorVersion) {
+            return $this->cotIndicatorVersion->ratingScale();
+        }
+
+        if ($this->cot_indicator_version_id) {
+            $version = CotIndicatorVersion::find($this->cot_indicator_version_id);
+            if ($version) {
+                return $version->ratingScale();
+            }
+        }
+
+        return config('cot.rating_scale', []);
+    }
+
+    /**
+     * Highest value on the rating scale (scale max / score denominator).
+     */
+    public function ratingScaleMax(): int
+    {
+        $keys = array_keys($this->ratingScale());
+        return $keys ? max($keys) : 6;
+    }
+
+    /**
+     * Lowest value on the rating scale (the "Not Observed" fallback value).
+     */
+    public function ratingScaleMin(): int
+    {
+        $keys = array_keys($this->ratingScale());
+        return $keys ? min($keys) : 2;
+    }
+
+    /**
      * Observation is assigned to a School Head
      */
     public function schoolHead(): BelongsTo
@@ -457,6 +495,14 @@ class Observation extends Model
     public function getRelatedObservationAttribute()
     {
         return $this->relatedObservation;
+    }
+
+    /**
+     * User-friendly label for this observation's grade level.
+     */
+    public function getGradeLevelLabelAttribute(): ?string
+    {
+        return \App\Enums\GradeLevel::labelFor($this->grade_level);
     }
 
     /**

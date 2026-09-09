@@ -188,8 +188,12 @@ class CotIndicatorRepository
         }
 
         if (empty($result)) {
-            foreach (config('cot.versions', []) as $schoolYear => $config) {
-                $result[$schoolYear] = $config['label'];
+            foreach (config('cot.versions', []) as $schoolYear => $stages) {
+                foreach ($stages as $stageKey => $stageConfig) {
+                    if ($stageKey === config('cot.default_stage', 'teacher_i_iii')) {
+                        $result[$schoolYear] = $stageConfig['label'] ?? $schoolYear;
+                    }
+                }
             }
         }
 

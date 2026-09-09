@@ -448,7 +448,8 @@ class FormTemplateSeeder extends Seeder
             'order' => 2,
         ]);
 
-        $cotIndicators = config('cot.versions.' . $schoolYear, config('cot.versions.' . config('cot.default_version')))['indicators'] ?? [];
+        $cotVersions = config('cot.versions.' . $schoolYear, config('cot.versions.' . config('cot.default_version'))) ?? [];
+        $cotIndicators = $cotVersions[config('cot.default_stage', 'teacher_i_iii')]['indicators'] ?? reset($cotVersions)['indicators'] ?? [];
         $domains = [];
         foreach ($cotIndicators as $i => $indicator) {
             $domains[$indicator['domain']][] = $indicator;

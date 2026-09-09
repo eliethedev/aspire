@@ -701,9 +701,11 @@ class SupervisorController extends Controller
                 'subject' => $teacher->subjectsLabel ?? 'Not set',
                 'subjects' => $teacher->subjects->pluck('name')->values()->all(),
                 'grade_level' => $teacher->grade_level ?? 'Not set',
+                'grade_level_label' => $teacher->grade_level_label ?? 'Not set',
                 'department' => $teacher->department ?? 'Not set',
                 'position' => $teacher->position ?? 'Teacher',
                 'position_label' => $teacher->position_label ?? 'Teacher',
+                'career_stage' => $teacher->career_stage,
                 'employee_number' => $teacher->employee_number ?? '—',
                 'school_name' => $teacher->school?->name ?? 'No school assigned',
                 'profile_url' => route('supervisor.teachers.show', $teacher),
@@ -730,6 +732,7 @@ class SupervisorController extends Controller
                 'email' => $schoolHead->user->email,
                 'subject' => $schoolHead->subject ?? 'Not set',
                 'grade_level' => $schoolHead->grade_level ?? 'Not set',
+                'grade_level_label' => $schoolHead->grade_level_label ?? 'Not set',
                 'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
                 'position_label' => $schoolHead->position_level ? $schoolHead->position_level_label : ($schoolHead->position ?? $schoolHead->current_designation ?? 'School Head'),
                 'position_level' => $schoolHead->position_level ?? '—',
@@ -758,6 +761,8 @@ class SupervisorController extends Controller
                 'is_default' => $version->is_default,
                 'ratee_role' => $version->rateeRole(),
                 'ratee_role_label' => $version->rateeRoleLabel(),
+                'ratee_position' => $version->ratee_position,
+                'career_stage' => $version->career_stage,
                 'career_stage_label' => $version->careerStageLabel(),
                 'framework_label' => $version->frameworkLabel(),
                 'instrument_label' => $version->instrumentLabel(),
@@ -1475,7 +1480,7 @@ class SupervisorController extends Controller
                                 </p>
                                 <table style='background-color: #fffbeb; border-left: 4px solid #d97706; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level_label}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                 </table>
                             </td>
@@ -1955,6 +1960,10 @@ class SupervisorController extends Controller
     {
         $this->authorizeObservation($observation);
 
+        if (! $observation->isSchoolHeadObservation()) {
+            return back()->with('error', 'The EPOC evaluation is only available for school head observations.');
+        }
+
         $epocEvaluation = $observation->epocEvaluation;
         $schoolHead = $observation->schoolHead;
 
@@ -1967,6 +1976,10 @@ class SupervisorController extends Controller
     public function storeEPOC(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
+
+        if (! $observation->isSchoolHeadObservation()) {
+            return back()->with('error', 'The EPOC evaluation is only available for school head observations.');
+        }
 
         $validated = $request->validate([
             'school_head_name' => ['nullable', 'string'],
@@ -2016,6 +2029,10 @@ class SupervisorController extends Controller
     public function downloadEpoc(Observation $observation)
     {
         $this->authorizeObservation($observation);
+
+        if (! $observation->isSchoolHeadObservation()) {
+            return back()->with('error', 'The EPOC evaluation is only available for school head observations.');
+        }
 
         if (!$observation->epocEvaluation) {
             return back()->with('error', 'No EPOC evaluation has been completed for this observation.');
@@ -2298,7 +2315,7 @@ class SupervisorController extends Controller
         );
 
         $pdService = app(ProfessionalDevelopmentService::class);
-        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher', $observation->ratingScaleMax());
 
         return view('supervisor.observations.progress-comparison', [
             'observation' => $observation,
@@ -2323,7 +2340,7 @@ class SupervisorController extends Controller
 
         $pdService = app(ProfessionalDevelopmentService::class);
         $recommendations = $pdService->getRecommendations($lowIndicators->toArray());
-        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher');
+        $pdPlan = $pdService->generatePDPlan($lowIndicators->toArray(), $observation->observee?->user?->name ?? 'Teacher', $observation->ratingScaleMax());
 
         return view('supervisor.observations.pd-recommendations', [
             'observation' => $observation,
@@ -2786,7 +2803,7 @@ class SupervisorController extends Controller
                     $obs->status,
                     $obs->overall_score,
                     $obs->subject ?? 'N/A',
-                    $obs->grade_level ?? 'N/A',
+                    $obs->grade_level_label ?? 'N/A',
                     $obs->school_year ?? 'N/A',
                     $obs->quarter ?? 'N/A',
                     $obs->created_at?->format('Y-m-d H:i:s'),

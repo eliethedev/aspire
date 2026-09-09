@@ -53,7 +53,7 @@
                             @endif
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->school?->name ?? '—' }}</span>
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-book-open text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->subjectsLabel ?? 'No subject' }}</span>
-                            @if($teacher->grade_level)<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-layer-group text-[11px] text-slate-400 dark:text-gray-500"></i> Grade {{ $teacher->grade_level }}</span>@endif
+                            @if($teacher->grade_level)<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-layer-group text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->grade_level_label }}</span>@endif
                         </div>
                         @if(!empty($attentionFlags))
                         <div class="mt-3 flex flex-wrap gap-1.5">

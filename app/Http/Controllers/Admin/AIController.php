@@ -186,6 +186,19 @@ class AIController extends Controller
             return back()->with('error', 'Failed to write environment file. Check file permissions.');
         }
 
+        // Reflect the saved provider + default model in the running process so
+        // the admin page (and subsequent AI calls in this process) immediately
+        // use the new selection instead of a stale boot-time value.
+        config(['ai.provider' => $effectiveProvider]);
+        config(['ai.models.default' => $effectiveModel]);
+
+        // Purge a cached configuration if one exists: otherwise a cached
+        // baseline could be served instead of the freshly saved .env values
+        // after the next process/system restart.
+        if (app()->configurationIsCached()) {
+            Artisan::call('config:clear');
+        }
+
         return back()->with('success', 'AI settings updated successfully (provider/model verified). Changes take effect on the next page load.');
     }
 
@@ -429,6 +442,12 @@ class AIController extends Controller
      */
     private function backupEnvFile(string $envFile, string $prefix = 'ai-'): void
     {
+        // Tests exercise update()/emergency()/restore() against the real .env;
+        // never leave trace snapshot files behind in the storage backup dir.
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $dir = storage_path('app/ai/env-backups');
         if (! is_dir($dir) && ! @mkdir($dir, 0755, true) && ! is_dir($dir)) {
             Log::warning('Could not create AI env backup directory: '.$dir);

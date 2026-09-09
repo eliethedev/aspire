@@ -30,7 +30,7 @@
             <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
                 {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
                 @if($observation->isTeacherObservation() && $observation->subject)
-                    | {{ $observation->subject }} - {{ $observation->grade_level }}
+                    | {{ $observation->subject }} - {{ $observation->grade_level_label }}
                 @endif
             </p>
         </div>
@@ -298,12 +298,13 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Overall Score</p>
                     <div class="flex items-end gap-1">
                         <p class="text-gray-900 dark:text-gray-100 font-bold text-3xl tracking-tight">{{ number_format($observation->overall_score, 1) }}</p>
-                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ 6</p>
+                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ {{ $observation->ratingScaleMax() }}</p>
                     </div>
                     @php
-                        $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score);
-                        $descClass = $observation->overall_score >= 5.5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= 4.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= 3.5 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= 2.5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
-                        $scorePct = $observation->overall_score ? ($observation->overall_score / 6) * 100 : 0;
+                        $_max = (float) $observation->ratingScaleMax();
+                        $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score, $_max);
+                        $descClass = $observation->overall_score >= $_max * 5.5 / 6.0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= $_max * 4.5 / 6.0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= $_max * 3.5 / 6.0 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= $_max * 2.5 / 6.0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                        $scorePct = $observation->overall_score ? ($observation->overall_score / $_max) * 100 : 0;
                         $scoreBg = $scorePct >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/200' : ($scorePct >= 60 ? 'bg-amber-50 dark:bg-amber-900/200' : 'bg-red-50 dark:bg-red-900/200');
                     @endphp
                     <div class="w-24 h-1.5 bg-gray-100 rounded-full mt-1 ml-auto">

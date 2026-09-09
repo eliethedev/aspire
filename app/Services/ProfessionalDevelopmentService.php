@@ -388,26 +388,29 @@ class ProfessionalDevelopmentService
         return $recommendations;
     }
 
-    public function generatePDPlan(array $lowIndicators, string $teacherName): array
+    public function generatePDPlan(array $lowIndicators, string $teacherName, int $scaleMax = 6): array
     {
         $recommendations = $this->getRecommendations($lowIndicators);
 
         $shortTerm = array_filter($recommendations, fn($r) => $r['severity'] === 'critical' || $r['severity'] === 'high');
         $longTerm = array_filter($recommendations, fn($r) => $r['severity'] === 'medium');
 
+        $satisfactoryTarget = number_format($scaleMax * 4.0 / 6.0, 1);
+        $improveTarget = number_format($scaleMax * 3.5 / 6.0, 1);
+
         return [
             'teacher' => $teacherName,
             'generated_at' => now()->format('F d, Y'),
             'short_term_goals' => array_map(fn($r) => [
                 'indicator' => "{$r['indicator_code']}: {$r['indicator']}",
-                'target' => "Improve from {$r['current_average']}/6 to at least 3.5/6 within one grading period",
+                'target' => "Improve from {$r['current_average']}/{$scaleMax} to at least {$improveTarget}/{$scaleMax} within one grading period",
                 'activities' => array_slice($r['activities'], 0, 2),
                 'timeline' => '1-2 months',
                 'support_needed' => 'Supervisory coaching and targeted workshop',
             ], array_values($shortTerm)),
             'long_term_goals' => array_map(fn($r) => [
                 'indicator' => "{$r['indicator_code']}: {$r['indicator']}",
-                'target' => "Achieve satisfactory (4.0/6) or above within one school year",
+                'target' => "Achieve satisfactory ({$satisfactoryTarget}/{$scaleMax}) or above within one school year",
                 'activities' => array_slice($r['activities'], 0, 2),
                 'timeline' => '3-6 months',
                 'support_needed' => 'Professional development seminars and peer mentoring',

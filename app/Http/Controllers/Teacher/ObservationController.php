@@ -7,6 +7,7 @@ use App\Models\Observation;
 use App\Models\PreObservationPlanning;
 use App\Models\Teacher;
 use App\Services\AuditLogService;
+use App\Services\CotDocumentService;
 use App\Services\NotificationService;
 use App\Services\PHPMailerService;
 use Illuminate\Support\Facades\Auth;
@@ -82,6 +83,42 @@ class ObservationController extends Controller
         ]);
 
         return view('teacher.observations.show', compact('observation'));
+    }
+
+    /**
+     * Download the completed COT document (DOCX) for this teacher's observation.
+     *
+     * Generates it on demand when it does not exist yet, reusing the exact
+     * document the supervisor workflow produces.
+     */
+    public function downloadCotDocument(Observation $observation)
+    {
+        $teacher = Auth::user()->teacher;
+
+        if ($observation->observee_id !== $teacher?->id || $observation->observee_type !== Teacher::class) {
+            abort(403, 'You are not authorized to download this document.');
+        }
+
+        $service = app(CotDocumentService::class);
+
+        $errors = $service->canGenerate($observation);
+        if ($errors) {
+            return redirect()->back()->with('error', 'Cannot download the COT document: '.implode(' ', $errors));
+        }
+
+        $path = $service->documentPath($observation);
+
+        if (!$path) {
+            try {
+                $path = $service->generateDocument($observation);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Teacher COT document generation failed', ['observation_id' => $observation->id, 'error' => $e->getMessage()]);
+
+                return redirect()->back()->with('error', 'Failed to generate the COT document. Please try again.');
+            }
+        }
+
+        return Storage::disk(CotDocumentService::DISK)->download($path, basename($path));
     }
 
     public function uploadLessonPlan(Request $request, Observation $observation)
@@ -288,7 +325,7 @@ class ObservationController extends Controller
                                 </p>
                                 <table style='background-color: #ecfdf5; border-left: 4px solid #059669; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level_label}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Date:</strong> ' . ($observation->observation_date?->format('M d, Y') ?? 'No date') . '</td></tr>
                                 </table>
@@ -329,7 +366,7 @@ class ObservationController extends Controller
                                 </p>
                                 <table style='background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level_label}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Reason:</strong> {$reasonLabel}</td></tr>
                                 </table>
                                 " . ($notes ? "<p style='color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;'><strong>Notes:</strong> {$notes}</p>" : "") . "
@@ -369,7 +406,7 @@ class ObservationController extends Controller
                                 </p>
                                 <table style='background-color: #f0fdf4; border-left: 4px solid #2563eb; padding: 16px; margin: 0 0 20px 0; border-radius: 4px; width: 100%;'>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Subject:</strong> {$observation->subject}</td></tr>
-                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level}</td></tr>
+                                    <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>Grade Level:</strong> {$observation->grade_level_label}</td></tr>
                                     <tr><td style='padding: 4px 0; color: #374151; font-size: 14px;'><strong>School Year:</strong> {$observation->school_year}</td></tr>
                                 </table>
                             </td>

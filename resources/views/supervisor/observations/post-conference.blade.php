@@ -122,11 +122,12 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
                     <div class="text-right">
-                        <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 6.00</span></span>
+                        <span class="text-2xl font-bold text-blue-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ {{ number_format($observation->ratingScaleMax(), 2) }}</span></span>
                         @if($observation->overall_score !== null)
                         @php
-                            $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score);
-                            $descClass = $observation->overall_score >= 5.5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= 4.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= 3.5 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= 2.5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                            $_max = (float) $observation->ratingScaleMax();
+                            $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score, $_max);
+                            $descClass = $observation->overall_score >= $_max * 5.5 / 6.0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= $_max * 4.5 / 6.0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= $_max * 3.5 / 6.0 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= $_max * 2.5 / 6.0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
                         @endphp
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mt-1 {{ $descClass }}">{{ $descTotal }}</span>
                         @endif

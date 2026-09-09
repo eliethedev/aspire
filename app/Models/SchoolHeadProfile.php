@@ -77,6 +77,14 @@ class SchoolHeadProfile extends Model
     }
 
     /**
+     * User-friendly label for the grade level.
+     */
+    public function getGradeLevelLabelAttribute(): ?string
+    {
+        return \App\Enums\GradeLevel::labelFor($this->grade_level);
+    }
+
+    /**
      * School Head has many observations (as observee)
      */
     public function observations(): \Illuminate\Database\Eloquent\Relations\HasMany

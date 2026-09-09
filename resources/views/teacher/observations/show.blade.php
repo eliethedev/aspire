@@ -54,7 +54,7 @@
                 @endif
             </p>
             @if($observation->subject)
-                <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- Grade {{ $observation->grade_level }} @endif</p>
+                <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- {{ $observation->grade_level_label }} @endif</p>
             @endif
         </div>
         <a href="{{ route('teacher.observations.index') }}" 
@@ -587,16 +587,24 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400">COT-based performance assessment</p>
                     </div>
                 </div>
+                @if($observation->status === 'completed')
+                    <a href="{{ route('teacher.observations.cot-document', $observation) }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors ml-4 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Download COT
+                    </a>
+                @endif
                 <div class="text-right">
                     <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Overall Score</p>
                     <div class="flex items-end gap-1">
                         <p class="text-gray-900 dark:text-gray-100 font-bold text-3xl tracking-tight">{{ number_format($observation->overall_score, 1) }}</p>
-                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ 6</p>
+                        <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ {{ $observation->ratingScaleMax() }}</p>
                     </div>
                     @php
-                        $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score);
-                        $descClass = $observation->overall_score >= 5.5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= 4.5 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= 3.5 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= 2.5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
-                        $scorePct = ($observation->overall_score / 6) * 100;
+                        $_max = (float) $observation->ratingScaleMax();
+                        $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score, $_max);
+                        $descClass = $observation->overall_score >= $_max * 5.5 / 6.0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= $_max * 4.5 / 6.0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= $_max * 3.5 / 6.0 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= $_max * 2.5 / 6.0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                        $scorePct = ($observation->overall_score / $_max) * 100;
                         $scoreColor = $scorePct >= 80 ? 'text-emerald-600' : ($scorePct >= 60 ? 'text-amber-600' : 'text-red-600');
                         $scoreBg = $scorePct >= 80 ? 'bg-emerald-500' : ($scorePct >= 60 ? 'bg-amber-500' : 'bg-red-500');
                     @endphp
@@ -759,7 +767,7 @@
                     <div class="px-5 py-3.5 flex items-start justify-between gap-3">
                         <dt class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">Subject</dt>
                         <dd class="text-sm font-medium text-gray-900 dark:text-gray-100 text-right">
-                            {{ $observation->subject }}@if($observation->grade_level) &middot; Gr. {{ $observation->grade_level }}@endif
+                            {{ $observation->subject }}@if($observation->grade_level) &middot; {{ $observation->grade_level_label }}@endif
                         </dd>
                     </div>
                     @endif

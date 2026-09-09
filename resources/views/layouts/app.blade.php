@@ -31,7 +31,7 @@
                     collapsed: localStorage.getItem('sidebar_collapsed') === 'true',
                     mobileOpen: false,
                     isCollapsed() {
-                        return window.innerWidth >= 1024 ? this.collapsed : false;
+                        return window.innerWidth >= 768 ? this.collapsed : false;
                     },
                     toggle() {
                         this.collapsed = !this.collapsed;

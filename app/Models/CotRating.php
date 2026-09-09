@@ -66,14 +66,16 @@ class CotRating extends Model
     }
 
     /**
-     * Calculate percentage score based on 2-6 scale (max = 6).
+     * Calculate percentage score. The scale max defaults to 6 (Teacher I-III)
+     * but may be overridden for higher-stage instruments (7 or 8).
      */
-    public function percentage(): float
+    public function percentage(?int $max = null): float
     {
         if ($this->isNotObserved() || $this->isNotApplicable()) {
             return 0;
         }
-        return round(($this->rating / 6) * 100, 1);
+        $max = $max ?? 6;
+        return round(($this->rating / $max) * 100, 1);
     }
 
     /**
@@ -93,25 +95,37 @@ class CotRating extends Model
     }
 
     /**
-     * Get the descriptive label for the overall COT score (2-6 scale).
+     * Get the descriptive label for the overall COT score.
      * DepEd bands: Outstanding, Very Satisfactory, Satisfactory, Poor, Needs Improvement.
+     * The scale max defaults to 6 but may be overridden for higher stages.
      */
-    public static function descriptiveTotal(?float $score): string
+    public static function descriptiveTotal(?float $score, ?float $max = 6.0): string
     {
+        $max = $max ?: 6.0;
+        // Thresholds are scaled proportionally from the reference 6-point scale
+        // (Outstanding >= 5.5, VS >= 4.5, S >= 3.5, Poor >= 2.5) so the exact
+        // behaviour for max = 6 is preserved.
+        $outstanding = $max * 5.5 / 6.0;
+        $verySat = $max * 4.5 / 6.0;
+        $sat = $max * 3.5 / 6.0;
+        $poor = $max * 2.5 / 6.0;
+
         return match (true) {
             $score === null => 'No Score Yet',
-            $score >= 5.5 => 'Outstanding',
-            $score >= 4.5 => 'Very Satisfactory',
-            $score >= 3.5 => 'Satisfactory',
-            $score >= 2.5 => 'Poor',
+            $score >= $outstanding => 'Outstanding',
+            $score >= $verySat => 'Very Satisfactory',
+            $score >= $sat => 'Satisfactory',
+            $score >= $poor => 'Poor',
             default => 'Needs Improvement',
         };
     }
 
     /**
-     * Get the descriptive label for the rating
+     * Get the descriptive label for the rating.
+     * The scale map (value => label) lets higher-stage instruments (3-7, 4-8)
+     * produce the correct descriptor; defaults to the global 2-6 scale.
      */
-    public function descriptiveLabel(): string
+    public function descriptiveLabel(?array $scale = null): string
     {
         if ($this->not_applicable) {
             return 'Not Applicable';
@@ -121,14 +135,9 @@ class CotRating extends Model
             return 'Not Observed';
         }
 
-        return match ($this->rating) {
-            6 => 'Outstanding',
-            5 => 'Very Satisfactory',
-            4 => 'Satisfactory',
-            3 => 'Unsatisfactory',
-            2 => 'Poor',
-            default => 'Unknown',
-        };
+        $scale = $scale ?? config('cot.rating_scale', []);
+
+        return $scale[$this->rating] ?? 'Unknown';
     }
 
     /**

@@ -65,7 +65,7 @@ class CotIndicatorService
      * Config-shaped array: ['label', 'indicators' => [code, description, domain]].
      * Falls back to config('cot.versions.<school_year>') when unseeded.
      */
-    public function getVersion(?string $schoolYear = null): array
+    public function getVersion(?string $schoolYear = null, ?string $careerStage = null): array
     {
         $schoolYear = $schoolYear ?: $this->defaultSchoolYear();
 
@@ -75,7 +75,7 @@ class CotIndicatorService
             return $this->toArray($model);
         }
 
-        return $this->configFallback($schoolYear);
+        return $this->configFallback($schoolYear, $careerStage);
     }
 
     /**
@@ -104,6 +104,8 @@ class CotIndicatorService
             if ($version) {
                 return $this->toArray($version);
             }
+
+            return $this->getVersion($observation->school_year, $observee->career_stage);
         }
 
         return $this->getVersion($observation->school_year);
@@ -168,7 +170,7 @@ class CotIndicatorService
             return $this->toArray($version);
         }
 
-        return $this->getVersion($schoolYear);
+        return $this->getVersion($schoolYear, $careerStage);
     }
 
     /**
@@ -186,13 +188,7 @@ class CotIndicatorService
             return $this->toArray($latest);
         }
 
-        $configVersions = config('cot.versions', []);
-        $latestConfig = end($configVersions);
-        if ($latestConfig) {
-            return $this->mergeConfigMeta($latestConfig);
-        }
-
-        return ['label' => 'PPST COT', 'indicators' => [], 'status' => 'published'];
+        return $this->latestConfigFallback();
     }
 
     /**
@@ -201,6 +197,14 @@ class CotIndicatorService
     public function defaultSchoolYear(): string
     {
         return config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
+    }
+
+    /**
+     * The career stage that owns the default (fallback) instrument.
+     */
+    public function defaultStage(): string
+    {
+        return config('cot.default_stage', 'teacher_i_iii');
     }
 
     /**
@@ -243,13 +247,14 @@ class CotIndicatorService
         ];
     }
 
-    private function configFallback(string $schoolYear): array
+    /**
+     * Fallback to config('cot.versions.<school_year>.<career_stage>') when
+     * the database is unseeded. Resolves the matching career stage, falling
+     * back to the default stage, then to the first stage of the school year.
+     */
+    private function configFallback(string $schoolYear, ?string $careerStage = null): array
     {
-        $config = config("cot.versions.{$schoolYear}");
-
-        if (!$config) {
-            $config = config('cot.versions.' . $this->defaultSchoolYear());
-        }
+        $config = $this->configStageFor($schoolYear, $careerStage);
 
         if (!$config) {
             return [
@@ -259,7 +264,7 @@ class CotIndicatorService
                 'status' => 'published',
                 'is_default' => false,
                 'ratee_role' => CotIndicatorVersion::DEFAULT_RATEE_ROLE,
-                'career_stage' => null,
+                'career_stage' => $careerStage,
                 'requires_post_conference' => true,
                 'career_stage_label' => null,
                 'rating_scale' => config('cot.rating_scale', []),
@@ -271,14 +276,67 @@ class CotIndicatorService
         return $this->mergeConfigMeta($config, $schoolYear);
     }
 
+    /**
+     * The latest config version across all school years (fallback when unseeded).
+     */
+    private function latestConfigFallback(): array
+    {
+        $configVersions = config('cot.versions', []);
+        $latestSchoolYear = null;
+        $latestConfig = null;
+
+        foreach ($configVersions as $schoolYear => $stages) {
+            foreach ($stages as $stageKey => $stageConfig) {
+                if ($stageKey === $this->defaultStage()) {
+                    $latestSchoolYear = $schoolYear;
+                    $latestConfig = $stageConfig;
+                }
+            }
+        }
+
+        if ($latestConfig && $latestSchoolYear) {
+            return $this->mergeConfigMeta($latestConfig, $latestSchoolYear);
+        }
+
+        return ['label' => 'PPST COT', 'indicators' => [], 'status' => 'published'];
+    }
+
+    /**
+     * Resolve the config block for a school year + career stage.
+     */
+    private function configStageFor(string $schoolYear, ?string $careerStage): ?array
+    {
+        $stages = config("cot.versions.{$schoolYear}");
+
+        if (!$stages) {
+            $stages = config('cot.versions.' . $this->defaultSchoolYear());
+        }
+
+        if (!is_array($stages)) {
+            return null;
+        }
+
+        if ($careerStage !== null && isset($stages[$careerStage]) && is_array($stages[$careerStage])) {
+            return $stages[$careerStage];
+        }
+
+        $defaultStage = $this->defaultStage();
+        if (isset($stages[$defaultStage]) && is_array($stages[$defaultStage])) {
+            return $stages[$defaultStage];
+        }
+
+        return is_array(reset($stages)) ? reset($stages) : null;
+    }
+
     private function mergeConfigMeta(array $config, ?string $schoolYear = null): array
     {
         $config['id'] = null;
         $config['school_year'] = $schoolYear ?? $config['school_year'] ?? null;
         $config['status'] = 'published';
-        $config['is_default'] = ($config['school_year'] ?? null) === $this->defaultSchoolYear();
+        $config['is_default'] = ($config['school_year'] ?? null) === $this->defaultSchoolYear()
+            && ($config['career_stage'] ?? null) === $this->defaultStage();
         $config['ratee_role'] = $config['ratee_role'] ?? CotIndicatorVersion::DEFAULT_RATEE_ROLE;
-        $config['career_stage'] = $config['career_stage'] ?? null;
+        $config['career_stage'] = $config['career_stage'] ?? $this->defaultStage();
         $config['requires_post_conference'] = $config['requires_post_conference'] ?? true;
         $config['career_stage_label'] = $config['career_stage_label'] ?? null;
         $config['rating_scale'] = $config['rating_scale'] ?? config('cot.rating_scale', []);

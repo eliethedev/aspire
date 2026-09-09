@@ -76,4 +76,31 @@ class SupervisorObsRenderTest extends TestCase
         $this->assertStringContainsString('totalIndicators', $content);
         $this->assertStringNotContainsString('EPOC Evaluation', $content);
     }
+
+    public function test_epoc_routes_are_rejected_for_teacher_observations()
+    {
+        $this->actingAs(User::find(7));
+        $tObs = Observation::create([
+            'observation_type' => 'teacher_observation',
+            'observer_id' => 7,
+            'observer_type' => SupervisorProfile::class,
+            'observee_id' => 1,
+            'observee_type' => Teacher::class,
+            'school_id' => '', 'school_head_id' => 8, 'teacher_id' => null,
+            'subject' => 'Mathematics', 'grade_level' => 'junior_high',
+            'school_year' => '2026-2027', 'observation_date' => '2025-09-10',
+            'stage' => 'observation', 'status' => 'scheduled',
+            'observation_mode' => 'in_person', 'quarter' => 1, 'observation_number' => 1,
+        ]);
+
+        $this->get("/supervisor/observations/{$tObs->id}/epoc")
+            ->assertSessionHas('error');
+
+        $this->post("/supervisor/observations/{$tObs->id}/epoc", [
+            'ratings' => [],
+        ])->assertSessionHas('error');
+
+        $this->get("/supervisor/observations/{$tObs->id}/epoc/download")
+            ->assertSessionHas('error');
+    }
 }

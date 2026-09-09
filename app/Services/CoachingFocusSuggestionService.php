@@ -98,7 +98,7 @@ class CoachingFocusSuggestionService
 
                 return [$aScore, $a->indicator_code ?? ''] <=> [$bScore, $b->indicator_code ?? ''];
             })
-            ->each(function (CotRating $rating) use ($push): void {
+            ->each(function (CotRating $rating) use ($push, $observation): void {
                 if ($rating->not_observed) {
                     $push(
                         sprintf('%s (%s)', $rating->indicator, $rating->domain),
@@ -113,7 +113,7 @@ class CoachingFocusSuggestionService
                 $push(
                     sprintf('%s (%s)', $rating->indicator, $rating->domain),
                     'rule',
-                    sprintf('COT %d/6 · %s', $rating->rating, $rating->descriptiveLabel()),
+                    sprintf('COT %d/%d · %s', $rating->rating, $observation->ratingScaleMax(), $rating->descriptiveLabel($observation->ratingScale())),
                     $rating->rating <= 2 ? 'bg-red-100 dark:bg-red-900/30 text-red-700' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700'
                 );
             });

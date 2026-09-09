@@ -153,7 +153,7 @@
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                         {{ $stageLabel }}
-                        @if($observation->grade_level) &middot; Grade {{ $observation->grade_level }} @endif
+                        @if($observation->grade_level) &middot; {{ $observation->grade_level_label }} @endif
                         &middot; <span class="capitalize">{{ str_replace('_', ' ', $observation->observation_mode) }}</span>
                     </p>
                     @if($observation->has_time_schedule || $observation->location)

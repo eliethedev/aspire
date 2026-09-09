@@ -50,9 +50,9 @@ class CotIndicatorAnalysisService extends AIService
             'domain' => $indicator['domain'] ?? $cotRating->domain,
             'score_label' => $cotRating->isNotObserved()
                 ? 'NO (Not Observed)'
-                : $cotRating->numericRating().'/6',
+                : $cotRating->numericRating().'/'.($observation?->ratingScaleMax() ?? 6),
             'comments' => $cotRating->comments ?: 'No comments recorded.',
-            'rating_scale' => $this->rubrics->getRatingScaleContext(),
+            'rating_scale' => $this->rubrics->getRatingScaleContext($observation?->ratingScale() ?: config('cot.rating_scale', [])),
             'indicator_context' => $indicatorContext,
         ]);
 

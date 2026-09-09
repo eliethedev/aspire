@@ -42,7 +42,7 @@ COTService::createObservation(array $data): Observation
 **Model:** `App\Models\CotRating`
 
 **Data Captured:**
-- Observation reference
+- Observation reference1
 - Rating category (instruction, assessment, classroom_management, content_knowledge)
 - Score (0 - max_score)
 - Comments per category

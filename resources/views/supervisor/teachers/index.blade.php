@@ -229,7 +229,7 @@
                         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
                             @if($teacher->school)<span class="inline-flex items-center gap-1"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->school->name }}</span>@endif
                             @if($teacher->subjectsLabel)<span class="inline-flex items-center gap-1"><i class="fas fa-book-open text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->subjectsLabel }}</span>@endif
-                            @if($teacher->grade_level)<span class="inline-flex items-center gap-1"><i class="fas fa-layer-group text-[11px] text-slate-400 dark:text-gray-500"></i> Grade {{ $teacher->grade_level }}</span>@endif
+                            @if($teacher->grade_level)<span class="inline-flex items-center gap-1"><i class="fas fa-layer-group text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->grade_level_label }}</span>@endif
                         </div>
                     </div>
                 </div>

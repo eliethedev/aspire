@@ -68,7 +68,7 @@
                     <div>
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">Subject / Grade</span>
                         <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1">{{ $observation->subject ?? 'N/A' }}</p>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">{{ $observation->grade_level_label ?? 'N/A' }}</p>
                     </div>
                     @else
                     <div>

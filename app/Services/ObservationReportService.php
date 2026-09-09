@@ -37,7 +37,7 @@ class ObservationReportService
         $md .= $this->coverPage($schoolName, $teacherName, $observerName, $obsDate, $quarter, $obsType);
 
         // ==================== SECTION 2: COT RATING SUMMARY ====================
-        $md .= $this->cotRatingSummary($cotRatings, $observation->overall_score);
+        $md .= $this->cotRatingSummary($cotRatings, $observation->overall_score, $observation->ratingScaleMax());
 
         // ==================== SECTION 3: PRE-OBSERVATION SUMMARY ====================
         $md .= $this->preObservationSummary($planning, $preCon);
@@ -130,7 +130,7 @@ class ObservationReportService
 MD;
     }
 
-    protected function cotRatingSummary($cotRatings, $overallScore): string
+    protected function cotRatingSummary($cotRatings, $overallScore, int $scaleMax = 6): string
     {
         $md = "## COT Rating Summary\n\n";
         $md .= "| # | Domain | Indicator | Rating | Comments |\n";
@@ -148,21 +148,22 @@ MD;
         if ($average === null) {
             return "## COT Rating Summary\n\n_No ratings available for this observation._\n";
         }
-        $descriptive = $this->getDescriptiveRating($average);
+        $descriptive = $this->getDescriptiveRating($average, $scaleMax);
 
-        $md .= "\n**Overall Average Rating:** " . number_format($average, 2) . " / 6.00\n";
+        $md .= "\n**Overall Average Rating:** " . number_format($average, 2) . " / {$scaleMax}.00\n";
         $md .= "**Descriptive Rating:** {$descriptive}\n\n";
 
         return $md;
     }
 
-    protected function getDescriptiveRating(float $score): string
+    protected function getDescriptiveRating(float $score, int $scaleMax = 6): string
     {
+        $max = (float) $scaleMax;
         return match (true) {
-            $score >= 5.50 => 'Outstanding',
-            $score >= 4.50 => 'Very Satisfactory',
-            $score >= 3.50 => 'Satisfactory',
-            $score >= 2.50 => 'Fair',
+            $score >= $max * 5.5 / 6.0 => 'Outstanding',
+            $score >= $max * 4.5 / 6.0 => 'Very Satisfactory',
+            $score >= $max * 3.5 / 6.0 => 'Satisfactory',
+            $score >= $max * 2.5 / 6.0 => 'Fair',
             default         => 'Needs Improvement',
         };
     }

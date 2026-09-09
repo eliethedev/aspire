@@ -1,4 +1,4 @@
-@extends('layouts.supervisor')
+@extends('layouts.teacher')
 
 @section('title', 'Observation History - ' . $observeeName)
 
@@ -7,9 +7,9 @@
     <!-- Header — minimized -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div>
-            <a href="{{ route('supervisor.observations.index') }}" class="inline-flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 mb-1">
+            <a href="{{ route('school-head.observations.index') }}" class="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 mb-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Back to Evaluations
+                Back to Observations
             </a>
             <h1 class="text-base font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $observeeName }}</h1>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-none">Observation history</p>
@@ -68,8 +68,8 @@
                 <span class="text-xs text-gray-400 capitalize shrink-0">{{ str_replace('_',' ',$observation->observation_mode) }}</span>
             </div>
             <div class="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
-                <a href="{{ route('supervisor.observations.show', $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50">View</a>
-                @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','pre_conference'=>'supervisor.observations.preConference','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null }; @endphp
+                <a href="{{ route('school-head.observations.show', $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50">View</a>
+                @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'school-head.observations.preObservationPlanning','pre_conference'=>'school-head.observations.preConference','observation'=>'school-head.observations.observation','post_conference'=>$observation->status!=='completed'?'school-head.observations.postConference':null, default=>null }; @endphp
                 @if($continueRoute)
                     <a href="{{ route($continueRoute, $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">Continue</a>
                 @endif

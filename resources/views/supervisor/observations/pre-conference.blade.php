@@ -220,7 +220,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Grade / Section</label>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold">Grade {{ $observation->grade_level ?? 'N/A' }}</p>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold">{{ $observation->grade_level_label ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="conference_date">Date / Time *</label>

@@ -99,9 +99,9 @@ class PPSTRubricRepository
         return implode("\n\n", $parts);
     }
 
-    public function getRatingScaleContext(): string
+    public function getRatingScaleContext(?array $scale = null): string
     {
-        $scale = config('cot.rating_scale', []);
+        $scale = $scale ?: config('cot.rating_scale', []);
         $lines = ['COT Rating Scale (DepEd):'];
 
         foreach ($scale as $rating => $label) {

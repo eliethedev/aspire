@@ -184,7 +184,7 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
                             {{ $observation->subject ?? 'No subject' }}
                             @if($observation->grade_level)
-                                &middot; {{ $observation->grade_level }}
+                                &middot; {{ $observation->grade_level_label }}
                             @endif
                         </p>
                         <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">

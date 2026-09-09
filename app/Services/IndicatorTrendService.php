@@ -31,6 +31,11 @@ class IndicatorTrendService
             ];
         }
 
+        // Derive the effective rating scale from the observee's observations
+        // (observations are pinned to the career-stage COT version).
+        $scaleMax = $observations->reduce(fn ($max, $obs) => max($max, $obs->ratingScaleMax()), 6);
+        $lowThreshold = (int) round($scaleMax / 2);
+
         $allRatings = CotRating::whereHas('observation', fn($q) => $q
             ->where('observee_id', $observeeId)
             ->where('observee_type', $observeeType)
@@ -42,7 +47,7 @@ class IndicatorTrendService
 
         $grouped = $allRatings->groupBy('indicator_code');
 
-        $indicators = $grouped->map(function ($ratings, $code) use ($observations) {
+        $indicators = $grouped->map(function ($ratings, $code) use ($observations, $scaleMax) {
             $avg = $ratings->avg('rating');
             $first = $ratings->first();
             $last = $ratings->last();
@@ -54,8 +59,8 @@ class IndicatorTrendService
                 'domain' => $first->domain ?? '',
                 'indicator' => $first->indicator ?? '',
                 'average_rating' => round($avg, 2),
-                'average_percentage' => round(($avg / 6) * 100, 1),
-                'descriptive' => $this->descriptiveLabel($avg),
+                'average_percentage' => round(($avg / $scaleMax) * 100, 1),
+                'descriptive' => $this->descriptiveLabel($avg, $scaleMax),
                 'min_rating' => $ratings->min('rating'),
                 'max_rating' => $ratings->max('rating'),
                 'trend' => $trend['direction'],
@@ -65,22 +70,22 @@ class IndicatorTrendService
                     'observation_id' => $r->observation_id,
                     'date' => $r->observation->observation_date?->format('M d, Y'),
                     'rating' => $r->rating,
-                    'percentage' => round(($r->rating / 6) * 100, 1),
+                    'percentage' => round(($r->rating / $scaleMax) * 100, 1),
                 ])->toArray(),
             ];
         })->values();
 
-        $lowIndicators = $indicators->filter(fn($i) => $i['average_rating'] < 3 && $i['occurrences'] >= 2)->values();
+        $lowIndicators = $indicators->filter(fn($i) => $i['average_rating'] < $lowThreshold && $i['occurrences'] >= 2)->values();
 
-        $domainGrouped = $indicators->groupBy('domain')->map(function ($inds, $domain) {
+        $domainGrouped = $indicators->groupBy('domain')->map(function ($inds, $domain) use ($scaleMax, $lowThreshold) {
             $avg = $inds->avg('average_rating');
             return [
                 'domain' => $domain,
                 'average_rating' => round($avg, 2),
-                'average_percentage' => round(($avg / 6) * 100, 1),
-                'descriptive' => $this->descriptiveLabel($avg),
+                'average_percentage' => round(($avg / $scaleMax) * 100, 1),
+                'descriptive' => $this->descriptiveLabel($avg, $scaleMax),
                 'indicator_count' => $inds->count(),
-                'low_indicator_count' => $inds->filter(fn($i) => $i['average_rating'] < 3)->count(),
+                'low_indicator_count' => $inds->filter(fn($i) => $i['average_rating'] < $lowThreshold)->count(),
             ];
         })->values();
 
@@ -88,6 +93,7 @@ class IndicatorTrendService
             'indicators' => $indicators,
             'domains' => $domainGrouped,
             'low_indicators' => $lowIndicators,
+            'low_threshold' => $lowThreshold,
             'total_observations' => $observations->count(),
             'date_range' => [
                 'start' => $observations->first()?->observation_date?->format('M d, Y'),
@@ -101,7 +107,7 @@ class IndicatorTrendService
         $trends = $this->getIndicatorTrends($observeeId, $observeeType);
 
         return $trends['indicators']->filter(fn($i) =>
-            $i['average_rating'] < 3 && $i['occurrences'] >= $minObservations
+            $i['average_rating'] < $trends['low_threshold'] && $i['occurrences'] >= $minObservations
         )->sortBy('average_rating')->values();
     }
 
@@ -172,13 +178,14 @@ class IndicatorTrendService
         return ['direction' => $direction, 'delta' => round($delta, 2)];
     }
 
-    private function descriptiveLabel(float $rating): string
+    private function descriptiveLabel(float $rating, int $scaleMax = 6): string
     {
+        $max = (float) $scaleMax;
         return match (true) {
-            $rating >= 5.5 => 'Outstanding',
-            $rating >= 4.5 => 'Very Satisfactory',
-            $rating >= 3.5 => 'Satisfactory',
-            $rating >= 2.5 => 'Unsatisfactory',
+            $rating >= $max * 5.5 / 6.0 => 'Outstanding',
+            $rating >= $max * 4.5 / 6.0 => 'Very Satisfactory',
+            $rating >= $max * 3.5 / 6.0 => 'Satisfactory',
+            $rating >= $max * 2.5 / 6.0 => 'Unsatisfactory',
             default => 'Poor',
         };
     }

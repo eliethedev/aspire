@@ -1,7 +1,7 @@
-<header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'lg:left-16' : 'lg:left-56'">
+<header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'md:left-16' : 'md:left-56'">
   <div class="max-w-full mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
     <!-- Left side: mobile menu button + brand -->
-    <div class="flex items-center gap-2 lg:hidden shrink-0">
+    <div class="flex items-center gap-2 md:hidden shrink-0">
       <button @click="$store.sidebar.openMobile()"
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
               title="Open menu" aria-label="Open menu">

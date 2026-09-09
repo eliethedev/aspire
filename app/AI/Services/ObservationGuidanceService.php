@@ -126,7 +126,8 @@ class ObservationGuidanceService extends AIService
 
     public function buildSummary(CotRating $cotRating): array
     {
-        $percentage = $cotRating->percentage();
+        $scaleMax = $cotRating->observation?->ratingScaleMax() ?? 6;
+        $percentage = $cotRating->percentage($scaleMax);
         $domain = $cotRating->domain;
 
         $summary = [
