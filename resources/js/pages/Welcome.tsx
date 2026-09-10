@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 import { motion } from 'framer-motion';
 import {
@@ -14,11 +14,13 @@ import {
     MapPin,
     Menu,
     MessagesSquare,
+    Moon,
     Phone,
     School,
     Settings,
     ShieldCheck,
     Sparkles,
+    Sun,
     TrendingUp,
     Users,
     X,
@@ -42,25 +44,25 @@ const FRAMEWORKS = ['COT-Aligned', 'PPST-Based', 'PPSSH-Ready', 'IPCRF-Friendly'
 
 const STEPS = [
     {
-        icon: <CalendarCheck className="h-6 w-6 text-indigo-600" />,
+        icon: <CalendarCheck className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         step: 'Step 1',
         title: 'Schedule the observation',
         desc: 'Supervisors set classroom observations, pre-conferences, and post-conferences on a shared calendar. Teachers confirm their schedules in one click.',
     },
     {
-        icon: <ClipboardCheck className="h-6 w-6 text-indigo-600" />,
+        icon: <ClipboardCheck className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         step: 'Step 2',
         title: 'Observe with digital COT',
         desc: 'Rate classroom practice on standardized COT rubrics with real-time scoring, evidence capture, and guided indicators — no more paper forms.',
     },
     {
-        icon: <Sparkles className="h-6 w-6 text-indigo-600" />,
+        icon: <Sparkles className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         step: 'Step 3',
         title: 'Get AI-assisted feedback',
         desc: 'ASPIRE analyzes ratings and evidence to draft strengths, growth areas, and coaching recommendations the supervisor reviews and refines.',
     },
     {
-        icon: <TrendingUp className="h-6 w-6 text-indigo-600" />,
+        icon: <TrendingUp className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         step: 'Step 4',
         title: 'Coach and track growth',
         desc: 'Post-conference agreements, ratings history, and analytics dashboards turn every observation cycle into measurable professional growth.',
@@ -69,12 +71,12 @@ const STEPS = [
 
 const FEATURES = [
     {
-        icon: <ClipboardCheck className="h-6 w-6 text-indigo-600" />,
+        icon: <ClipboardCheck className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         title: 'Digital COT Evaluation',
         desc: 'Standardized Classroom Observation Tool rubrics with real-time scoring, indicator-level guidance, and printable COT documents.',
     },
     {
-        icon: <MessagesSquare className="h-6 w-6 text-violet-600" />,
+        icon: <MessagesSquare className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         title: 'Pre & Post Conferences',
         desc: 'Structured conference workflows keep observers and teachers aligned before the lesson and accountable after it.',
     },
@@ -102,13 +104,13 @@ const FEATURES = [
 
 const ROLES = [
     {
-        icon: <BookOpen className="h-6 w-6 text-indigo-600" />,
+        icon: <BookOpen className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         title: 'Teachers',
         desc: 'Confirm schedules, upload lesson plans, receive clear feedback, and track your growth across every observation cycle.',
         points: ['One-click schedule confirmation', 'Structured, transparent feedback', 'Personal growth analytics'],
     },
     {
-        icon: <Users className="h-6 w-6 text-violet-600" />,
+        icon: <Users className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
         title: 'Supervisors',
         desc: 'Plan observations, rate with guided COT rubrics, and produce consistent, well-documented coaching support.',
         points: ['Shared observation calendar', 'Guided COT rating workflow', 'AI-drafted recommendations'],
@@ -136,7 +138,7 @@ const BENEFITS = [
 
 function Eyebrow({ children }: { children: React.ReactNode }): React.JSX.Element {
     return (
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 mb-4">
+        <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#0B3D91]">
             {children}
         </p>
     );
@@ -144,6 +146,19 @@ function Eyebrow({ children }: { children: React.ReactNode }): React.JSX.Element
 
 export default function LandingPage(): React.JSX.Element {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        setIsDark(document.documentElement.classList.contains('dark'));
+    }, []);
+
+    const toggleTheme = (): void => {
+        const root = document.documentElement;
+        const next = !root.classList.contains('dark');
+        root.classList.toggle('dark', next);
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+        setIsDark(next);
+    };
 
     const goToLogin = (): void => {
         window.location.href = '/login';
@@ -158,21 +173,27 @@ export default function LandingPage(): React.JSX.Element {
     };
 
     return (
-        <div className="relative w-full bg-[#030303] text-slate-900 antialiased">
+        <div className="relative w-full bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+            {/* DepEd gov top strip */}
+            <div className="fixed inset-x-0 top-0 z-[60] bg-[#0A2A6B] px-6 py-1.5 text-center sm:text-left">
+                <p className="mx-auto max-w-7xl text-[11px] font-medium tracking-wide text-blue-100">
+                    Republic of the Philippines &nbsp;•&nbsp; Department of Education &nbsp;•&nbsp; ASPIRE Supervision Platform
+                </p>
+            </div>
             {/* Header Navigation */}
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] }}
-                className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-[#030303]/70 backdrop-blur-md"
+                className="fixed left-0 right-0 top-7 z-50 border-b border-blue-100 bg-white/90 shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-slate-950/85"
             >
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
                     {/* Brand */}
                     <a href="/" className="flex items-center gap-3" aria-label="ASPIRE home">
                         <img
-                            src="/images/darklogotheme.jpg"
+                            src="/images/whitelogotheme.jpg"
                             alt="ASPIRE — Learn • Grow • Serve"
-                            className="h-10 w-auto rounded-md object-contain"
+                            className="h-10 w-auto rounded-md border border-blue-100 object-contain dark:border-white/10"
                         />
                     </a>
 
@@ -182,7 +203,7 @@ export default function LandingPage(): React.JSX.Element {
                             <button
                                 key={link.id}
                                 onClick={() => scrollToSection(link.id)}
-                                className="text-sm font-medium text-white/70 transition-colors duration-300 hover:text-white"
+                                className="text-sm font-medium text-slate-600 transition-colors duration-300 hover:text-[#0B3D91] dark:text-slate-300 dark:hover:text-white"
                             >
                                 {link.label}
                             </button>
@@ -191,30 +212,50 @@ export default function LandingPage(): React.JSX.Element {
 
                     <div className="hidden items-center gap-3 lg:flex">
                         <button
+                            type="button"
+                            onClick={toggleTheme}
+                            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 text-slate-600 transition-colors hover:bg-blue-50 hover:text-[#0B3D91] dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                        >
+                            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                        </button>
+                        <button
                             onClick={goToLogin}
-                            className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-slate-900 transition-all duration-300 hover:bg-indigo-100"
+                            className="group inline-flex items-center gap-2 rounded-full bg-[#0B3D91] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-900/20 transition-all duration-300 hover:bg-blue-800 dark:bg-white dark:text-slate-900 dark:shadow-none dark:hover:bg-blue-100"
                         >
                             Log In
                             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                         </button>
                     </div>
 
-                    {/* Mobile toggle */}
-                    <button
-                        type="button"
-                        onClick={() => setMenuOpen((v) => !v)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 lg:hidden"
-                        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-                        aria-expanded={menuOpen}
-                    >
-                        {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                    </button>
+                    {/* Mobile controls */}
+                    <div className="flex items-center gap-1 lg:hidden">
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-white/10"
+                        >
+                            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen((v) => !v)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-white/10"
+                            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                            aria-expanded={menuOpen}
+                        >
+                            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Mobile menu */}
                 {menuOpen && (
                     <nav
-                        className="border-t border-white/10 bg-[#030303]/95 px-6 py-4 backdrop-blur-md lg:hidden"
+                        className="border-t border-blue-100 bg-white px-6 py-4 dark:border-white/10 dark:bg-slate-950 lg:hidden"
                         aria-label="Mobile"
                     >
                         <div className="flex flex-col gap-1">
@@ -222,14 +263,14 @@ export default function LandingPage(): React.JSX.Element {
                                 <button
                                     key={link.id}
                                     onClick={() => scrollToSection(link.id)}
-                                    className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
+                                    className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-[#0B3D91] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
                                 >
                                     {link.label}
                                 </button>
                             ))}
                             <button
                                 onClick={goToLogin}
-                                className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-slate-900"
+                                className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#0B3D91] px-6 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
                             >
                                 Log In <ArrowRight className="h-4 w-4" />
                             </button>
@@ -239,7 +280,7 @@ export default function LandingPage(): React.JSX.Element {
             </motion.header>
 
             {/* Hero Section */}
-            <section className="relative" aria-label="Introduction">
+            <section className="relative mt-[92px]" aria-label="Introduction">
                 <HeroGeometric
                     badge="AI-Powered Instructional Supervision"
                     title1="ASPIRE"
@@ -255,14 +296,14 @@ export default function LandingPage(): React.JSX.Element {
                             <div className="flex flex-wrap items-center justify-center gap-4">
                                 <button
                                     onClick={goToLogin}
-                                    className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-semibold text-slate-900 shadow-xl shadow-white/10 transition-all duration-300 hover:bg-indigo-100"
+                                    className="group inline-flex items-center gap-2 rounded-full bg-[#0B3D91] px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-blue-900/20 transition-all duration-300 hover:bg-blue-800 dark:bg-white dark:text-slate-900 dark:shadow-none dark:hover:bg-blue-100"
                                 >
                                     Log in to your portal
                                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </button>
                                 <button
                                     onClick={() => scrollToSection('features')}
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/20 px-8 py-4 text-sm font-semibold text-white/80 transition-all duration-300 hover:border-white/40 hover:text-white"
+                                    className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-8 py-4 text-sm font-semibold text-[#0B3D91] shadow-sm transition-all duration-300 hover:border-blue-400 hover:bg-blue-50 dark:border-white/20 dark:bg-transparent dark:text-white dark:shadow-none dark:hover:border-white/40 dark:hover:bg-white/10"
                                 >
                                     Explore the platform
                                 </button>
@@ -274,9 +315,9 @@ export default function LandingPage(): React.JSX.Element {
                                 {FRAMEWORKS.map((f) => (
                                     <span
                                         key={f}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium tracking-wide text-white/55"
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-medium tracking-wide text-blue-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
                                     >
-                                        <Check className="h-3 w-3 text-emerald-400" />
+                                        <Check className="h-3 w-3 text-emerald-600" />
                                         {f}
                                     </span>
                                 ))}
@@ -287,7 +328,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Purpose Section */}
-            <section id="about" className="relative bg-white px-6 py-24" aria-label="Purpose">
+            <section id="about" className="relative scroll-mt-28 bg-white px-6 py-24 dark:bg-slate-950" aria-label="Purpose">
                 <div className="mx-auto max-w-7xl">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -297,10 +338,10 @@ export default function LandingPage(): React.JSX.Element {
                         className="mx-auto mb-16 max-w-3xl text-center"
                     >
                         <Eyebrow>Why ASPIRE exists</Eyebrow>
-                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl dark:text-white">
                             Supervision that helps teachers grow
                         </h2>
-                        <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                        <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                             Teacher observation in the Philippines still runs on scattered
                             paperwork — ratings disconnected from feedback, feedback
                             disconnected from coaching. ASPIRE unifies the entire
@@ -312,14 +353,14 @@ export default function LandingPage(): React.JSX.Element {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                         {[
                             {
-                                icon: <BookOpen className="h-7 w-7 text-indigo-600" />,
-                                tile: 'bg-indigo-50',
+                                icon: <BookOpen className="h-7 w-7 text-[#0B3D91]" />,
+                                tile: 'bg-blue-50',
                                 title: 'Our Mission',
                                 desc: 'To give every supervisor and educator data-driven insight and AI-assisted feedback that turn routine observations into continuous instructional improvement.',
                             },
                             {
-                                icon: <TrendingUp className="h-7 w-7 text-violet-600" />,
-                                tile: 'bg-violet-50',
+                                icon: <TrendingUp className="h-7 w-7 text-[#0B3D91]" />,
+                                tile: 'bg-amber-50',
                                 title: 'Our Vision',
                                 desc: 'A school system where every teacher receives timely, personalized support — and every school advances toward excellence through intelligent supervision.',
                             },
@@ -336,17 +377,17 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                                className="rounded-2xl border border-slate-200 bg-slate-50/60 p-8 transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200"
+                                className="rounded-2xl border border-slate-200 bg-slate-50/60 p-8 transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200 dark:border-white/10 dark:bg-white/5 dark:hover:shadow-none"
                             >
                                 <div
-                                    className={`mb-6 flex h-14 w-14 items-center justify-center rounded-xl ${card.tile}`}
+                                    className={`mb-6 flex h-14 w-14 items-center justify-center rounded-xl ${card.tile} dark:bg-white/10`}
                                 >
                                     {card.icon}
                                 </div>
-                                <h3 className="mb-3 text-xl font-semibold text-slate-900">
+                                <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">
                                     {card.title}
                                 </h3>
-                                <p className="leading-relaxed text-slate-600">{card.desc}</p>
+                                <p className="leading-relaxed text-slate-600 dark:text-slate-300">{card.desc}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -356,7 +397,7 @@ export default function LandingPage(): React.JSX.Element {
             {/* How It Works Section */}
             <section
                 id="how-it-works"
-                className="relative bg-slate-950 px-6 py-24"
+                className="relative scroll-mt-28 border-y border-blue-100 bg-[#EFF6FF] px-6 py-24 dark:border-white/10 dark:bg-slate-900"
                 aria-label="How it works"
             >
                 <div className="mx-auto max-w-7xl">
@@ -367,13 +408,13 @@ export default function LandingPage(): React.JSX.Element {
                         transition={{ duration: 0.8 }}
                         className="mx-auto mb-16 max-w-3xl text-center"
                     >
-                        <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-indigo-400">
+                        <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#0B3D91] dark:text-blue-300">
                             How it works
                         </p>
-                        <h2 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
+                        <h2 className="text-4xl font-bold tracking-tight text-blue-950 md:text-5xl dark:text-white">
                             One cycle, from schedule to growth
                         </h2>
-                        <p className="mt-6 text-lg leading-relaxed text-white/60">
+                        <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                             Every observation follows the same guided path — so nothing
                             falls through the cracks and every teacher gets a complete,
                             documented experience.
@@ -388,21 +429,21 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                                className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm transition-colors duration-300 hover:border-indigo-400/40"
+                                className="relative rounded-2xl border border-blue-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-100 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-blue-400/40 dark:hover:shadow-none"
                             >
-                                <span className="absolute right-5 top-5 text-4xl font-bold text-white/10">
+                                <span className="absolute right-5 top-5 text-4xl font-bold text-blue-100 dark:text-white/10">
                                     {index + 1}
                                 </span>
-                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-white">
+                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-white/10">
                                     {step.icon}
                                 </div>
-                                <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-300">
+                                <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">
                                     {step.step}
                                 </p>
-                                <h3 className="mb-2 text-lg font-semibold text-white">
+                                <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                                     {step.title}
                                 </h3>
-                                <p className="text-sm leading-relaxed text-white/60">
+                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                                     {step.desc}
                                 </p>
                             </motion.div>
@@ -412,7 +453,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="relative bg-slate-50 px-6 py-24" aria-label="Features">
+            <section id="features" className="relative scroll-mt-28 bg-slate-50 px-6 py-24 dark:bg-slate-900/50" aria-label="Features">
                 <div className="mx-auto max-w-7xl">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -422,10 +463,10 @@ export default function LandingPage(): React.JSX.Element {
                         className="mx-auto mb-16 max-w-3xl text-center"
                     >
                         <Eyebrow>Platform features</Eyebrow>
-                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl dark:text-white">
                             Everything supervision needs, in one place
                         </h2>
-                        <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                        <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                             Purpose-built tools for each stage of the observation cycle —
                             designed with DepEd workflows in mind.
                         </p>
@@ -439,15 +480,15 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: (index % 3) * 0.1, duration: 0.6 }}
-                                className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200"
+                                className="rounded-2xl border border-blue-100 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-blue-400/40 dark:hover:shadow-none"
                             >
-                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-white/10">
                                     {feature.icon}
                                 </div>
-                                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                                <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                                     {feature.title}
                                 </h3>
-                                <p className="text-sm leading-relaxed text-slate-600">
+                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                                     {feature.desc}
                                 </p>
                             </motion.div>
@@ -457,7 +498,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Roles Section */}
-            <section id="roles" className="relative bg-white px-6 py-24" aria-label="Who it's for">
+            <section id="roles" className="relative scroll-mt-28 bg-white px-6 py-24 dark:bg-slate-950" aria-label="Who it's for">
                 <div className="mx-auto max-w-7xl">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -467,10 +508,10 @@ export default function LandingPage(): React.JSX.Element {
                         className="mx-auto mb-16 max-w-3xl text-center"
                     >
                         <Eyebrow>Who it's for</Eyebrow>
-                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl dark:text-white">
                             A workspace for every role
                         </h2>
-                        <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                        <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                             Each role gets a dedicated portal with the tools and views
                             that match its responsibilities.
                         </p>
@@ -484,22 +525,22 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.08, duration: 0.6 }}
-                                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200"
+                                className="flex flex-col rounded-2xl border border-blue-100 bg-white p-7 shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-blue-400/40"
                             >
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-white/10">
                                     {role.icon}
                                 </div>
-                                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                                <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                                     {role.title}
                                 </h3>
-                                <p className="mb-4 text-sm leading-relaxed text-slate-600">
+                                <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                                     {role.desc}
                                 </p>
                                 <ul className="mb-6 space-y-2">
                                     {role.points.map((point) => (
                                         <li
                                             key={point}
-                                            className="flex items-start gap-2 text-sm text-slate-600"
+                                            className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"
                                         >
                                             <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100">
                                                 <Check className="h-2.5 w-2.5 text-emerald-700" />
@@ -510,7 +551,7 @@ export default function LandingPage(): React.JSX.Element {
                                 </ul>
                                 <button
                                     onClick={goToLogin}
-                                    className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 hover:text-indigo-900"
+                                    className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B3D91] hover:text-blue-800 dark:text-blue-300 dark:hover:text-white"
                                 >
                                     Log in as {role.title === 'Teachers' ? 'Teacher' : role.title === 'Supervisors' ? 'Supervisor' : role.title === 'School Heads' ? 'School Head' : 'Admin'}
                                     <ArrowRight className="h-3.5 w-3.5" />
@@ -521,11 +562,17 @@ export default function LandingPage(): React.JSX.Element {
                 </div>
             </section>
 
-            {/* Benefits strip */}
+            {/* Benefits strip — DepEd brand band */}
             <section
-                className="relative overflow-hidden bg-gradient-to-r from-indigo-950 via-slate-950 to-violet-950 px-6 py-20"
+                className="relative overflow-hidden bg-gradient-to-r from-[#0A2A6B] via-[#0B3D91] to-[#0A2A6B] px-6 py-20"
                 aria-label="Benefits"
             >
+                {/* tricolor accent line */}
+                <div className="absolute inset-x-0 top-0 flex h-1" aria-hidden="true">
+                    <div className="flex-1 bg-[#0B3D91]" />
+                    <div className="flex-1 bg-[#CE1126]" />
+                    <div className="flex-1 bg-[#FCD116]" />
+                </div>
                 <div className="mx-auto max-w-7xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -537,6 +584,9 @@ export default function LandingPage(): React.JSX.Element {
                         <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
                             Why schools choose ASPIRE
                         </h2>
+                        <p className="mx-auto mt-3 max-w-2xl text-sm text-blue-100">
+                            Built for DepEd workflows — COT, PPST, PPSSH, and IPCRF aligned.
+                        </p>
                     </motion.div>
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {BENEFITS.map((benefit, index) => (
@@ -546,12 +596,12 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.08, duration: 0.6 }}
-                                className="rounded-2xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur-sm"
+                                className="rounded-2xl border border-white/25 bg-white/10 p-6 backdrop-blur-sm"
                             >
                                 <h3 className="mb-2 text-lg font-semibold text-white">
                                     {benefit.title}
                                 </h3>
-                                <p className="text-sm leading-relaxed text-white/60">
+                                <p className="text-sm leading-relaxed text-blue-100">
                                     {benefit.desc}
                                 </p>
                             </motion.div>
@@ -561,7 +611,7 @@ export default function LandingPage(): React.JSX.Element {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="relative bg-slate-50 px-6 py-24" aria-label="Contact">
+            <section id="contact" className="relative scroll-mt-28 bg-white px-6 py-24 dark:bg-slate-950" aria-label="Contact">
                 <div className="mx-auto max-w-7xl">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -571,10 +621,10 @@ export default function LandingPage(): React.JSX.Element {
                         className="mx-auto mb-14 max-w-3xl text-center"
                     >
                         <Eyebrow>Get in touch</Eyebrow>
-                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+                        <h2 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl dark:text-white">
                             Contact us
                         </h2>
-                        <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                        <p className="mt-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
                             Questions about the platform, support requests, or
                             partnership inquiries — our team is ready to help. For
                             account access, please coordinate with your school
@@ -585,17 +635,17 @@ export default function LandingPage(): React.JSX.Element {
                     <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
                         {[
                             {
-                                icon: <Mail className="h-6 w-6 text-indigo-600" />,
+                                icon: <Mail className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
                                 title: 'Email',
                                 lines: ['support@aspire.edu.ph'],
                             },
                             {
-                                icon: <Phone className="h-6 w-6 text-indigo-600" />,
+                                icon: <Phone className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
                                 title: 'Phone',
                                 lines: ['+63 (XXX) XXX-XXXX'],
                             },
                             {
-                                icon: <MapPin className="h-6 w-6 text-indigo-600" />,
+                                icon: <MapPin className="h-6 w-6 text-[#0B3D91] dark:text-blue-300" />,
                                 title: 'School',
                                 lines: ['Sagay National High School', 'Sagay City, Philippines'],
                             },
@@ -606,16 +656,16 @@ export default function LandingPage(): React.JSX.Element {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                                className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm"
+                                className="flex flex-col items-center rounded-2xl border border-blue-100 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
                             >
-                                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50">
+                                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 dark:bg-white/10">
                                     {item.icon}
                                 </div>
-                                <h3 className="mb-2 font-semibold text-slate-900">
+                                <h3 className="mb-2 font-semibold text-slate-900 dark:text-white">
                                     {item.title}
                                 </h3>
                                 {item.lines.map((line) => (
-                                    <p key={line} className="text-sm text-slate-600">
+                                    <p key={line} className="text-sm text-slate-600 dark:text-slate-300">
                                         {line}
                                     </p>
                                 ))}
@@ -628,17 +678,17 @@ export default function LandingPage(): React.JSX.Element {
             {/* Privacy note */}
             <section
                 id="privacy-policy"
-                className="relative bg-white px-6 py-16"
+                className="relative border-t border-blue-100 bg-[#F8FAFF] px-6 py-16 dark:border-white/10 dark:bg-slate-900"
                 aria-label="Privacy policy"
             >
                 <div className="mx-auto flex max-w-4xl flex-col items-center gap-5 text-center">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-                        <Lock className="h-6 w-6 text-slate-700" />
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/10">
+                        <Lock className="h-6 w-6 text-slate-700 dark:text-slate-200" />
                     </span>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Privacy & data protection
                     </h2>
-                    <p className="max-w-2xl leading-relaxed text-slate-600">
+                    <p className="max-w-2xl leading-relaxed text-slate-600 dark:text-slate-300">
                         Observation records, ratings, and feedback are treated as
                         confidential personnel data. ASPIRE stores them securely,
                         restricts access by role, and keeps a full audit trail of
@@ -648,26 +698,31 @@ export default function LandingPage(): React.JSX.Element {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="relative border-t border-white/10 bg-[#030303] px-6 pb-8 pt-14">
+            {/* Footer — DepEd navy */}
+            <footer className="relative bg-[#0A2A6B] px-6 pb-8 pt-14">
+                <div className="absolute inset-x-0 top-0 flex h-1" aria-hidden="true">
+                    <div className="flex-1 bg-[#0B3D91]" />
+                    <div className="flex-1 bg-[#CE1126]" />
+                    <div className="flex-1 bg-[#FCD116]" />
+                </div>
                 <div className="mx-auto max-w-7xl">
                     <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
                         <div>
                             <div className="mb-4 flex items-center gap-3">
                                 <img
-                                    src="/images/darklogotheme.jpg"
+                                    src="/images/whitelogotheme.jpg"
                                     alt="ASPIRE — Learn • Grow • Serve"
-                                    className="h-12 w-auto rounded-md object-contain"
+                                    className="h-12 w-auto rounded-md border border-white/20 object-contain"
                                 />
                             </div>
-                            <p className="max-w-xs text-sm leading-relaxed text-white/55">
+                            <p className="max-w-xs text-sm leading-relaxed text-blue-100">
                                 Automated Supervision Platform for Instructional Reform
                                 & Excellence — digitizing classroom observation for
                                 Philippine schools.
                             </p>
                         </div>
                         <nav aria-label="Footer">
-                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-white/40">
+                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-blue-200">
                                 Explore
                             </h3>
                             <ul className="space-y-2.5">
@@ -678,7 +733,7 @@ export default function LandingPage(): React.JSX.Element {
                                     <li key={link.id}>
                                         <button
                                             onClick={() => scrollToSection(link.id)}
-                                            className="text-sm text-white/65 transition-colors hover:text-white"
+                                            className="text-sm text-blue-100 transition-colors hover:text-white"
                                         >
                                             {link.label}
                                         </button>
@@ -687,7 +742,7 @@ export default function LandingPage(): React.JSX.Element {
                             </ul>
                         </nav>
                         <div>
-                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-white/40">
+                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-blue-200">
                                 Portals
                             </h3>
                             <ul className="space-y-2.5">
@@ -696,7 +751,7 @@ export default function LandingPage(): React.JSX.Element {
                                         <li key={portal}>
                                             <button
                                                 onClick={goToLogin}
-                                                className="group inline-flex items-center gap-1.5 text-sm text-white/65 transition-colors hover:text-white"
+                                                className="group inline-flex items-center gap-1.5 text-sm text-blue-100 transition-colors hover:text-white"
                                             >
                                                 {portal} Login
                                                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -707,8 +762,8 @@ export default function LandingPage(): React.JSX.Element {
                             </ul>
                         </div>
                     </div>
-                    <div className="mt-12 border-t border-white/10 pt-6 text-center">
-                        <p className="text-xs text-white/45">
+                    <div className="mt-12 border-t border-white/20 pt-6 text-center">
+                        <p className="text-xs text-blue-200">
                             © 2026 ASPIRE • Automated Supervision Platform for
                             Instructional Reform & Excellence
                         </p>

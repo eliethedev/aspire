@@ -12,7 +12,7 @@ function ElegantShape({
     width = 400,
     height = 100,
     rotate = 0,
-    gradient = "from-white/[0.08]",
+    gradient = "from-blue-600/[0.12]",
 }: {
     className?: string;
     delay?: number;
@@ -61,10 +61,10 @@ function ElegantShape({
                         "absolute inset-0 rounded-full",
                         "bg-gradient-to-r to-transparent",
                         gradient,
-                        "backdrop-blur-[2px] border-2 border-white/[0.15]",
-                        "shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]",
+                        "backdrop-blur-[2px] border-2 border-blue-900/[0.08]",
+                        "shadow-[0_8px_32px_0_rgba(11,61,145,0.12)]",
                         "after:absolute after:inset-0 after:rounded-full",
-                        "after:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]"
+                        "after:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.7),transparent_70%)]"
                     )}
                 />
             </motion.div>
@@ -99,8 +99,15 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#EFF6FF] via-white to-white dark:from-slate-950 dark:via-[#0A1633] dark:to-slate-950">
+            {/* DepEd tricolor top ribbon */}
+            <div className="absolute inset-x-0 top-0 z-20 flex h-1.5" aria-hidden="true">
+                <div className="flex-1 bg-[#0B3D91]" />
+                <div className="flex-1 bg-[#CE1126]" />
+                <div className="flex-1 bg-[#FCD116]" />
+            </div>
+
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/[0.07] via-transparent to-amber-400/[0.08] blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
                 <ElegantShape
@@ -108,7 +115,7 @@ function HeroGeometric({
                     width={600}
                     height={140}
                     rotate={12}
-                    gradient="from-indigo-500/[0.15]"
+                    gradient="from-blue-700/[0.14]"
                     className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
                 />
 
@@ -117,7 +124,7 @@ function HeroGeometric({
                     width={500}
                     height={120}
                     rotate={-15}
-                    gradient="from-rose-500/[0.15]"
+                    gradient="from-red-600/[0.10]"
                     className="right-[-5%] md:right-[0%] top-[70%] md:top-[75%]"
                 />
 
@@ -126,7 +133,7 @@ function HeroGeometric({
                     width={300}
                     height={80}
                     rotate={-8}
-                    gradient="from-violet-500/[0.15]"
+                    gradient="from-blue-500/[0.14]"
                     className="left-[5%] md:left-[10%] bottom-[5%] md:bottom-[10%]"
                 />
 
@@ -135,7 +142,7 @@ function HeroGeometric({
                     width={200}
                     height={60}
                     rotate={20}
-                    gradient="from-amber-500/[0.15]"
+                    gradient="from-amber-400/[0.22]"
                     className="right-[15%] md:right-[20%] top-[10%] md:top-[15%]"
                 />
 
@@ -144,7 +151,7 @@ function HeroGeometric({
                     width={150}
                     height={40}
                     rotate={-25}
-                    gradient="from-cyan-500/[0.15]"
+                    gradient="from-sky-500/[0.14]"
                     className="left-[20%] md:left-[25%] top-[5%] md:top-[10%]"
                 />
             </div>
@@ -156,10 +163,10 @@ function HeroGeometric({
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-blue-100 shadow-sm mb-8 md:mb-12 dark:bg-white/5 dark:border-white/10 dark:shadow-none"
                     >
-                        <Circle className="h-2 w-2 fill-rose-500/80" />
-                        <span className="text-sm text-white/60 tracking-wide">
+                        <Circle className="h-2 w-2 fill-[#CE1126]" />
+                        <span className="text-sm text-blue-900 font-medium tracking-wide dark:text-blue-100">
                             {badge}
                         </span>
                     </motion.div>
@@ -171,14 +178,14 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
-                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-[#0A2A6B] to-[#1d4ed8] dark:from-white dark:to-blue-200">
                                 {title1}
                             </span>
                         </h1>
                         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 md:mb-8 tracking-tight">
                             <span
                                 className={cn(
-                                    "bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300"
+                                    "bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-blue-700 to-blue-900 dark:from-blue-200 dark:via-white dark:to-blue-200"
                                 )}
                             >
                                 {title2}
@@ -192,7 +199,7 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                        <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             {description}
                         </p>
                         {actions ? <div className="px-4">{actions}</div> : null}
@@ -200,7 +207,7 @@ function HeroGeometric({
                 </div>
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-slate-950 dark:via-transparent dark:to-transparent pointer-events-none" />
         </div>
     );
 }
