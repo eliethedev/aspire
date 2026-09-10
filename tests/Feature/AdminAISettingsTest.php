@@ -200,9 +200,12 @@ class AdminAISettingsTest extends TestCase
         $this->assertStringContainsString('name="ai_gemini_model"', $html);
         $this->assertStringContainsString('Gemini 3.6 Flash — latest, fast &amp; reliable (recommended)', $html);
 
-        // Default model picker (covers every feature) uses the grouped picker.
+        // Default model picker is filtered to the current default provider's
+        // catalog (OpenRouter lists MiniMax when OpenRouter is active), so the
+        // page no longer shows one giant optgroup list of every provider.
         $this->assertStringContainsString('name="ai_model_default"', $html);
-        $this->assertStringContainsString('optgroup label="OpenAI"', $html);
+        $this->assertStringContainsString('value="gemini-3.6-flash"', $html);
+        $this->assertStringNotContainsString('optgroup', $html);
         $this->assertStringContainsString('Custom model', $html);
     }
 

@@ -120,6 +120,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/test-provider', [AIController::class, 'testProvider'])->name('test-provider');
         Route::post('/restore', [AIController::class, 'restore'])->name('restore');
         Route::post('/emergency', [AIController::class, 'emergency'])->name('emergency');
+        Route::post('/providers', [AIController::class, 'storeCustomProvider'])->name('providers.store');
+        Route::post('/providers/{customAiProvider}', [AIController::class, 'updateCustomProvider'])->name('providers.update');
+        Route::delete('/providers/{customAiProvider}', [AIController::class, 'destroyCustomProvider'])->name('providers.destroy');
+        Route::post('/providers/{customAiProvider}/test', [AIController::class, 'testCustomProvider'])->name('providers.test');
+    });
+
+    // AI usage & cost monitoring
+    Route::prefix('ai-usage')->name('ai-usage.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AiUsageController::class, 'index'])->name('index');
+        Route::get('/users/{user}', [App\Http\Controllers\Admin\AiUsageController::class, 'show'])->name('users.show');
     });
 
     // Reports

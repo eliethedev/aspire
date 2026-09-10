@@ -4,83 +4,100 @@
 
 @push('styles')
 <style>
-    .teacher-card { transition: all 0.2s ease; }
-    .teacher-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06); }
+    .hero-card{background:linear-gradient(135deg,#eef2ff 0%,#f8fafc 55%,#ffffff 100%)}
+    .dark .hero-card{background:linear-gradient(135deg,#0b1220 0%,#111827 55%,#0b1220 100%)}
+    .teacher-card{transition:all .2s ease}
+    .teacher-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(15,23,42,.08)}
+    .section-card{transition:all .18s ease}
 </style>
 @endpush
-
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6"
+<div class="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-0"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorSchoolHeadsView') || 'list'; } catch (e) { return 'list'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorSchoolHeadsView', v); } catch (e) {} },
      }">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">School Heads</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">View school heads and schedule leadership observations.</p>
+
+    {{-- Breadcrumb --}}
+    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
+        <a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1"><i class="fas fa-house text-[11px]"></i> Dashboard</a>
+        <span class="text-slate-300 dark:text-gray-600">/</span>
+        <span class="font-semibold text-slate-700 dark:text-gray-200">School Heads</span>
+    </nav>
+
+    {{-- Hero --}}
+    <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 p-6 lg:p-7 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+            <div class="min-w-0">
+                <p class="text-slate-500 dark:text-gray-400 text-xs tracking-widest uppercase font-semibold">Supervisor Workspace · {{ now()->format('l, F j, Y') }}</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white leading-tight mt-1">School Heads</h1>
+                <p class="text-slate-500 dark:text-gray-400 text-sm mt-1 max-w-2xl">View the school heads under your supervision and schedule leadership observations.</p>
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ $schoolHeads->total() }} total</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-building-columns text-[11px] text-slate-400 dark:text-gray-500"></i> School leaders</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="{{ route('supervisor.observations.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                    <i class="fas fa-plus text-xs"></i> New Observation
+                </a>
+            </div>
         </div>
-        <a href="{{ route('supervisor.observations.create') }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-            New Observation
-        </a>
     </div>
 
-    @php $hasSHFilters = request()->anyFilled(['search', 'per_page']) && request('search'); @endphp
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-3 overflow-hidden" x-data="{ open: @json($hasSHFilters || true) }">
+    {{-- Search & Filters --}}
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden section-card" x-data="{ open: @json(true) }">
         <button type="button" @click="open = !open"
-                class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
                 :aria-expanded="open.toString()">
-            <span class="flex items-center gap-2.5">
-                <span class="w-7 h-7 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+            <span class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                    <i class="fas fa-sliders text-xs"></i>
                 </span>
                 <span>
-                    <span class="block text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">Search & Filters</span>
-                    <span class="block text-xs font-medium text-gray-500 dark:text-gray-400 leading-none mt-0.5">Find school head by name or email</span>
+                    <span class="block text-sm font-bold text-slate-900 dark:text-white leading-none">Search & Filters</span>
+                    <span class="block text-xs font-medium text-slate-500 dark:text-gray-400 leading-none mt-1">Find school head by name or email · adjust page size</span>
                 </span>
-                @if(request('search'))
-                    <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border border-amber-200">Active</span>
-                @endif
+                @if(request('search'))<span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20">Active</span>@endif
             </span>
-            <span class="flex items-center gap-1.5 shrink-0">
+            <span class="flex items-center gap-2 shrink-0">
                 <span class="hidden sm:inline text-xs font-semibold text-indigo-600 dark:text-indigo-400" x-text="open ? 'Hide' : 'Show'"></span>
-                <span class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5 text-gray-600 dark:text-gray-300 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                <span class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center">
+                    <i class="fas fa-chevron-down text-xs text-slate-600 dark:text-gray-300 transition-transform" :class="open ? 'rotate-180' : ''"></i>
                 </span>
             </span>
         </button>
         <div x-show="open" x-transition>
-            <form method="GET" action="{{ route('supervisor.school-heads.index') }}" class="px-3 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+            <form method="GET" action="{{ route('supervisor.school-heads.index') }}" class="px-4 py-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/20">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                     <div class="md:col-span-7">
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Search</label>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1">Search</label>
                         <div class="relative">
-                            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 text-xs"></i>
                             <input type="text" name="search" value="{{ request('search') }}"
-                                   class="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                   class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                    placeholder="Search by name or email...">
                         </div>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Per Page</label>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1">Per page</label>
                         <select name="per_page" onchange="this.form.submit()"
-                                class="w-full px-2.5 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
-                            <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
-                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per page</option>
+                            <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 per page</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per page</option>
                         </select>
                     </div>
                     <div class="md:col-span-3 flex items-end gap-2">
                         <button type="submit"
-                                class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-sm font-semibold hover:bg-black dark:hover:bg-gray-100 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            Filter
+                                class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                            <i class="fas fa-filter text-xs"></i> Apply
                         </button>
                         @if(request('search'))
                             <a href="{{ route('supervisor.school-heads.index') }}"
-                               class="inline-flex items-center justify-center px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Clear</a>
+                               class="inline-flex items-center justify-center px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                                Clear
+                            </a>
                         @endif
                     </div>
                 </div>
@@ -88,11 +105,13 @@
         </div>
     </div>
 
-    <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Showing <span class="font-medium text-gray-700 dark:text-gray-300">{{ $schoolHeads->firstItem() }}</span>
-            to <span class="font-medium text-gray-700 dark:text-gray-300">{{ $schoolHeads->lastItem() }}</span>
-            of <span class="font-medium text-gray-700 dark:text-gray-300">{{ $schoolHeads->total() }}</span> school heads
+    {{-- Results Summary --}}
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-slate-500 dark:text-gray-400">
+            Showing <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $schoolHeads->firstItem() ?? 0 }}</span>
+            to <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $schoolHeads->lastItem() ?? 0 }}</span>
+            of <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $schoolHeads->total() }}</span> school heads
+            @if(request('search'))<span class="ml-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold">filtered</span>@endif
         </p>
         <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-0.5" role="group" aria-label="List layout">
             <button type="button" @click="setView('list')" :aria-pressed="(view === 'list').toString()" title="List view" aria-label="List view"
@@ -108,73 +127,83 @@
         </div>
     </div>
 
-    <div x-show="view === 'list'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @forelse($schoolHeads as $schoolHead)
-            @php
-                $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
-                $shEmail = $schoolHead->user?->email ?? '';
-                $initial = strtoupper(substr($shName, 0, 1));
-                $avatarColors = ['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-violet-500', 'bg-rose-500', 'bg-amber-500', 'bg-cyan-500', 'bg-pink-500'];
-                $avatarColor = $avatarColors[crc32($shEmail ?: $shName) % count($avatarColors)];
-            @endphp
-            <div class="teacher-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full {{ $avatarColor }} flex items-center justify-center text-white text-lg font-bold shrink-0">
+    {{-- School heads — List view --}}
+    <div x-show="view === 'list'">
+    @forelse($schoolHeads as $schoolHead)
+        @php
+            $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
+            $shEmail = $schoolHead->user?->email ?? '';
+            $initial = strtoupper(substr($shName, 0, 1));
+            $obsCount = $schoolHead->total_observations ?? 0;
+            $avatarClass = 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20';
+        @endphp
+        <div class="teacher-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-5">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-11 h-11 rounded-full {{ $avatarClass }} flex items-center justify-center text-base font-bold shrink-0">
                         {{ $initial }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $shName }}</a>
-                        @if($shEmail)
-                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $shEmail }}</p>
-                        @endif
-                        @if($schoolHead->current_designation)
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ $schoolHead->current_designation_label }}</p>
-                        @endif
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="font-semibold text-slate-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $shName }}</a>
+                            @if($schoolHead->position_level)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300">
+                                    {{ $schoolHead->position_level_label }}
+                                </span>
+                            @endif
+                            @if($schoolHead->current_designation)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200">
+                                    <i class="fas fa-id-badge text-[10px] mr-1 text-indigo-500 dark:text-indigo-400"></i> {{ $schoolHead->current_designation_label }}
+                                </span>
+                            @endif
+                        </div>
+                        <p class="text-sm text-slate-500 dark:text-gray-400 truncate">{{ $shEmail }}</p>
+                        <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
+                            @if($schoolHead->school)<span class="inline-flex items-center gap-1"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $schoolHead->school->name }}</span>@endif
+                        </div>
                     </div>
                 </div>
-                @if($schoolHead->school)
-                <div class="mt-3 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    {{ $schoolHead->school->name }}
-                </div>
-                @endif
-                <div class="mt-4 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        {{ $schoolHead->total_observations ?? 0 }} obs
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border {{ $obsCount > 0 ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300' : 'bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-700 text-slate-500 dark:text-gray-400' }}" title="{{ $obsCount }} observations">
+                        <i class="fas fa-clipboard-list text-[11px]"></i> {{ $obsCount }}
                     </span>
-                    @if($schoolHead->position_level)
-                    <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-medium bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                        {{ $schoolHead->position_level_label }}
-                    </span>
-                    @endif
-                </div>
-                <div class="mt-4 flex items-center gap-2">
                     <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}"
-                       class="flex-1 text-center px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 transition-colors">
-                        View Profile
-                    </a>
-                    <a href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}"
-                       class="flex-1 text-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                        Schedule Observation
+                       class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm inline-flex items-center gap-1.5">
+                        <i class="fas fa-user text-xs"></i> View
                     </a>
                     <a href="{{ route('supervisor.school-heads.observations', $schoolHead) }}"
-                       class="flex-1 text-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                        View History
+                       class="px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                        History
+                    </a>
+                    <a href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}"
+                       class="px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                        Schedule
                     </a>
                 </div>
             </div>
-        @empty
-            <div class="col-span-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
-                <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">No school heads found</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">There are no school heads registered in the system yet.</p>
+        </div>
+    @empty
+        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-10 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-building-columns text-slate-400 dark:text-gray-500"></i>
             </div>
-        @endforelse
+            <h3 class="text-base font-semibold text-slate-900 dark:text-white">No school heads found</h3>
+            <p class="text-sm text-slate-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
+                @if(request('search'))
+                    No school heads match “{{ request('search') }}”. Try a different name or email.
+                @else
+                    There are no school heads registered in the system yet.
+                @endif
+            </p>
+            @if(request('search'))
+                <a href="{{ route('supervisor.school-heads.index') }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700">Clear search</a>
+            @endif
+        </div>
+    @endforelse
     </div>
 
+    {{-- School heads — Table view --}}
     <div x-show="view === 'table'" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" aria-label="School heads table">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -193,21 +222,15 @@
                         $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
                         $shEmail = $schoolHead->user?->email ?? '';
                         $initial = strtoupper(substr($shName, 0, 1));
-                        $avatarColors = ['bg-indigo-500', 'bg-emerald-500', 'bg-blue-500', 'bg-violet-500', 'bg-rose-500', 'bg-amber-500', 'bg-cyan-500', 'bg-pink-500'];
-                        $avatarColor = $avatarColors[crc32($shEmail ?: $shName) % count($avatarColors)];
+                        $obsCount = $schoolHead->total_observations ?? 0;
                     @endphp
                     <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors">
                         <td class="px-3 py-2.5">
                             <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-7 h-7 rounded-full {{ $avatarColor }} flex items-center justify-center text-white text-xs font-bold shrink-0" aria-hidden="true">{{ $initial }}</div>
+                                <div class="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-xs font-bold shrink-0" aria-hidden="true">{{ $initial }}</div>
                                 <div class="min-w-0">
                                     <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="block text-sm font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $shName }}</a>
-                                    @if($shEmail)
-                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">{{ $shEmail }}</p>
-                                    @endif
-                                    @if($schoolHead->current_designation)
-                                        <p class="text-[11px] text-gray-400 dark:text-gray-500 truncate leading-tight">{{ $schoolHead->current_designation_label }}</p>
-                                    @endif
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">{{ $shEmail }}</p>
                                 </div>
                             </div>
                         </td>
@@ -218,10 +241,11 @@
                             <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->position_level ? $schoolHead->position_level_label : '—' }}</span>
                         </td>
                         <td class="px-3 py-2.5 whitespace-nowrap">
-                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $schoolHead->total_observations ?? 0 }}</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $obsCount }}</span>
                         </td>
                         <td class="px-3 py-2.5 text-right whitespace-nowrap">
-                            <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="inline-flex items-center px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-semibold transition-colors">View Profile</a>
+                            <a href="{{ route('supervisor.school-heads.show', $schoolHead) }}" class="inline-flex items-center px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-semibold transition-colors">View</a>
+                            <a href="{{ route('supervisor.school-heads.observations', $schoolHead) }}" class="inline-flex items-center px-2.5 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">History</a>
                             <a href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}" class="inline-flex items-center px-2.5 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Schedule</a>
                         </td>
                     </tr>
@@ -239,8 +263,8 @@
     </div>
 
     @if($schoolHeads->hasPages())
-        <div class="mt-8">
-            {{ $schoolHeads->links() }}
+        <div class="pt-2">
+            {{ $schoolHeads->appends(request()->query())->links() }}
         </div>
     @endif
 </div>

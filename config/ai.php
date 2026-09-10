@@ -86,7 +86,6 @@ return [
                 ['id' => 'minimax/minimax-m2.5', 'name' => 'MiniMax M2.5 — strong general model (paid, uses credits)'],
                 ['id' => 'minimax/minimax-m2.7', 'name' => 'MiniMax M2.7 — latest productivity model (paid, uses credits)'],
                 ['id' => 'minimax/minimax-m3', 'name' => 'MiniMax M3 — flagship, 1M context (paid, uses credits)'],
-                ['id' => 'minimax/minimax-m3:free', 'name' => 'MiniMax M3 (free) — shares the free-tier daily quota'],
             ],
         ],
         'ollama' => [
@@ -106,9 +105,11 @@ return [
     | Default Model
     |--------------------------------------------------------------------------
     |
-    | A single Default Provider (ai.provider) + Default Model is applied to
-    | every AI task across all goals, observation stages and features.
-    | There is no per-task or per-stage model routing.
+    | A single Default Provider (ai.provider) + Default Model is the baseline
+    | for every AI task. Individual tasks may override it via
+    | ai.tasks.{task}.provider / ai.tasks.{task}.model, and the lesson-plan
+    | workflow additionally routes per generation mode (see
+    | ai.lesson_plan_modes) with the balanced mode as failover baseline.
     |
     */
 
@@ -226,6 +227,62 @@ return [
             'temperature' => 0.5,
             'timeout' => 90,
             'rate_limit' => ['limit' => 5, 'decay' => 300],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lesson Plan Generation Modes (Goal-Driven Model Routing)
+    |--------------------------------------------------------------------------
+    |
+    | The lesson-plan workflow routes each request to the generation mode
+    | whose strengths best match the teacher's subject and pedagogical
+    | goals (see App\AI\Routing\LessonPlanModelRouter):
+    |
+    | - reasoning   → Math/Science inquiry, problem solving, data reasoning.
+    |                 Prefers reasoning-dense models with structured rubrics.
+    | - expressive  → English/Filipino literature, creative writing, arts.
+    |                 Prefers expressive language models.
+    | - structured  → Remedial, foundational literacy/numeracy, highly
+    |                 scaffolded or multi-step instruction.
+    | - balanced    → Stable baseline for everything else AND the automatic
+    |                 failover target when a specialized mode fails.
+    |
+    | Each mode resolves to [provider, model]. Empty values inherit the
+    | task-level override (ai.tasks.*) and then the global default, so a
+    | fresh install routes by prompt style while using one stable model
+    | until administrators assign specialized models per mode.
+    |
+    */
+
+    'lesson_plan_modes' => [
+        'reasoning' => [
+            'label' => 'Reasoning — Math & Science Inquiry',
+            'description' => 'Step-by-step reasoning, inquiry scaffolds and structured rubrics for analytical subjects.',
+            'provider' => env('AI_LP_MODE_REASONING_PROVIDER', ''),
+            'model' => env('AI_LP_MODE_REASONING_MODEL', ''),
+            'temperature' => 0.3,
+        ],
+        'expressive' => [
+            'label' => 'Expressive — Language & Creative Writing',
+            'description' => 'Rich, expressive language feedback for literature, writing and arts lessons.',
+            'provider' => env('AI_LP_MODE_EXPRESSIVE_PROVIDER', ''),
+            'model' => env('AI_LP_MODE_EXPRESSIVE_MODEL', ''),
+            'temperature' => 0.6,
+        ],
+        'structured' => [
+            'label' => 'Structured — Remedial & Foundational',
+            'description' => 'Highly scaffolded, step-by-step guidance for remedial and foundational lessons.',
+            'provider' => env('AI_LP_MODE_STRUCTURED_PROVIDER', ''),
+            'model' => env('AI_LP_MODE_STRUCTURED_MODEL', ''),
+            'temperature' => 0.3,
+        ],
+        'balanced' => [
+            'label' => 'Balanced — General (Baseline)',
+            'description' => 'Stable general-purpose baseline. Also the automatic failover target.',
+            'provider' => env('AI_LP_MODE_BALANCED_PROVIDER', ''),
+            'model' => env('AI_LP_MODE_BALANCED_MODEL', ''),
+            'temperature' => 0.4,
         ],
     ],
 
@@ -365,6 +422,73 @@ return [
             'lesson_plan_summary' => ['limit' => 15, 'decay' => 60],
             'cot_indicator_analysis' => ['limit' => 12, 'decay' => 60],
             'overall_recommendation' => ['limit' => 5,  'decay' => 300],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cost Estimation
+    |--------------------------------------------------------------------------
+    |
+    | Admin AI Usage & Cost Monitoring uses these prices to estimate spend per
+    | AI call. Prices are stated in USD per 1,000,000 tokens (providers bill in
+    | USD); the estimate is converted to the display currency via
+    | usd_to_php_rate. Cost is computed on the fly — historical logs are never
+    | mutated — so adjusting these values changes what the admin page reports.
+    |
+    | Resolution order per call:
+    |   1. ai.pricing.models.{provider}.{model}  (exact model match)
+    |   2. ai.pricing.providers.{provider}       (provider fallback)
+    |   3. unpriced -> 0.00
+    |
+    | Free/local models (OpenRouter `:free` ids, Ollama) price at 0.00.
+    |
+    */
+
+    'pricing' => [
+        'currency' => 'PHP',
+        'currency_symbol' => '₱',
+        'usd_to_php_rate' => (float) env('AI_USD_TO_PHP_RATE', 58.0),
+
+        // Per-provider fallback: USD per 1M tokens.
+        'providers' => [
+            'gemini' => ['input' => 0.50, 'output' => 1.50],
+            'openai' => ['input' => 2.50, 'output' => 10.00],
+            'claude' => ['input' => 3.00, 'output' => 15.00],
+            'deepseek' => ['input' => 0.27, 'output' => 1.10],
+            'openrouter' => ['input' => 0.15, 'output' => 0.60],
+            'ollama' => ['input' => 0.00, 'output' => 0.00],
+            'python' => ['input' => 0.00, 'output' => 0.00],
+        ],
+
+        // Finer per-model overrides (USD per 1M tokens) for the curated
+        // model_catalog ids. Placeholder estimates — tune to current pricing.
+        'models' => [
+            'gemini' => [
+                'gemini-3.6-flash' => ['input' => 0.10, 'output' => 0.40],
+                'gemini-3.5-flash' => ['input' => 0.075, 'output' => 0.30],
+                'gemini-3.5-flash-lite' => ['input' => 0.05, 'output' => 0.15],
+                'gemini-flash-latest' => ['input' => 0.075, 'output' => 0.30],
+                'gemini-3.1-pro-preview' => ['input' => 2.50, 'output' => 15.00],
+                'gemini-2.5-flash' => ['input' => 0.30, 'output' => 2.50],
+                'gemini-2.5-pro' => ['input' => 1.25, 'output' => 10.00],
+                'gemini-pro-latest' => ['input' => 1.25, 'output' => 10.00],
+            ],
+            'openai' => [
+                'gpt-4o' => ['input' => 2.50, 'output' => 10.00],
+                'gpt-4o-mini' => ['input' => 0.15, 'output' => 0.60],
+                'gpt-4.1' => ['input' => 2.00, 'output' => 8.00],
+                'gpt-4.1-mini' => ['input' => 0.40, 'output' => 1.60],
+            ],
+            'claude' => [
+                'claude-sonnet-4-20250514' => ['input' => 3.00, 'output' => 15.00],
+                'claude-3-7-sonnet-latest' => ['input' => 3.00, 'output' => 15.00],
+                'claude-3-5-haiku-latest' => ['input' => 0.80, 'output' => 4.00],
+            ],
+            'deepseek' => [
+                'deepseek-chat' => ['input' => 0.27, 'output' => 1.10],
+                'deepseek-reasoner' => ['input' => 0.55, 'output' => 2.19],
+            ],
         ],
     ],
 

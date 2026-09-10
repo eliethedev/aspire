@@ -18,15 +18,21 @@ class PreObservationPrompt
         $assessment = $context['assessment'] ?? 'Not specified';
         $lessonPlanContent = $context['lesson_plan_content'] ?? '';
         $rubrics = $context['rubrics'] ?? '';
+        $modeLabel = $context['mode_label'] ?? '';
+        $modeDirectives = $context['mode_directives'] ?? '';
 
         $lessonPlanSection = $lessonPlanContent
             ? "--- Lesson Plan Content ---\n{$lessonPlanContent}"
             : 'Lesson Plan: ' . ($context['lesson_plan_file'] ?? 'Not uploaded');
 
+        $modeSection = ($modeLabel !== '' || $modeDirectives !== '')
+            ? 'Generation mode: '.($modeLabel !== '' ? $modeLabel : 'specialized').". {$modeDirectives}\n\n"
+            : '';
+
         return <<<PROMPT
 Analyze this pre-observation data and write a brief coaching brief for the supervisor. No preamble, no reasoning — go straight to the output.
 
-Teacher: {$teacherName}
+{$modeSection}Teacher: {$teacherName}
 Subject: {$subject} | Grade: {$gradeLevel} | SY: {$schoolYear}
 Observation Type: {$obsType}
 

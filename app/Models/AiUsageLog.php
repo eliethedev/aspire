@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\AI\Costs\AiCostCalculator;
 use Illuminate\Database\Eloquent\Model;
 
 class AiUsageLog extends Model
@@ -38,5 +39,24 @@ class AiUsageLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Estimated cost of this call in the display currency (PHP), computed from
+     * the current pricing catalog in config('ai.pricing'). No schema changes.
+     */
+    public function estimatedCost(): float
+    {
+        return app(AiCostCalculator::class)->estimate(
+            $this->provider,
+            $this->model,
+            $this->prompt_tokens,
+            $this->response_tokens,
+        );
+    }
+
+    public function stageLabel(): string
+    {
+        return ucwords(str_replace('_', ' ', (string) $this->stage));
     }
 }

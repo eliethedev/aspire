@@ -21,6 +21,14 @@ abstract class AIService
 
     protected string $stage;
 
+    /**
+     * Metadata of the most recent provider run (provider, model,
+     * fallback_used, success). Populated by generate()/generateJson().
+     *
+     * @var array{provider: ?string, model: ?string, fallback_used: bool, success: bool}|null
+     */
+    protected ?array $lastRunMeta = null;
+
     public function __construct(
         AIServiceInterface $provider,
         PPSTRubricRepository $rubrics,
@@ -45,6 +53,45 @@ abstract class AIService
         [, $model] = $this->manager->resolveProviderAndModel($this->stage);
 
         return $model;
+    }
+
+    /**
+     * Metadata of the most recent provider run, or null if no run happened.
+     *
+     * @return array{provider: ?string, model: ?string, fallback_used: bool, success: bool}|null
+     */
+    public function getLastRunMeta(): ?array
+    {
+        return $this->lastRunMeta;
+    }
+
+    /**
+     * Execute a provider run, optionally against an explicitly routed
+     * primary model (goal-driven routing with standard-chain failover).
+     *
+     * @param  array{provider: string, model: string}|null  $route
+     */
+    protected function runProvider(
+        string $prompt,
+        array $options,
+        bool $json,
+        ?array $route = null,
+        ?int $observationId = null,
+    ): array {
+        if ($route !== null) {
+            $result = $this->manager->runWithPrimary($this->stage, $prompt, $route, $options, $json, $observationId);
+        } else {
+            $result = $this->manager->run($this->stage, $prompt, $options, $json, $observationId);
+        }
+
+        $this->lastRunMeta = [
+            'provider' => $result['provider'],
+            'model' => $result['model'],
+            'fallback_used' => $result['fallback_used'],
+            'success' => $result['success'],
+        ];
+
+        return $result;
     }
 
     /**
@@ -138,7 +185,7 @@ abstract class AIService
         return true;
     }
 
-    protected function generate(string $prompt, array $overrideOptions = []): ?string
+    protected function generate(string $prompt, array $overrideOptions = [], ?array $route = null, ?int $observationId = null): ?string
     {
         if (! $this->isAvailable()) {
             return null;
@@ -163,7 +210,7 @@ abstract class AIService
                 $options['max_output_tokens'] = min($current * 2, 8192);
             }
 
-            $result = $this->manager->run($this->stage, $prompt, $options, json: false);
+            $result = $this->runProvider($prompt, $options, false, $route, $observationId);
 
             $this->log('response', $result['text'], [
                 'provider' => $result['provider'],
@@ -188,7 +235,7 @@ abstract class AIService
         return $result['text'];
     }
 
-    protected function generateJson(string $prompt, array $overrideOptions = []): ?array
+    protected function generateJson(string $prompt, array $overrideOptions = [], ?array $route = null, ?int $observationId = null): ?array
     {
         if (! $this->isAvailable()) {
             return null;
@@ -213,7 +260,7 @@ abstract class AIService
                 $options['max_output_tokens'] = min($current * 2, 8192);
             }
 
-            $result = $this->manager->run($this->stage, $prompt, $options, json: true);
+            $result = $this->runProvider($prompt, $options, true, $route, $observationId);
 
             $this->log('response', $result['json'] ? json_encode($result['json']) : null, [
                 'provider' => $result['provider'],

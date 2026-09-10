@@ -31,12 +31,27 @@ class SchoolHeadProfileUpdateRequest extends FormRequest
             'employment_status' => ['nullable', 'string', 'max:255'],
             'position_level' => ['nullable', 'string', 'max:255'],
             'current_designation' => ['nullable', 'string', 'max:255'],
-            'administrative_experience_years' => ['nullable', 'integer', 'min:0'],
+            'administrative_experience_years' => ['nullable', 'integer', 'min:0', 'max:50'],
             'leadership_training' => ['nullable', 'string'],
             'number_of_teachers_supervised' => ['nullable', 'integer', 'min:0'],
             'school_type' => ['nullable', 'string', 'max:255'],
             'additional_roles' => ['nullable', 'string'],
             'position' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /**
+     * Custom, plain-language error messages that point the user at the exact
+     * field that needs to be filled in.
+     */
+    public function messages(): array
+    {
+        return [
+            'administrative_experience_years.integer' => 'Administrative experience must be a whole number.',
+            'administrative_experience_years.min' => 'Administrative experience cannot be less than 0.',
+            'administrative_experience_years.max' => 'Administrative experience cannot exceed 50 years.',
+            'number_of_teachers_supervised.integer' => 'Number of teachers supervised must be a whole number.',
+            'number_of_teachers_supervised.min' => 'Number of teachers supervised cannot be less than 0.',
         ];
     }
 }

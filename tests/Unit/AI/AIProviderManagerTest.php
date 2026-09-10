@@ -242,4 +242,84 @@ class AIProviderManagerTest extends TestCase
         $this->assertSame('gemini', $failed->provider);
         $this->assertFalse($failed->fallback_used);
     }
+
+    public function test_run_with_primary_prefers_routed_model(): void
+    {
+        config([
+            'ai.fallback' => true,
+            'ai.provider' => 'gemini',
+            'ai.models.default' => 'gemini-3.6-flash',
+            'ai.fallback_chain' => ['gemini', 'openai'],
+        ]);
+
+        $deepseek = new FakeAIProvider('deepseek', available: true, succeeds: true);
+        $gemini = new FakeAIProvider('gemini', available: true, succeeds: true);
+
+        $result = $this->manager(['deepseek' => $deepseek, 'gemini' => $gemini])
+            ->runWithPrimary(
+                'lesson_plan_suggestion',
+                'prompt',
+                ['provider' => 'deepseek', 'model' => 'deepseek-reasoner'],
+                [],
+                json: true,
+            );
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('deepseek', $result['provider']);
+        $this->assertFalse($result['fallback_used']);
+        $this->assertSame(1, $deepseek->generateCalls);
+        $this->assertSame(0, $gemini->generateCalls);
+    }
+
+    public function test_run_with_primary_falls_back_when_routed_model_unavailable(): void
+    {
+        config([
+            'ai.fallback' => true,
+            'ai.provider' => 'gemini',
+            'ai.models.default' => 'gemini-3.6-flash',
+            'ai.fallback_chain' => ['gemini', 'openai'],
+        ]);
+
+        $gemini = new FakeAIProvider('gemini', available: true, succeeds: true);
+
+        // Routed primary is not configured → skipped, baseline chain serves.
+        $result = $this->manager(['gemini' => $gemini])
+            ->runWithPrimary(
+                'lesson_plan_suggestion',
+                'prompt',
+                ['provider' => 'deepseek', 'model' => 'deepseek-reasoner'],
+                [],
+                json: true,
+            );
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('gemini', $result['provider']);
+        $this->assertSame(1, $gemini->generateCalls);
+    }
+
+    public function test_run_with_primary_fails_over_on_routed_model_error(): void
+    {
+        config([
+            'ai.fallback' => true,
+            'ai.provider' => 'gemini',
+            'ai.models.default' => 'gemini-3.6-flash',
+            'ai.fallback_chain' => ['gemini', 'openai'],
+        ]);
+
+        $deepseek = new FakeAIProvider('deepseek', available: true, succeeds: false);
+        $gemini = new FakeAIProvider('gemini', available: true, succeeds: true);
+
+        $result = $this->manager(['deepseek' => $deepseek, 'gemini' => $gemini])
+            ->runWithPrimary(
+                'lesson_plan_suggestion',
+                'prompt',
+                ['provider' => 'deepseek', 'model' => 'deepseek-reasoner'],
+                [],
+                json: true,
+            );
+
+        $this->assertTrue($result['success']);
+        $this->assertSame('gemini', $result['provider']);
+        $this->assertTrue($result['fallback_used']);
+    }
 }

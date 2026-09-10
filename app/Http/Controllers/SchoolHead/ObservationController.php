@@ -1174,7 +1174,7 @@ class ObservationController extends Controller
     /**
      * Generate AI insights.
      */
-    public function generateAiInsights(Observation $observation)
+    public function generateAiInsights(Observation $observation, Request $request)
     {
         $this->authorizeObservation($observation);
         $observation->load(['preObservationPlanning', 'observee']);
@@ -1185,8 +1185,15 @@ class ObservationController extends Controller
         // we return a friendly notice instead of canned text.
         set_time_limit(300);
 
+        $mode = $request->input('mode', $request->query('mode'));
+        $manualMode = is_string($mode) && $mode !== '' && $mode !== 'auto'
+            && app(\App\AI\Routing\LessonPlanModelRouter::class)->isValidMode($mode)
+            ? $mode : null;
+
+        $service = app(\App\AI\Services\PreObservationService::class);
+
         try {
-            $insights = app(\App\AI\Services\PreObservationService::class)->generateInsights($observation, false);
+            $insights = $service->generateInsights($observation, false, $manualMode);
         } catch (\App\AI\Exceptions\AIRateLimitException $e) {
             return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation', $e), 429);
         } catch (\Throwable $e) {
@@ -1199,9 +1206,11 @@ class ObservationController extends Controller
             return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
         }
 
+        $routing = $service->getLastRouting();
+
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
-            ['ai_insights' => $insights]
+            ['ai_insights' => $insights, 'ai_insights_meta' => $routing]
         );
 
         app(AuditLogService::class)->logAi(
@@ -1216,6 +1225,7 @@ class ObservationController extends Controller
             'status' => 'completed',
             'ai_insights' => $insights,
             'source' => 'ai',
+            'meta' => $routing,
         ]);
     }
 
@@ -1236,6 +1246,7 @@ class ObservationController extends Controller
                 'status' => 'completed',
                 'ai_insights' => $insights,
                 'source' => $source,
+                'meta' => $observation->preObservationPlanning?->ai_insights_meta,
             ]);
         }
 
@@ -1254,7 +1265,7 @@ class ObservationController extends Controller
 
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
-            ['ai_insights' => null]
+            ['ai_insights' => null, 'ai_insights_meta' => null]
         );
 
         app(AuditLogService::class)->logAi(

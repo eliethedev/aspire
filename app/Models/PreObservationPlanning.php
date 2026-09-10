@@ -14,6 +14,7 @@ class PreObservationPlanning extends Model
         'observation_id',
         'lesson_plan_file',
         'ai_insights',
+        'ai_insights_meta',
         'ai_insights_reviewed',
         'suggested_focus',
         'supervisor_notes',
@@ -23,6 +24,7 @@ class PreObservationPlanning extends Model
 
     protected $casts = [
         'ai_insights' => 'array',
+        'ai_insights_meta' => 'array',
         'ai_insights_reviewed' => 'boolean',
         'suggested_focus' => 'array',
         'form_responses' => 'array',

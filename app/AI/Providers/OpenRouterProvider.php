@@ -115,6 +115,14 @@ class OpenRouterProvider implements AIServiceInterface, TracksTokenUsage, Tracks
             $data = $response->json();
             $text = $data['choices'][0]['message']['content'] ?? null;
 
+            // Thinking models (e.g. MiniMax M3, DeepSeek reasoner) can burn the
+            // whole token budget on `reasoning` and return no `content` — when
+            // that happens the reasoning text is still a useful, non-empty
+            // generation (and keeps connectivity checks honest for such models).
+            if (! $text) {
+                $text = $data['choices'][0]['message']['reasoning'] ?? null;
+            }
+
             if (! $text) {
                 $this->lastError = 'API returned an empty response';
                 Log::warning('OpenRouter API: empty response');

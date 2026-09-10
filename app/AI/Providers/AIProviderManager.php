@@ -6,6 +6,7 @@ use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
 use App\AI\Contracts\TracksTruncation;
 use App\Models\AiUsageLog;
+use App\Models\CustomAiProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -27,22 +28,39 @@ class AIProviderManager
     protected array $instances = [];
 
     /**
-     * Create a concrete provider instance by name.
+     * Create a concrete provider instance by name. Built-in providers resolve
+     * via the match below; anything else is looked up among the admin-created
+     * custom providers (OpenAI-compatible endpoints) before falling back to
+     * the default Gemini provider.
      */
     public function createProvider(string $provider, string $model = ''): AIServiceInterface
     {
         $model = $model ?: '';
 
-        return match ($provider) {
-            'gemini' => new GeminiProvider(model: $model ?: null),
-            'openai' => new OpenAIProvider(model: $model ?: null),
-            'claude' => new ClaudeProvider(model: $model ?: null),
-            'deepseek' => new DeepSeekProvider(model: $model ?: null),
-            'openrouter' => new OpenRouterProvider(model: $model ?: null),
-            'ollama' => new OllamaProvider(model: $model ?: null),
-            'python' => new PythonBridgeProvider(model: $model ?: null),
-            default => new GeminiProvider(model: $model ?: null),
-        };
+        $builders = [
+            'gemini' => fn () => new GeminiProvider(model: $model ?: null),
+            'openai' => fn () => new OpenAIProvider(model: $model ?: null),
+            'claude' => fn () => new ClaudeProvider(model: $model ?: null),
+            'deepseek' => fn () => new DeepSeekProvider(model: $model ?: null),
+            'openrouter' => fn () => new OpenRouterProvider(model: $model ?: null),
+            'ollama' => fn () => new OllamaProvider(model: $model ?: null),
+            'python' => fn () => new PythonBridgeProvider(model: $model ?: null),
+        ];
+
+        if (isset($builders[$provider])) {
+            return $builders[$provider]();
+        }
+
+        $custom = CustomAiProvider::query()
+            ->where('slug', $provider)
+            ->where('enabled', true)
+            ->first();
+
+        if ($custom !== null) {
+            return $custom->resolveInstance($model);
+        }
+
+        return new GeminiProvider(model: $model ?: null);
     }
 
     /**
@@ -58,17 +76,44 @@ class AIProviderManager
     /**
      * Resolve [provider, model] for a task from configuration.
      *
-     * The Default Provider + Default Model is applied to every task; there is
-     * no per-task routing. $task is accepted only to keep the signature stable.
+     * Precedence: per-task override (ai.tasks.{task}.provider/model) →
+     * per-task model entry (ai.models.{task}) → global default.
+     * $task is the AI task/stage identifier (e.g. lesson_plan_suggestion).
      *
      * @return array{0: string, 1: string}
      */
     public function resolveProviderAndModel(string $task): array
     {
-        return [
-            (string) config('ai.provider', 'gemini'),
-            (string) config('ai.models.default', 'gemini-3.6-flash'),
-        ];
+        $defaultProvider = (string) config('ai.provider', 'gemini');
+        $defaultModel = (string) config('ai.models.default', 'gemini-3.6-flash');
+
+        $taskConfig = config("ai.tasks.{$task}", []);
+        if (is_array($taskConfig)) {
+            $taskProvider = trim((string) ($taskConfig['provider'] ?? ''));
+            $taskModel = trim((string) ($taskConfig['model'] ?? ''));
+            if ($taskProvider !== '' || $taskModel !== '') {
+                return [
+                    $taskProvider !== '' ? $taskProvider : $defaultProvider,
+                    $taskModel !== '' ? $taskModel : $defaultModel,
+                ];
+            }
+        }
+
+        $stageEntry = config("ai.models.{$task}");
+        if (is_array($stageEntry)) {
+            $stageProvider = trim((string) ($stageEntry['provider'] ?? ''));
+            $stageModel = trim((string) ($stageEntry['model'] ?? ''));
+            if ($stageProvider !== '' || $stageModel !== '') {
+                return [
+                    $stageProvider !== '' ? $stageProvider : $defaultProvider,
+                    $stageModel !== '' ? $stageModel : $defaultModel,
+                ];
+            }
+        } elseif (is_string($stageEntry) && trim($stageEntry) !== '') {
+            return [$defaultProvider, trim($stageEntry)];
+        }
+
+        return [$defaultProvider, $defaultModel];
     }
 
     /**
@@ -139,7 +184,76 @@ class AIProviderManager
         bool $json = false,
         ?int $observationId = null,
     ): array {
-        $chain = $this->fallbackChain($task);
+        return $this->executeChain($task, $prompt, $options, $json, $observationId, $this->fallbackChain($task));
+    }
+
+    /**
+     * Run a generation task with an explicitly routed primary model first.
+     *
+     * Used by goal-driven routing (e.g. lesson-plan modes): the routed
+     * provider/model is attempted first, then the task's standard
+     * fallback chain (minus duplicates) serves as failover — ending at
+     * the stable baseline. Result shape matches run().
+     *
+     * @param  array{provider: string, model: string}  $primary
+     * @return array{
+     *     success: bool, text: ?string, json: ?array, provider: ?string, model: ?string,
+     *     fallback_used: bool, input_tokens: int, output_tokens: int,
+     *     duration_ms: int, finish_reason: ?string, error: ?string
+     * }
+     */
+    public function runWithPrimary(
+        string $task,
+        string $prompt,
+        array $primary,
+        array $options = [],
+        bool $json = false,
+        ?int $observationId = null,
+    ): array {
+        $chain = [];
+
+        $primaryProvider = strtolower(trim((string) ($primary['provider'] ?? '')));
+        $primaryModel = trim((string) ($primary['model'] ?? ''));
+
+        if ($primaryProvider !== '') {
+            $candidate = $this->instance($primaryProvider, $primaryModel);
+            if ($candidate->isAvailable()) {
+                $chain[] = ['provider' => $primaryProvider, 'model' => $candidate->getModelName()];
+            } else {
+                Log::channel(config('ai.logging.channel', 'stack'))->warning('AI routed primary unavailable; using fallback chain', [
+                    'task' => $task,
+                    'provider' => $primaryProvider,
+                ]);
+            }
+        }
+
+        foreach ($this->fallbackChain($task) as $entry) {
+            if (! $this->hasEntry($chain, $entry['provider'])) {
+                $chain[] = $entry;
+            }
+        }
+
+        return $this->executeChain($task, $prompt, $options, $json, $observationId, $chain);
+    }
+
+    /**
+     * Execute generation attempts over a prepared chain.
+     *
+     * @param  array<int, array{provider: string, model: string}>  $chain
+     * @return array{
+     *     success: bool, text: ?string, json: ?array, provider: ?string, model: ?string,
+     *     fallback_used: bool, input_tokens: int, output_tokens: int,
+     *     duration_ms: int, finish_reason: ?string, error: ?string
+     * }
+     */
+    protected function executeChain(
+        string $task,
+        string $prompt,
+        array $options,
+        bool $json,
+        ?int $observationId,
+        array $chain,
+    ): array {
 
         $result = [
             'success' => false,

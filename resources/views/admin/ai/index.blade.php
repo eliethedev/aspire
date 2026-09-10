@@ -3,7 +3,10 @@
 @section('title', 'AI Settings')
 
 @section('content')
-<div x-data="aiSettings()" class="max-w-7xl mx-auto px-6 space-y-6">
+@php
+    $aiCatalog = $aiCatalog ?? config('ai.model_catalog', []);
+@endphp
+<div x-data="aiSettings({ provider: {{ Js::from($config['provider'] ?? 'gemini') }}, catalog: {{ Js::from($aiCatalog) }} })" class="max-w-7xl mx-auto px-6 space-y-6">
 
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -63,17 +66,20 @@
                 <!-- Active Provider Selector -->
                 <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Default Provider &amp; Model</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Applied to every AI feature — this single provider and model are used for all goals, lesson-plan AI, observation stages and recommendations.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Baseline for every AI feature — used for all goals, observation stages and recommendations. The lesson-plan workflow additionally auto-routes each request to a specialized generation mode (Reasoning, Expressive, Structured) matched to the lesson subject &amp; goals, falling back to this baseline on failure.</p>
                     <div class="flex flex-col md:flex-row md:items-end gap-4">
                         <div class="flex-1 md:max-w-xs">
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Provider</label>
-                            <select name="ai_provider" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <select name="ai_provider" x-model="provider" @change="onProviderChanged()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                                 <option value="gemini" {{ $config['provider'] === 'gemini' ? 'selected' : '' }}>Google Gemini</option>
                                 <option value="openai" {{ $config['provider'] === 'openai' ? 'selected' : '' }}>OpenAI</option>
                                 <option value="claude" {{ $config['provider'] === 'claude' ? 'selected' : '' }}>Anthropic Claude</option>
                                 <option value="openrouter" {{ $config['provider'] === 'openrouter' ? 'selected' : '' }}>OpenRouter</option>
                                 <option value="deepseek" {{ $config['provider'] === 'deepseek' ? 'selected' : '' }}>DeepSeek</option>
                                 <option value="ollama" {{ $config['provider'] === 'ollama' ? 'selected' : '' }}>Ollama (Local)</option>
+                                @foreach($customProviders as $customProvider)
+                                <option value="{{ $customProvider->slug }}" {{ $config['provider'] === $customProvider->slug ? 'selected' : '' }}>{{ $customProvider->name }} (Custom)</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="flex-1 md:max-w-md">
@@ -82,8 +88,10 @@
                                 'name' => 'ai_model_default',
                                 'id' => 'default-model-select',
                                 'current' => $config['models']['default'] ?? '',
-                                'groups' => ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama'],
+                                'provider' => $config['provider'] ?? 'gemini',
+                                'catalog' => $aiCatalog,
                             ])
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Shows models for the provider selected above. Pick OpenRouter to see MiniMax.</p>
                         </div>
                     </div>
                 </div>
@@ -163,6 +171,7 @@
                                 'id' => $providerKey . '-model-select',
                                 'current' => $providerCfg['default_model'] ?? '',
                                 'provider' => $providerKey,
+                                'catalog' => $aiCatalog,
                             ])
                             @if($providerKey === 'ollama')
                                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Only models pulled locally (e.g. <code>ollama pull llama3.1</code>) will work.</p>
@@ -331,6 +340,134 @@
         </div>
     </form>
 
+    <!-- CUSTOM PROVIDERS -->
+    <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Custom Providers</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Add your own OpenAI-compatible provider (Groq, Together AI, Fireworks, LM Studio, vLLM, …). It becomes usable anywhere the built-in providers are, including the Default Provider dropdown above.</p>
+            </div>
+            <details class="group">
+                <summary class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium cursor-pointer select-none">Add Provider</summary>
+                <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+                    <form method="POST" action="{{ route('admin.ai.providers.store') }}">
+                        @csrf
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Provider Name</label>
+                                <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Groq AI" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Base URL</label>
+                                <input type="url" name="base_url" value="{{ old('base_url') }}" required placeholder="e.g. https://api.groq.com/openai/v1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
+                                <input type="password" name="api_key" placeholder="Provider API key" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Model</label>
+                                <input type="text" name="default_model" value="{{ old('default_model') }}" placeholder="e.g. llama-3.3-70b-versatile (blank = first model below)" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Models <span class="text-gray-400">(one per line: <code>model-id</code> or <code>model-id|Friendly Name</code>)</span></label>
+                                <textarea name="models" rows="4" required placeholder="llama-3.3-70b-versatile|Llama 3.3 70B (versatile)&#10;llama-3.1-8b-instant|Llama 3.1 8B (instant)" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-mono focus:ring-2 focus:ring-indigo-500">{{ old('models') }}</textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Enabled</label>
+                                <select name="enabled" class="w-full md:w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                                    <option value="1" {{ old('enabled', '1') === '1' ? 'selected' : '' }}>Yes</option>
+                                    <option value="0" {{ old('enabled', '1') === '0' ? 'selected' : '' }}>No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">Add Provider</button>
+                        </div>
+                    </form>
+                </div>
+            </details>
+        </div>
+
+        @forelse($customProviders as $customProvider)
+        @php
+            $customStatus = $providerStatus[$customProvider->slug] ?? ['configured' => (bool) $customProvider->api_key, 'enabled' => (bool) $customProvider->enabled];
+            $modelsText = collect($customProvider->modelsList())
+                ->map(fn ($m) => ($m['id'] ?? '').(isset($m['name']) && $m['name'] !== ($m['id'] ?? '') ? '|'.$m['name'] : ''))
+                ->implode(PHP_EOL);
+        @endphp
+        <details class="border-t border-gray-200 dark:border-gray-800 py-4">
+            <summary class="flex flex-wrap items-center justify-between gap-3 cursor-pointer select-none">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center {{ ($customStatus['configured'] ?? false) ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800' }}">
+                        <svg class="w-5 h-5 {{ ($customStatus['configured'] ?? false) ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-white">{{ $customProvider->name }}</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ ($customStatus['configured'] ?? false) ? 'Connected' : 'Not configured' }} &middot; <span class="text-gray-500 dark:text-gray-400 font-mono text-xs">{{ $customProvider->base_url }}</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ ($customStatus['enabled'] ?? false) ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400' }}">
+                        {{ ($customStatus['enabled'] ?? false) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                    <form method="POST" action="{{ route('admin.ai.providers.test', $customProvider) }}">
+                        @csrf
+                        <button type="submit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Test</button>
+                    </form>
+                </div>
+            </summary>
+            <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+                <form method="POST" action="{{ route('admin.ai.providers.update', $customProvider) }}">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Provider Name</label>
+                            <input type="text" name="name" value="{{ $customProvider->name }}" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Base URL</label>
+                            <input type="url" name="base_url" value="{{ $customProvider->base_url }}" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
+                            <input type="password" name="api_key" placeholder="{{ $customProvider->masked_api_key ? 'Leave blank to keep ('.substr($customProvider->masked_api_key, -4).')' : 'Enter API key' }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                            @if($customProvider->masked_api_key)
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Current key: <span class="font-mono">{{ $customProvider->masked_api_key }}</span></p>
+                            @endif
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Default Model</label>
+                            <input type="text" name="default_model" value="{{ $customProvider->default_model }}" placeholder="Blank = first model below" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Models <span class="text-gray-400">(one per line: <code>model-id</code> or <code>model-id|Friendly Name</code>)</span></label>
+                            <textarea name="models" rows="4" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-mono focus:ring-2 focus:ring-indigo-500">{{ $modelsText }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Enabled</label>
+                            <select name="enabled" class="w-full md:w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-indigo-500">
+                                <option value="1" {{ $customProvider->enabled ? 'selected' : '' }}>Yes</option>
+                                <option value="0" {{ ! $customProvider->enabled ? 'selected' : '' }}>No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center gap-3">
+                        <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">Save Provider</button>
+                        <button type="submit" form="delete-{{ $customProvider->id }}" onclick="return confirm('Delete "{{ $customProvider->name }}"? This provider will no longer be available.')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">Delete</button>
+                    </div>
+                </form>
+                <form id="delete-{{ $customProvider->id }}" method="POST" action="{{ route('admin.ai.providers.destroy', $customProvider) }}" class="hidden">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            </div>
+        </details>
+        @empty
+        <p class="text-sm text-gray-400 dark:text-gray-500 py-4">No custom providers yet. Click "Add Provider" above to connect an OpenAI-compatible endpoint.</p>
+        @endforelse
+    </div>
+
     <!-- Provider connectivity test form (kept outside the main form to avoid illegal nesting) -->
     <form id="provider-test-form" method="POST" action="{{ route('admin.ai.test-provider') }}" class="hidden">
         @csrf
@@ -339,9 +476,49 @@
 </div>
 
 <script>
-function aiSettings() {
+function aiSettings(init) {
+    init = init || {};
     return {
         activeTab: 'providers',
+        provider: init.provider || 'gemini',
+        catalog: init.catalog || {},
+        onProviderChanged() {
+            const el = document.getElementById('default-model-select');
+            if (!el) return;
+
+            const wrap = el.closest('[data-model-field]');
+            const customInput = wrap ? wrap.querySelector('[data-custom-input]') : null;
+            const group = this.catalog[this.provider] || { models: [] };
+
+            // The previous selection: either a real model id or a free-text
+            // custom value carried in the hidden input.
+            const previous = el.value;
+            const wasCustom = previous === '__custom__';
+            const previousModel = wasCustom ? (customInput ? customInput.value : '') : previous;
+
+            el.innerHTML = '';
+            group.models.forEach(function (m) {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                el.appendChild(opt);
+            });
+            const customOpt = document.createElement('option');
+            customOpt.value = '__custom__';
+            customOpt.textContent = 'Custom model\u2026';
+            el.appendChild(customOpt);
+
+            // Keep the current model when it is still offered by the new
+            // provider; otherwise preserve it as a custom value so nothing is
+            // silently dropped while the admin switches providers.
+            if (previousModel && group.models.some(function (m) { return m.id === previousModel; })) {
+                el.value = previousModel;
+            } else {
+                el.value = '__custom__';
+                if (customInput) customInput.value = previousModel;
+            }
+            aiModelSelectChanged(el);
+        },
     };
 }
 

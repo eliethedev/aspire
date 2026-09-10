@@ -207,6 +207,7 @@
                 </div>
 
                 <div id="ai-notice-slot" class="mb-3"></div>
+                @include('partials.ai-engine-selector')
                 <div id="ai-insights-container">
                     @if($planning && $planning->ai_insights)
                         <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
@@ -573,11 +574,12 @@ function startGeneratingUi() {
     AiLoading.start(insightsContainer, 'Generating AI insights', 'Reviewing the lesson plan and previous observations\u2026');
 }
 
-function finishGenerated(insights) {
+function finishGenerated(insights, meta) {
     AiLoading.stop();
     closeManualInsights();
     document.getElementById('ai_insights_input').value = insights;
     renderInsightsCard(insights, 'AI Suggestions Ready', 'text-purple-700 dark:text-purple-300');
+    if (window.aiEngineRenderBadge) window.aiEngineRenderBadge(meta || null);
     restoreBtn();
     aiGenerating = false;
 }
@@ -604,7 +606,7 @@ function pollAiInsightsStatus(attempt) {
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.status === 'completed' && data.ai_insights) {
-                    finishGenerated(data.ai_insights);
+                    finishGenerated(data.ai_insights, data.meta);
                 } else {
                     pollAiInsightsStatus(attempt + 1);
                 }
@@ -631,6 +633,7 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ mode: window.aiEngineSelectedMode ? window.aiEngineSelectedMode() : 'auto' }),
     })
     .then(async res => {
         const data = await res.json().catch(() => ({}));
@@ -638,7 +641,7 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
     })
     .then(({ ok, data }) => {
         if (ok && data.ai_insights) {
-            finishGenerated(data.ai_insights);
+            finishGenerated(data.ai_insights, data.meta);
             return;
         }
         if (ok && data.status === 'processing') {

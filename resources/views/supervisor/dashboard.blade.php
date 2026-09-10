@@ -378,7 +378,7 @@
               <i class="fas fa-comments"></i></div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Feedback Center</p>
-              <p class="text-xs text-slate-500 dark:text-gray-400 truncate">Review AI feedback</p>
+              <p class="text-xs text-slate-500 dark:text-gray-400 truncate">Review feedback</p>
             </div><i class="fas fa-chevron-right text-xs text-slate-300 dark:text-gray-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-400"></i>
           </a>
         </div>

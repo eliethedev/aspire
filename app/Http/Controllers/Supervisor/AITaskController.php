@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Supervisor;
 
 use App\AI\Exceptions\AIRateLimitException;
+use App\AI\Routing\LessonPlanModelRouter;
 use App\AI\Services\CotIndicatorAnalysisService;
 use App\AI\Services\LessonPlanSuggestionService;
 use App\AI\Services\LessonPlanSummaryService;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CotRating;
 use App\Models\Observation;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -24,14 +26,16 @@ use Throwable;
  */
 class AITaskController extends Controller
 {
-    public function lessonPlanSuggestions(Observation $observation, LessonPlanSuggestionService $service): JsonResponse
+    public function lessonPlanSuggestions(Observation $observation, Request $request, LessonPlanSuggestionService $service): JsonResponse
     {
         if ($response = $this->guard($observation)) {
             return $response;
         }
 
+        $manualMode = $this->manualMode($request);
+
         try {
-            $data = $service->suggest($observation);
+            $data = $service->suggest($observation, $manualMode);
         } catch (AIRateLimitException $e) {
             return $this->rateLimited($e);
         } catch (Throwable $e) {
@@ -44,17 +48,24 @@ class AITaskController extends Controller
             return $this->unavailable();
         }
 
-        return response()->json(['task' => 'lesson_plan_suggestion', 'data' => $data]);
+        return response()->json([
+            'task' => 'lesson_plan_suggestion',
+            'data' => $data,
+            'meta' => $service->getLastRouting(),
+            'modes' => app(LessonPlanModelRouter::class)->modes(),
+        ]);
     }
 
-    public function lessonPlanSummary(Observation $observation, LessonPlanSummaryService $service): JsonResponse
+    public function lessonPlanSummary(Observation $observation, Request $request, LessonPlanSummaryService $service): JsonResponse
     {
         if ($response = $this->guard($observation)) {
             return $response;
         }
 
+        $manualMode = $this->manualMode($request);
+
         try {
-            $data = $service->summarize($observation);
+            $data = $service->summarize($observation, $manualMode);
         } catch (AIRateLimitException $e) {
             return $this->rateLimited($e);
         } catch (Throwable $e) {
@@ -69,7 +80,12 @@ class AITaskController extends Controller
             ], 422);
         }
 
-        return response()->json(['task' => 'lesson_plan_summary', 'data' => $data]);
+        return response()->json([
+            'task' => 'lesson_plan_summary',
+            'data' => $data,
+            'meta' => $service->getLastRouting(),
+            'modes' => app(LessonPlanModelRouter::class)->modes(),
+        ]);
     }
 
     public function cotIndicatorAnalysis(Observation $observation, CotRating $cotRating, CotIndicatorAnalysisService $service): JsonResponse
@@ -130,6 +146,20 @@ class AITaskController extends Controller
             'data' => $data,
             'disclaimer' => 'Advisory only. The supervisor makes all final decisions.',
         ]);
+    }
+
+    /**
+     * Validated manual generation-mode override ("auto" or null → router decides).
+     */
+    protected function manualMode(Request $request): ?string
+    {
+        $mode = $request->input('mode', $request->query('mode'));
+
+        if (! is_string($mode) || $mode === '' || $mode === 'auto') {
+            return null;
+        }
+
+        return app(LessonPlanModelRouter::class)->isValidMode($mode) ? $mode : null;
     }
 
     /**

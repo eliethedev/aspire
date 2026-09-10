@@ -3,6 +3,7 @@
 namespace App\AI\Services;
 
 use App\AI\Prompts\PreObservationPrompt;
+use App\AI\Routing\LessonPlanModelRouter;
 use App\Models\Observation;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,13 @@ use Illuminate\Support\Facades\Storage;
 class PreObservationService extends AIService
 {
     protected string $stage = 'pre_observation';
+
+    /**
+     * Routing metadata for the most recent generateInsights() call.
+     *
+     * @var array{mode: string, label: string, provider: ?string, model: ?string, manual: bool, fallback_used: bool, reasons: string[]}|null
+     */
+    protected ?array $lastRouting = null;
 
     public function __construct(
         \App\AI\Contracts\AIServiceInterface $provider,
@@ -19,8 +27,10 @@ class PreObservationService extends AIService
         parent::__construct($provider, $rubrics);
     }
 
-    public function generateInsights(Observation $observation, bool $templateFallback = true): ?string
+    public function generateInsights(Observation $observation, bool $templateFallback = true, ?string $manualMode = null): ?string
     {
+        $this->lastRouting = null;
+
         $observation->loadMissing(['observee.user', 'preObservationPlanning']);
         $teacherName = $observation->observee?->user?->name ?? 'Unknown';
         $planning = $observation->preObservationPlanning;
@@ -37,6 +47,17 @@ class PreObservationService extends AIService
             $observation->grade_level ?? ''
         );
 
+        // Dynamic goal parsing: route to the specialized generation mode
+        // matching the teacher's subject and lesson goals before the call.
+        $router = app(LessonPlanModelRouter::class);
+        $route = $router->resolve([
+            'subject' => $observation->subject,
+            'objective' => $planning?->objective,
+            'strategies' => $planning?->teaching_strategies,
+            'materials' => $planning?->materials,
+            'assessment' => $planning?->assessment_methods,
+        ], $this->stage, $manualMode);
+
         $prompt = PreObservationPrompt::build([
             'teacher_name' => $teacherName,
             'subject' => $observation->subject ?? 'N/A',
@@ -51,11 +72,22 @@ class PreObservationService extends AIService
             'lesson_plan_content' => $lessonPlanContent,
             'lesson_plan_file' => $lessonPlanFile,
             'rubrics' => $rubricContext,
+            'mode_label' => $route['label'],
+            'mode_directives' => LessonPlanModelRouter::directivesFor($route['mode']),
         ]);
 
-        $result = $this->generate($prompt);
+        $result = $this->generate(
+            $prompt,
+            ['temperature' => $route['temperature']],
+            ['provider' => $route['provider'], 'model' => $route['model']],
+            $observation->id,
+        );
+
+        $this->lastRouting = null;
 
         if ($result) {
+            $this->lastRouting = $this->routingMeta($route);
+
             return $result;
         }
 
@@ -67,6 +99,34 @@ class PreObservationService extends AIService
         }
 
         return null;
+    }
+
+    /**
+     * Routing metadata for the most recent generateInsights() call.
+     *
+     * @return array{mode: string, label: string, provider: ?string, model: ?string, manual: bool, fallback_used: bool, reasons: string[]}|null
+     */
+    public function getLastRouting(): ?array
+    {
+        return $this->lastRouting;
+    }
+
+    /**
+     * Merge the resolved route with the actual provider run outcome.
+     */
+    protected function routingMeta(array $route): array
+    {
+        $run = $this->getLastRunMeta();
+
+        return [
+            'mode' => $route['mode'],
+            'label' => $route['label'],
+            'provider' => $run['provider'] ?? $route['provider'],
+            'model' => $run['model'] ?? $route['model'],
+            'manual' => $route['manual'],
+            'fallback_used' => (bool) ($run['fallback_used'] ?? false),
+            'reasons' => $route['reasons'],
+        ];
     }
 
     public function generatePreConferenceSuggestions(Observation $observation, bool $templateFallback = true): ?array

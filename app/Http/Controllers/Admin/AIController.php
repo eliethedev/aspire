@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\AI\Providers\AIProviderManager;
 use App\Http\Controllers\Controller;
 use App\Models\AiUsageLog;
+use App\Models\CustomAiProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,18 @@ class AIController extends Controller
         $config = config('ai');
 
         $providerStatus = $this->getProviderStatus();
+
+        $customProviders = CustomAiProvider::orderBy('name')->get();
+
+        // Merge admin-created providers into the model catalog so their models
+        // show up in the Default Provider/Model dropdowns and the Alpine logic.
+        $aiCatalog = config('ai.model_catalog', []);
+        foreach ($customProviders as $custom) {
+            $aiCatalog[$custom->slug] = [
+                'label' => $custom->name,
+                'models' => $custom->modelsList(),
+            ];
+        }
 
         $usageStats = [
             'total_calls' => AiUsageLog::count(),
@@ -32,7 +45,7 @@ class AIController extends Controller
 
         $maskedKeys = $this->getMaskedApiKeys();
 
-        return view('admin.ai.index', compact('config', 'usageStats', 'providerStatus', 'maskedKeys'));
+        return view('admin.ai.index', compact('config', 'usageStats', 'providerStatus', 'maskedKeys', 'customProviders', 'aiCatalog'));
     }
 
     public function update(Request $request)
@@ -41,7 +54,7 @@ class AIController extends Controller
             'ai_enabled' => 'boolean',
             'ai_fallback_enabled' => 'boolean',
             'ai_logging_enabled' => 'boolean',
-            'ai_provider' => 'in:gemini,openai,claude,deepseek,openrouter,ollama',
+            'ai_provider' => 'in:'.$this->allowedProviderList(),
 
             'ai_gemini_enabled' => 'boolean',
             'ai_gemini_api_key' => 'nullable|string|max:500',
@@ -264,14 +277,25 @@ class AIController extends Controller
     public function test()
     {
         try {
-            Artisan::call('ai:test', ['--no-interaction' => true]);
+            $exitCode = Artisan::call('ai:test', ['--no-interaction' => true]);
             $output = Artisan::output();
 
-            if (str_contains($output, 'AI service is operational')) {
-                return back()->with('success', 'AI connectivity test passed. '.$output);
+            if ($exitCode === 0 || str_contains($output, 'AI Service test completed successfully')) {
+                $provider = $this->cliSummaryLine($output, 'Provider:');
+                $model = $this->cliSummaryLine($output, 'Model:');
+
+                $message = 'AI connectivity test passed.';
+                if ($provider !== null) {
+                    $message .= ' The '.$provider.' provider responded OK'
+                        .($model !== null ? ' using '.$model : '').'.';
+                } else {
+                    $message .= ' The active provider responded correctly.';
+                }
+
+                return back()->with('success', $message);
             }
 
-            return back()->with('warning', 'AI test completed with issues: '.$output);
+            return back()->with('warning', 'AI test completed with issues: '.$this->summarizeTestFailure($output));
         } catch (\Exception $e) {
             return back()->with('error', 'AI test failed: '.$e->getMessage());
         }
@@ -280,7 +304,7 @@ class AIController extends Controller
     public function testProvider(Request $request)
     {
         $request->validate([
-            'provider' => 'required|in:gemini,openai,claude,deepseek,openrouter,ollama',
+            'provider' => 'required|in:'.$this->allowedProviderList(),
         ]);
 
         $provider = $request->input('provider');
@@ -301,6 +325,142 @@ class AIController extends Controller
             return back()->with('warning', ucfirst($provider).' responded but returned empty content.');
         } catch (\Exception $e) {
             return back()->with('error', ucfirst($provider).' test failed: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Register a new OpenAI-compatible provider (name, base URL, API key,
+     * models) from the Admin UI. The provider becomes available anywhere the
+     * built-in providers are — Default Provider dropdown, connectivity checks,
+     * fallback chain and usage logging.
+     */
+    public function storeCustomProvider(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'base_url' => 'required|url|max:255',
+            'api_key' => 'nullable|string|max:500',
+            'models' => 'required|string',
+            'default_model' => 'nullable|string|max:100',
+            'enabled' => 'nullable|boolean',
+        ]);
+
+        $models = $this->parseModelsInput($data['models']);
+        if ($models === []) {
+            return back()->with('error', 'Add at least one model to the Models list (one model per line).')->withInput();
+        }
+
+        $slug = $this->generateSlug($data['name']);
+        $defaultModel = trim((string) ($data['default_model'] ?? ''));
+        if ($defaultModel === '') {
+            $defaultModel = $models[0]['id'];
+        }
+
+        CustomAiProvider::create([
+            'slug' => $slug,
+            'name' => trim($data['name']),
+            'base_url' => rtrim(trim($data['base_url']), '/'),
+            'api_key' => $data['api_key'] ?? '',
+            'models' => $models,
+            'default_model' => $defaultModel,
+            'enabled' => $request->boolean('enabled', true),
+        ]);
+
+        return back()->with('success', 'AI provider "'.trim($data['name']).'" added. Pick it as the Default Provider to activate it.');
+    }
+
+    /**
+     * Update a custom provider. Leaving the API key blank keeps the existing
+     * key. Renaming the provider re-slugs it and rewrites AI_PROVIDER if it
+     * was the active default provider, so the app never points at a dead slug.
+     */
+    public function updateCustomProvider(Request $request, CustomAiProvider $customAiProvider)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'base_url' => 'required|url|max:255',
+            'api_key' => 'nullable|string|max:500',
+            'models' => 'required|string',
+            'default_model' => 'nullable|string|max:100',
+            'enabled' => 'nullable|boolean',
+        ]);
+
+        $models = $this->parseModelsInput($data['models']);
+        if ($models === []) {
+            return back()->with('error', 'Add at least one model to the Models list (one model per line).');
+        }
+
+        $oldSlug = $customAiProvider->slug;
+        $newSlug = $oldSlug;
+
+        if (trim($data['name']) !== $customAiProvider->name) {
+            $newSlug = $this->generateSlug($data['name'], $customAiProvider->id);
+        }
+
+        $defaultModel = trim((string) ($data['default_model'] ?? ''));
+        if ($defaultModel === '') {
+            $defaultModel = $models[0]['id'];
+        }
+
+        $customAiProvider->fill([
+            'slug' => $newSlug,
+            'name' => trim($data['name']),
+            'base_url' => rtrim(trim($data['base_url']), '/'),
+            'models' => $models,
+            'default_model' => $defaultModel,
+            'enabled' => $request->boolean('enabled', true),
+        ]);
+
+        if (! empty($data['api_key'])) {
+            $customAiProvider->api_key = $data['api_key'];
+        }
+
+        $customAiProvider->save();
+
+        if ($newSlug !== $oldSlug) {
+            $this->retargetActiveProvider($oldSlug, $newSlug);
+        }
+
+        return back()->with('success', 'AI provider "'.trim($data['name']).'" updated.');
+    }
+
+    /**
+     * Delete a custom provider. Refuses when it is the active default provider
+     * so the app cannot be left pointing at a provider that no longer exists.
+     */
+    public function destroyCustomProvider(CustomAiProvider $customAiProvider)
+    {
+        if (config('ai.provider') === $customAiProvider->slug) {
+            return back()->with('error', 'Cannot delete "'.$customAiProvider->name.'" — it is the active default provider. Switch the Default Provider first.');
+        }
+
+        $name = $customAiProvider->name;
+        $customAiProvider->delete();
+
+        return back()->with('success', 'AI provider "'.$name.'" deleted.');
+    }
+
+    /**
+     * Live connectivity check for a single custom provider.
+     */
+    public function testCustomProvider(CustomAiProvider $customAiProvider)
+    {
+        try {
+            $instance = $customAiProvider->resolveInstance();
+
+            if (! $instance->isAvailable()) {
+                return back()->with('error', $customAiProvider->name.' is not configured. Add an API key first.');
+            }
+
+            $result = $instance->generate('Say "hello" in one word.', ['timeout' => 15]);
+
+            if ($result) {
+                return back()->with('success', $customAiProvider->name.' connectivity test passed. Response: '.substr($result, 0, 100));
+            }
+
+            return back()->with('warning', $customAiProvider->name.' responded but returned empty content.');
+        } catch (\Exception $e) {
+            return back()->with('error', $customAiProvider->name.' test failed: '.$e->getMessage());
         }
     }
 
@@ -332,6 +492,17 @@ class AIController extends Controller
             ];
         }
 
+        foreach (CustomAiProvider::orderBy('name')->get() as $custom) {
+            $status[$custom->slug] = [
+                'name' => $custom->name,
+                'enabled' => (bool) $custom->enabled,
+                'configured' => ! empty((string) $custom->api_key),
+                'default_model' => $custom->default_model,
+                'model' => $custom->default_model,
+                'is_custom' => true,
+            ];
+        }
+
         return $status;
     }
 
@@ -344,6 +515,44 @@ class AIController extends Controller
         $successful = AiUsageLog::where('success', true)->count();
 
         return round(($successful / $total) * 100, 1);
+    }
+
+    /**
+     * Pull a single labeled value out of the ai:test console output, e.g.
+     * "  Provider: openrouter" -> "openrouter".
+     */
+    private function cliSummaryLine(string $output, string $needle): ?string
+    {
+        foreach (explode("\n", $output) as $line) {
+            if (str_contains($line, $needle)) {
+                $value = trim(substr($line, strpos($line, $needle) + strlen($needle)));
+                if ($value !== '') {
+                    return $value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract the actionable reason from a failed ai:test dump instead of
+     * flashing the whole verbose CLI report back to the admin.
+     */
+    private function summarizeTestFailure(string $output): string
+    {
+        if (preg_match('/ERROR\s+(.+)$/m', trim($output), $m) && trim($m[1]) !== '') {
+            return trim($m[1]);
+        }
+
+        $lines = array_filter(array_map('trim', explode("\n", $output)));
+        $last = (string) end($lines);
+
+        if ($last !== '') {
+            return $last;
+        }
+
+        return 'Configure a provider and API key, then try again.';
     }
 
     private function getMaskedApiKeys(): array
@@ -366,6 +575,96 @@ class AIController extends Controller
         }
 
         return $masked;
+    }
+
+    /**
+     * Comma-separated provider keys accepted by the validation rules:
+     * the built-ins plus every admin-created custom provider slug.
+     */
+    private function allowedProviderList(): string
+    {
+        $builtIns = ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama'];
+
+        return implode(',', array_merge($builtIns, CustomAiProvider::query()->pluck('slug')->all()));
+    }
+
+    /**
+     * Parse the "one model per line" textarea into [{id, name}] entries.
+     * Lines may be "model-id", "model-id|Friendly Name" or "model-id: Friendly".
+     */
+    private function parseModelsInput(string $raw): array
+    {
+        $models = [];
+
+        foreach (explode("\n", $raw) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            $parts = preg_split('/\s*[\|:]\s*/', $line, 2);
+            $id = trim($parts[0] ?? '');
+            if ($id === '') {
+                continue;
+            }
+
+            $models[] = [
+                'id' => $id,
+                'name' => trim($parts[1] ?? '') !== '' ? trim($parts[1]) : $id,
+            ];
+        }
+
+        return $models;
+    }
+
+    /**
+     * Derive a unique provider slug from a friendly name (e.g. "Groq AI" →
+     * "groq-ai"), avoiding collisions with built-ins and existing providers.
+     */
+    private function generateSlug(string $name, ?int $ignoreId = null): string
+    {
+        $slug = strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $name), '-'));
+        if ($slug === '') {
+            $slug = 'provider';
+        }
+
+        $taken = array_merge(
+            ['gemini', 'openai', 'claude', 'deepseek', 'openrouter', 'ollama', 'python'],
+            CustomAiProvider::query()
+                ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->pluck('slug')
+                ->all(),
+        );
+
+        $candidate = $slug;
+        $suffix = 2;
+        while (in_array($candidate, $taken, true)) {
+            $candidate = $slug.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * When a renamed custom provider was the active default provider, rewrite
+     * AI_PROVIDER in .env and the running config so nothing points at the dead
+     * slug after the next process restart.
+     */
+    private function retargetActiveProvider(string $oldSlug, string $newSlug): void
+    {
+        if (config('ai.provider') !== $oldSlug) {
+            return;
+        }
+
+        $envFile = base_path('.env');
+        if (file_exists($envFile)) {
+            $envContent = file_get_contents($envFile);
+            $this->setEnvValue($envContent, 'AI_PROVIDER', $newSlug);
+            file_put_contents($envFile, $envContent);
+        }
+
+        config(['ai.provider' => $newSlug]);
     }
 
     /**
@@ -397,7 +696,7 @@ class AIController extends Controller
         try {
             $response = $instance->generate('Reply with the single word: OK', [
                 'timeout' => 15,
-                'max_output_tokens' => 16,
+                'max_output_tokens' => 64,
                 'temperature' => 0,
             ]);
         } catch (\Throwable $e) {

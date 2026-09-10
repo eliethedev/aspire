@@ -6,9 +6,24 @@
 @php
     $user = Auth::user();
     $initials = strtoupper(substr($user->first_name ?? $user->name, 0, 1) . substr($user->last_name ?? '', 0, 1));
+
+    $errorFields = collect($errors->keys());
+    $errorTab = 'basic';
+    $tabForField = [
+        'personal' => ['mobile_number', 'date_of_birth', 'gender', 'employment_status'],
+        'address' => ['address_barangay', 'address_municipality', 'address_province'],
+        'professional' => ['employee_id', 'prc_license_number', 'highest_educational_attainment', 'major_specialization', 'years_of_teaching_experience', 'date_of_entry_to_deped'],
+        'schoolhead' => ['position', 'position_level', 'current_designation', 'administrative_experience_years', 'school_type', 'number_of_teachers_supervised', 'leadership_training', 'additional_roles'],
+    ];
+    foreach ($tabForField as $tab => $fields) {
+        if ($errorFields->intersect($fields)->isNotEmpty()) {
+            $errorTab = $tab;
+            break;
+        }
+    }
 @endphp
 
-<div class="max-w-5xl mx-auto" x-data="{ activeTab: 'basic' }">
+<div class="max-w-5xl mx-auto" x-data="{ activeTab: '{{ $errorTab }}' }">
 
     @if (session('status') === 'profile-incomplete' || session('profile_incomplete'))
         <div x-data="{ show: true }" x-show="show" x-transition
@@ -111,6 +126,12 @@
                                 :class="activeTab === 'schoolhead' ? 'active' : 'text-gray-600 dark:text-gray-400'">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             School Head Info
+                        </button>
+                        <button type="button" @click="activeTab = 'display'"
+                                class="profile-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left"
+                                :class="activeTab === 'display' ? 'active' : 'text-gray-600 dark:text-gray-400'">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Display & Accessibility
                         </button>
                     </nav>
                 </div>
@@ -309,6 +330,37 @@
                         <x-input-label for="additional_roles" :value="__('Additional Roles')" />
                         <textarea id="additional_roles" name="additional_roles" rows="3" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('additional_roles', $user->schoolHeadProfile?->additional_roles) }}</textarea>
                         <x-input-error class="mt-2" :messages="$errors->get('additional_roles')" />
+                    </div>
+                </div>
+
+                <!-- Display & Accessibility (system-wide setting) -->
+                <div x-show="activeTab === 'display'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Display & Accessibility</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">System-wide settings that affect all pages. Your choice is saved on this device.</p>
+
+                    <div class="rounded-xl border-2 border-gray-200 dark:border-gray-700 p-5 bg-gray-50/50 dark:bg-gray-800/30">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Text size</h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Choose <span class="font-semibold text-gray-900 dark:text-gray-100">Large</span> for easier reading. This helps older users and anyone who prefers bigger text. Applies instantly everywhere.</p>
+                            </div>
+                            <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">System setting</span>
+                        </div>
+                        <div class="mt-4 flex flex-wrap items-center gap-3">
+                            <button type="button" @click="$store.accessibility.setLarge(false)"
+                                    :class="!$store.accessibility.large ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 ring-2 ring-gray-900 dark:ring-white' : 'bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50'"
+                                    class="px-6 py-3 rounded-xl text-sm font-bold transition-colors min-h-[44px]">A Standard</button>
+                            <button type="button" @click="$store.accessibility.setLarge(true)"
+                                    :class="$store.accessibility.large ? 'bg-indigo-600 text-white ring-2 ring-indigo-600' : 'bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50'"
+                                    class="px-6 py-3 rounded-xl text-base font-extrabold transition-colors min-h-[44px]">A+ Large — Easier to read</button>
+                            <span class="text-sm font-medium" :class="$store.accessibility.large ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400'" x-text="$store.accessibility.large ? 'Large is active' : 'Standard is active'"></span>
+                        </div>
+                        <div class="mt-4 p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Preview</p>
+                            <p class="text-sm text-gray-900 dark:text-gray-100" :class="$store.accessibility.large ? 'text-base leading-relaxed' : ''">The quick brown fox jumps over the lazy dog — sample text at <span x-text="$store.accessibility.large ? 'large' : 'standard'"></span> size.</p>
+                            <p class="mt-1 text-xs" :class="$store.accessibility.large ? 'text-sm text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">Tip: You can also toggle this from the top header (Aa button) on any page.</p>
+                        </div>
                     </div>
                 </div>
 

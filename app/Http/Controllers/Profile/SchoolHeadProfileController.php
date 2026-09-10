@@ -57,10 +57,10 @@ class SchoolHeadProfileController extends Controller
         // Update or create school head profile
         $schoolHeadData = [
             'position_level' => $validated['position_level'] ?? null,
-            'administrative_experience_years' => $validated['administrative_experience_years'] ?? null,
+            'administrative_experience_years' => $validated['administrative_experience_years'] ?? 0,
             'leadership_training' => $validated['leadership_training'] ?? null,
             'current_designation' => $validated['current_designation'] ?? null,
-            'number_of_teachers_supervised' => $validated['number_of_teachers_supervised'] ?? null,
+            'number_of_teachers_supervised' => $validated['number_of_teachers_supervised'] ?? 0,
             'school_type' => $validated['school_type'] ?? null,
             'additional_roles' => $validated['additional_roles'] ?? null,
             'position' => $validated['position'] ?? null,

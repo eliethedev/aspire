@@ -2947,7 +2947,22 @@ class SupervisorController extends Controller
         </html>";
     }
 
-    public function generateAiInsights(Observation $observation)
+    /**
+     * Validated manual lesson-plan generation-mode override
+     * ("auto" or missing → the router decides from lesson goals).
+     */
+    protected function lessonPlanManualMode(Request $request): ?string
+    {
+        $mode = $request->input('mode', $request->query('mode'));
+
+        if (! is_string($mode) || $mode === '' || $mode === 'auto') {
+            return null;
+        }
+
+        return app(\App\AI\Routing\LessonPlanModelRouter::class)->isValidMode($mode) ? $mode : null;
+    }
+
+    public function generateAiInsights(Observation $observation, Request $request)
     {
         $this->authorizeObservation($observation);
         $observation->load(['preObservationPlanning', 'observee']);
@@ -2958,8 +2973,11 @@ class SupervisorController extends Controller
         // we return a friendly notice instead of canned text.
         set_time_limit(300);
 
+        $manualMode = $this->lessonPlanManualMode($request);
+        $service = app(\App\AI\Services\PreObservationService::class);
+
         try {
-            $insights = app(\App\AI\Services\PreObservationService::class)->generateInsights($observation, false);
+            $insights = $service->generateInsights($observation, false, $manualMode);
         } catch (AIRateLimitException $e) {
             return response()->json(AIStatus::unavailable('pre_observation', $e), 429);
         } catch (\Throwable $e) {
@@ -2972,9 +2990,11 @@ class SupervisorController extends Controller
             return response()->json(AIStatus::unavailable('pre_observation'), 503);
         }
 
+        $routing = $service->getLastRouting();
+
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
-            ['ai_insights' => $insights]
+            ['ai_insights' => $insights, 'ai_insights_meta' => $routing]
         );
 
         app(AuditLogService::class)->logAi(
@@ -2989,6 +3009,7 @@ class SupervisorController extends Controller
             'status' => 'completed',
             'ai_insights' => $insights,
             'source' => 'ai',
+            'meta' => $routing,
         ]);
     }
 
@@ -3008,6 +3029,7 @@ class SupervisorController extends Controller
                 'status' => 'completed',
                 'ai_insights' => $insights,
                 'source' => 'ai',
+                'meta' => $observation->preObservationPlanning?->ai_insights_meta,
             ]);
         }
 
@@ -3023,7 +3045,7 @@ class SupervisorController extends Controller
 
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
-            ['ai_insights' => null]
+            ['ai_insights' => null, 'ai_insights_meta' => null]
         );
 
         app(AuditLogService::class)->logAi(

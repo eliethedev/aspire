@@ -16,6 +16,8 @@ class LessonPlanSuggestionPrompt
         $lessonPlanContent = $context['lesson_plan_content'] ?? '';
         $rubrics = $context['rubrics'] ?? '';
         $teacherContext = $context['teacher_context'] ?? '';
+        $modeLabel = $context['mode_label'] ?? '';
+        $modeDirectives = $context['mode_directives'] ?? '';
 
         $lessonPlanSection = $lessonPlanContent
             ? "--- Lesson Plan Content ---\n{$lessonPlanContent}"
@@ -23,6 +25,10 @@ class LessonPlanSuggestionPrompt
 
         $teacherProfileSection = $teacherContext
             ? "--- Teacher Profile ---\n{$teacherContext}"
+            : '';
+
+        $modeSection = ($modeLabel !== '' || $modeDirectives !== '')
+            ? 'Generation mode: '.($modeLabel !== '' ? $modeLabel : 'specialized').".\n{$modeDirectives}\n"
             : '';
 
         return <<<PROMPT
@@ -39,11 +45,11 @@ Teaching Strategies: {$strategies}
 Materials: {$materials}
 Assessment Methods: {$assessment}
 
-{$lessonPlanSection}
+ {$lessonPlanSection}
 
-{$rubrics}
+ {$rubrics}
 
-TASK:
+{$modeSection}TASK:
 1. Identify weaknesses or gaps in the lesson plan (objectives, strategies, activities, differentiation, assessment alignment).
 2. Suggest practical, specific improvements the teacher can implement.
 3. Align every suggestion with the applicable PPST/COT indicators listed above (cite indicator codes).

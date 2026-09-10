@@ -11,9 +11,15 @@ class LessonPlanSummaryPrompt
         $gradeLevel = $context['grade_level'] ?? 'N/A';
         $lessonPlanContent = $context['lesson_plan_content'] ?? '';
         $teacherContext = $context['teacher_context'] ?? '';
+        $modeLabel = $context['mode_label'] ?? '';
+        $modeDirectives = $context['mode_directives'] ?? '';
 
         $teacherProfileSection = $teacherContext
             ? "--- Teacher Profile ---\n{$teacherContext}"
+            : '';
+
+        $modeSection = ($modeLabel !== '' || $modeDirectives !== '')
+            ? 'Generation mode: '.($modeLabel !== '' ? $modeLabel : 'specialized').".\n{$modeDirectives}\n\n"
             : '';
 
         return <<<PROMPT
@@ -29,7 +35,7 @@ Grade Level: {$gradeLevel}
 --- Lesson Plan Content ---
 {$lessonPlanContent}
 
-TASK: Preserve and organize the important information:
+{$modeSection}TASK: Preserve and organize the important information:
 - learning objectives
 - teaching strategies and activities
 - materials

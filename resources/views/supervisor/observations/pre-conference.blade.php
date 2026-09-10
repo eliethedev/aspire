@@ -93,6 +93,7 @@
                 </div>
 
                 <div class="p-4 space-y-4" id="ai-panel-body">
+                    @include('partials.ai-engine-selector')
                     <div class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                         <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <p>AI-generated analysis of the submitted lesson plan. Optional — review, accept, or ignore these suggestions.</p>
@@ -717,6 +718,7 @@ function generateAiInsights(e, isRegenerate) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ mode: window.aiEngineSelectedMode ? window.aiEngineSelectedMode() : 'auto' }),
     })
     .then(function(res) {
         return res.json().catch(function() { return {}; }).then(function(data) { return { ok: res.ok, status: res.status, data: data }; });

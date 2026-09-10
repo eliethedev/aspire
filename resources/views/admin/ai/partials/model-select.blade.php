@@ -3,7 +3,7 @@
     // Usage:
     //   @include('admin.ai.partials.model-select', ['name' => 'ai_gemini_model', 'id' => 'gemini-model', 'current' => $value, 'provider' => 'gemini'])
     //   ... or pass 'groups' => ['gemini','openai'] to render grouped options from several providers.
-    $catalog = config('ai.model_catalog', []);
+    $catalog = $catalog ?? config('ai.model_catalog', []);
 
     if (isset($groups)) {
         $optionGroups = collect($groups)

@@ -3,7 +3,9 @@
 namespace App\AI\Services;
 
 use App\AI\Prompts\LessonPlanSummaryPrompt;
+use App\AI\Routing\LessonPlanModelRouter;
 use App\Models\Observation;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -26,8 +28,17 @@ class LessonPlanSummaryService extends AIService
         parent::__construct($provider, $rubrics, $manager);
     }
 
-    public function summarize(Observation $observation): ?array
+    /**
+     * Routing metadata for the most recent summarize() call.
+     *
+     * @var array{mode: string, label: string, provider: ?string, model: ?string, manual: bool, fallback_used: bool, reasons: string[]}|null
+     */
+    protected ?array $lastRouting = null;
+
+    public function summarize(Observation $observation, ?string $manualMode = null): ?array
     {
+        $this->lastRouting = null;
+
         if (! $this->isAvailable()) {
             return null;
         }
@@ -53,21 +64,104 @@ class LessonPlanSummaryService extends AIService
         $teacherContext = $this->teacherContextBuilder->fromObservation($observation);
         $teacherContextBlock = $this->teacherContextBuilder->formatForPrompt($teacherContext);
 
-        $prompt = LessonPlanSummaryPrompt::build([
+        // Dynamic goal parsing: route to the specialized generation mode
+        // matching the lesson's subject and goals before the API call.
+        $router = app(LessonPlanModelRouter::class);
+        $route = $router->resolve([
+            'subject' => $observation->subject,
+            'objective' => $planning?->objective,
+            'strategies' => $planning?->teaching_strategies,
+            'materials' => $planning?->materials,
+            'assessment' => $planning?->assessment_methods,
+        ], $this->stage, $manualMode);
+
+        $baseContext = [
             'teacher_name' => $observation->observee?->user?->name ?? 'Unknown',
             'subject' => $observation->subject ?? 'N/A',
             'grade_level' => $observation->grade_level ?? 'N/A',
             'lesson_plan_content' => $lessonPlanContent,
             'teacher_context' => $teacherContextBlock,
-        ]);
+        ];
 
-        $data = $this->generateJson($prompt);
+        $data = $this->generateJson(
+            LessonPlanSummaryPrompt::build($baseContext + [
+                'mode_label' => $route['label'],
+                'mode_directives' => LessonPlanModelRouter::directivesFor($route['mode']),
+            ]),
+            ['temperature' => $route['temperature']],
+            ['provider' => $route['provider'], 'model' => $route['model']],
+            $observation->id,
+        );
 
-        if (! $this->validateJsonResponse($data, ['summary'])) {
+        if ($this->validateJsonResponse($data, ['summary'])) {
+            $this->lastRouting = $this->routingMeta($route);
+
+            return $data;
+        }
+
+        // Failover to the stable baseline when the routed model fails.
+        if ($route['mode'] === LessonPlanModelRouter::MODE_BALANCED) {
+            $this->lastRouting = $this->routingMeta($route);
+
             return null;
         }
 
+        $fallback = $router->baselineRoute($this->stage);
+        Log::channel(config('ai.logging.channel', 'stack'))->warning('AI.lesson_plan_summary: routed model failed; failing over to baseline', [
+            'observation_id' => $observation->id,
+            'routed_mode' => $route['mode'],
+            'routed_model' => $route['provider'].'/'.$route['model'],
+        ]);
+
+        $data = $this->generateJson(
+            LessonPlanSummaryPrompt::build($baseContext + [
+                'mode_label' => $fallback['label'],
+                'mode_directives' => LessonPlanModelRouter::directivesFor($fallback['mode']),
+            ]),
+            ['temperature' => $fallback['temperature']],
+            ['provider' => $fallback['provider'], 'model' => $fallback['model']],
+            $observation->id,
+        );
+
+        if (! $this->validateJsonResponse($data, ['summary'])) {
+            $this->lastRouting = $this->routingMeta($route, true);
+
+            return null;
+        }
+
+        $this->lastRouting = $this->routingMeta($route, true);
+
         return $data;
+    }
+
+    /**
+     * Routing metadata for the most recent summarize() call.
+     *
+     * @return array{mode: string, label: string, provider: ?string, model: ?string, manual: bool, fallback_used: bool, reasons: string[]}|null
+     */
+    public function getLastRouting(): ?array
+    {
+        return $this->lastRouting;
+    }
+
+    /**
+     * Merge the resolved route with the actual provider run outcome.
+     */
+    protected function routingMeta(array $route, bool $baselineFailover = false): array
+    {
+        $run = $this->getLastRunMeta();
+
+        return [
+            'mode' => $route['mode'],
+            'label' => $route['label'],
+            'provider' => $run['provider'] ?? $route['provider'],
+            'model' => $run['model'] ?? $route['model'],
+            'manual' => $route['manual'],
+            'fallback_used' => $baselineFailover || (bool) ($run['fallback_used'] ?? false),
+            'reasons' => $baselineFailover
+                ? array_merge($route['reasons'], ['Routed model failed; served by the baseline model.'])
+                : $route['reasons'],
+        ];
     }
 
     protected function capLessonPlanText(string $text): string
