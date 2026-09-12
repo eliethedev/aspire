@@ -205,21 +205,21 @@
 
                 @include('partials.ai-engine-selector')
 
-                <div id="ai-insights-container">
-                    @if($planning && $planning->ai_insights)
-                        <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
-                                <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Suggestions Ready</span>
-                            </div>
-                            @php $insightSections = $planning->insightsSections(); @endphp
-                            @if(isset($insightSections['raw']))
-                                <div id="ai-insights-text" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ $insightSections['raw'] }}</div>
-                            @else
-                                {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
-                            @endif
+            <div id="ai-insights-container">
+                @if($planning && $planning->ai_insights)
+                    <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+                            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Suggestions Ready</span>
                         </div>
-                    @else
+                        @php $insightSections = $planning->insightsSections(); @endphp
+                        @if(isset($insightSections['raw']))
+                            <div id="ai-insights-text" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ $insightSections['raw'] }}</div>
+                        @else
+                            <div id="ai-insights-text">{!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}</div>
+                        @endif
+                    </div>
+                @else
                         <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 text-center" id="ai-insights-empty">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,6 +245,30 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         Clear
                     </button>
+                </div>
+
+                <div id="ai-action-buttons" class="mt-3 flex items-center gap-2 {{ $planning?->ai_insights ? '' : 'hidden' }}">
+                    <button type="button" onclick="modifyAiInsights()"
+                            class="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        Modify
+                    </button>
+                    <button type="button" onclick="dismissAiInsights()"
+                            class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-600 dark:text-red-400 bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:bg-red-900/20 border border-gray-200 dark:border-gray-700 hover:border-red-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Dismiss
+                    </button>
+                </div>
+
+                <div id="modify-ai-container" class="hidden mt-3 space-y-3">
+                    <textarea id="modify-ai-textarea" rows="6"
+                              class="w-full px-3 py-2 rounded-lg border border-amber-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">{{ $planning?->insightsText() }}</textarea>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="applyModifiedInsights()"
+                                class="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors">Apply Modified</button>
+                        <button type="button" onclick="cancelModify()"
+                                class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors">Cancel</button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -338,52 +362,6 @@
                 <!-- Observation Preparation -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Setup</h2>
-
-                    <!-- Observation Tool -->
-                    @if($isSchoolHeadObs)
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Observation Form / Rubric</label>
-                        <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 border border-indigo-200 dark:border-indigo-900/50">
-                            <p class="text-sm font-semibold text-indigo-800 dark:text-indigo-300">Enhanced Post Observation Conference</p>
-                            <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Used for School Head observations.</p>
-                        </div>
-                    </div>
-                    @else
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Observation Form / Rubric</label>
-                        <select name="observation_tool"
-                                class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <option value="">Select tool...</option>
-                            {{-- PPST is hidden for school heads — they use COT only --}}
-                            @if(!isset($observerRole) || $observerRole !== 'school_head')
-                                <option value="ppst" {{ old('observation_tool', $planning?->observation_tool) === 'ppst' ? 'selected' : '' }}>PPST</option>
-                            @endif
-                            <option value="classroom_observation_tool" {{ old('observation_tool', $planning?->observation_tool) === 'classroom_observation_tool' ? 'selected' : '' }}>Classroom Observation Tool (COT)</option>
-                            <option value="tisuyon" {{ old('observation_tool', $planning?->observation_tool) === 'tisuyon' ? 'selected' : '' }}>Tisuyon (Peer Observation)</option>
-                        </select>
-                        @error('observation_tool')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Selected Tool Preview -->
-                    @if($planning?->observation_tool === 'ppst')
-                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-100 mb-4">
-                        <p class="text-xs font-semibold text-blue-800 mb-1">PPST - 5 Domains</p>
-                        <p class="text-xs text-blue-600">Content Knowledge, Learning Environment, Diversity of Learners, Curriculum & Planning, Assessment & Reporting</p>
-                    </div>
-                    @elseif($planning?->observation_tool === 'tisuyon')
-                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 mb-4">
-                        <p class="text-xs font-semibold text-green-800 dark:text-green-300 mb-1">Tisuyon - Peer Observation</p>
-                        <p class="text-xs text-green-600 dark:text-green-400">Collaborative peer observation focused on professional dialogue and shared learning.</p>
-                    </div>
-                    @elseif($planning?->observation_tool === 'classroom_observation_tool')
-                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-100 mb-4">
-                        <p class="text-xs font-semibold text-purple-800 dark:text-purple-300 mb-1">9 Indicators</p>
-                        <p class="text-xs text-purple-600 dark:text-purple-400">Standard classroom observation tool with 9 performance indicators.</p>
-                    </div>
-                    @endif
-                    @endif
 
                     <!-- Supervisor's Notes -->
                     <div class="mb-4">
@@ -529,6 +507,9 @@ function renderInsightsCard(text) {
     existing.innerHTML = '<div class="flex items-center gap-2 mb-3"><div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div><span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Suggestions Ready</span></div><div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed" id="ai-insights-text"></div>';
     existing.querySelector('#ai-insights-text').textContent = text;
     document.getElementById('clear-ai-insights-btn')?.classList.remove('hidden');
+    document.getElementById('ai-action-buttons')?.classList.remove('hidden');
+    var ta = document.getElementById('modify-ai-textarea');
+    if (ta) ta.value = text;
 }
 
 function restoreBtn() {
@@ -626,6 +607,75 @@ document.getElementById('generate-ai-insights-btn')?.addEventListener('click', f
     });
 });
 
+function showToast(message) {
+    var existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-xl text-sm font-medium';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(function() {
+        toast.style.transition = 'opacity 0.5s';
+        toast.style.opacity = '0';
+        setTimeout(function() { toast.remove(); }, 500);
+    }, 2500);
+}
+
+function showAiActionButtons() {
+    document.getElementById('ai-action-buttons')?.classList.remove('hidden');
+    document.getElementById('modify-ai-container')?.classList.add('hidden');
+}
+
+function hideAiActionButtons() {
+    document.getElementById('ai-action-buttons')?.classList.add('hidden');
+    document.getElementById('modify-ai-container')?.classList.add('hidden');
+}
+
+function modifyAiInsights() {
+    var textEl = document.getElementById('ai-insights-text');
+    var ta = document.getElementById('modify-ai-textarea');
+    if (ta && textEl) ta.value = (textEl.textContent || textEl.innerText || '').trim();
+    document.getElementById('ai-action-buttons')?.classList.add('hidden');
+    document.getElementById('modify-ai-container')?.classList.remove('hidden');
+    ta?.focus();
+}
+
+function applyModifiedInsights() {
+    var modified = document.getElementById('modify-ai-textarea').value;
+    var textEl = document.getElementById('ai-insights-text');
+    if (textEl) {
+        textEl.className = 'text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed';
+        textEl.textContent = modified;
+    }
+    document.getElementById('ai_insights_input').value = modified;
+    showAiActionButtons();
+    showToast('Modified insights will be applied to this lesson plan.');
+}
+
+function cancelModify() {
+    showAiActionButtons();
+}
+
+function dismissAiInsights() {
+    document.getElementById('ai_insights_input').value = '';
+    var card = document.getElementById('ai-insights-card');
+    var empty = document.getElementById('ai-insights-empty');
+    if (card) card.remove();
+    if (!empty) {
+        var container = document.getElementById('ai-insights-container');
+        if (container) {
+            var div = document.createElement('div');
+            div.id = 'ai-insights-empty';
+            div.className = 'bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 text-center';
+            div.innerHTML = '<div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div><p class="text-sm font-medium text-gray-600 dark:text-gray-400">No suggestions yet</p><p class="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">Click "Get AI Suggestions" to analyze the lesson plan and generate suggestions.</p>';
+            container.appendChild(div);
+        }
+    }
+    hideAiActionButtons();
+    document.getElementById('clear-ai-insights-btn')?.classList.add('hidden');
+    showToast('AI suggestions dismissed.');
+}
+
 document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
     if (!confirm('Clear AI insights? This cannot be undone.')) return;
 
@@ -653,6 +703,7 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
                 container.appendChild(div);
             }
             document.getElementById('clear-ai-insights-btn').classList.add('hidden');
+            hideAiActionButtons();
         }
     })
     .catch(err => {

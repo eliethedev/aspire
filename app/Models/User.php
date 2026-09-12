@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'school_id',
         'status',
         'password_set_at',
+        'settings',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'settings' => 'array',
         ];
     }
 
@@ -130,6 +132,24 @@ class User extends Authenticatable implements MustVerifyEmail
     public function supportMessages(): HasMany
     {
         return $this->hasMany(SupportMessage::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UI preferences (stored in the users.settings JSON column)
+    |--------------------------------------------------------------------------
+    */
+
+    public function observationTipDismissed(): bool
+    {
+        return (bool) ($this->settings['observation_tip_dismissed'] ?? false);
+    }
+
+    public function dismissObservationTip(bool $dismissed = true): void
+    {
+        $settings = $this->settings ?? [];
+        $settings['observation_tip_dismissed'] = $dismissed;
+        $this->update(['settings' => $settings]);
     }
 
     // Role-based methods

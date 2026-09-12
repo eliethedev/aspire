@@ -45,7 +45,7 @@ Assessment: {$assessment}
 
 {$rubrics}
 
-Write exactly these 4 sections using markdown. Keep each to 2-3 short sentences:
+Write exactly these 4 sections, using the section names below as plain headings. Keep each to 2-3 short sentences:
 
 ## Lesson Focus
 What the lesson aims to achieve, based on the plan.
@@ -62,6 +62,8 @@ What the lesson aims to achieve, based on the plan.
 Rules:
 - Reference actual details from the lesson plan — never give generic advice.
 - Be direct. No filler. No "Here is" or "Based on" introductions.
+- Use only plain text. Never use markdown formatting: no ** (bold), no * (italic), no backticks.
+- Do not use any frameworks or labels such as Claim, Evidence, Reasoning, or other pedagogical jargon.
 - Max 200 words total. Do not explain your reasoning.
 PROMPT;
     }

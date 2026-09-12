@@ -170,7 +170,7 @@ Assessment Methods: {$assessment}
 
 2. "finalized_focus" — 2-3 concise focus areas agreed upon for the classroom observation, based on the objective and strategies.
 
-Keep both concise and actionable. No preamble.
+Keep both concise and actionable. No preamble. Write as plain text only: no markdown symbols (no **, no *, no backticks).
 PROMPT;
 
             $result = $this->generateJson($prompt, [

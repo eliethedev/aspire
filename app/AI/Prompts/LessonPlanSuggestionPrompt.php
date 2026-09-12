@@ -61,7 +61,7 @@ Respond ONLY with valid JSON in exactly this structure:
   "suggestions": [{"suggestion": "...", "indicator_codes": ["..."], "priority": "high|medium|low"}],
   "summary": "One short paragraph overall assessment"
 }
-No markdown, no commentary outside the JSON.
+No markdown formatting inside any string value (no **, *, backticks, headings). Write plain, practical sentences a supervisor and teacher can use right away. No theoretical frameworks or jargon.
 PROMPT;
     }
 }

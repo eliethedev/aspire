@@ -68,6 +68,7 @@
                         localStorage.setItem('app_text_large', v ? '1' : '0');
                     }
                 });
+                @include('partials.rating-tip-store')
             });
         </script>
         @stack('styles')
@@ -104,6 +105,7 @@
                 </main>
             </div>
         </div>
+        @include('partials.rating-tip-modal')
         @stack('scripts')
     </body>
 </html>

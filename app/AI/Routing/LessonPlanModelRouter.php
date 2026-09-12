@@ -104,19 +104,14 @@ class LessonPlanModelRouter
     ];
 
     /**
-     * Formatting strengths each mode's system prompt should exploit.
+     * Plain-language style directive applied to every generation mode.
      *
-     * @var array<string, string>
+     * The AI Observation Assistant must stay easy to read for supervisors
+     * and teachers: simple coaching sentences, no markdown symbols, and no
+     * theoretical scaffolds or pedagogical jargon (e.g. Claim–Evidence–
+     * Reasoning).
      */
-    protected const MODE_DIRECTIVES = [
-        self::MODE_REASONING => 'Reasoning focus: structure gaps and suggestions as numbered multi-step chains; '
-            .'use inquiry scaffolds (Claim → Evidence → Reasoning) and name the thinking step each suggestion strengthens.',
-        self::MODE_EXPRESSIVE => 'Expressive focus: use rich, specific language in every suggestion; '
-            .'favor expressive outputs (narratives, performances, writer’s workshop, speech) where pedagogically sound.',
-        self::MODE_STRUCTURED => 'Structured focus: break every suggestion into small sequential steps with a check for understanding after each; '
-            .'prefer highly scaffolded activities and state explicit mastery criteria.',
-        self::MODE_BALANCED => '',
-    ];
+    public const PLAIN_DIRECTIVE = 'Write in plain, practical coaching language that a school supervisor and teacher can use right away. Never use markdown symbols such as **, * or backticks. Do not use scaffolding frameworks (like Claim-Evidence-Reasoning), pedagogical acronyms or specialized jargon. Whenever a section heading is required, write it exactly as requested. Keep sentences direct and easy to read.';
 
     /**
      * Resolve the generation route for a lesson context.
@@ -273,11 +268,14 @@ class LessonPlanModelRouter
     }
 
     /**
-     * Prompt-engineering directives exploiting the active mode's
-     * formatting strengths. Empty for the balanced baseline.
+     * Plain, jargon-free style directive for the AI output.
+     *
+     * The same directive is used for every mode: the mode still selects
+     * which provider/model runs, but the language stays general and
+     * user-friendly regardless of subject.
      */
     public static function directivesFor(string $mode): string
     {
-        return self::MODE_DIRECTIVES[$mode] ?? '';
+        return self::PLAIN_DIRECTIVE;
     }
 }

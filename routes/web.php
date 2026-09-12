@@ -26,6 +26,7 @@ use App\Http\Controllers\Teacher\CoachingController;
 use App\Http\Controllers\Teacher\FeedbackController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserInvitationController;
+use App\Http\Controllers\UserPreferenceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,6 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // User preferences (e.g., hide/re-show the observation rating sheet tip)
+    Route::post('/preferences/observation-tip-dismiss', [UserPreferenceController::class, 'dismissObservationTip'])
+        ->name('preferences.observation-tip-dismiss');
 
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -325,7 +330,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
 
 // School Head routes
 Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('school-head')->name('school-head.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\SchoolHead\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/calendar', [App\Http\Controllers\SchoolHead\CalendarController::class, 'index'])->name('calendar.index');
 
     // Profile

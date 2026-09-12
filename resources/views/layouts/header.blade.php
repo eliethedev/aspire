@@ -14,6 +14,14 @@
 
     <!-- Right side: user menu, notifications -->
     <div class="flex items-center space-x-2 sm:space-x-3 ml-auto">
+      <!-- Rating sheet guide -->
+      <button @click="$store.ratingTip.openModal()"
+              class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
+              title="How the observation rating sheet works" aria-label="How the observation rating sheet works">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </button>
       <!-- Theme toggle -->
       <button @click="$store.theme.toggle()" 
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"

@@ -76,6 +76,7 @@ class PreObservationPlanning extends Model
             'lesson focus' => 'lesson_focus',
             'key things to watch' => 'key_things_to_watch',
             'conference talking points' => 'conference_talking_points',
+            'pre conference talking points' => 'conference_talking_points',
             'potential challenges' => 'potential_challenges',
         ];
 
@@ -113,7 +114,7 @@ class PreObservationPlanning extends Model
             }
 
             if ($key === 'lesson_focus') {
-                $result[$key] = implode(' ', $content);
+                $result[$key] = $this->stripInlineMarkdown(implode(' ', $content));
             } else {
                 $result[$key] = $this->reduceToItems($content);
             }
@@ -121,7 +122,7 @@ class PreObservationPlanning extends Model
         }
 
         if (! $parsed) {
-            return ['raw' => $text];
+            return ['raw' => $this->stripInlineMarkdown($text)];
         }
 
         return $result;
@@ -133,11 +134,19 @@ class PreObservationPlanning extends Model
         foreach ($lines as $line) {
             $line = trim(preg_replace('/^[-*•]\s*/', '', $line));
             if ($line !== '') {
-                $items[] = $line;
+                $items[] = $this->stripInlineMarkdown($line);
             }
         }
 
         return $items;
+    }
+
+    protected function stripInlineMarkdown(string $text): string
+    {
+        $text = preg_replace('/\*\*(.+?)\*\*/s', '$1', $text);
+        $text = preg_replace('/`(.+?)`/s', '$1', $text);
+
+        return str_replace(['**', '__', '`'], '', $text);
     }
 
     public function insightSectionLabels(): array

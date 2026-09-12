@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\AI\Contracts\AIServiceInterface;
-use App\AI\Providers\GeminiProvider;
 use App\AI\RAG\CotIndicatorRepository;
 use App\AI\RAG\PPSTRubricRepository;
 use Illuminate\Console\Command;
@@ -11,7 +10,6 @@ use Illuminate\Console\Command;
 class TestAIService extends Command
 {
     protected $signature = 'ai:test
-        {--provider=gemini : The AI provider to test}
         {--prompt= : Custom prompt to send (optional)}';
 
     protected $description = 'Test the AI service connectivity and generation';
@@ -45,13 +43,12 @@ class TestAIService extends Command
         $this->newLine();
 
         // Test provider
-        $providerName = $this->option('provider');
-        $this->line("Testing {$providerName} provider...");
-
         $provider = app(AIServiceInterface::class);
 
+        $this->line("Testing provider ({$provider->getProviderName()})...");
+
         if (!$provider->isAvailable()) {
-            $this->error("{$providerName} provider is not available (API key may be missing).");
+            $this->error("{$provider->getProviderName()} provider is not available (API key may be missing).");
             return Command::FAILURE;
         }
 
