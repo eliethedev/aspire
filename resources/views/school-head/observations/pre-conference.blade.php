@@ -373,29 +373,6 @@
             </div>
             @endif
 
-            <!-- Section 3: Teacher's Anticipated Concerns (Optional) -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? "School Head's Anticipated Concerns" : "Teacher's Anticipated Concerns" }}</h2>
-                    <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">Optional</span>
-                </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ $isSchoolHeadObs ? 'Are there any supervision or leadership challenges the school head anticipates for this session?' : 'Is there anything about this lesson that you anticipate may be challenging?' }}</p>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Challenges</label>
-                        <textarea name="expected_challenges" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="{{ $isSchoolHeadObs ? 'e.g. Teacher resistance, time constraints, staffing/resource gaps...' : 'e.g. Students may struggle with abstract concepts, limited materials for group work...' }}">{{ old('expected_challenges', $preConference?->expected_challenges) }}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Areas Where You'd Like Feedback</label>
-                        <textarea name="feedback_areas" rows="2"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="{{ $isSchoolHeadObs ? "e.g. I'd like feedback on my supervision style and staff engagement approach..." : "e.g. I'd like feedback on my questioning techniques and student engagement..." }}">{{ old('feedback_areas', $preConference?->feedback_areas) }}</textarea>
-                    </div>
-                </div>
-            </div>
-
             <!-- Actions -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-4">

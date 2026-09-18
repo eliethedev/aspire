@@ -839,6 +839,21 @@ class SupervisorController extends Controller
             }
         }
 
+        // Teacher observations bypass the Post-Observation Conference wizard
+        // step entirely: discard any conference scheduling payload up front so
+        // it skips validation, picks up no defaults, and never creates a
+        // post-conference record.
+        if ($request->input('observation_type') === 'teacher_observation') {
+            $request->merge([
+                'schedule_conference' => false,
+                'conference_date' => null,
+                'conference_start_time' => null,
+                'conference_end_time' => null,
+                'conference_location' => null,
+                'conference_mode' => null,
+            ]);
+        }
+
         $validator = validator($request->all(), [
             'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
             'observee_id' => ['required'],
@@ -1012,7 +1027,9 @@ class SupervisorController extends Controller
         ]);
 
         // Post-Observation Conference handling:
-        // - Teacher observations: manual decision via schedule_conference toggle (existing workflow).
+        // - Teacher observations: the wizard step is bypassed, so no
+        //   post-conference record is created at scheduling time (any
+        //   conference payload was already discarded before validation).
         // - School Head observations: driven by the selected PPSSH template's
         //   requires_post_conference flag. No duplicate manual toggle.
         $isSchoolHeadObs = $validated['observation_type'] === 'school_head_observation';
@@ -1028,20 +1045,8 @@ class SupervisorController extends Controller
                 ]);
             }
         } else {
-            $scheduleConference = $request->boolean('schedule_conference')
-                || $request->filled('conference_date')
-                || $request->filled('conference_start_time')
-                || $request->filled('conference_location');
-
-            if ($scheduleConference) {
-                $observation->postConference()->create([
-                    'conference_date' => $validated['conference_date'] ?? null,
-                    'start_time' => $validated['conference_start_time'] ?? null,
-                    'end_time' => $validated['conference_end_time'] ?? null,
-                    'location' => $validated['conference_location'] ?? null,
-                    'mode' => $validated['conference_mode'] ?? 'in_person',
-                ]);
-            }
+            // Teacher flow: conference inputs were stripped above, so this
+            // block intentionally creates nothing.
         }
 
         app(AuditLogService::class)->log(

@@ -60,7 +60,7 @@
 <div class="max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="observationForm()" x-cloak>
     <div class="mb-4">
         <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — 5 quick steps.</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — <span x-text="visibleSteps.length - 1 + ' quick steps'"></span>.</p>
 
         <!-- Live context chips — compact -->
         <div x-show="selectedObservee" x-cloak class="mt-2 flex flex-wrap items-center gap-1.5">
@@ -82,23 +82,23 @@
         <form method="POST" action="{{ route('supervisor.observations.store') }}" class="lg:col-span-2" novalidate>
         @csrf
 
-        <!-- Progress Steps — minimized -->
+        <!-- Progress Steps — minimized (Conference omitted for Teacher flow) -->
         <div class="flex items-center gap-1.5 mb-4 text-xs overflow-x-auto pb-1">
-            <template x-for="(step, i) in steps" :key="i">
+            <template x-for="(step, i) in visibleSteps" :key="step.label">
                 <div class="flex items-center gap-2">
-                    <button type="button" @click="jumpToStep(i + 1)"
-                            :disabled="!(step.status === 'complete' || step.status === 'active')"
-                            :class="step.status === 'complete' || step.status === 'active' ? 'cursor-pointer' : 'cursor-default'"
-                            class="flex items-center gap-1.5 group" :title="step.status === 'complete' ? 'Back to ' + step.label : step.label">
-                        <div :class="step.status === 'complete' ? 'bg-indigo-600 text-white' : step.status === 'active' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 border-2 border-indigo-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'"
+                    <button type="button" @click="jumpToVisibleStep(step)"
+                            :disabled="!isVisibleStepClickable(step)"
+                            :class="isVisibleStepClickable(step) ? 'cursor-pointer' : 'cursor-default'"
+                            class="flex items-center gap-1.5 group" :title="visibleStepStatus(step) === 'complete' ? 'Back to ' + step.label : step.label">
+                        <div :class="visibleStepStatus(step) === 'complete' ? 'bg-indigo-600 text-white' : visibleStepStatus(step) === 'active' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 border-2 border-indigo-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'"
                              class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors">
-                            <svg x-show="step.status === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span x-show="step.status !== 'complete'" x-text="i + 1"></span>
+                            <svg x-show="visibleStepStatus(step) === 'complete'" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span x-show="visibleStepStatus(step) !== 'complete'" x-text="i + 1"></span>
                         </div>
-                        <span :class="step.status === 'complete' ? 'text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500' : step.status === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors whitespace-nowrap" x-text="step.label"></span>
+                        <span :class="visibleStepStatus(step) === 'complete' ? 'text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500' : visibleStepStatus(step) === 'active' ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-400 dark:text-gray-500'" class="text-xs hidden sm:inline transition-colors whitespace-nowrap" x-text="step.label"></span>
                     </button>
-                    <div x-show="i < steps.length - 1"
-                         :class="step.status === 'complete' ? 'bg-indigo-300' : 'bg-gray-200 dark:bg-gray-700'"
+                    <div x-show="i < visibleSteps.length - 1"
+                         :class="visibleStepStatus(step) === 'complete' ? 'bg-indigo-300' : 'bg-gray-200 dark:bg-gray-700'"
                          class="w-6 sm:w-8 h-0.5 rounded transition-colors shrink-0"></div>
                 </div>
             </template>
@@ -439,13 +439,13 @@
                     </div>
 
                     <!-- Observation Date -->
-                    <div class="sm:col-span-2 mb-3">
+                    <div class="col-span-2 mb-3">
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Date</label>
                         <input type="date" name="observation_date" x-model="form.observation_date" :min="today"
                                class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
+                    <div class="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-3">
                         <!-- Start Time -->
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Start Time</label>
@@ -495,7 +495,7 @@
                         <span class="text-[10px] text-gray-400 font-normal">Auto-filled — edit if needed</span>
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
+                    <div class="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-3">
                         <!-- School Year -->
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">School Year</label>
@@ -560,7 +560,7 @@
                         </div>
 
                         <!-- Notes -->
-                        <div class="sm:col-span-2">
+                        <div class="col-span-2">
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Notes <span class="text-gray-400 font-normal">(optional)</span></label>
                             <textarea name="notes" x-model="form.notes" rows="2"
                                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -664,15 +664,15 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     Back
                 </button>
-                <button type="button" @click="goToStep(5)"
+                <button type="button" @click="isTeacherFlow ? openConfirmModal() : goToStep(5)"
                         class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 inline-flex items-center gap-1.5">
-                    Continue <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <span x-text="isTeacherFlow ? 'Review & Confirm' : 'Continue'"></span> <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE ===== -->
-        <div x-show="currentStep === 5" class="fade-in">
+        <!-- ===== STEP 5: POST-OBSERVATION CONFERENCE (School Head flow only — omitted for Teachers) ===== -->
+        <div x-show="currentStep === 5 && !isTeacherFlow" class="fade-in">
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">5</span>
@@ -719,9 +719,9 @@
                 </template>
 
                 <div x-show="showConferenceFields" class="fade-in">
-                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3">
+                    <div class="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-3">
                         <!-- Conference Date -->
-                        <div class="sm:col-span-2">
+                        <div class="col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Conference Date <span x-show="selectedType==='teacher_observation'" class="text-gray-400 font-normal">(optional)</span></label>
                             <input type="date" name="conference_date" x-model="form.conference_date"
                                    class="w-full sm:max-w-xs px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
@@ -1051,7 +1051,7 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progress</p>
-                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400" x-text="'Step ' + currentStep + ' of ' + steps.length"></span>
+                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400" x-text="'Step ' + currentDisplayStep + ' of ' + visibleSteps.length"></span>
                 </div>
                 <div class="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                     <div class="h-full bg-indigo-600 rounded-full transition-all duration-300" :style="'width: ' + progressPercent + '%'"></div>
@@ -1247,11 +1247,72 @@
             },
 
             get progressPercent() {
-                return Math.min(100, Math.max(0, Math.round(((this.currentStep - 1) / (this.steps.length - 1)) * 100)));
+                const total = this.visibleSteps.length;
+                if (total <= 1) return 100;
+                return Math.min(100, Math.max(0, Math.round(((this.currentDisplayStep - 1) / (total - 1)) * 100)));
             },
 
             get observeeList() {
                 return this.selectedType === 'teacher_observation' ? this.teacherData : this.schoolHeadData;
+            },
+
+            // Teacher flow omits the Post-Observation Conference wizard step:
+            // Schedule (4) routes directly to Review & Confirm.
+            get isTeacherFlow() {
+                return this.selectedType === 'teacher_observation';
+            },
+
+            get visibleSteps() {
+                const all = [
+                    { label: 'Who', target: 1 },
+                    { label: 'Observee', target: 2 },
+                    { label: 'Template', target: 3 },
+                    { label: 'Schedule', target: 4 },
+                    { label: 'Conference', target: 5 },
+                    { label: 'Review', target: 'review' },
+                ];
+                if (this.isTeacherFlow) {
+                    return all.filter(s => s.target !== 5);
+                }
+                return all;
+            },
+
+            get lastPanelStep() {
+                return this.isTeacherFlow ? 4 : 5;
+            },
+
+            get currentDisplayStep() {
+                if (this.showConfirmModal) return this.visibleSteps.length;
+                const idx = this.visibleSteps.findIndex(s => s.target === this.currentStep);
+                return idx === -1 ? this.currentStep : idx + 1;
+            },
+
+            visibleStepStatus(step) {
+                if (step.target === 'review') {
+                    return this.showConfirmModal ? 'active' : 'pending';
+                }
+                return this.steps[step.target - 1]?.status || 'pending';
+            },
+
+            isVisibleStepClickable(step) {
+                if (step.target === 'review') {
+                    return this.canReview();
+                }
+                const st = this.visibleStepStatus(step);
+                return st === 'complete' || st === 'active';
+            },
+
+            canReview() {
+                if (!this.selectedType || !this.selectedObservee) return false;
+                return this.currentStep === this.lastPanelStep;
+            },
+
+            jumpToVisibleStep(step) {
+                if (step.target === 'review') {
+                    if (this.canReview()) this.openConfirmModal();
+                    return;
+                }
+                this.jumpToStep(step.target);
             },
 
             get selectedSchoolHead() {
@@ -1352,6 +1413,19 @@
                 this.selectedCotTemplateId = '';
                 this.suggestedTemplateId = '';
                 this.templateManuallySet = false;
+                if (this.isTeacherFlow) {
+                    // Teachers bypass the conference step: drop any conference
+                    // state so no stale values leak into the payload or preview.
+                    this.scheduleConference = false;
+                    this.form.conference_date = '';
+                    this.form.conference_start_time = '';
+                    this.form.conference_end_time = '';
+                    this.form.conference_location = '';
+                    this.form.conference_mode = 'in_person';
+                    if (this.currentStep === 5) {
+                        this.currentStep = 4;
+                    }
+                }
                 this.updateSteps();
             },
 
@@ -1411,6 +1485,11 @@
             },
 
             goToStep(n) {
+                // Teachers have no Conference step: route straight to Review.
+                if (this.isTeacherFlow && n === 5) {
+                    this.openConfirmModal();
+                    return;
+                }
                 if (n >= 1 && n <= this.steps.length) {
                     this.currentStep = n;
                     this.updateSteps();
@@ -1478,6 +1557,12 @@
                     }
                 }
 
+                // Teachers bypass the conference step: make sure a stale
+                // repopulated toggle can never resurrect it on reload.
+                if (this.selectedType === 'teacher_observation') {
+                    this.scheduleConference = false;
+                }
+
                 this.updateSteps();
 
                 if (preselected && this.selectedObservee && ! oldObserveeId) {
@@ -1485,7 +1570,9 @@
                     // step that still needs input.
                     this.goToStep(this.selectedCotTemplateId ? 4 : 3);
                 } else if (this.selectedType) {
-                    // Restore the correct step when re-rendering after validation error
+                    // Restore the correct step when re-rendering after validation error.
+                    // Teachers have no step 5, so conference restores land on Schedule (4).
+                    const teacherRestore = this.selectedType === 'teacher_observation';
                     const typeErrors = @if($errors->has('observation_type')) true @else false @endif;
                     const templateErrors = @if($errors->has('cot_indicator_version_id')) true @else false @endif;
                     const observeeErrors = @if($errors->has('observee_id')) true @else false @endif;
@@ -1501,9 +1588,9 @@
                     } else if (scheduleErrors) {
                         this.goToStep(4);
                     } else if (conferenceErrors) {
-                        this.goToStep(5);
+                        this.goToStep(teacherRestore ? 4 : 5);
                     } else if (this.selectedCotTemplateId && this.selectedObservee) {
-                        this.goToStep(5);
+                        this.goToStep(teacherRestore ? 4 : 5);
                     } else if (this.selectedCotTemplateId) {
                         this.goToStep(2);
                     } else {
