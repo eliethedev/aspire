@@ -1,9 +1,9 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'Lesson Plans')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-4">
     <x-page-header title="Lesson Plans" subtitle="Browse lesson plans submitted by teachers." />
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">

@@ -17,15 +17,15 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="max-w-7xl mx-auto px-3 py-3 sm:py-1">
     <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Prepare for the Observation</li>
+    <nav aria-label="Breadcrumb" class="mb-4 sm:mb-5 text-sm">
+        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 dark:text-gray-400">
+            <li class="shrink-0"><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Evaluations</a></li>
+            <li aria-hidden="true" class="shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li class="hidden sm:inline min-w-0"><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Observation Details</a></li>
+            <li aria-hidden="true" class="hidden sm:inline shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px] sm:max-w-none" aria-current="page">Prepare for the Observation</li>
         </ol>
     </nav>
 
@@ -34,12 +34,26 @@
     <!-- Progress Steps -->
     @include('partials.observation-stepper')
 
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Prepare for the Observation</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+    <div class="mb-5 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Prepare for the Observation</h1>
+                <span class="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-900/30 px-1 py-0.5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-800">Step 1 of 4</span>
+            </div>
+            <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+                <span class="inline-flex min-w-0 items-center gap-1.5">
+                    <svg class="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="truncate font-medium text-gray-700 dark:text-gray-300">{{ $observation->observee->user->name ?? 'Unknown' }}</span>
+                </span>
+                <span aria-hidden="true" class="text-gray-300 dark:text-gray-600">&middot;</span>
+                <span class="inline-flex items-center gap-1.5">
+                    <svg class="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
+                </span>
+            </p>
         </div>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300 ring-1 ring-inset ring-blue-200 dark:ring-blue-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" aria-hidden="true"></span>
             {{ ucfirst($observation->status) }}
         </span>
     </div>
@@ -49,23 +63,23 @@
           id="planning-form" data-autosave-form>
         @csrf
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-start">
 
         <!-- Left Column - Main Content -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="min-w-0 md:col-span-2 space-y-4 sm:space-y-6">
 
             <!-- Observer Information Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="col-span-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div class="sm:col-span-2">
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">Full Name</span>
                         <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1 text-lg">{{ $observation->observee->user->name ?? 'Unknown' }}</p>
                         <p class="text-gray-500 dark:text-gray-400 text-sm">{{ $isSchoolHeadObs ? ($observation->observee->current_designation_label ?? 'School Head') : ($observation->observee->position_label ?? 'Teacher') }}</p>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">School</span>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1">{{ $observation->observee->school_name ?? 'N/A' }}</p>
                     </div>
                     @if(!$isSchoolHeadObs)
                     <div>
@@ -84,56 +98,56 @@
 
             @if(!$isSchoolHeadObs)
             <!-- Lesson Plan -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Uploaded by the teacher for your review</p>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+                    <span class="inline-flex w-fit shrink-0 items-center gap-1.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 px-2.5 py-1 rounded-full font-medium">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         Teacher's Responsibility
                     </span>
                 </div>
 
                 <!-- Status Timeline -->
-                <div class="flex items-center gap-0 mb-5">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full {{ $planning && $planning->lesson_plan_file ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
+                <div class="flex items-center gap-0 mb-5 min-w-0">
+                    <div class="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full {{ $planning && $planning->lesson_plan_file ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
                             @if($planning && $planning->lesson_plan_file)
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             @else
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             @endif
                         </div>
-                        <span class="text-xs {{ $planning && $planning->lesson_plan_file ? 'text-emerald-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">Uploaded</span>
+                        <span class="hidden min-[480px]:inline text-xs truncate {{ $planning && $planning->lesson_plan_file ? 'text-emerald-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">Uploaded</span>
                     </div>
-                    <div class="flex-1 mx-2 h-px {{ $planning && $planning->lesson_plan_file ? 'bg-emerald-300' : 'bg-gray-200' }}"></div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full {{ $planning && $planning->ai_insights ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
+                    <div class="flex-1 min-w-[12px] mx-1.5 sm:mx-2 h-px {{ $planning && $planning->lesson_plan_file ? 'bg-emerald-300' : 'bg-gray-200 dark:bg-gray-700' }}"></div>
+                    <div class="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full {{ $planning && $planning->ai_insights ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         </div>
-                        <span class="text-xs {{ $planning && $planning->ai_insights ? 'text-purple-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">AI Analysis</span>
+                        <span class="hidden min-[480px]:inline text-xs truncate {{ $planning && $planning->ai_insights ? 'text-purple-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">AI Analysis</span>
                     </div>
-                    <div class="flex-1 mx-2 h-px {{ $planning && $planning->supervisor_notes ? 'bg-blue-300' : 'bg-gray-200' }}"></div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full {{ $planning && $planning->supervisor_notes ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
+                    <div class="flex-1 min-w-[12px] mx-1.5 sm:mx-2 h-px {{ $planning && $planning->supervisor_notes ? 'bg-blue-300' : 'bg-gray-200 dark:bg-gray-700' }}"></div>
+                    <div class="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full {{ $planning && $planning->supervisor_notes ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' }} flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </div>
-                        <span class="text-xs {{ $planning && $planning->supervisor_notes ? 'text-blue-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">Review</span>
+                        <span class="hidden min-[480px]:inline text-xs truncate {{ $planning && $planning->supervisor_notes ? 'text-blue-700 font-semibold' : 'text-gray-400 dark:text-gray-500' }}">Review</span>
                     </div>
                 </div>
 
                 @if($planning && $planning->lesson_plan_file)
-                    <div class="flex items-center justify-between bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl p-4 border border-blue-100">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center shadow-sm">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl p-4 border border-blue-100">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="w-12 h-12 shrink-0 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center shadow-sm">
                                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                 </svg>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</p>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</p>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -146,7 +160,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <a href="{{ asset('storage/' . $planning->lesson_plan_file) }}" target="_blank"
-                               class="px-4 py-2 bg-white dark:bg-gray-900 hover:bg-blue-50 text-blue-700 border border-blue-200 text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-1.5">
+                               class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2 bg-white dark:bg-gray-900 hover:bg-blue-50 text-blue-700 border border-blue-200 text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 View
                             </a>
@@ -155,17 +169,17 @@
                 @else
                     <div class="relative overflow-hidden bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-5 border border-yellow-200">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-100/50 rounded-full -translate-y-12 translate-x-12"></div>
-                        <div class="relative flex items-start gap-4">
+                        <div class="relative flex flex-col sm:flex-row sm:items-start gap-4">
                             <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
                                 <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
                                 </svg>
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-yellow-800">No lesson plan uploaded yet</p>
                                 <p class="text-xs text-yellow-700 mt-0.5">The teacher has not submitted a lesson plan for this observation.</p>
                                 <button type="button" onclick="requestLessonPlan(this)"
-                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded-lg font-semibold transition-colors shadow-sm">
+                                        class="mt-3 inline-flex min-h-[44px] items-center gap-1.5 px-4 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded-lg font-semibold transition-colors shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                     Request Lesson Plan
                                 </button>
@@ -175,14 +189,14 @@
                 @endif
             </div>
             @else
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+                <div class="flex flex-col items-center text-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Enhanced Post Observation Conference &mdash; Pre-Observation Context</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">The Enhanced Post Observation Conference evaluates school supervision &amp; leadership practices rather than a single lesson plan.</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">The Enhanced Post Observation Conference evaluates school supervision &amp; leadership practices rather than a single lesson plan.</p>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -194,13 +208,13 @@
             @endif
 
             @if(!$isSchoolHeadObs)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Observation Assistant</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Optional help reviewing the lesson plan and suggesting useful areas to focus on. You can ignore it and continue yourself.</p>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-2.5 py-1 rounded-full font-medium shadow-sm">
+                    <span class="inline-flex w-fit shrink-0 items-center gap-1.5 text-xs bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-2.5 py-1 rounded-full font-medium shadow-sm">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         Optional
                     </span>
@@ -243,35 +257,35 @@
                     </label>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">No AI needed — note down what you want to focus on during the observation based on the lesson plan and the teacher's history.</p>
                     <textarea id="manual-insights-textarea" rows="8"
-                              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base sm:text-sm"
                               placeholder="e.g. Focus on questioning techniques and learner engagement. Previous observation showed..."></textarea>
-                    <div class="flex items-center gap-2 mt-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 mt-3">
                         <button type="button" id="save-manual-insights-btn"
-                                class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors inline-flex items-center gap-1.5">
+                                class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors inline-flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             Use These Notes
                         </button>
                         <button type="button" id="cancel-manual-insights-btn"
-                                class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
+                                class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
                         <span id="manual-saved-flash" class="hidden text-xs font-medium text-green-600 ml-1">Saved ✓</span>
                     </div>
                 </div>
 
-                <div class="mt-4 flex items-center gap-2">
+                <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
                     <button type="button" id="generate-ai-insights-btn"
-                            class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-300 disabled:to-indigo-300 text-white text-sm rounded-xl font-semibold transition-all shadow-sm shadow-purple-600/20 hover:shadow-md hover:shadow-purple-600/30 inline-flex items-center gap-2">
+                            class="w-full sm:w-auto justify-center min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-300 disabled:to-indigo-300 text-white text-sm rounded-xl font-semibold transition-all shadow-sm shadow-purple-600/20 hover:shadow-md hover:shadow-purple-600/30 inline-flex items-center gap-2">
                         <svg id="ai-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                         <span id="ai-btn-text">Get AI Suggestions</span>
                     </button>
                     <button type="button" id="write-manual-insights-btn"
-                            class="px-4 py-2.5 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:text-white bg-white dark:bg-gray-900 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all inline-flex items-center gap-1.5">
+                            class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2.5 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:text-white bg-white dark:bg-gray-900 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 rounded-xl transition-all inline-flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         Write Manually
                     </button>
                     <button type="button" id="clear-ai-insights-btn"
-                            class="px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:text-white bg-red-50 dark:bg-red-900/20 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all inline-flex items-center gap-1.5 {{ $planning?->ai_insights ? '' : 'hidden' }}">
+                            class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:text-white bg-red-50 dark:bg-red-900/20 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all inline-flex items-center gap-1.5 {{ $planning?->ai_insights ? '' : 'hidden' }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         Clear
                     </button>
@@ -281,13 +295,13 @@
 
             <!-- Previous Observation Highlights (from past data) -->
             @if($previousObservations->isNotEmpty())
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Previous Observation Highlights</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Based on {{ $previousObservations->count() }} previous observation(s).</p>
                     </div>
-                    <span class="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium">
+                    <span class="inline-flex w-fit shrink-0 items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                         Trend Data
                     </span>
@@ -362,18 +376,18 @@
 
         </div>
 
-        <!-- Right Column - Sidebar -->
-        <div class="space-y-6">
+        <!-- Right Column - Sidebar (stacks below main content on mobile, sticky on md+) -->
+        <aside class="min-w-0 space-y-4 sm:space-y-6 md:sticky md:top-6 md:self-start">
 
                 <!-- Observation Preparation -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Preparation</h2>
 
                     <!-- Supervisor's Notes -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">My Pre-Observation Notes</label>
-                        <textarea name="supervisor_notes" rows="5"
-                                  class="w-full px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        <label for="supervisor_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">My Pre-Observation Notes</label>
+                        <textarea id="supervisor_notes" name="supervisor_notes" rows="5"
+                                  class="w-full min-h-[120px] px-3 py-2.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
                                   placeholder="{{ $isSchoolHeadObs ? 'Write your preliminary notes, things to watch for, or reminders about the school head\'s supervision practices before the session...' : 'Write your preliminary notes, things to watch for, or reminders before the class visit...' }}">{{ old('supervisor_notes', $planning?->supervisor_notes) }}</textarea>
                         @error('supervisor_notes')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -384,7 +398,7 @@
 
                 <!-- Pre-Conference Details -->
                 @if(!$isSchoolHeadObs)
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Conversation</h2>
                     @if($preConference && $preConference->conference_date)
                         <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100">
@@ -408,17 +422,17 @@
                 @endif
 
                 <!-- Action Buttons -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                     <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">You can save notes and continue later.</span>
                             </div>
                             <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
                         </div>
                         <button type="submit"
-                                class="block w-full px-4 py-2.5 bg-white dark:bg-gray-900 border-2 border-indigo-600 text-indigo-700 hover:bg-indigo-50 dark:bg-indigo-900/20 rounded-lg font-semibold text-sm transition-colors">
+                                class="block w-full min-h-[44px] px-4 py-2.5 bg-white dark:bg-gray-900 border-2 border-indigo-600 text-indigo-700 hover:bg-indigo-50 dark:bg-indigo-900/20 rounded-lg font-semibold text-sm transition-colors">
                             <span class="flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                                 Save Notes
@@ -427,23 +441,23 @@
                     </div>
                 </div>
 
-        </div>
+        </aside>
 
     </div>
 
     <!-- Bottom Actions -->
-    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between">
-            <div class="flex flex-wrap items-center gap-4">
+    <div class="mt-6 sm:mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
                 <button type="submit" name="continue" value="pre_conference"
-                        class="inline-flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        class="inline-flex w-full sm:w-auto justify-center min-h-[48px] items-center gap-3 px-1 sm:px-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Pre-Observation Conversation' }}
                 </button>
                 @if($observation->canCancel())
                 <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"
-                   class="inline-flex items-center gap-3 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all hover:shadow-xl hover:shadow-red-600/30">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                   class="inline-flex w-full sm:w-auto justify-center min-h-[48px] items-center gap-3 px-1 sm:px-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all hover:shadow-xl hover:shadow-red-600/30">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     Cancel Observation
                 </a>
                 @endif

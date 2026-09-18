@@ -28,6 +28,13 @@
     .comment-row td { padding: 0 1rem 0.75rem 3rem; background-color: #fafbff; }
     .comment-row textarea { width: 100%; font-size: 0.8rem; padding: 0.5rem; border: 1px solid #c7d2fe; border-radius: 0.5rem; resize: vertical; min-height: 3rem; outline: none; }
     .comment-row textarea:focus { border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129,140,248,0.15); }
+    #observation-form { scroll-behavior: smooth; }
+    @media (max-width: 767.98px) {
+        .comment-row.open { display: block; }
+        .comment-row td { display: block; padding: 0.75rem 0 0; }
+        .comment-row textarea { font-size: 1rem; }
+        .rating-btn.active, .rating-btn-no.active, .rating-btn-na.active { transform: none; }
+    }
 </style>
 @endpush
 
@@ -42,17 +49,21 @@
     $ratingValues = array_reverse(array_keys($ratingScale ?? config('cot.rating_scale', [])));
     $ratingColspan = 2 + count($ratingValues) + 2;
     $indicatorIndex = 0;
+
+    $ratingTotal = count($cotIndicators ?? []);
+    $initialRated = $cotRatings ? $cotRatings->filter(fn($r) => $r->rating || $r->not_observed || $r->not_applicable)->count() : 0;
+    $initialPct = $ratingTotal > 0 ? round(($initialRated / $ratingTotal) * 100) : 0;
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Classroom Observation</li>
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
+    <nav aria-label="Breadcrumb" class="mb-4 sm:mb-6 text-sm">
+        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 dark:text-gray-400">
+            <li class="shrink-0"><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Evaluations</a></li>
+            <li aria-hidden="true" class="shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li class="hidden sm:inline min-w-0"><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Observation Details</a></li>
+            <li aria-hidden="true" class="hidden sm:inline shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px] sm:max-w-none" aria-current="page">{{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}</li>
         </ol>
     </nav>
 
@@ -60,16 +71,6 @@
 
     <!-- Progress Steps -->
     @include('partials.observation-stepper')
-
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}
-        </h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">
-            Rate each indicator for {{ $observation->observee->user->name ?? 'Unknown' }}
-            &middot; SY {{ $schoolYear }}
-        </p>
-    </div>
 
     @if($preConference && !$observation->isSchoolHeadObservation())
     <div x-data="{ open: true }" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
@@ -99,33 +100,35 @@
     </div>
     @endif
 
-    <form method="POST" action="{{ route('supervisor.observations.storeObservationData', $observation) }}" class="space-y-6" enctype="multipart/form-data"
+    <form method="POST" action="{{ route('supervisor.observations.storeObservationData', $observation) }}" class="space-y-4 sm:space-y-6" enctype="multipart/form-data"
           x-data="{ submitting: false }" x-on:submit="submitting = true"
           id="observation-form" data-autosave-form>
         @csrf
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden max-md:overflow-visible">
             @if($observation->isSchoolHeadObservation())
-                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rate the School Head's post-observation conference practices &middot; SY {{ $schoolYear }}</p>
-                        </div>
-                    </div>
-                </div>
+                {{-- Single consolidated header lives inside the EPOC partial below --}}
             @else
-            <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Rate what you observed during the lesson &middot; SY {{ $schoolYear }}</p>
+            <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h1>
+                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">Classroom Observation &middot; {{ $observation->observee->user->name ?? 'Unknown' }} &middot; SY {{ $schoolYear }}</p>
                     </div>
                     <button type="button" data-action="mark-all-no"
-                            class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
+                            class="shrink-0 min-h-[44px] sm:min-h-0 px-3 py-2 sm:py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                         Mark All as NO
                     </button>
+                </div>
+                <div class="mt-3">
+                    <div class="flex items-center justify-between gap-2 text-xs mb-1.5">
+                        <span id="rating-progress-label" class="font-medium text-gray-600 dark:text-gray-300">{{ $initialRated }} of {{ $ratingTotal }} rated</span>
+                        <span id="rating-progress-pct" class="tabular-nums text-gray-400 dark:text-gray-500">{{ $initialPct }}%</span>
+                    </div>
+                    <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden" role="progressbar" aria-label="Rating progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $initialPct }}">
+                        <div id="rating-progress-bar" class="h-full bg-indigo-600 rounded-full transition-all" style="width: {{ $initialPct }}%"></div>
+                    </div>
                 </div>
             </div>
             @endif
@@ -133,9 +136,9 @@
             @if($observation->isSchoolHeadObservation())
                 @include('supervisor.observations.partials.epoc-form', compact('observation', 'epocEvaluation', 'schoolHead'))
             @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm cot-table">
-                    <thead>
+            <div class="overflow-x-auto max-md:overflow-visible">
+                <table class="w-full text-sm cot-table max-md:block">
+                    <thead class="hidden md:table-header-group">
                         <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
                             <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicator</th>
@@ -158,11 +161,11 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="max-md:block">
                         @php $indicatorIndex = 0; @endphp
                         @foreach($groupedIndicators as $domain => $indicators)
-                            <tr class="bg-indigo-50/50 border-b border-indigo-100">
-                                <td colspan="{{ $ratingColspan }}" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200">{{ $domain }}</td>
+                            <tr class="domain-row bg-indigo-50/50 border-b border-indigo-100 max-md:border-0 max-md:bg-transparent">
+                                <td colspan="{{ $ratingColspan }}" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200 max-md:block max-md:bg-indigo-50 max-md:dark:bg-indigo-900/40 max-md:text-indigo-700 max-md:dark:text-indigo-300 max-md:rounded-lg max-md:p-2.5 max-md:shadow-sm">{{ $domain }}</td>
                             </tr>
                             @foreach($indicators as $indicator)
                                 @php
@@ -172,17 +175,17 @@
                                     $savedNa = $existingRating?->not_applicable;
                                     $savedComment = $existingRating?->comments ?? '';
                                 @endphp
-                                <tr class="indicator-row border-b border-gray-100" data-index="{{ $indicatorIndex }}" data-code="{{ $indicator['code'] }}">
-                                    <td class="px-4 py-2.5 text-gray-400 dark:text-gray-500 text-xs align-top pt-3">{{ $indicatorIndex + 1 }}</td>
-                                    <td class="px-4 py-2.5">
-                                        <div class="flex items-start gap-2">
-                                            <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5">{{ $indicator['code'] }}</span>
-                                            <span class="text-gray-800 text-sm leading-relaxed">{{ $indicator['description'] }}</span>
+                                <tr class="indicator-row border-b border-gray-100 max-md:border-transparent max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-1.5 max-md:gap-y-2.5 max-md:bg-white max-md:dark:bg-gray-900 max-md:rounded-xl max-md:ring-1 max-md:ring-gray-200 max-md:dark:ring-gray-700 max-md:p-4 max-md:mb-3 max-md:shadow-sm scroll-mt-32" data-index="{{ $indicatorIndex }}" data-code="{{ $indicator['code'] }}">
+                                    <td class="px-4 py-2.5 text-gray-400 dark:text-gray-500 text-xs align-top pt-3 max-md:p-0 max-md:order-1 max-md:flex max-md:items-center max-md:justify-center max-md:w-7 max-md:h-7 max-md:rounded-full max-md:bg-indigo-100 max-md:dark:bg-indigo-900/40 max-md:text-indigo-700 max-md:dark:text-indigo-300 max-md:text-[11px] max-md:font-bold max-md:align-middle">{{ $indicatorIndex + 1 }}</td>
+                                    <td class="px-4 py-2.5 max-md:p-0 max-md:order-2 max-md:flex-1 max-md:min-w-[calc(100%-2.5rem)]">
+                                        <div class="flex items-start gap-2 max-md:items-center">
+                                            <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5 max-md:mt-0">{{ $indicator['code'] }}</span>
+                                            <span class="text-gray-800 dark:text-gray-200 text-sm leading-relaxed max-md:text-[15px] max-md:flex-1 max-md:min-w-0">{{ $indicator['description'] }}</span>
                                             <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
-                                                    class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
-                                                    title="Add comment for this indicator">
+                                                    class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 max-md:hidden {{ $savedComment ? 'has-comment' : '' }}"
+                                                    title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                                                {{ $savedComment ? 'View Comment' : 'Add Comment' }}
+                                                <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
                                             </button>
                                         </div>
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator_code]" value="{{ $indicator['code'] }}">
@@ -190,27 +193,35 @@
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator]" value="{{ $indicator['description'] }}">
                                     </td>
                                     @foreach($ratingValues as $val)
-                                        <td class="text-center px-0.5 py-2.5">
+                                        <td class="text-center px-0.5 py-2.5 max-md:p-0 max-md:order-3 max-md:flex-1 max-md:min-w-0 max-md:flex">
                                             <button type="button"
                                                     data-action="select-rating" data-index="{{ $indicatorIndex }}" data-value="{{ $val }}"
-                                                    class="rating-btn w-10 h-10 rounded-full text-xs font-bold border-2 {{ $savedRating === $val && !$savedNo && !$savedNa ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' }}">
+                                                    class="rating-btn w-10 h-10 max-md:w-full max-md:min-w-[44px] max-md:min-h-[44px] max-md:h-11 rounded-full text-xs max-md:text-sm font-bold border-2 {{ $savedRating === $val && !$savedNo && !$savedNa ? 'active bg-green-600 text-white border-green-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' }}">
                                                 {{ $val }}
                                             </button>
                                         </td>
                                     @endforeach
-                                    <td class="text-center px-0.5 py-2.5">
+                                    <td class="text-center px-0.5 py-2.5 max-md:p-0 max-md:order-5 max-md:flex-1 max-md:min-w-0 max-md:flex">
                                         <button type="button"
                                                 data-action="select-no" data-index="{{ $indicatorIndex }}"
-                                                class="rating-btn-no w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNo ? 'active bg-gray-500 text-white border-gray-500' : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                                                class="rating-btn-no w-10 h-10 max-md:w-full max-md:min-w-[44px] max-md:min-h-[44px] max-md:h-11 rounded-lg text-[10px] max-md:text-xs font-bold border-2 {{ $savedNo ? 'active bg-gray-500 text-white border-gray-500' : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-500 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
                                             NO
                                         </button>
                                     </td>
-                                    <td class="text-center px-0.5 py-2.5">
+                                    <td class="text-center px-0.5 py-2.5 max-md:p-0 max-md:order-6 max-md:flex-1 max-md:min-w-0 max-md:flex">
                                         <button type="button"
                                                 data-action="select-na" data-index="{{ $indicatorIndex }}"
                                                 title="Not Applicable: indicator will not be recorded"
-                                                class="rating-btn-na w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNa ? 'active bg-amber-400 text-white border-amber-400' : 'bg-white dark:bg-gray-900 text-amber-500 dark:text-amber-400 border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20' }}">
+                                                class="rating-btn-na w-10 h-10 max-md:w-full max-md:min-w-[44px] max-md:min-h-[44px] max-md:h-11 rounded-lg text-[10px] max-md:text-xs font-bold border-2 {{ $savedNa ? 'active bg-amber-400 text-white border-amber-400' : 'bg-white dark:bg-gray-900 text-amber-500 dark:text-amber-400 border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20' }}">
                                             N/A
+                                        </button>
+                                    </td>
+                                    <td class="hidden md:table-cell max-md:block max-md:basis-full max-md:order-4 max-md:p-0 max-md:min-w-0">
+                                        <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
+                                                class="comment-toggle flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 px-1 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                                title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                            <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -237,7 +248,7 @@
             @endif
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Notes</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">These notes will be used during the Post-Observation Conference and will inform the AI analysis.</p>
             <div class="space-y-4">
@@ -256,7 +267,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Evidence Files <span class="text-gray-400 dark:text-gray-500 font-normal">(photos, videos, documents)</span></h2>
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
@@ -299,7 +310,7 @@
                 @endif
                 <button type="submit" :disabled="submitting"
                         :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
-                        class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
+                        class="flex-[2] min-h-[44px] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
                     <span x-show="!submitting" class="flex items-center justify-center gap-2">
                         Save Ratings &amp; Continue to Post-Observation Conference
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
@@ -384,6 +395,7 @@
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
+        updateRatingProgress();
     }
 
     function selectNo(index) {
@@ -427,6 +439,7 @@
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
+        updateRatingProgress();
     }
 
     function selectNA(index) {
@@ -470,6 +483,7 @@
         updateRowHidden(row, index);
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
+        updateRatingProgress();
     }
 
     function markAllNo() {
@@ -510,16 +524,44 @@
         var row = document.getElementById('comment-row-' + index);
         if (!row) return;
         var textarea = row.querySelector('textarea');
-        var btn = document.querySelector('.comment-toggle[data-index="' + index + '"]');
-        if (!textarea || !btn) return;
+        var btns = document.querySelectorAll('.comment-toggle[data-index="' + index + '"]');
+        if (!textarea || !btns.length) return;
         var hasText = textarea.value.trim().length > 0;
-        if (hasText) {
-            btn.classList.add('has-comment');
-            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> View Comment';
-        } else {
-            btn.classList.remove('has-comment');
-            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> Add Comment';
-        }
+        btns.forEach(function (btn) {
+            btn.classList.toggle('has-comment', hasText);
+            var label = btn.querySelector('[data-comment-label]');
+            if (label) label.textContent = hasText ? 'View Comment' : 'Add Comment';
+            btn.setAttribute('aria-label', (hasText ? 'View comment for indicator ' : 'Add comment for indicator ') + (index + 1));
+        });
+    }
+
+    function updateRatingProgress() {
+        var label = document.getElementById('rating-progress-label');
+        var pctEl = document.getElementById('rating-progress-pct');
+        var bar = document.getElementById('rating-progress-bar');
+        if (!label || !bar) return;
+        var done = Object.keys(selections).length;
+        var pct = totalIndicators > 0 ? Math.round((done / totalIndicators) * 100) : 0;
+        label.textContent = done + ' of ' + totalIndicators + ' rated';
+        if (pctEl) pctEl.textContent = pct + '%';
+        bar.style.width = pct + '%';
+        bar.parentElement.setAttribute('aria-valuenow', pct);
+    }
+
+    function initRatingState() {
+        document.querySelectorAll('.indicator-row[data-index]').forEach(function (row) {
+            var index = parseInt(row.getAttribute('data-index'));
+            if (row.querySelector('.rating-btn.active')) selections[index] = 'rating';
+            else if (row.querySelector('.rating-btn-no.active')) selections[index] = 'no';
+            else if (row.querySelector('.rating-btn-na.active')) selections[index] = 'na';
+        });
+        updateRatingProgress();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRatingState);
+    } else {
+        initRatingState();
     }
 
     document.addEventListener('input', function(e) {

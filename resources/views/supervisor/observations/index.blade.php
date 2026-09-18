@@ -35,7 +35,7 @@
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'observation_type', 'status', 'stage', 'date_from', 'date_to']); @endphp
-<div class="max-w-7xl mx-auto"
+<div class="max-w-7xl mx-auto px-3 py-3"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorObsView') || 'grid'; } catch (e) { return 'grid'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorObsView', v); } catch (e) {} },

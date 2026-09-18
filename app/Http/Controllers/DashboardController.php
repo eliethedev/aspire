@@ -162,45 +162,7 @@ class DashboardController extends Controller
      */
     private function adminDashboard(Request $request)
     {
-        // Get actual statistics from database
-        $stats = [
-            'total_users' => \App\Models\User::count(),
-            'total_schools' => \App\Models\School::where('is_active', true)->count(),
-            'total_observations' => \App\Models\Observation::count(),
-            'pending_cots' => \App\Models\Observation::where('stage', '!=', 'post_conference')->count(),
-            'active_observations' => \App\Models\Observation::whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count(),
-        ];
-
-        // Performance summary
-        $performance = [
-            'average_cot_score' => \App\Models\CotRating::avg('rating') ?? 0,
-            'teacher_growth_trend' => $this->calculateTeacherGrowthTrend(),
-            'completed_observations_this_month' => \App\Models\Observation::where('stage', 'post_conference')
-                ->whereMonth('created_at', now()->month)
-                ->count(),
-        ];
-
-        // Get recent activity
-        $recentActivity = [
-            'latest_users' => \App\Models\User::latest()->take(5)->get(),
-            'latest_observations' => \App\Models\Observation::with(['observee.user', 'observee.school'])
-                ->latest()
-                ->take(5)
-                ->get(),
-            'latest_schools' => \App\Models\School::latest()->take(3)->get(),
-        ];
-
-        // Get system status (basic checks)
-        $systemStatus = [
-            'database' => $this->checkDatabaseStatus(),
-            'api_services' => 'Operational',
-            'email_service' => $this->checkEmailService(),
-            'file_storage' => $this->checkFileStorage(),
-            'ai_processing' => 'Offline',
-            'server_usage' => $this->getServerUsage(),
-        ];
-
-        return view('admin.dashboard', compact('stats', 'performance', 'recentActivity', 'systemStatus'));
+        return app(\App\Http\Controllers\Admin\DashboardController::class)->index();
     }
 
     /**

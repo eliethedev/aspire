@@ -33,7 +33,7 @@
 <body class="min-h-screen bg-[#f0f5ff] dark:bg-gray-950 flex flex-col font-sans">
 
     <!-- Top Nav -->
-    <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+    <nav class="w-full px-4 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
         <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-lg sm:text-xl tracking-tight">
             <x-application-logo class="h-10 w-auto" />
         </a>
@@ -70,7 +70,7 @@
                 </div>
 
                 <a href="{{ route('login') }}" 
-                   class="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors text-sm sm:text-base">
+                   class="inline-flex items-center px-5 sm:px-5 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors text-sm sm:text-base">
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Go to Login
                 </a>

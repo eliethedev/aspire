@@ -1,9 +1,9 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'Coaching Agreement')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6">
+<div class="max-w-4xl mx-auto px-3 py-3 sm:px-1">
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">

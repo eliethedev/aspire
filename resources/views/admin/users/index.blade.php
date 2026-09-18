@@ -89,13 +89,13 @@
                 <tbody class="divide-y divide-slate-200 dark:divide-gray-800">
                     @forelse($users as $user)
                     <tr class="hover:bg-dark dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 darkspace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div>
                                 <div class="text-sm font-medium text-dark dark:text-gray-100">{{ $user->name }}</div>
                                 <div class="text-sm text-dark dark:text-gray-400">{{ $user->email }}</div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 darkspace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 @if($user->role === 'admin') bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300
                                 @elseif($user->role === 'school_head') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300
@@ -105,12 +105,12 @@
                                 {{ ucfirst(str_replace('_', ' ', $user->role)) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 darkspace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">
                                 {{ $user->school?->name ?? 'No School' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 darkspace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             @if($user->status === 'invited')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-300">
                                     <i class="fas fa-clock mr-1"></i>
@@ -132,10 +132,10 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 darkspace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $user->created_at->format('M j, Y') }}</span>
                         </td>
-                        <td class="px-6 py-4 darkspace-nowrap text-sm">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center space-x-2">
                                 @if($user->status === 'invited')
                                     @php

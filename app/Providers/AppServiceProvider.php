@@ -11,6 +11,7 @@ use App\AI\Services\FinalReportService;
 use App\AI\Services\ObservationGuidanceService;
 use App\AI\Services\PostConferenceService;
 use App\AI\Services\PreObservationService;
+use App\AI\Support\AiSettingsRepository;
 use App\Services\AuditLogService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -27,11 +28,18 @@ class AppServiceProvider extends ServiceProvider
         // Central AI provider router: task routing, fallback chain, usage tracking.
         $this->app->singleton(AIProviderManager::class);
 
-        // Bind the default AI provider (used as fallback)
+        // DB-backed AI configuration overrides (keys for provider/model/etc).
+        $this->app->singleton(AiSettingsRepository::class);
+
+        // Bind the default AI provider (used as fallback). The provider/model
+        // come from the DB override store when present (admin saves no longer
+        // rewrite .env), falling back to the boot-time config() baseline.
         $this->app->singleton(AIServiceInterface::class, function ($app) {
+            $settings = $app->make(AiSettingsRepository::class);
+
             return $app->make(AIProviderManager::class)->createProvider(
-                config('ai.provider', 'gemini'),
-                config('ai.models.default', 'gemini-3.6-flash')
+                $settings->defaultProvider(),
+                $settings->defaultModel()
             );
         });
 

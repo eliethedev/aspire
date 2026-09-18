@@ -1,9 +1,9 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'Coaching Agreement')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-4">
     <div class="mb-8">
         <a href="{{ route('school-head.coaching.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors mb-4">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>

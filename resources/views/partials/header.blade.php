@@ -1,6 +1,6 @@
 <!-- Header -->
 <header class="bg-white dark:bg-gray-900 shadow-sm border-b border-slate-200 dark:border-gray-700">
-    <div class="px-4 sm:px-6">
+    <div class="px-4 sm:px-4">
         <div class="flex justify-between items-center h-16">
             <!-- Left: Logo + Toggle -->
             <div class="flex items-center gap-3">

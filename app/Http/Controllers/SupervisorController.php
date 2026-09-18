@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\AI\Exceptions\AIRateLimitException;
 use App\AI\Support\AIStatus;
 use App\Enums\NotificationType;
+use App\Jobs\GeneratePostConferenceComparison;
 use App\Jobs\GeneratePostObservationFeedback;
 use App\Models\CareerAdvancement;
 use App\Models\CareerProgressionAssessment;
@@ -706,7 +707,7 @@ class SupervisorController extends Controller
                 'position' => $teacher->position ?? 'Teacher',
                 'position_label' => $teacher->position_label ?? 'Teacher',
                 'career_stage' => $teacher->career_stage,
-                'employee_number' => $teacher->employee_number ?? '—',
+                'employee_number' => $teacher->employee_number ?: 'Not set',
                 'school_name' => $teacher->school?->name ?? 'No school assigned',
                 'profile_url' => route('supervisor.teachers.show', $teacher),
                 'recent_observations' => $observations,
@@ -1790,13 +1791,10 @@ class SupervisorController extends Controller
         }
         $observation->update($updates);
 
-        // Auto-trigger AI post-observation analysis (non-blocking)
-        $observation->loadMissing(['postConference', 'preObservationPlanning', 'observee']);
-        try {
-            $this->aiFeedback->generatePostConferenceComparison($observation);
-        } catch (AIRateLimitException $e) {
-            Log::warning("AI rate limit hit for post-conference comparison on observation {$observation->id}: {$e->getMessage()}");
-        }
+        // Auto-trigger AI post-observation analysis via the queue (non-blocking).
+        // The HTTP call runs in a dedicated job so the request never blocks on
+        // the external AI provider.
+        GeneratePostConferenceComparison::dispatch($observation);
 
         // Notify the observee that their observation is complete
         $observee = $observation->observee;

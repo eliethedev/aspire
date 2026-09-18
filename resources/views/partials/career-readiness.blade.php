@@ -39,7 +39,7 @@
                 </span>
             @endif
         </div>
-        <p class="text-xs px-2.5 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300">Support tool · no auto promotion</p>
+        <p class="text-xs px-2.5 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300">Support tool ┬╖ no auto promotion</p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -171,11 +171,11 @@
                         @foreach($history as $entry)
                             <tr>
                                 <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->assessed_at?->format('M d, Y') }}</td>
-                                <td class="py-2.5 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span></td>
-                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->targetStageLabel() ?: '—' }}</td>
-                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->positionLabel() ?: '—' }}@if($entry->career_stage)<span class="text-slate-400 dark:text-gray-500"> · {{ $entry->career_stage }}</span>@endif</td>
-                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->evaluator?->name ?? '—' }}</td>
-                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->remarks ?: '—' }}</td>
+                                <td class="py-2.5 px-3"><span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold border {{ $entry->statusBadgeClass() }}">{{ $entry->statusLabel() }}</span></td>
+                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->targetStageLabel() ?: 'ΓÇö' }}</td>
+                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->positionLabel() ?: 'ΓÇö' }}@if($entry->career_stage)<span class="text-slate-400 dark:text-gray-500"> ┬╖ {{ $entry->career_stage }}</span>@endif</td>
+                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->evaluator?->name ?? 'ΓÇö' }}</td>
+                                <td class="py-2.5 px-3 text-slate-700 dark:text-gray-200">{{ $entry->remarks ?: 'ΓÇö' }}</td>
                                 @if($canEditAssessment)
                                     <td class="py-2.5 px-3">
                                         <button type="button"

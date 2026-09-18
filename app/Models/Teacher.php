@@ -122,6 +122,16 @@ class Teacher extends Model
     }
 
     /**
+     * Resolved school name: the profile's own school first, falling back to
+     * the linked user's school so records created before school_id was added
+     * keep showing a real name instead of "N/A".
+     */
+    public function getSchoolNameAttribute(): ?string
+    {
+        return $this->school?->name ?? $this->user?->school?->name;
+    }
+
+    /**
      * The career stage resolved from the teacher's position, if any.
      */
     public function careerStage(): ?TeacherCareerStage

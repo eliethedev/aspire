@@ -16,7 +16,7 @@
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'status']); @endphp
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-4">
     <!-- Header -->
     <x-page-header title="Co-Observations" subtitle="Teacher observations you are assigned to as co-observer / co-evaluator.">
         <x-slot name="actions">

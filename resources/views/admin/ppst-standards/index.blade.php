@@ -42,7 +42,7 @@
         </a>
         <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
         <span class="text-gray-900 dark:text-gray-100 font-medium">PPST Standards</span>
-        <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain → Strand → Indicator</span>
+        <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain ΓåÆ Strand ΓåÆ Indicator</span>
     </nav>
 
     <!-- Header -->
@@ -240,7 +240,7 @@
             <!-- Domain header -->
             <div class="relative">
                 <div class="absolute inset-x-0 top-0 h-1 {{ $colors['bar'] }}"></div>
-                <button type="button" @click="open = !open" class="w-full flex items-center gap-4 px-5 lg:px-6 py-4 text-left hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
+                <button type="button" @click="open = !open" class="w-full flex items-center gap-4 px-5 lg:px-5 py-4 text-left hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                     <div class="w-11 h-11 rounded-2xl {{ $colors['bg'] }} border {{ $colors['border'] }} flex items-center justify-center {{ $colors['text'] }} shadow-sm shrink-0">
                         <i class="fas {{ $meta['icon'] }} text-sm"></i>
                     </div>
@@ -276,7 +276,7 @@
                     @php
                         $strandActive = $indicators->where('is_active', true)->count();
                     @endphp
-                    <div data-strand-group data-strand="{{ $strand }}" class="px-5 lg:px-6 py-5 {{ $loop->first ? '' : 'border-t border-gray-100 dark:border-gray-800' }} bg-gradient-to-b from-white to-gray-50/30 dark:from-gray-900 dark:to-gray-800/20">
+                    <div data-strand-group data-strand="{{ $strand }}" class="px-5 lg:px-5 py-5 {{ $loop->first ? '' : 'border-t border-gray-100 dark:border-gray-800' }} bg-gradient-to-b from-white to-gray-50/30 dark:from-gray-900 dark:to-gray-800/20">
                         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                             <div class="flex items-center gap-2.5">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl {{ $colors['bg'] }} {{ $colors['text'] }} border {{ $colors['border'] }} font-mono font-bold text-xs">

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\AI\Providers\AIProviderManager;
+use App\AI\Support\AiSettingsRepository;
 use App\Http\Controllers\Controller;
 use App\Models\AiUsageLog;
 use App\Models\CustomAiProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
@@ -14,7 +16,7 @@ class AIController extends Controller
 {
     public function index()
     {
-        $config = config('ai');
+        $config = $this->effectiveConfig();
 
         $providerStatus = $this->getProviderStatus();
 
@@ -46,6 +48,36 @@ class AIController extends Controller
         $maskedKeys = $this->getMaskedApiKeys();
 
         return view('admin.ai.index', compact('config', 'usageStats', 'providerStatus', 'maskedKeys', 'customProviders', 'aiCatalog'));
+    }
+
+    /**
+     * The effective AI configuration shown by the admin page: the boot-time
+     * config('ai') array merged with any DB overrides. Boolean flags and
+     * per-provider values stored as overrides win over the env baseline.
+     */
+    private function effectiveConfig(): array
+    {
+        $repo = app(AiSettingsRepository::class);
+        $config = config('ai');
+
+        foreach ($repo->all() as $key => $value) {
+            Arr::set($config, str_starts_with($key, 'ai.') ? substr($key, 3) : $key, $value);
+        }
+
+        $config['enabled'] = $repo->aiEnabled();
+        $config['fallback'] = $repo->fallbackEnabled();
+        $config['logging']['enabled'] = $repo->loggingEnabled();
+        $config['python_bridge']['enabled'] = $repo->pythonBridgeEnabled();
+        $config['models']['default'] = $repo->defaultModel();
+        $config['provider'] = $repo->defaultProvider();
+
+        foreach (array_keys($config['providers'] ?? []) as $providerKey) {
+            $config['providers'][$providerKey]['enabled'] = $repo->providerEnabled($providerKey);
+            $config['providers'][$providerKey]['default_model'] = $repo->providerModel($providerKey);
+            $config['providers'][$providerKey]['model'] = $repo->providerModel($providerKey);
+        }
+
+        return $config;
     }
 
     public function update(Request $request)
@@ -86,99 +118,93 @@ class AIController extends Controller
         ];
 
         // Free-text inputs revealed by the "Custom model…" dropdown option.
-        $modelEnvKeys = [
-            'ai_gemini_model' => 'GEMINI_MODEL',
-            'ai_openai_model' => 'OPENAI_MODEL',
-            'ai_claude_model' => 'CLAUDE_MODEL',
-            'ai_deepseek_model' => 'DEEPSEEK_MODEL',
-            'ai_openrouter_model' => 'OPENROUTER_MODEL',
-            'ai_ollama_model' => 'OLLAMA_MODEL',
-            'ai_model_default' => 'AI_MODEL_DEFAULT',
+        $modelFields = [
+            'ai_gemini_model',
+            'ai_openai_model',
+            'ai_claude_model',
+            'ai_deepseek_model',
+            'ai_openrouter_model',
+            'ai_ollama_model',
+            'ai_model_default',
         ];
-        foreach (array_keys($modelEnvKeys) as $field) {
+        foreach ($modelFields as $field) {
             $rules[$field.'_custom'] = 'nullable|string|max:100';
         }
 
-        $validated = $request->validate($rules);
+        $request->validate($rules);
 
-        $envFile = base_path('.env');
-        if (! file_exists($envFile)) {
-            return back()->with('error', 'Environment file not found.');
-        }
-
-        $envContent = file_get_contents($envFile);
+        $settings = app(AiSettingsRepository::class);
 
         $effectiveProvider = $request->has('ai_provider')
             ? (string) $request->input('ai_provider')
-            : (string) config('ai.provider', 'gemini');
+            : $settings->defaultProvider();
 
         $effectiveModel = $this->resolveModelValue(
             $request->input('ai_model_default'),
             $request->input('ai_model_default_custom'),
-            (string) config('ai.models.default', 'gemini-3.6-flash'),
+            $settings->defaultModel(),
         );
 
-        $mappings = [
-            'ai_enabled' => 'AI_ENABLED',
-            'ai_fallback_enabled' => 'AI_FALLBACK_ENABLED',
-            'ai_logging_enabled' => 'AI_LOGGING_ENABLED',
-            'ai_provider' => 'AI_PROVIDER',
+        // Runtime (non-secret) overrides are persisted to the ai_settings table,
+        // not into .env: changing a provider/model from the admin page no longer
+        // rewrites the env file or forces a config:clear on a live server.
+        $dbOverrides = [];
 
-            'ai_gemini_enabled' => 'AI_GEMINI_ENABLED',
-            'ai_gemini_model' => 'GEMINI_MODEL',
-            'ai_openai_enabled' => 'AI_OPENAI_ENABLED',
-            'ai_openai_api_key' => 'OPENAI_API_KEY',
-            'ai_openai_model' => 'OPENAI_MODEL',
-            'ai_claude_enabled' => 'AI_CLAUDE_ENABLED',
-            'ai_claude_api_key' => 'CLAUDE_API_KEY',
-            'ai_claude_model' => 'CLAUDE_MODEL',
-            'ai_deepseek_enabled' => 'AI_DEEPSEEK_ENABLED',
-            'ai_deepseek_api_key' => 'DEEPSEEK_API_KEY',
-            'ai_deepseek_model' => 'DEEPSEEK_MODEL',
-            'ai_openrouter_enabled' => 'AI_OPENROUTER_ENABLED',
-            'ai_openrouter_api_key' => 'OPENROUTER_API_KEY',
-            'ai_openrouter_model' => 'OPENROUTER_MODEL',
-            'ai_ollama_enabled' => 'AI_OLLAMA_ENABLED',
-            'ai_ollama_url' => 'OLLAMA_URL',
-            'ai_ollama_model' => 'OLLAMA_MODEL',
+        $flagOverrides = [
+            'ai_enabled' => 'ai.enabled',
+            'ai_fallback_enabled' => 'ai.fallback',
+            'ai_logging_enabled' => 'ai.logging.enabled',
+            'ai_python_bridge_enabled' => 'ai.python_bridge.enabled',
 
-            'ai_model_default' => 'AI_MODEL_DEFAULT',
-
-            'ai_python_bridge_enabled' => 'AI_PYTHON_BRIDGE_ENABLED',
+            'ai_gemini_enabled' => 'ai.providers.gemini.enabled',
+            'ai_openai_enabled' => 'ai.providers.openai.enabled',
+            'ai_claude_enabled' => 'ai.providers.claude.enabled',
+            'ai_deepseek_enabled' => 'ai.providers.deepseek.enabled',
+            'ai_openrouter_enabled' => 'ai.providers.openrouter.enabled',
+            'ai_ollama_enabled' => 'ai.providers.ollama.enabled',
         ];
-
-        foreach ($mappings as $field => $envKey) {
+        foreach ($flagOverrides as $field => $key) {
             if ($request->has($field)) {
-                $value = $request->input($field);
-                $emptyApiKeys = ['ai_gemini_api_key', 'ai_openai_api_key', 'ai_claude_api_key', 'ai_deepseek_api_key', 'ai_openrouter_api_key'];
-                if (in_array($field, $emptyApiKeys) && empty($value)) {
-                    continue;
-                }
-                // Model dropdowns: never persist the "Custom model…" sentinel or
-                // an untouched empty choice over the existing configuration.
-                if (array_key_exists($field, $modelEnvKeys)) {
-                    $value = is_string($value) ? trim($value) : $value;
-                    if ($value === '__custom__') {
-                        $custom = trim((string) $request->input($field.'_custom', ''));
-                        if ($custom === '') {
-                            continue;
-                        }
-                        $value = $custom;
-                    } elseif ($value === null || $value === '') {
-                        continue;
-                    }
-                }
-                if (is_bool($value)) {
-                    $value = $value ? 'true' : 'false';
-                }
-                $this->setEnvValue($envContent, $envKey, $value);
+                $dbOverrides[$key] = $request->boolean($field);
             }
         }
 
-        // Also write Gemini API key to GEMINI_API_KEY if provided
-        if ($request->has('ai_gemini_api_key') && ! empty($request->input('ai_gemini_api_key'))) {
-            $this->setEnvValue($envContent, 'GEMINI_API_KEY', $request->input('ai_gemini_api_key'));
-            $this->setEnvValue($envContent, 'GOOGLE_GEMINI_API_KEY', $request->input('ai_gemini_api_key'));
+        if ($request->has('ai_provider')) {
+            $dbOverrides['ai.provider'] = $effectiveProvider;
+        }
+        if ($request->has('ai_model_default') || $request->has('ai_model_default_custom')) {
+            $dbOverrides['ai.models.default'] = $effectiveModel;
+        }
+
+        $modelOverrides = [
+            'ai_gemini_model' => 'ai.providers.gemini.model',
+            'ai_openai_model' => 'ai.providers.openai.model',
+            'ai_claude_model' => 'ai.providers.claude.model',
+            'ai_deepseek_model' => 'ai.providers.deepseek.model',
+            'ai_openrouter_model' => 'ai.providers.openrouter.model',
+            'ai_ollama_model' => 'ai.providers.ollama.model',
+        ];
+        foreach ($modelOverrides as $field => $key) {
+            if (! $request->has($field)) {
+                continue;
+            }
+            $provider = (string) str_replace(['ai_', '_model'], '', $field);
+            $existing = $settings->providerModel($provider);
+            $resolved = $this->resolveModelValue(
+                $request->input($field),
+                $request->input($field.'_custom'),
+                $existing,
+            );
+            if ($resolved !== $existing) {
+                $dbOverrides[$key] = $resolved;
+            }
+        }
+
+        if ($request->has('ai_ollama_url')) {
+            $url = trim((string) $request->input('ai_ollama_url'));
+            if ($url !== '') {
+                $dbOverrides['ai.providers.ollama.url'] = $url;
+            }
         }
 
         // Connectivity guard: never ship a configuration that cannot currently
@@ -191,32 +217,93 @@ class AIController extends Controller
             }
         }
 
-        // Keep a recoverable snapshot of the last good configuration.
-        $this->backupEnvFile($envFile);
+        $settings->set($dbOverrides);
 
-        $written = file_put_contents($envFile, $envContent);
-        if ($written === false) {
-            return back()->with('error', 'Failed to write environment file. Check file permissions.');
-        }
+        // API keys remain the only secrets in .env. They are written only when
+        // a new value is actually submitted, and a backup is taken first.
+        $envChanged = $this->writeEnvApiKeys($request);
 
         // Reflect the saved provider + default model in the running process so
-        // the admin page (and subsequent AI calls in this process) immediately
-        // use the new selection instead of a stale boot-time value.
+        // subsequent AI calls in this process immediately use the new selection
+        // instead of the boot-time default.
         config(['ai.provider' => $effectiveProvider]);
         config(['ai.models.default' => $effectiveModel]);
 
-        // Purge a cached configuration if one exists: otherwise a cached
-        // baseline could be served instead of the freshly saved .env values
-        // after the next process/system restart.
-        if (app()->configurationIsCached()) {
+        // Only purge a cached configuration when the .env file actually changed
+        // (i.e. an API key was saved). Pure provider/model changes live in the
+        // database and take effect without a config cache reset.
+        if ($envChanged && app()->configurationIsCached()) {
             Artisan::call('config:clear');
         }
 
-        return back()->with('success', 'AI settings updated successfully (provider/model verified). Changes take effect on the next page load.');
+        return back()->with(
+            'success',
+            $envChanged
+                ? 'AI settings updated (provider/model saved to the database; API keys saved to .env).'
+                : 'AI settings updated (saved to the database, no env file change). Changes take effect immediately.'
+        );
     }
 
     /**
-     * One-click recovery: revert .env to the most recent pre-save backup.
+     * Write newly-submitted API keys into the .env file (with a backup) and
+     * return whether anything was written. Empty key fields are ignored so a
+     * model-only save never modifies the env file.
+     */
+    private function writeEnvApiKeys(Request $request): bool
+    {
+        $envFile = base_path('.env');
+        if (! file_exists($envFile)) {
+            return false;
+        }
+
+        $envContent = file_get_contents($envFile);
+        $changed = false;
+
+        $keyFields = [
+            'ai_gemini_api_key' => 'GEMINI_API_KEY',
+            'ai_openai_api_key' => 'OPENAI_API_KEY',
+            'ai_claude_api_key' => 'CLAUDE_API_KEY',
+            'ai_deepseek_api_key' => 'DEEPSEEK_API_KEY',
+            'ai_openrouter_api_key' => 'OPENROUTER_API_KEY',
+        ];
+
+        foreach ($keyFields as $field => $envKey) {
+            if (! $request->filled($field)) {
+                continue;
+            }
+            $value = (string) $request->input($field);
+            if ($value === '') {
+                continue;
+            }
+            $this->setEnvValue($envContent, $envKey, $value);
+            if ($field === 'ai_gemini_api_key') {
+                $this->setEnvValue($envContent, 'GOOGLE_GEMINI_API_KEY', $value);
+            }
+            $changed = true;
+        }
+
+        if (! $changed) {
+            return false;
+        }
+
+        $this->backupEnvFile($envFile);
+
+        if (file_put_contents($envFile, $envContent) === false) {
+            Log::error('Failed to write AI API keys to env file');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * One-click recovery: revert to the most recent pre-save backup.
+     *
+     * The backup is a .env snapshot (it predates the DB-override store). To
+     * fully restore the previous state, the database overrides — which take
+     * precedence over the env baseline — are cleared so the restored .env
+     * values become effective again.
      */
     public function restore()
     {
@@ -239,36 +326,50 @@ class AIController extends Controller
             return back()->with('error', 'Failed to restore AI settings from backup.');
         }
 
+        // Clear database overrides so the restored .env baseline applies again.
+        app(AiSettingsRepository::class)->clear();
+
         return back()->with('success', 'AI settings restored from '.basename($latest['path']).'.');
     }
 
     /**
      * Emergency kill switch: disable/re-enable all AI processing immediately,
      * always keeping rule-based fallback enabled so users never see errors.
+     *
+     * The flag is written to the database override store (so it takes effect
+     * instantly without a config:clear) and mirrored into .env so it survives
+     * a reboot even if overrides are later cleared.
      */
     public function emergency(Request $request)
     {
         $action = $request->input('action') === 'enable' ? 'enable' : 'disable';
 
+        $enabled = $action === 'enable';
+        $settings = app(AiSettingsRepository::class);
+        $settings->set([
+            'ai.enabled' => $enabled,
+            'ai.fallback' => true,
+        ]);
+        config(['ai.enabled' => $enabled]);
+        config(['ai.fallback' => true]);
+
         $envFile = base_path('.env');
-        if (! file_exists($envFile)) {
-            return back()->with('error', 'Environment file not found.');
-        }
+        if (file_exists($envFile)) {
+            $envContent = file_get_contents($envFile);
+            $this->setEnvValue($envContent, 'AI_ENABLED', $enabled ? 'true' : 'false');
+            $this->setEnvValue($envContent, 'AI_FALLBACK_ENABLED', 'true');
 
-        $envContent = file_get_contents($envFile);
-        $this->setEnvValue($envContent, 'AI_ENABLED', $action === 'enable' ? 'true' : 'false');
-        $this->setEnvValue($envContent, 'AI_FALLBACK_ENABLED', 'true');
+            // Snapshot the pre-emergency state so it can be reverted precisely.
+            $this->backupEnvFile($envFile, 'ai-snapshot-');
 
-        // Snapshot the pre-emergency state so it can be reverted precisely.
-        $this->backupEnvFile($envFile, 'ai-snapshot-');
-
-        if (file_put_contents($envFile, $envContent) === false) {
-            return back()->with('error', 'Failed to write environment file. Check file permissions.');
+            if (file_put_contents($envFile, $envContent) === false) {
+                return back()->with('error', 'Failed to write environment file. Check file permissions.');
+            }
         }
 
         return back()->with(
             'success',
-            $action === 'enable'
+            $enabled
                 ? 'AI processing re-enabled. New requests will use AI again.'
                 : 'AI processing is now DISABLED. Rule-based fallback will serve users until re-enabled.'
         );
@@ -430,7 +531,7 @@ class AIController extends Controller
      */
     public function destroyCustomProvider(CustomAiProvider $customAiProvider)
     {
-        if (config('ai.provider') === $customAiProvider->slug) {
+        if (app(AiSettingsRepository::class)->defaultProvider() === $customAiProvider->slug) {
             return back()->with('error', 'Cannot delete "'.$customAiProvider->name.'" — it is the active default provider. Switch the Default Provider first.');
         }
 
@@ -466,12 +567,13 @@ class AIController extends Controller
 
     private function getProviderStatus(): array
     {
+        $settings = app(AiSettingsRepository::class);
         $providers = config('ai.providers', []);
         $status = [];
 
         foreach ($providers as $key => $providerConfig) {
             $apiKey = $providerConfig['api_key'] ?? '';
-            $enabled = $providerConfig['enabled'] ?? false;
+            $enabled = $settings->providerEnabled($key);
 
             $configured = false;
             $instance = null;
@@ -487,7 +589,7 @@ class AIController extends Controller
                 'name' => $providerConfig['name'] ?? ucfirst($key),
                 'enabled' => $enabled,
                 'configured' => $configured,
-                'default_model' => $providerConfig['default_model'] ?? '',
+                'default_model' => $settings->providerModel($key),
                 'model' => $instance?->getModelName() ?? '',
             ];
         }
@@ -647,15 +749,20 @@ class AIController extends Controller
     }
 
     /**
-     * When a renamed custom provider was the active default provider, rewrite
-     * AI_PROVIDER in .env and the running config so nothing points at the dead
-     * slug after the next process restart.
+     * When a renamed custom provider was the active default provider, rebind
+     * the default through the DB override store (and mirror it into the env
+     * baseline) so nothing points at the dead slug after the next restart.
      */
     private function retargetActiveProvider(string $oldSlug, string $newSlug): void
     {
-        if (config('ai.provider') !== $oldSlug) {
+        $settings = app(AiSettingsRepository::class);
+
+        if ($settings->defaultProvider() !== $oldSlug) {
             return;
         }
+
+        $settings->set(['ai.provider' => $newSlug]);
+        config(['ai.provider' => $newSlug]);
 
         $envFile = base_path('.env');
         if (file_exists($envFile)) {
@@ -663,8 +770,6 @@ class AIController extends Controller
             $this->setEnvValue($envContent, 'AI_PROVIDER', $newSlug);
             file_put_contents($envFile, $envContent);
         }
-
-        config(['ai.provider' => $newSlug]);
     }
 
     /**

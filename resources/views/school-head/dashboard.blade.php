@@ -10,7 +10,7 @@
     $cycleLabel = 'Quarter ' . ($quarter ?? 1) . ' · SY ' . $syLabel;
 @endphp
 
-<div class="max-w-7xl mx-auto space-y-4">
+<div class="max-w-7xl mx-auto space-y-4 px-3 py-3 sm:px-1">
 
     <!-- ======================= Welcome ======================= -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">

@@ -5,6 +5,7 @@ namespace App\AI\Providers;
 use App\AI\Bridge\PythonAIBridge;
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
+use App\AI\Support\AiSettingsRepository;
 use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Log;
 
@@ -143,7 +144,7 @@ class PythonBridgeProvider implements AIServiceInterface, TracksTokenUsage
         }
 
         // Mirror the global default provider to the Python bridge.
-        $globalDefault = config('ai.provider', 'gemini');
+        $globalDefault = app(AiSettingsRepository::class)->defaultProvider();
 
         return in_array($globalDefault, ['gemini', 'openai', 'claude', 'ollama']) ? $globalDefault : 'gemini';
     }

@@ -3,7 +3,7 @@
 @section('title', 'Create Announcement')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6">
+<div class="max-w-4xl mx-auto px-4 sm:px-4">
     <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-4">
             <a href="{{ route('admin.announcements.index') }}"

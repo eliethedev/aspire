@@ -45,72 +45,73 @@
     $trendLabel = $trend > 0 ? '+' . number_format($trend, 1) : number_format($trend, 1);
     $trendTone = $trend > 0 ? 'emerald' : ($trend < 0 ? 'red' : 'slate');
   @endphp
-  <div class="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-0">
+  <div class="max-w-7xl mx-auto space-y-4 px-3 py-3 sm:px-1 sm:space-y-6">
 
     {{-- Hero --}}
-    <div class="hero-card bg-white dark:bg-gray-900 rounded-[20px] border border-slate-200 dark:border-gray-800 p-6 lg:p-7 shadow-sm">
-      <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6">
-        <div class="flex items-start gap-4 min-w-0">
+    <div class="hero-card bg-white dark:bg-gray-900 rounded-2xl sm:rounded-[20px] border border-slate-200 dark:border-gray-800 p-4 sm:p-6 lg:p-7 shadow-sm">
+      <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-4 sm:gap-6">
+        <div class="flex items-center gap-3 sm:gap-4 min-w-0">
           <div
-            class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
+            class="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-base sm:text-lg shrink-0 shadow-sm">
             {{ strtoupper(substr($user->name, 0, 1)) }}</div>
           <div class="min-w-0">
-            <p class="text-slate-500 dark:text-gray-400 text-xs tracking-widest uppercase font-semibold">{{ $greeting }}</p>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-gray-100 leading-tight">Welcome back, {{ $firstName }}!</h1>
-            <p class="text-slate-500 dark:text-gray-400 text-sm mt-1">{{ $todayStr }} · Supervisor Workspace ·
-              {{ $user->school->name ?? 'Your school' }}</p>
-            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <p class="text-slate-500 dark:text-gray-400 text-[11px] sm:text-xs tracking-widest uppercase font-semibold">{{ $greeting }}</p>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-gray-100 leading-tight">Welcome back, {{ $firstName }}!</h1>
+            <p class="text-slate-500 dark:text-gray-400 text-xs sm:text-sm mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5"><span>{{ $todayStr }}</span><span aria-hidden="true" class="text-slate-300 dark:text-gray-600">·</span><span>Supervisor Workspace</span><span aria-hidden="true" class="text-slate-300 dark:text-gray-600">·</span><span class="min-w-0 truncate">{{ $user->school->name ?? 'Your school' }}</span></p>
+            <div class="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
               <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span
+                class="inline-flex items-center gap-1.5 px-2.5 sm:px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 whitespace-nowrap"><span
                   class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ $stats['total_teachers'] }} Teachers in
                 scope</span>
               <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span
+                class="inline-flex items-center gap-1.5 px-2.5 sm:px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 whitespace-nowrap"><span
                   class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ $stats['total_observations'] }}
                 Observations</span>
               <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span
+                class="inline-flex items-center gap-1.5 px-2.5 sm:px-2.5 py-1 rounded-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 whitespace-nowrap"><span
                   class="w-2 h-2 rounded-full bg-amber-500"></span> Avg
                 {{ number_format($stats['average_score'], 1) }}</span>
             </div>
           </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-3 xl:shrink-0">
-          <div class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-2xl px-4 py-3 flex items-center gap-3 min-w-[150px]">
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 xl:shrink-0">
+          <div class="min-w-0 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-2xl px-4 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2.5 sm:gap-3">
             <div
-              class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
-              <i class="fas fa-list-check text-sm"></i></div>
-            <div>
-              <p class="text-xs text-slate-500 dark:text-gray-400">Pending actions</p>
-              <p class="text-xl font-extrabold leading-none text-slate-900 dark:text-gray-100">{{ $pendingTotal }}</p>
-              <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">Needs your next step</p>
+              class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
+              <i class="fas fa-list-check text-xs sm:text-sm"></i></div>
+            <div class="min-w-0">
+              <p class="text-[11px] sm:text-xs text-slate-500 dark:text-gray-400 truncate">Pending actions</p>
+              <p class="text-lg sm:text-xl font-extrabold leading-none text-slate-900 dark:text-gray-100">{{ $pendingTotal }}</p>
+              <p class="hidden min-[420px]:block text-[11px] sm:text-xs text-slate-500 dark:text-gray-400 mt-0.5 truncate">Needs your next step</p>
             </div>
           </div>
-          <div class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-2xl px-4 py-3 flex items-center gap-3 min-w-[150px]">
+          <div class="min-w-0 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-2xl px-4 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2.5 sm:gap-3">
             <div
-              class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
-              <i class="fas fa-circle-check text-sm"></i></div>
-            <div class="flex-1">
-              <p class="text-xs text-slate-500 dark:text-gray-400">Completion</p>
-              <p class="text-xl font-extrabold leading-none text-slate-900 dark:text-gray-100">{{ $completion }}%</p>
-              <div class="mt-1.5 w-24 h-1.5 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden">
+              class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+              <i class="fas fa-circle-check text-xs sm:text-sm"></i></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] sm:text-xs text-slate-500 dark:text-gray-400 truncate">Completion</p>
+              <p class="text-lg sm:text-xl font-extrabold leading-none text-slate-900 dark:text-gray-100">{{ $completion }}%</p>
+              <div class="mt-1.5 w-full h-1.5 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden">
                 <div class="h-1.5 bg-emerald-500 rounded-full" style="width: {{ $completion }}%"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="mt-5 flex flex-wrap items-center gap-2">
+      <div class="mt-4 sm:mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
         <a href="{{ route('supervisor.observations.create') }}"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"><i
+          class="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"><i
             class="fas fa-plus text-xs"></i> New Observation</a>
-        <a href="{{ route('supervisor.teachers.index', ['attention' => 'needs']) }}"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"><i
-            class="fas fa-bell text-amber-500 text-xs"></i> Needs attention @if($needsAttention->isNotEmpty())<span
-            class="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-yellow-500/10 text-amber-700 dark:text-yellow-400 text-xs font-bold">{{ $needsAttention->count() }}</span>@endif</a>
-        <a href="{{ route('supervisor.reports.index') }}"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"><i
-            class="fas fa-chart-line text-slate-500 dark:text-gray-400 text-xs"></i> View reports</a>
+        <div class="grid grid-cols-2 gap-2 sm:contents">
+          <a href="{{ route('supervisor.teachers.index', ['attention' => 'needs']) }}"
+            class="inline-flex justify-center items-center gap-2 px-4 sm:px-4 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors min-w-0"><i
+              class="fas fa-bell text-amber-500 text-xs shrink-0"></i> <span class="truncate">Needs attention</span> @if($needsAttention->isNotEmpty())<span
+              class="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-yellow-500/10 text-amber-700 dark:text-yellow-400 text-xs font-bold shrink-0">{{ $needsAttention->count() }}</span>@endif</a>
+          <a href="{{ route('supervisor.reports.index') }}"
+            class="inline-flex justify-center items-center gap-2 px-4 sm:px-4 py-2.5 min-h-[44px] rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors min-w-0"><i
+              class="fas fa-chart-line text-slate-500 dark:text-gray-400 text-xs shrink-0"></i> <span class="truncate">View reports</span></a>
+        </div>
       </div>
       @if($pendingTotal > 0)
         <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -125,46 +126,46 @@
     </div>
 
     {{-- KPI grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Teachers</p>
-            <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['total_teachers'] }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['total_teachers'] }}</p>
             <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">Under supervision</p>
           </div>
           <div
-            class="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
             <i class="fas fa-users"></i></div>
         </div>
         <a href="{{ route('supervisor.teachers.index') }}"
           class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-400">Manage
           roster <i class="fas fa-arrow-right text-[10px]"></i></a>
       </div>
-      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
+      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Total Obs</p>
-            <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['total_observations'] }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['total_observations'] }}</p>
             <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">{{ $stats['scheduled'] }} scheduled · {{ $stats['in_progress'] }}
               active</p>
           </div>
           <div
-            class="w-11 h-11 rounded-xl bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-slate-600 dark:text-gray-300">
+            class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center text-slate-600 dark:text-gray-300">
             <i class="fas fa-clipboard-list"></i></div>
         </div>
         <a href="{{ route('supervisor.observations.index') }}"
           class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-gray-100">View
           observations <i class="fas fa-arrow-right text-[10px]"></i></a>
       </div>
-      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
+      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Completed</p>
-            <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['completed'] }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $stats['completed'] }}</p>
           </div>
           <div
-            class="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+            class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
             <i class="fas fa-check-circle"></i></div>
         </div>
         <div class="mt-3">
@@ -175,18 +176,18 @@
             {{ $stats['completed'] }}/{{ $stats['total_observations'] }} done</p>
         </div>
       </div>
-      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
+      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Avg Observation Score</p>
-            <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ number_format($stats['average_score'], 1) }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ number_format($stats['average_score'], 1) }}</p>
             <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">Out of 7.0</p>
           </div>
           <div
-            class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+            class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
             <i class="fas fa-star"></i></div>
         </div>
-        <div class="mt-3 flex items-center gap-1.5 text-xs">@if($trend > 0)<span
+        <div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs">@if($trend > 0)<span
           class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold"><i
             class="fas fa-arrow-trend-up text-[10px]"></i> {{ $trendLabel }}</span><span class="text-slate-500 dark:text-gray-400">vs
         previous</span>@elseif($trend < 0)<span
@@ -196,15 +197,15 @@
               class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-500 dark:text-gray-400">No
             trend yet</span>@endif</div>
       </div>
-      <div class="kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-5">
+      <div class="col-span-2 lg:col-span-1 kpi-card bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Pipeline</p>
-            <p class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $pendingTotal }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-gray-100">{{ $pendingTotal }}</p>
             <p class="text-xs text-slate-500 dark:text-gray-400 mt-1">Awaiting action</p>
           </div>
           <div
-            class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+            class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
             <i class="fas fa-clock"></i></div>
         </div>
         <p class="text-xs text-slate-500 dark:text-gray-400 mt-3">{{ $stats['stage_post_conference'] }} post-conf ·
@@ -288,17 +289,17 @@
     </div>
 
     {{-- COT Trend + Quick Actions --}}
-    <div class="grid lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-6 section-card">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <h2 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span
-              class="w-1.5 h-5 rounded-full bg-indigo-600"></span> Observation Score Trend</h2>
+    <div class="grid xl:grid-cols-3 gap-4 sm:gap-6">
+      <div class="min-w-0 xl:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-6 section-card">
+        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
+          <h2 class="min-w-0 text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span
+              class="w-1.5 h-5 rounded-full bg-indigo-600 shrink-0"></span> Observation Score Trend</h2>
           <span
-            class="text-xs px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-medium">{{ count($cotScores) }}
+            class="shrink-0 whitespace-nowrap text-xs px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-medium">{{ count($cotScores) }}
             scored</span>
         </div>
         @if(count($cotScores) > 0)
-          <div class="h-56"><canvas id="cotChart"></canvas></div>
+          <div class="relative h-56 min-w-0"><canvas id="cotChart"></canvas></div>
           <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span class="px-2 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200">Avg
               {{ number_format($stats['average_score'], 2) }}</span>
@@ -327,9 +328,9 @@
           </div>
         @endif
       </div>
-      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-6 section-card">
+      <div class="min-w-0 bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-6 section-card">
         <h2 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2 mb-4"><span
-            class="w-1.5 h-5 rounded-full bg-indigo-600"></span> Quick Actions</h2>
+            class="w-1.5 h-5 rounded-full bg-indigo-600 shrink-0"></span> Quick Actions</h2>
         <div class="space-y-3">
           <a href="{{ route('supervisor.observations.create') }}"
             class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-gray-700 hover:shadow-sm hover:border-indigo-200 dark:hover:border-indigo-500/50 bg-white dark:bg-gray-900 group">
@@ -408,7 +409,7 @@
               $pct = match ($observation->stage) { 'pre_observation_planning' => 25, 'pre_conference' => 50, 'observation' => 75, 'post_conference' => 90, default => 10};
             $stageTone = match ($observation->stage) { 'pre_observation_planning' => 'bg-slate-100 text-slate-700 border-slate-200', 'pre_conference' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'observation' => 'bg-amber-50 text-amber-700 border-amber-200', 'post_conference' => 'bg-emerald-50 text-emerald-700 border-emerald-200', default => 'bg-slate-50 text-slate-600 border-slate-200'}; @endphp
             <div class="rounded-xl border border-slate-200 dark:border-gray-700 p-4 flex items-center gap-4 hover:shadow-sm bg-white dark:bg-gray-900">
-              <div class="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
                 {{ strtoupper(substr($observation->observee->user->name ?? '?', 0, 1)) }}</div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold truncate text-slate-900 dark:text-gray-100">{{ $observation->observee->user->name ?? 'Unknown' }}

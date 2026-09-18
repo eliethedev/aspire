@@ -5,6 +5,7 @@ namespace App\AI\Providers;
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
 use App\AI\Contracts\TracksTruncation;
+use App\AI\Support\AiSettingsRepository;
 use App\AI\Support\JsonRecovery;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,7 @@ class OllamaProvider implements AIServiceInterface, TracksTokenUsage, TracksTrun
     public function __construct(?string $model = null, ?string $baseUrl = null)
     {
         $this->model = $model ?? config('services.ollama.model', 'llama3.1');
-        $this->baseUrl = $baseUrl ?? config('services.ollama.url', 'http://localhost:11434');
+        $this->baseUrl = $baseUrl ?? app(AiSettingsRepository::class)->ollamaUrl();
     }
 
     public function isAvailable(): bool

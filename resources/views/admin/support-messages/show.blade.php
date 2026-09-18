@@ -3,7 +3,7 @@
 @section('title', $supportMessage->subject)
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6">
+<div class="max-w-4xl mx-auto px-4 sm:px-4">
     <div class="mb-6">
         <a href="{{ route('admin.support-messages.index') }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800">&larr; Back to Support Messages</a>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $supportMessage->subject }}</h1>

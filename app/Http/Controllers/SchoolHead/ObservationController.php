@@ -271,7 +271,7 @@ class ObservationController extends Controller
                 'position' => $teacher->position ?? 'Teacher',
                 'position_label' => $teacher->position_label ?? 'Teacher',
                 'career_stage' => $teacher->career_stage,
-                'employee_number' => $teacher->employee_number ?? '—',
+                'employee_number' => $teacher->employee_number ?: 'Not set',
                 'recent_observations' => $observations,
                 'obs_stats' => [
                     'total' => $totalObs,

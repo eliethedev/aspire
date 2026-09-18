@@ -1,7 +1,8 @@
-<div x-data="calendar()" class="space-y-6">
+<div x-data="calendar()" class="space-y-6 px-3 py-3 sm:px-1">
+    @if(!($hideHeader ?? false))
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Calendar</h1>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ $title ?? 'Calendar' }}</h1>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $intro }}</p>
         </div>
         @if(!empty($scheduleRoute))
@@ -11,10 +12,11 @@
             </a>
         @endif
     </div>
+    @endif
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div class="{{ ($stackedSidebar ?? false) ? 'space-y-6' : 'grid grid-cols-1 xl:grid-cols-3 gap-6' }}">
         <!-- Calendar grid -->
-        <div class="xl:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
+        <div class="{{ ($stackedSidebar ?? false) ? '' : 'xl:col-span-2 ' }}bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <button type="button"
                         @click="prev()"
@@ -39,6 +41,53 @@
                     </button>
                 </div>
             </div>
+
+            @if($showFilters ?? false)
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">
+                <label class="block">
+                    <span class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1">School</span>
+                    <select x-model="filterSchool"
+                            class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-slate-700 dark:text-gray-200 px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All schools</option>
+                        @foreach(($schools ?? []) as $school)
+                            <option value="{{ $school->id }}">{{ $school->name }}</option>
+                        @endforeach
+                        <option value="__none">No school assigned</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1">Status</span>
+                    <select x-model="filterStatus"
+                            class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-slate-700 dark:text-gray-200 px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="cot_completed">COT Completed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1">Type</span>
+                    <select x-model="filterType"
+                            class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-slate-700 dark:text-gray-200 px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All types</option>
+                        <option value="observation">Observation</option>
+                        <option value="pre_conference">Pre-Conference</option>
+                        <option value="post_conference">Post-Conference</option>
+                    </select>
+                </label>
+                <div class="flex items-end gap-2">
+                    <button type="button"
+                            @click="clearFilters()"
+                            class="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <i class="fa-solid fa-filter-circle-xmark text-xs"></i>Clear
+                    </button>
+                    <span class="inline-flex items-center px-2.5 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-xs font-bold text-indigo-700 dark:text-indigo-300" x-text="filteredEvents.length + ' shown'"></span>
+                </div>
+            </div>
+            @endif
 
             <div class="grid grid-cols-7 gap-1 mb-1">
                 <template x-for="d in weekdays" :key="d">
@@ -115,6 +164,9 @@
                                     <template x-if="e.location">
                                         <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-300 dark:text-gray-600"></i><span x-text="e.location"></span></span>
                                     </template>
+                                    <template x-if="hasFilters && e.school_name">
+                                        <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-school text-gray-300 dark:text-gray-600"></i><span x-text="e.school_name"></span></span>
+                                    </template>
                                     <template x-if="e.score !== null && e.score !== ''">
                                         <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-gauge-high text-gray-300 dark:text-gray-600"></i><span x-text="'Score: ' + e.score"></span></span>
                                     </template>
@@ -131,7 +183,7 @@
         </div>
 
         <!-- Right column -->
-        <div class="space-y-6">
+        <div class="{{ ($stackedSidebar ?? false) ? 'grid md:grid-cols-2 gap-6 items-start' : 'space-y-6' }}">
             <!-- Upcoming -->
             <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-3">
@@ -155,7 +207,7 @@
                                     <span x-show="e.date === today" class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase shrink-0">Today</span>
                                     <span class="inline-flex items-center px-1.5 py-px rounded-full text-[10px] leading-4 font-semibold text-white shrink-0" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="e.type_label + ' · ' + e.subtitle"></p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="subtitleFor(e)"></p>
                             </div>
                         </a>
                     </template>
@@ -184,7 +236,7 @@
                                     <span class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400" x-text="e.title"></span>
                                     <span class="inline-flex items-center px-1.5 py-px rounded-full text-[10px] leading-4 font-semibold text-white shrink-0" :style="'background-color:' + statusStyle(e.status)" x-text="e.status_label"></span>
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="e.type_label + ' · ' + e.subtitle"></p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="subtitleFor(e)"></p>
                             </div>
                         </a>
                     </template>
@@ -192,13 +244,9 @@
             </div>
         </div>
     </div>
-
-    <script id="calendar-data" type="application/json">
-        @json([
-            'events' => $events,
-            'today' => now()->toDateString(),
-        ])
-    </script>
+<script id="calendar-data" type="application/json">
+    @json(['events' => $events, 'today' => now()->toDateString(), 'filters' => $showFilters ?? false])
+</script>
 
     <script>
         document.addEventListener('alpine:init', () => {
@@ -208,6 +256,10 @@
                 viewYear: new Date().getFullYear(),
                 viewMonth: new Date().getMonth(),
                 selectedDate: null,
+                hasFilters: false,
+                filterSchool: '',
+                filterStatus: '',
+                filterType: '',
                 weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                 legend: [
                     { key: 'observation', label: 'Observation', color: '#6366f1' },
@@ -218,6 +270,7 @@
                     const el = document.getElementById('calendar-data');
                     const data = el ? JSON.parse(el.textContent) : {};
                     this.events = data.events || [];
+                    this.hasFilters = !!(data.filters);
                     this.today = data.today || new Date().toISOString().slice(0, 10);
                     const t = this.parseDate(this.today);
                     this.viewYear = t.getFullYear();
@@ -250,7 +303,31 @@
                     return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
                 },
                 eventsFor(iso) {
-                    return this.events.filter(e => e.date === iso);
+                    return this.filteredEvents.filter(e => e.date === iso);
+                },
+                get filteredEvents() {
+                    return this.events.filter(e => {
+                        if (this.filterSchool) {
+                            if (this.filterSchool === '__none') {
+                                if (e.school_id !== null && e.school_id !== '' && typeof e.school_id !== 'undefined') { return false; }
+                            } else if (String(e.school_id ?? '') !== this.filterSchool) {
+                                return false;
+                            }
+                        }
+                        if (this.filterStatus && (e.status || '') !== this.filterStatus) { return false; }
+                        if (this.filterType && (e.type || '') !== this.filterType) { return false; }
+                        return true;
+                    });
+                },
+                clearFilters() {
+                    this.filterSchool = '';
+                    this.filterStatus = '';
+                    this.filterType = '';
+                },
+                subtitleFor(e) {
+                    let s = e.type_label + ' · ' + e.subtitle;
+                    if (this.hasFilters && e.school_name) { s += ' · ' + e.school_name; }
+                    return s;
                 },
                 get cells() {
                     const first = this.parseDate(this.viewYear + '-' + String(this.viewMonth + 1).padStart(2, '0') + '-01');
@@ -278,13 +355,13 @@
                     return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 },
                 get upcoming() {
-                    return this.events
+                    return this.filteredEvents
                         .filter(e => e.date >= this.today)
                         .sort((a, b) => a.date === b.date ? 0 : a.date < b.date ? -1 : 1)
                         .slice(0, 8);
                 },
                 get past() {
-                    return this.events
+                    return this.filteredEvents
                         .filter(e => e.date < this.today)
                         .sort((a, b) => a.date === b.date ? 0 : a.date > b.date ? -1 : 1)
                         .slice(0, 8);

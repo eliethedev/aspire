@@ -3,7 +3,7 @@
 @section('title', 'Career Advancement Approvals')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6" x-data="careerApprovals">
+<div class="max-w-7xl mx-auto px-4 sm:px-4" x-data="careerApprovals">
     <x-page-header title="Career Advancement Approvals" subtitle="Review and approve supervisor recommendations for teacher career advancements." />
 
     <!-- Tabs -->

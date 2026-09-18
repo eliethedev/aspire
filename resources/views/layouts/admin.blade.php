@@ -67,7 +67,6 @@
                         localStorage.setItem('app_text_large', v ? '1' : '0');
                     }
                 });
-                @include('partials.rating-tip-store')
             });
         </script>
         @stack('styles')
@@ -89,7 +88,7 @@
                 <!-- Page Heading -->
                 @isset($header)
                     <header class="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-4 lg:px-4">
                             {{ $header }}
                         </div>
                     </header>
@@ -103,7 +102,6 @@
                 </main>
             </div>
         </div>
-        @include('partials.rating-tip-modal')
         @stack('scripts')
     </body>
 </html>

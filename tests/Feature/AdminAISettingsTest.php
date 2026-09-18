@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AiSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -83,11 +84,16 @@ class AdminAISettingsTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
+        $this->assertDatabaseHas('ai_settings', [
+'key' => 'ai.models.default',
+            'value' => 'gemini-test-model-x',
+        ]);
+
         $env = file_get_contents(base_path('.env'));
-        $this->assertStringContainsString('AI_MODEL_DEFAULT=gemini-test-model-x', $env);
+        $this->assertStringNotContainsString('AI_MODEL_DEFAULT=gemini-test-model-x', $env);
     }
 
-    public function test_changed_default_provider_persists_in_env_and_runtime_config(): void
+    public function test_changed_default_provider_persists_in_db_and_runtime_config(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
@@ -103,11 +109,15 @@ class AdminAISettingsTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        // Persisted to the env file so a fresh process (e.g. after a system
-        // restart) boots the chosen provider rather than the baseline.
+        // Persisted to the database override store — works across process
+        // restarts without rewriting the env file (the previous config-reset
+        // bug: every save silently reset the operator's provider baseline).
+        $this->assertDatabaseHas('ai_settings', ['key' => 'ai.provider', 'value' => 'openai']);
+        $this->assertDatabaseHas('ai_settings', ['key' => 'ai.models.default', 'value' => 'gpt-4o']);
+
         $env = file_get_contents(base_path('.env'));
-        $this->assertMatchesRegularExpression('/^AI_PROVIDER=openai$/m', $env);
-        $this->assertMatchesRegularExpression('/^AI_MODEL_DEFAULT=gpt-4o$/m', $env);
+        $this->assertStringNotContainsString('AI_PROVIDER=openai', $env);
+        $this->assertStringNotContainsString('AI_MODEL_DEFAULT=gpt-4o', $env);
 
         // Reflected in the running process so the admin page immediately shows
         // the new selection instead of a stale value.
@@ -134,8 +144,13 @@ class AdminAISettingsTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
+        $this->assertDatabaseHas('ai_settings', [
+            'key' => 'ai.providers.claude.model',
+            'value' => 'my-custom-claude-model',
+        ]);
+
         $env = file_get_contents(base_path('.env'));
-        $this->assertStringContainsString('CLAUDE_MODEL=my-custom-claude-model', $env);
+        $this->assertStringNotContainsString('CLAUDE_MODEL=my-custom-claude-model', $env);
         $this->assertStringNotContainsString('CLAUDE_MODEL=__custom__', $env);
     }
 

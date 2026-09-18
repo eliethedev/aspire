@@ -49,7 +49,7 @@ class SchoolHeadProfile extends Model
     /**
      * Get the position level label.
      */
-    public function getPositionLevelLabelAttribute(): string
+    public function getPositionLevelLabelAttribute(): ?string
     {
         return match($this->position_level) {
             'principal_i' => 'Principal I',
@@ -65,7 +65,7 @@ class SchoolHeadProfile extends Model
     /**
      * Get the current designation label.
      */
-    public function getCurrentDesignationLabelAttribute(): string
+    public function getCurrentDesignationLabelAttribute(): ?string
     {
         return match($this->current_designation) {
             'principal' => 'Principal',
@@ -82,6 +82,16 @@ class SchoolHeadProfile extends Model
     public function getGradeLevelLabelAttribute(): ?string
     {
         return \App\Enums\GradeLevel::labelFor($this->grade_level);
+    }
+
+    /**
+     * Resolved school name: the profile's own school first, falling back to
+     * the linked user's school so school heads without a profile school_id
+     * keep showing a real name instead of "N/A".
+     */
+    public function getSchoolNameAttribute(): ?string
+    {
+        return $this->school?->name ?? $this->user?->school?->name;
     }
 
     /**

@@ -57,7 +57,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-6" x-data="observationForm()" x-cloak>
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="observationForm()" x-cloak>
     <div class="mb-4">
         <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — 5 quick steps.</p>
@@ -611,7 +611,7 @@
                     <div class="mt-3 flex items-center justify-center gap-1.5 text-xs">
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Supervisor</span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium" :class="form.school_head_id ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-dashed dark:border-gray-700'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> <span class="truncate max-w-[80px]" x-text="selectedSchoolHead?.name?.split(' ')[0] || '—'"></span></span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium" :class="form.school_head_id ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-dashed dark:border-gray-700'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> <span class="truncate max-w-[80px]" x-text="selectedSchoolHead?.name?.split(' ')[0] || 'ΓÇö'"></span></span>
                         <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white font-medium"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg> <span class="truncate max-w-[80px]" x-text="selectedObservee?.name?.split(' ')[0] || 'Teacher'"></span></span>
                     </div>

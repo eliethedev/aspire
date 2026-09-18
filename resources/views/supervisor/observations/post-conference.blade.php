@@ -18,7 +18,7 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -447,7 +447,7 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->school_name ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>

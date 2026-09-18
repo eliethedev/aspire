@@ -321,6 +321,7 @@ return [
         'post_conference' => [
             'temperature' => 0.5,
             'max_output_tokens' => 1536,
+            'timeout' => 15,
         ],
         'final_report' => [
             'temperature' => 0.6,

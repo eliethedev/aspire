@@ -62,7 +62,7 @@
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider font-medium">School</span>
-                        <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                        <p class="text-gray-900 dark:text-gray-100 font-semibold mt-1">{{ $observation->observee->school_name ?? 'N/A' }}</p>
                     </div>
                     @if(!$isSchoolHeadObs)
                     <div>

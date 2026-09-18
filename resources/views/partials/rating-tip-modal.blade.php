@@ -47,21 +47,44 @@
             <!-- The scale -->
             <section>
                 <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1.5">The rating scale</h3>
-                <p>The scale shown depends on the teacher's career stage:</p>
-                <ul class="mt-1.5 space-y-1">
-                    <li class="flex items-center gap-2">
-                        <span class="inline-flex w-32 shrink-0 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold text-center">Teacher I&ndash;III</span>
-                        <span><strong>2 (Poor)</strong> to <strong>6 (Outstanding)</strong></span>
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span class="inline-flex w-32 shrink-0 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-semibold text-center">Teacher IV&ndash;VII</span>
-                        <span><strong>3 (Poor)</strong> to <strong>7 (Outstanding)</strong></span>
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span class="inline-flex w-32 shrink-0 px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 text-xs font-semibold text-center">Master Teacher I&ndash;II</span>
-                        <span><strong>4 (Poor)</strong> to <strong>8 (Outstanding)</strong></span>
-                    </li>
-                </ul>
+                <div class="overflow-x-auto mt-1.5">
+                    <table class="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <thead>
+                            <tr class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                                <th class="px-2 py-2 font-semibold text-left border-b border-gray-200 dark:border-gray-700">Scale</th>
+                                <th class="px-2 py-2 font-semibold text-left border-b border-gray-200 dark:border-gray-700">Adjectival Rating</th>
+                                <th class="px-2 py-2 font-semibold text-left border-b border-gray-200 dark:border-gray-700">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50 dark:bg-emerald-900/20">
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-bold text-emerald-700 dark:text-emerald-400">5</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-medium text-emerald-700 dark:text-emerald-400">Outstanding (O)</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300">Performance represents an extraordinary level of achievement and commitment across all areas.</td>
+                            </tr>
+                            <tr class="bg-green-50 dark:bg-green-900/20">
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-bold text-green-700 dark:text-green-400">4</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-medium text-green-700 dark:text-green-400">Very Satisfactory (VS)</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300">Performance consistently meets and often exceeds expectations.</td>
+                            </tr>
+                            <tr class="bg-sky-50 dark:bg-sky-900/20">
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-bold text-sky-700 dark:text-sky-400">3</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-medium text-sky-700 dark:text-sky-400">Satisfactory (S)</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300">Performance meets standard expectations and requirements.</td>
+                            </tr>
+                            <tr class="bg-amber-50 dark:bg-amber-900/20">
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-bold text-amber-700 dark:text-amber-400">2</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 font-medium text-amber-700 dark:text-amber-400">Unsatisfactory (US)</td>
+                                <td class="px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300">Performance does not meet standard requirements; significant improvement is needed.</td>
+                            </tr>
+                            <tr class="bg-rose-50 dark:bg-rose-900/20">
+                                <td class="px-2 py-1.5 font-bold text-rose-700 dark:text-rose-400">1</td>
+                                <td class="px-2 py-1.5 font-medium text-rose-700 dark:text-rose-400">Poor (P)</td>
+                                <td class="px-2 py-1.5 text-gray-600 dark:text-gray-300">Performance consistently fails to meet minimum standards despite interventions.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <p class="mt-1.5">Higher numbers mean stronger practice. <strong>Only rate what you actually saw.</strong></p>
             </section>
 

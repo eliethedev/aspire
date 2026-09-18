@@ -38,7 +38,7 @@
     </div>
 
     <!-- Navigation - scrollable — minimized spacing like admin -->
-    <nav id="sidebar-nav" aria-label="Main menu" class="flex-1 overflow-y-auto sidebar-scroll mt-2 pb-4" :class="$store.sidebar.isCollapsed() ? 'px-2' : 'px-3'">
+    <nav id="sidebar-nav" aria-label="Main menu" class="flex-1 overflow-y-auto sidebar-scroll mt-2 pb-4" :class="$store.sidebar.isCollapsed() ? 'px-2' : 'px-2'">
         <ul class="space-y-0.5">
             <!-- Main Navigation Section -->
             <li class="mb-1">

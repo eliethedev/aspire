@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\DB;
 
 class AiUsageController extends Controller
 {
@@ -224,7 +225,7 @@ class AiUsageController extends Controller
             ->selectRaw('SUM(response_tokens) AS response_tokens')
             ->selectRaw('COUNT(*) AS calls')
             ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
-            ->groupBy('day', 'provider', 'model')
+            ->groupBy(DB::raw('DATE(created_at)'), 'provider', 'model')
             ->get();
 
         $byDay = [];

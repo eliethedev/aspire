@@ -433,7 +433,7 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">School</span>
-                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->school->name ?? 'N/A' }}</p>
+                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $observation->observee->school_name ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>

@@ -40,7 +40,7 @@
 </head>
 <body class="antialiased font-sans light-bg min-h-screen flex flex-col">
 
-    <nav class="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+    <nav class="w-full px-4 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
         <a href="{{ route('home') }}" class="flex items-center gap-2 text-blue-600 font-bold text-lg sm:text-xl tracking-tight">
             ASPIRE
         </a>

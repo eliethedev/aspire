@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\RAG\CotIndicatorRepository;
 use App\AI\RAG\PPSTRubricRepository;
+use App\AI\Support\AiSettingsRepository;
 use Illuminate\Console\Command;
 
 class TestAIService extends Command
@@ -20,11 +21,13 @@ class TestAIService extends Command
         $this->newLine();
 
         // Check config
+        $settings = app(AiSettingsRepository::class);
         $this->line('Configuration:');
-        $this->line("  AI Enabled: " . (config('ai.enabled') ? 'Yes' : 'No'));
-        $this->line("  AI Provider: " . config('ai.provider'));
+        $this->line("  AI Enabled: " . ($settings->aiEnabled() ? 'Yes' : 'No'));
+        $this->line("  AI Provider: " . $settings->defaultProvider());
+        $this->line("  Default Model: " . $settings->defaultModel());
         $this->line("  Gemini API Key: " . (config('services.gemini.api_key') ? 'Set' : 'Not Set'));
-        $this->line("  AI Fallback: " . (config('ai.fallback') ? 'Enabled' : 'Disabled'));
+        $this->line("  AI Fallback: " . ($settings->fallbackEnabled() ? 'Enabled' : 'Disabled'));
         $this->newLine();
 
         // Test RAG repositories

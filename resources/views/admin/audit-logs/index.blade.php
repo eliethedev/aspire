@@ -14,7 +14,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-[1100px] mx-auto px-4 sm:px-6">
+<div class="max-w-[1100px] mx-auto px-4 sm:px-4">
     <div class="flex items-center justify-between gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Audit Logs</h1>

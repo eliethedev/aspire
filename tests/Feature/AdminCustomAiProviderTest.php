@@ -196,8 +196,11 @@ class AdminCustomAiProviderTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
+        $this->assertDatabaseHas('ai_settings', ['key' => 'ai.provider', 'value' => 'groq-ai']);
+        $this->assertDatabaseHas('ai_settings', ['key' => 'ai.models.default', 'value' => 'llama-3.3-70b-versatile']);
+
         $env = file_get_contents(base_path('.env'));
-        $this->assertMatchesRegularExpression('/^AI_PROVIDER=groq-ai$/m', $env);
+        $this->assertStringNotContainsString('AI_PROVIDER=groq-ai', $env);
         $this->assertSame('groq-ai', config('ai.provider'));
     }
 

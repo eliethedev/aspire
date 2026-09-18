@@ -2,6 +2,8 @@
 
 namespace App\AI\Routing;
 
+use App\AI\Support\AiSettingsRepository;
+
 /**
  * Goal-driven model router for the lesson-plan generation workflow.
  *
@@ -232,23 +234,28 @@ class LessonPlanModelRouter
      */
     protected function buildRoute(string $mode, string $stage): array
     {
+        $settings = app(AiSettingsRepository::class);
         $modeConfig = config("ai.lesson_plan_modes.{$mode}", []);
         $taskConfig = config("ai.tasks.{$stage}", []);
 
-        $provider = trim((string) ($modeConfig['provider'] ?? ''));
+        $provider = trim((string) (
+            $settings->get("ai.lesson_plan_modes.{$mode}.provider", $modeConfig['provider'] ?? '')
+        ));
         if ($provider === '') {
             $provider = trim((string) (is_array($taskConfig) ? ($taskConfig['provider'] ?? '') : ''));
         }
         if ($provider === '') {
-            $provider = (string) config('ai.provider', 'gemini');
+            $provider = $settings->defaultProvider();
         }
 
-        $model = trim((string) ($modeConfig['model'] ?? ''));
+        $model = trim((string) (
+            $settings->get("ai.lesson_plan_modes.{$mode}.model", $modeConfig['model'] ?? '')
+        ));
         if ($model === '') {
             $model = trim((string) (is_array($taskConfig) ? ($taskConfig['model'] ?? '') : ''));
         }
         if ($model === '') {
-            $model = (string) config('ai.models.default', 'gemini-3.6-flash');
+            $model = $settings->defaultModel();
         }
 
         $temperature = $modeConfig['temperature']

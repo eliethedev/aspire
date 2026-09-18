@@ -18,7 +18,7 @@
     <div class="flex flex-col lg:flex-row gap-6 items-start">
         <!-- Form -->
         <div class="flex-1 w-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden">
-            <div class="px-6 lg:px-8 py-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-900/10 dark:to-violet-900/10">
+            <div class="px-6 lg:px-6 py-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-900/10 dark:to-violet-900/10">
                 <div class="flex gap-4">
                     <div class="hidden sm:flex w-11 h-11 rounded-2xl bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 items-center justify-center shadow-sm shrink-0">
                         <i class="fas fa-pen text-sm"></i>
@@ -50,7 +50,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('admin.ppst-standards.update', $ppstStandard) }}" class="px-6 lg:px-8 py-6 space-y-7">
+            <form method="POST" action="{{ route('admin.ppst-standards.update', $ppstStandard) }}" class="px-6 lg:px-6 py-6 space-y-7">
                 @csrf @method('PUT')
 
                 <!-- Section: Identity -->
@@ -68,7 +68,7 @@
                                        class="w-full pl-9 pr-24 py-2.5 rounded-xl border {{ $errors->has('indicator_code') ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 focus:bg-white dark:focus:bg-gray-900' }} text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono transition-all" required>
                                 <span class="absolute inset-y-0 right-1 flex items-center">
                                     <span x-show="strand" x-text="'Strand ' + strand" class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 text-xs font-mono font-bold"></span>
-                                    <span x-show="!strand" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 text-xs">—</span>
+                                    <span x-show="!strand" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 text-xs">ΓÇö</span>
                                 </span>
                             </div>
                             <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Original strand <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border text-xs">{{ $ppstStandard->strand }}</span> → updates on save.</p>
@@ -161,9 +161,9 @@
                 <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400 flex items-center gap-2"><i class="fas fa-eye text-indigo-500"></i> Live preview</h3>
                 <div class="mt-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 p-4">
                     <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 font-mono font-bold text-xs" x-text="code || '—'"></span>
+                        <span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 font-mono font-bold text-xs" x-text="code || 'ΓÇö'"></span>
                         <span class="px-2 py-1 rounded-lg border text-xs font-medium" :class="isActive ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700'" x-text="isActive ? 'Active' : 'Inactive'"></span>
-                        <span class="px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-500" x-text="strand ? 'Strand ' + strand : 'Strand —'"></span>
+                        <span class="px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-500" x-text="strand ? 'Strand ' + strand : 'Strand ΓÇö'"></span>
                     </div>
                     <p class="mt-3 text-sm leading-relaxed text-gray-800 dark:text-gray-200" x-text="description || 'Indicator description will appear here…'"></p>
                     <p class="mt-2 text-xs text-gray-400 dark:text-gray-500 truncate" x-text="domain || 'Domain will appear here'"></p>

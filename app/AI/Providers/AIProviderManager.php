@@ -5,6 +5,7 @@ namespace App\AI\Providers;
 use App\AI\Contracts\AIServiceInterface;
 use App\AI\Contracts\TracksTokenUsage;
 use App\AI\Contracts\TracksTruncation;
+use App\AI\Support\AiSettingsRepository;
 use App\Models\AiUsageLog;
 use App\Models\CustomAiProvider;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,9 @@ class AIProviderManager
     public function createProvider(string $provider, string $model = ''): AIServiceInterface
     {
         $model = $model ?: '';
+        if ($model === '') {
+            $model = app(AiSettingsRepository::class)->providerModel($provider);
+        }
 
         $builders = [
             'gemini' => fn () => new GeminiProvider(model: $model ?: null),
@@ -84,8 +88,9 @@ class AIProviderManager
      */
     public function resolveProviderAndModel(string $task): array
     {
-        $defaultProvider = (string) config('ai.provider', 'gemini');
-        $defaultModel = (string) config('ai.models.default', 'gemini-3.6-flash');
+        $repo = app(AiSettingsRepository::class);
+        $defaultProvider = $repo->defaultProvider();
+        $defaultModel = $repo->defaultModel();
 
         $taskConfig = config("ai.tasks.{$task}", []);
         if (is_array($taskConfig)) {
@@ -136,7 +141,7 @@ class AIProviderManager
             $chain[] = ['provider' => $primaryProvider, 'model' => $primary->getModelName()];
         }
 
-        if (! config('ai.fallback', true)) {
+        if (! app(AiSettingsRepository::class)->fallbackEnabled()) {
             return $chain;
         }
 
@@ -270,7 +275,7 @@ class AIProviderManager
         ];
 
         // Global kill-switch: never contact providers when AI is disabled.
-        if (! config('ai.enabled', true)) {
+        if (! app(AiSettingsRepository::class)->aiEnabled()) {
             $result['error'] = 'AI is disabled';
 
             return $result;
@@ -400,7 +405,7 @@ class AIProviderManager
         bool $isFallback,
         array $usage,
     ): void {
-        if (! config('ai.logging.enabled', true)) {
+        if (! app(AiSettingsRepository::class)->loggingEnabled()) {
             return;
         }
 

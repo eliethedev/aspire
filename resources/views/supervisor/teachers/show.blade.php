@@ -19,7 +19,7 @@
     $initial = strtoupper(substr($teacher->user->name,0,1));
     $avgScore = $stats['avg_score'] ?? $rateeProfile['stats']['average_rating'] ?? null;
 @endphp
-<div class="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-0">
+<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1 lg:px-0">
 
     {{-- Breadcrumb --}}
     <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
@@ -51,7 +51,7 @@
                             @if($rateeProfile['career_stage_label'])
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"><i class="fas fa-award text-[11px]"></i> {{ $rateeProfile['career_stage_label'] }}</span>
                             @endif
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->school?->name ?? '—' }}</span>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->school?->name ?? 'ΓÇö' }}</span>
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-book-open text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->subjectsLabel ?? 'No subject' }}</span>
                             @if($teacher->grade_level)<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-layer-group text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $teacher->grade_level_label }}</span>@endif
                         </div>

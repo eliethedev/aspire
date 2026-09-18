@@ -74,8 +74,8 @@
     @endphp
 
     {{-- Progress Steps (static, read-only) --}}
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
+    <div class="mb-8 overflow-x-auto pb-1 -mx-1 px-1">
+        <div class="flex items-center justify-between min-w-[560px] sm:min-w-0">
             @foreach($stageKeys as $i => $key)
                 @php
                     $done = $stageCompleted[$key];
@@ -83,14 +83,18 @@
                 @endphp
 
                 @if($i > 0)
-                    <div class="flex-1 mx-4 h-1 {{ $stageCompleted[$stageKeys[$i - 1]] ? 'bg-green-400' : 'bg-gray-200' }}"></div>
+                    <div class="flex-1 mx-2 sm:mx-4 h-1 rounded-full {{ $stageCompleted[$stageKeys[$i - 1]] ? 'bg-green-400' : 'bg-gray-200 dark:bg-gray-700' }}"></div>
                 @endif
 
-                <div class="flex items-center {{ $active ? 'cursor-default' : '' }}">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200' : 'bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500') }} font-semibold text-sm">
-                        {{ $done ? 'âœ“' : ($i + 1) }}
+                <div class="flex items-center shrink-0 {{ $active ? 'cursor-default' : '' }}" title="{{ $stageLabels[$key] }}">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full shrink-0 {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200' : 'bg-gray-200 text-gray-500 dark:text-gray-400 dark:text-gray-500') }} font-semibold text-sm">
+                        @if($done)
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        @else
+                            {{ $i + 1 }}
+                        @endif
                     </div>
-                    <span class="ml-2 {{ $done ? 'text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium' : ($active ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500') }} text-sm">{{ $stageLabels[$key] }}</span>
+                    <span class="ml-2 {{ $done ? 'text-gray-600 dark:text-gray-400 dark:text-gray-500 font-medium' : ($active ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500') }} text-sm whitespace-nowrap">{{ $stageLabels[$key] }}</span>
                 </div>
             @endforeach
         </div>
@@ -283,20 +287,20 @@
         @endif
 
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">COT-based performance assessment</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">COT-based performance assessment &middot; {{ $observation->cotRatings->count() }} indicators &middot; {{ $observation->ratingScaleMax() - $observation->ratingScaleMin() + 1 }}-point scale</p>
                     </div>
                 </div>
-                <div class="text-right">
+                <div class="sm:text-right shrink-0">
                     <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider font-medium">Overall Score</p>
-                    <div class="flex items-end gap-1">
+                    <div class="flex sm:justify-end items-end gap-1">
                         <p class="text-gray-900 dark:text-gray-100 font-bold text-3xl tracking-tight">{{ number_format($observation->overall_score, 1) }}</p>
                         <p class="text-gray-400 dark:text-gray-500 font-medium text-lg mb-0.5">/ {{ $observation->ratingScaleMax() }}</p>
                     </div>
@@ -304,47 +308,79 @@
                         $_max = (float) $observation->ratingScaleMax();
                         $descTotal = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score, $_max);
                         $descClass = $observation->overall_score >= $_max * 5.5 / 6.0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($observation->overall_score >= $_max * 4.5 / 6.0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($observation->overall_score >= $_max * 3.5 / 6.0 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : ($observation->overall_score >= $_max * 2.5 / 6.0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
-                        $scorePct = $observation->overall_score ? ($observation->overall_score / $_max) * 100 : 0;
-                        $scoreBg = $scorePct >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/200' : ($scorePct >= 60 ? 'bg-amber-50 dark:bg-amber-900/200' : 'bg-red-50 dark:bg-red-900/200');
+                        $scorePct = $observation->overall_score ? max(0, min(100, ($observation->overall_score / $_max) * 100)) : 0;
+                        $scoreBg = $scorePct >= 80 ? 'bg-emerald-500' : ($scorePct >= 60 ? 'bg-amber-500' : 'bg-red-500');
                     @endphp
-                    <div class="w-24 h-1.5 bg-gray-100 rounded-full mt-1 ml-auto">
+                    <div class="w-full sm:w-24 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 sm:ml-auto overflow-hidden">
                         <div class="{{ $scoreBg }} h-1.5 rounded-full" style="width: {{ $scorePct }}%"></div>
                     </div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mt-1.5 ml-auto {{ $descClass }}">{{ $descTotal }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mt-1.5 sm:ml-auto {{ $descClass }}">{{ $descTotal }}</span>
                 </div>
             </div>
+            @php
+                $_scaleMax = (float) $observation->ratingScaleMax();
+                // Full literal class strings so the Tailwind scanner picks them up.
+                $_rStyles = [
+                    'emerald' => ['wrap' => 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20', 'badge' => 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400', 'bar' => 'bg-emerald-500'],
+                    'blue' => ['wrap' => 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20', 'badge' => 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400', 'bar' => 'bg-blue-500'],
+                    'amber' => ['wrap' => 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20', 'badge' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400', 'bar' => 'bg-amber-500'],
+                    'orange' => ['wrap' => 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20', 'badge' => 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400', 'bar' => 'bg-orange-500'],
+                    'red' => ['wrap' => 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20', 'badge' => 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400', 'bar' => 'bg-red-500'],
+                ];
+            @endphp
             <div class="space-y-2.5">
                 @foreach($observation->cotRatings as $rating)
                     @php
                         $na = $rating->not_applicable;
                         $r = $na ? null : ($rating->not_observed ? null : $rating->rating);
-                        $rPct = $r ? ($r / 6) * 100 : 0;
-                        $rColor = !$r ? ($na ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/10' : 'bg-gray-100 border-gray-200 dark:border-gray-700') : ($r >= 5 ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20' : ($r >= 4 ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' : ($r >= 3 ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20')));
-                        $rBadge = !$r ? ($na ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 text-gray-500 dark:text-gray-400 dark:text-gray-500') : ($r >= 5 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($r >= 4 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : ($r >= 3 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')));
+                        // Scale-aware: each career stage has its own ceiling (6, 7, or 8),
+                        // so normalize against it and clamp to keep the bar inside its track.
+                        $rPct = $r ? max(0, min(100, ($r / $_scaleMax) * 100)) : 0;
+                        $rBand = $r ? \App\Models\CotRating::descriptiveTotal((float) $r, $_scaleMax) : null;
+                        $rTone = match ($rBand) {
+                            'Outstanding' => 'emerald',
+                            'Very Satisfactory' => 'blue',
+                            'Satisfactory' => 'amber',
+                            'Poor' => 'orange',
+                            default => 'red',
+                        };
+                        $rStyle = $_rStyles[$rTone];
+                        $rColor = !$r
+                            ? ($na ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/10' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700')
+                            : $rStyle['wrap'];
+                        $rBadge = !$r
+                            ? ($na ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400')
+                            : $rStyle['badge'];
                     @endphp
-                    <div class="rounded-xl p-4 border {{ $rColor }}">
-                        <div class="flex items-start justify-between gap-4">
+                    <div class="rounded-xl p-3 sm:p-4 border {{ $rColor }} overflow-hidden">
+                        <div class="flex items-start gap-3 sm:gap-4">
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $rating->indicator }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">{{ $rating->domain }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug break-words">{{ $rating->indicator }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5 break-words">{{ $rating->domain }}</p>
                                 @if($rating->comments)
-                                <p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700/60">{{ $rating->comments }}</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700/60 break-words">{{ $rating->comments }}</p>
                                 @endif
                             </div>
                             <div class="text-center shrink-0">
-                                <div class="w-14 h-14 rounded-xl {{ $rBadge }} flex items-center justify-center">
-                                    <span class="text-lg font-bold">{{ $r ? number_format($r, 1) : ($na ? 'N/A' : 'NO') }}</span>
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl {{ $rBadge }} flex items-center justify-center">
+                                    <span class="text-base sm:text-lg font-bold whitespace-nowrap">{{ $r ? number_format($r, 1) : ($na ? 'N/A' : 'NO') }}</span>
                                 </div>
-                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{{ $na ? 'Not recorded' : '/ 6' }}</p>
+                                <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{{ $na ? 'Not recorded' : '/ ' . $observation->ratingScaleMax() }}</p>
                             </div>
                         </div>
                         @if($r)
-                        <div class="mt-2 w-full h-1 bg-gray-100 rounded-full">
-                            <div class="h-1 rounded-full {{ $r >= 5 ? 'bg-emerald-50 dark:bg-emerald-900/200' : ($r >= 4 ? 'bg-blue-50 dark:bg-blue-900/200' : ($r >= 3 ? 'bg-amber-50 dark:bg-amber-900/200' : 'bg-red-50 dark:bg-red-900/200')) }}" style="width: {{ $rPct }}%"></div>
+                        <div class="mt-2.5 w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-1.5 rounded-full {{ $rStyle['bar'] }}" style="width: {{ $rPct }}%"></div>
                         </div>
                         @endif
                     </div>
                 @endforeach
+                @if($observation->cotRatings->contains(fn ($x) => $x->not_observed || $x->not_applicable))
+                <div class="pt-1 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 inline-block shrink-0"></span> NO — Not observed</span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 inline-block shrink-0"></span> N/A — Not applicable (excluded from score)</span>
+                </div>
+                @endif
             </div>
         </div>
         @endif

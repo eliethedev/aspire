@@ -1,5 +1,5 @@
 <header class="fixed top-0 left-0 right-0 z-50 border-b-2 border-indigo-500/20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm transition-all duration-300 ease-sidebar" :class="$store.sidebar.collapsed ? 'md:left-16' : 'md:left-56'">
-  <div class="max-w-full mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
+  <div class="max-w-full mx-auto px-3 sm:px-3 h-16 flex items-center justify-between">
     <!-- Left side: mobile menu button + brand -->
     <div class="flex items-center gap-2 md:hidden shrink-0">
       <button @click="$store.sidebar.openMobile()"
@@ -14,6 +14,7 @@
 
     <!-- Right side: user menu, notifications -->
     <div class="flex items-center space-x-2 sm:space-x-3 ml-auto">
+      @unless(auth()->user() && auth()->user()->role === 'admin')
       <!-- Rating sheet guide -->
       <button @click="$store.ratingTip.openModal()"
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"
@@ -22,6 +23,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </button>
+      @endunless
       <!-- Theme toggle -->
       <button @click="$store.theme.toggle()" 
               class="h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-800 transition-colors"

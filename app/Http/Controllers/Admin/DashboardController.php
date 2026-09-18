@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\AI\Providers\AIProviderManager;
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Models\AuditLog;
 use App\Models\CotRating;
+use App\Models\Invitation;
 use App\Models\Observation;
 use App\Models\School;
+use App\Models\SupportMessage;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +20,29 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $roleCounts = User::selectRaw('role, COUNT(*) as total')
+            ->groupBy('role')
+            ->pluck('total', 'role');
+
+        $totalObservations = Observation::count();
+        $completedTotal = Observation::where('stage', 'post_conference')->count();
+
         // Get system statistics
         $stats = [
             'total_users' => User::count(),
             'total_schools' => School::where('is_active', true)->count(),
-            'total_observations' => Observation::count(),
+            'total_observations' => $totalObservations,
             'pending_cots' => Observation::where('stage', '!=', 'post_conference')->count(),
             'active_observations' => Observation::whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count(),
+            'completed_total' => $completedTotal,
+            'completion_rate' => $totalObservations > 0 ? round(($completedTotal / $totalObservations) * 100) : 0,
+            'total_admins' => (int) ($roleCounts['admin'] ?? 0),
+            'total_supervisors' => (int) ($roleCounts['supervisor'] ?? 0),
+            'total_school_heads' => (int) ($roleCounts['school_head'] ?? 0),
+            'total_teachers' => (int) ($roleCounts['teacher'] ?? 0),
+            'open_support' => SupportMessage::where('status', SupportMessage::STATUS_OPEN)->count(),
+            'total_announcements' => Announcement::count(),
+            'pending_invitations' => Invitation::pending()->count(),
         ];
 
         // Performance summary
@@ -33,6 +52,7 @@ class DashboardController extends Controller
             'completed_observations_this_month' => Observation::where('stage', 'post_conference')
                 ->whereMonth('created_at', now()->month)
                 ->count(),
+            'score_scale_max' => $this->globalScaleMax(),
         ];
 
         // Get recent activity from audit logs
@@ -40,6 +60,15 @@ class DashboardController extends Controller
             ->latest()
             ->take(10)
             ->get();
+
+        // Latest observations across the system
+        $recentObservations = Observation::with(['observee', 'teacher.user', 'school'])
+            ->latest()
+            ->take(6)
+            ->get();
+
+        // Top schools by observation volume
+        $topSchools = $this->topSchools();
 
         // System status
         $systemStatus = $this->runStatusChecks();
@@ -50,9 +79,11 @@ class DashboardController extends Controller
             'scores' => $this->monthlyAverageScores(),
             'byStatus' => $this->observationsByStatus(),
             'usersByRole' => $this->usersByRole(),
+            'ratingBands' => $this->ratingBandDistribution(),
+            'scoreMax' => $this->globalScaleMax(),
         ];
 
-        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'systemStatus', 'charts'));
+        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'recentObservations', 'topSchools', 'systemStatus', 'charts'));
     }
 
     public function systemStatus(): JsonResponse
@@ -272,5 +303,81 @@ class DashboardController extends Controller
         }
 
         return ['labels' => $labels, 'counts' => $counts];
+    }
+
+    /**
+     * Highest rating-scale ceiling across all COT instruments (2-6, 3-7, 4-8).
+     * Used as the chart axis max so averages are never misread as "out of 7".
+     */
+    private function globalScaleMax(): int
+    {
+        $max = 6;
+        foreach (config('cot.versions', []) as $yearVersions) {
+            foreach ((array) $yearVersions as $version) {
+                $keys = array_keys($version['rating_scale'] ?? []);
+                if ($keys !== []) {
+                    $max = max($max, max($keys));
+                }
+            }
+        }
+
+        return $max;
+    }
+
+    /**
+     * Distribution of scored observations across DepEd adjectival bands.
+     * Each observation is banded against its own instrument ceiling so
+     * mixed career stages stay comparable.
+     */
+    private function ratingBandDistribution(): array
+    {
+        $labels = ['Outstanding', 'Very Satisfactory', 'Satisfactory', 'Unsatisfactory', 'Poor'];
+        $counts = array_fill_keys($labels, 0);
+
+        Observation::with('cotIndicatorVersion')
+            ->whereNotNull('overall_score')
+            ->select(['id', 'overall_score', 'cot_indicator_version_id'])
+            ->chunk(500, function ($observations) use (&$counts) {
+                foreach ($observations as $observation) {
+                    $band = CotRating::descriptiveTotal(
+                        (float) $observation->overall_score,
+                        (float) $observation->ratingScaleMax()
+                    );
+                    // Normalize legacy "Needs Improvement" into the Poor band.
+                    if ($band === 'Needs Improvement') {
+                        $band = 'Poor';
+                    }
+                    if (array_key_exists($band, $counts)) {
+                        $counts[$band]++;
+                    }
+                }
+            });
+
+        return ['labels' => $labels, 'counts' => array_values($counts)];
+    }
+
+    /**
+     * Top schools by observation volume with average score.
+     */
+    private function topSchools(): array
+    {
+        $rows = Observation::selectRaw('school_id, COUNT(*) as total, AVG(overall_score) as avg_score')
+            ->whereNotNull('school_id')
+            ->groupBy('school_id')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $names = School::whereIn('id', $rows->pluck('school_id'))->pluck('name', 'id');
+
+        return $rows->map(fn ($row) => [
+            'name' => $names[$row->school_id] ?? 'Unknown school',
+            'total' => (int) $row->total,
+            'avg_score' => $row->avg_score !== null ? round((float) $row->avg_score, 2) : null,
+        ])->all();
     }
 }

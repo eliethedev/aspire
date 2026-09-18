@@ -1,4 +1,4 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'Feedback & Coaching')
 
@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
     <!-- Header -->
     <x-page-header title="Feedback & Coaching" subtitle="View published feedback from your observations." />
 

@@ -1,9 +1,9 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'Coaching Agreements')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-4">
     <x-page-header title="Coaching Agreements" subtitle="View coaching agreements for teachers in your school." />
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

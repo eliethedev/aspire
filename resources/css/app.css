@@ -919,3 +919,247 @@
 .dark .empty-state-hint {
     color: #9ca3af;
 }
+
+/* ===== RESPONSIVE TABLES ===== */
+/* Auto-wrapped scroll container (created for tables without one) */
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+.table-scroll::-webkit-scrollbar { height: 8px; }
+.table-scroll::-webkit-scrollbar-track { background: transparent; }
+.table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.dark .table-scroll { scrollbar-color: #4b5563 transparent; }
+.dark .table-scroll::-webkit-scrollbar-thumb { background: #4b5563; }
+.dark .table-scroll::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+/* ===== DATA LIST TABLES → CARDS ON PHONES & TABLETS ===== */
+/* The enhancement script (resources/js/app.js) tags list tables with
+   .rsp-table and stores each column title via data-label so the stacked
+   layout stays meaningful. Desktop (lg+) keeps a normal table. */
+@media (max-width: 1023px) {
+    .table-scroll { overflow: visible; }
+
+    .rsp-table {
+        min-width: 0;
+        width: 100%;
+        display: block;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .rsp-table thead { display: none; }
+    .rsp-table tbody { display: block; }
+    .rsp-table tbody tr {
+        display: block;
+        margin: 0 0 0.875rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .rsp-table tbody tr:last-child { margin-bottom: 0; }
+    .rsp-table td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        width: 100%;
+        padding: 0.375rem 0;
+        border: 0;
+        border-bottom: 1px dashed #e2e8f0;
+        text-align: right;
+        white-space: normal !important;
+    }
+    .rsp-table td:last-child { border-bottom: 0; }
+    .rsp-table td > * { min-width: 0; text-align: left; }
+    .rsp-table td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        width: 88px;
+        padding-top: 0.125rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #64748b;
+        line-height: 1.4;
+        text-align: left;
+    }
+    /* Columns with no header (usually the Actions column) */
+    .rsp-table td[data-label=""],
+    .rsp-table td:not([data-label]) {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.875rem;
+    }
+    .rsp-table td[data-label=""]::before,
+    .rsp-table td:not([data-label])::before { content: none; }
+    /* Keep intentionally-hidden columns hidden in card mode */
+    .rsp-table td.hidden { display: none !important; }
+    /* Colspan cells (section headers / empty states) */
+    .rsp-table td.rsp-span {
+        display: block;
+        width: 100%;
+        text-align: center;
+        border-bottom: 0;
+    }
+    .rsp-table td.rsp-span::before { content: none; }
+
+    .dark .rsp-table tbody tr {
+        background: #1f2937;
+        border-color: #374151;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .dark .rsp-table td { border-bottom-color: #374151; }
+    .dark .rsp-table td::before { color: #94a3b8; }
+}
+
+/* ===== COT / EPOC RATING SHEETS → CARDS ON PHONES & TABLETS =====
+   Each indicator becomes its own card with the scale/NO/N/A buttons
+   flowing together, so supervisors never have to pan a wide sheet. */
+@media (max-width: 1023px) {
+    .cot-table,
+    .epoc-table {
+        min-width: 0;
+        width: 100%;
+        display: block;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .cot-table thead,
+    .epoc-table thead { display: none; }
+    .cot-table tbody,
+    .epoc-table tbody { display: block; }
+    .cot-table tr,
+    .epoc-table tr { display: block; }
+
+    /* Domain section header rows */
+    .cot-table tbody tr:not(.indicator-row):not(.comment-row),
+    .epoc-table tbody tr:not(.indicator-row):not(.comment-row) {
+        margin: 0 0 0.875rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #c7d2fe;
+        border-radius: 0.75rem;
+        background: #eef2ff;
+        color: #4338ca;
+        font-weight: 600;
+        text-align: left;
+    }
+    .cot-table tbody tr:not(.indicator-row):not(.comment-row) td,
+    .epoc-table tbody tr:not(.indicator-row):not(.comment-row) td {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    /* Indicator row → card */
+    .cot-table tr.indicator-row,
+    .epoc-table tr.indicator-row {
+        margin: 0 0 0.875rem;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .cot-table tr.indicator-row td,
+    .epoc-table tr.indicator-row td {
+        display: inline-block;
+        width: auto;
+        padding: 0.2rem 0.25rem;
+        border: 0;
+        vertical-align: middle;
+        text-align: center;
+    }
+    /* Number column */
+    .cot-table tr.indicator-row td:nth-child(1),
+    .epoc-table tr.indicator-row td:nth-child(1) {
+        width: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+    }
+    /* Indicator description spans the full card width */
+    .cot-table tr.indicator-row td:nth-child(2),
+    .epoc-table tr.indicator-row td:nth-child(2) {
+        display: block;
+        width: 100%;
+        padding: 0 0 0.5rem;
+        text-align: left;
+    }
+    /* Rating + NO + N/A buttons wrap in the remaining space */
+    .cot-table tr.indicator-row td:nth-child(n+3),
+    .epoc-table tr.indicator-row td:nth-child(n+3) {
+        display: inline-block;
+        margin-top: 0.25rem;
+    }
+
+    /* Comment rows: full-width card below their indicator */
+    .cot-table tbody tr.comment-row,
+    .epoc-table tbody tr.comment-row {
+        display: none;
+        width: 100%;
+        margin: 0;
+        padding: 0.625rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #fafbff;
+    }
+    .cot-table tbody tr.comment-row.open,
+    .epoc-table tbody tr.comment-row.open {
+        display: block;
+        width: 100%;
+        margin: -0.5rem 0 0.875rem;
+        padding: 0.625rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #fafbff;
+    }
+    .cot-table tbody tr.comment-row td,
+    .epoc-table tbody tr.comment-row td {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .dark .cot-table tr.indicator-row,
+    .dark .epoc-table tr.indicator-row,
+    .dark .cot-table tbody tr.comment-row,
+    .dark .epoc-table tbody tr.comment-row,
+    .dark .cot-table tbody tr.comment-row.open,
+    .dark .epoc-table tbody tr.comment-row.open {
+        background: #1f2937;
+        border-color: #374151;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .dark .cot-table tbody tr:not(.indicator-row):not(.comment-row),
+    .dark .epoc-table tbody tr:not(.indicator-row):not(.comment-row) {
+        background: rgba(49, 46, 129, 0.35);
+        border-color: #4338ca;
+        color: #c7d2fe;
+    }
+    .dark .cot-table tr.indicator-row > td,
+    .dark .epoc-table tr.indicator-row > td { background: transparent; }
+}
+
+/* Print: keep tables intact and never clip */
+@media print {
+    .table-scroll { overflow: visible !important; }
+    .rsp-table,
+    .rsp-table thead,
+    .rsp-table tbody,
+    .rsp-table tr,
+    .rsp-table td,
+    .cot-table,
+    .epoc-table {
+        display: revert !important;
+    }
+    .rsp-table thead { display: table-header-group !important; }
+}

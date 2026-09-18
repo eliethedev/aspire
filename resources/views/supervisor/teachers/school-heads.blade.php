@@ -12,7 +12,7 @@
 </style>
 @endpush
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-0"
+<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1 lg:px-0"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorSchoolHeadsView') || 'list'; } catch (e) { return 'list'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorSchoolHeadsView', v); } catch (e) {} },

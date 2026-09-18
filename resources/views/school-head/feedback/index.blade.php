@@ -1,9 +1,9 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'AI Feedback')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-4">
     <x-page-header title="AI Feedback & Coaching" subtitle="View AI-generated feedback and coaching insights for your teachers." />
 
     <div class="grid grid-cols-2 gap-4 mb-8">

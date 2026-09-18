@@ -2,7 +2,7 @@
 <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-6 section-card">
     <div class="flex items-start justify-between gap-3 mb-1">
         <h2 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span class="w-1.5 h-5 rounded-full bg-amber-500"></span> Areas Requiring Attention</h2>
-        <span class="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300">Avg &lt; 4.0 · ≥2 obs</span>
+        <span class="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300">Avg &lt; 4.0 ┬╖ ΓëÑ2 obs</span>
     </div>
     <p class="text-xs text-slate-500 dark:text-gray-400 mb-5">Domains consistently rated below 4.0 across at least 2 observations · support only · no negative judgment</p>
     @if($insufficient)

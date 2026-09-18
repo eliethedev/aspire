@@ -19,7 +19,7 @@ class CalendarEventService
     public function forSupervisor(User $user): array
     {
         $observations = Observation::query()
-            ->with(['observee.user', 'observer', 'preConference', 'postConference'])
+            ->with(['observee.user', 'observer', 'school', 'preConference', 'postConference'])
             ->where('observer_id', $user->id)
             ->where('observer_type', User::class)
             ->orderBy('observation_date')
@@ -37,7 +37,7 @@ class CalendarEventService
         }
 
         $observations = Observation::query()
-            ->with(['observee.user', 'observer', 'preConference', 'postConference'])
+            ->with(['observee.user', 'observer', 'school', 'preConference', 'postConference'])
             ->where('observee_id', $teacherId)
             ->where('observee_type', Teacher::class)
             ->orderBy('observation_date')
@@ -51,7 +51,7 @@ class CalendarEventService
         $profile = $user->schoolHeadProfile;
 
         $observations = Observation::query()
-            ->with(['observee.user', 'observer', 'preConference', 'postConference'])
+            ->with(['observee.user', 'observer', 'school', 'preConference', 'postConference'])
             ->where(function ($q) use ($user, $profile) {
                 $q->where('observer_id', $user->id)
                     ->where('observer_type', User::class);
@@ -74,7 +74,7 @@ class CalendarEventService
     public function forAdmin(): array
     {
         $observations = Observation::query()
-            ->with(['observee.user', 'observer', 'preConference', 'postConference'])
+            ->with(['observee.user', 'observer', 'school', 'preConference', 'postConference'])
             ->orderBy('observation_date')
             ->get();
 
@@ -156,6 +156,8 @@ class CalendarEventService
             'score' => $observation->overall_score,
             'observee_name' => $this->principalName($observation, 'observee'),
             'observer_name' => $observation->observer?->name ?? 'Unknown',
+            'school_id' => $observation->school_id,
+            'school_name' => $observation->school?->name ?? 'No school',
         ];
     }
 

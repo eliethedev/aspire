@@ -1,4 +1,4 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'My Profile')
 
@@ -353,7 +353,7 @@
                                     class="px-6 py-3 rounded-xl text-sm font-bold transition-colors min-h-[44px]">A Standard</button>
                             <button type="button" @click="$store.accessibility.setLarge(true)"
                                     :class="$store.accessibility.large ? 'bg-indigo-600 text-white ring-2 ring-indigo-600' : 'bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50'"
-                                    class="px-6 py-3 rounded-xl text-base font-extrabold transition-colors min-h-[44px]">A+ Large — Easier to read</button>
+                                    class="px-6 py-3 rounded-xl text-base font-extrabold transition-colors min-h-[44px]">A+ Large ΓÇö Easier to read</button>
                             <span class="text-sm font-medium" :class="$store.accessibility.large ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400'" x-text="$store.accessibility.large ? 'Large is active' : 'Standard is active'"></span>
                         </div>
                         <div class="mt-4 p-3 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">

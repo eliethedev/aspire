@@ -1,10 +1,10 @@
-﻿@extends('layouts.teacher')
+@extends('layouts.teacher')
 
 @section('title', 'My Observations')
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'status', 'stage']); @endphp
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
     <!-- Header -->
     <x-page-header title="My Observations" subtitle="View all your classroom observations and evaluation results." />
 

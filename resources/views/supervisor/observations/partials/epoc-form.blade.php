@@ -49,27 +49,40 @@
 
     $existingRatings = $epocEvaluation->ratings ?? collect();
     $globalIndex = 0;
+
+    $epocTotal = array_sum(array_map('count', $domains));
+    $epocRated = $existingRatings->filter(fn($r) => !empty($r->rating))->count();
+    $epocPct = $epocTotal > 0 ? round(($epocRated / $epocTotal) * 100) : 0;
 @endphp
 
-<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">DepEd CID Format &middot; Post-Observation Conference</p>
+<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden max-md:overflow-visible">
+    <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h1>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">DepEd CID Format &middot; {{ $observation->observee->user->name ?? $schoolHead->name ?? 'Post-observation conference' }}</p>
             </div>
             @if($schoolHead)
-            <div class="text-right">
+            <div class="hidden sm:block text-right shrink-0">
                 <p class="text-xs text-gray-500 dark:text-gray-400">School Head</p>
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $schoolHead->name }}</p>
             </div>
             @endif
         </div>
+        <div class="mt-3">
+            <div class="flex items-center justify-between gap-2 text-xs mb-1.5">
+                <span id="rating-progress-label" class="font-medium text-gray-600 dark:text-gray-300">{{ $epocRated }} of {{ $epocTotal }} rated</span>
+                <span id="rating-progress-pct" class="tabular-nums text-gray-400 dark:text-gray-500">{{ $epocPct }}%</span>
+            </div>
+            <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden" role="progressbar" aria-label="Rating progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $epocPct }}">
+                <div id="rating-progress-bar" class="h-full bg-indigo-600 rounded-full transition-all" style="width: {{ $epocPct }}%"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm epoc-table">
-            <thead>
+    <div class="overflow-x-auto max-md:overflow-visible">
+        <table class="w-full text-sm epoc-table max-md:block">
+            <thead class="hidden md:table-header-group">
                 <tr class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold w-8">#</th>
                     <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-400 font-semibold">Indicators</th>
@@ -81,10 +94,10 @@
                     @endforeach
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="max-md:block">
                 @foreach($domains as $domain => $items)
-                    <tr class="bg-indigo-50/50 border-b border-indigo-100">
-                        <td colspan="{{ $ratingColspan }}" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200">{{ $domain }}</td>
+                    <tr class="domain-row bg-indigo-50/50 border-b border-indigo-100 max-md:border-0 max-md:bg-transparent">
+                        <td colspan="{{ $ratingColspan }}" class="px-4 py-2.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200 max-md:block max-md:bg-indigo-50 max-md:dark:bg-indigo-900/40 max-md:text-indigo-700 max-md:dark:text-indigo-300 max-md:rounded-lg max-md:p-2.5 max-md:shadow-sm">{{ $domain }}</td>
                     </tr>
                     @foreach($items as $item)
                         @php
@@ -102,30 +115,38 @@
                                 }
                             }
                         @endphp
-                        <tr class="indicator-row border-b border-gray-100 epoc-row" data-index="{{ $globalIndex }}">
-                            <td class="px-4 py-2.5 text-gray-400 dark:text-gray-500 text-xs align-top pt-3">{{ $globalIndex + 1 }}</td>
-                            <td class="px-4 py-2.5">
-                                <div class="flex items-start gap-2">
-                                    <span class="text-gray-800 text-xs leading-relaxed">{{ $item }}</span>
+                        <tr class="indicator-row border-b border-gray-100 epoc-row max-md:border-transparent max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-1.5 max-md:gap-y-2.5 max-md:bg-white max-md:dark:bg-gray-900 max-md:rounded-xl max-md:ring-1 max-md:ring-gray-200 max-md:dark:ring-gray-700 max-md:p-4 max-md:mb-3 max-md:shadow-sm scroll-mt-32" data-index="{{ $globalIndex }}">
+                            <td class="px-4 py-2.5 text-gray-400 dark:text-gray-500 text-xs align-top pt-3 max-md:p-0 max-md:order-1 max-md:flex max-md:items-center max-md:justify-center max-md:w-7 max-md:h-7 max-md:rounded-full max-md:bg-indigo-100 max-md:dark:bg-indigo-900/40 max-md:text-indigo-700 max-md:dark:text-indigo-300 max-md:text-[11px] max-md:font-bold max-md:align-middle">{{ $globalIndex + 1 }}</td>
+                            <td class="px-4 py-2.5 max-md:p-0 max-md:order-2 max-md:flex-1 max-md:min-w-[calc(100%-2.5rem)]">
+                                <div class="flex items-start gap-2 max-md:items-center">
+                                    <span class="text-gray-800 dark:text-gray-200 text-xs max-md:text-sm leading-relaxed max-md:flex-1 max-md:min-w-0">{{ $item }}</span>
                                     <button type="button" data-action="toggle-comment" data-index="{{ $globalIndex }}"
-                                            class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
-                                            title="Add comment for this indicator">
+                                            class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 max-md:hidden {{ $savedComment ? 'has-comment' : '' }}"
+                                            title="Add comment for this indicator" aria-label="Add comment for indicator {{ $globalIndex + 1 }}">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                                        {{ $savedComment ? 'View Comment' : 'Add Comment' }}
+                                        <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
                                     </button>
                                 </div>
                                 <input type="hidden" name="epoc_ratings[{{ $globalIndex }}][domain]" value="{{ $domain }}">
                                 <input type="hidden" name="epoc_ratings[{{ $globalIndex }}][indicator]" value="{{ $item }}">
                             </td>
                             @foreach($ratingValues as $val)
-                                <td class="text-center px-1.5 py-2.5">
+                                <td class="text-center px-1.5 py-2.5 max-md:p-0 max-md:order-3 max-md:flex-1 max-md:min-w-0 max-md:flex">
                                     <button type="button"
                                             data-action="select-epoc-rating" data-index="{{ $globalIndex }}" data-value="{{ $val }}"
-                                            class="rating-btn w-10 h-10 rounded-full text-xs font-bold border-2 {{ $savedRating == $val ? 'active bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20' }}">
+                                            class="rating-btn w-10 h-10 max-md:w-full max-md:min-w-[44px] max-md:min-h-[44px] max-md:h-11 rounded-full text-xs max-md:text-sm font-bold border-2 {{ $savedRating == $val ? 'active bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20' }}">
                                         {{ $val }}
                                     </button>
                                 </td>
                             @endforeach
+                            <td class="hidden md:table-cell max-md:block max-md:basis-full max-md:order-4 max-md:p-0 max-md:min-w-0">
+                                <button type="button" data-action="toggle-comment" data-index="{{ $globalIndex }}"
+                                        class="comment-toggle flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 px-1 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                        title="Add comment for this indicator" aria-label="Add comment for indicator {{ $globalIndex + 1 }}">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                    <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
+                                </button>
+                            </td>
                         </tr>
                         <tr class="comment-row" id="epoc-comment-row-{{ $globalIndex }}" data-index="{{ $globalIndex }}">
                             <td colspan="{{ $ratingColspan }}">
@@ -142,7 +163,7 @@
     </div>
 </div>
 
-<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Narrative Observation</h2>
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Provide a detailed narrative of the post-observation conference session.</p>
     <textarea name="epoc_narrative_observation" rows="6"
@@ -150,7 +171,7 @@
               placeholder="Describe the overall flow and key moments of the post-observation conference...">{{ $epocEvaluation->narrative_observation ?? '' }}</textarea>
 </div>
 
-<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+<div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Agreement</h2>
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Document any agreements or commitments made during the conference.</p>
     <textarea name="epoc_agreement" rows="4"
@@ -161,6 +182,27 @@
 <input type="hidden" name="epoc_total_items" value="{{ $globalIndex }}">
 
 <script>
+    var epocTotalItems = {{ $epocTotal }};
+
+    function updateEpocProgress() {
+        var label = document.getElementById('rating-progress-label');
+        var pctEl = document.getElementById('rating-progress-pct');
+        var bar = document.getElementById('rating-progress-bar');
+        if (!label || !bar) return;
+        var done = document.querySelectorAll('.epoc-row .rating-btn.active').length;
+        var pct = epocTotalItems > 0 ? Math.round((done / epocTotalItems) * 100) : 0;
+        label.textContent = done + ' of ' + epocTotalItems + ' rated';
+        if (pctEl) pctEl.textContent = pct + '%';
+        bar.style.width = pct + '%';
+        bar.parentElement.setAttribute('aria-valuenow', pct);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateEpocProgress);
+    } else {
+        updateEpocProgress();
+    }
+
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-action="select-epoc-rating"]');
         if (!btn) return;
@@ -185,6 +227,8 @@
         hidden.value = value;
         hidden.id = 'epoc-ratings-input-' + index;
         row.appendChild(hidden);
+
+        updateEpocProgress();
 
         if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
     });
@@ -211,14 +255,15 @@
     document.addEventListener('input', function (e) {
         if (e.target.matches('[data-epoc-comment-input]')) {
             var index = parseInt(e.target.getAttribute('data-epoc-comment-input'));
-            var btn = document.querySelector('.comment-toggle[data-index="' + index + '"]');
-            if (!btn) return;
+            var btns = document.querySelectorAll('.comment-toggle[data-index="' + index + '"]');
+            if (!btns.length) return;
             var hasText = e.target.value.trim() !== '';
-            btn.classList.toggle('has-comment', hasText);
-            var textNode = btn.lastChild;
-            if (textNode && textNode.nodeType === 3) {
-                textNode.textContent = hasText ? ' View Comment' : ' Add Comment';
-            }
+            btns.forEach(function (btn) {
+                btn.classList.toggle('has-comment', hasText);
+                var label = btn.querySelector('[data-comment-label]');
+                if (label) label.textContent = hasText ? 'View Comment' : 'Add Comment';
+                btn.setAttribute('aria-label', (hasText ? 'View comment for indicator ' : 'Add comment for indicator ') + (index + 1));
+            });
             if (window.asAutoSaveDebounced) asAutoSaveDebounced('observation');
         }
     });

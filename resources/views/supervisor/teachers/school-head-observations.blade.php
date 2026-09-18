@@ -3,7 +3,7 @@
 @section('title', 'Observations - ' . $schoolHead->user->name)
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div>
             <a href="{{ route('supervisor.school-heads.index') }}" class="inline-flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 mb-1">
