@@ -48,6 +48,7 @@ class SetPasswordController extends Controller
         $request->validate([
             'token' => 'required|string',
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'terms' => ['required', 'accepted'],
         ]);
 
         try {
@@ -59,6 +60,9 @@ class SetPasswordController extends Controller
                 $request->ip(),
                 $request->userAgent()
             );
+
+            // Record when the user agreed to the Terms and Conditions.
+            $user->update(['terms_accepted_at' => now()]);
 
             app(AuditLogService::class)->logInvitationAccepted($invitation, $user);
 

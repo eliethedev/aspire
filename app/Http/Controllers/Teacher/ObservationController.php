@@ -129,8 +129,12 @@ class ObservationController extends Controller
             abort(403);
         }
 
-        if ($observation->stage !== 'pre_observation_planning') {
-            return back()->with('error', 'Lesson plan can only be uploaded during the Pre-Observation Planning stage.');
+        // Initial upload or replacement is allowed while the observation is
+        // still being prepared (planning / pre-conference stages).
+        $uploadableStages = ['pre_observation_planning', 'pre_conference'];
+        if (! in_array($observation->stage, $uploadableStages, true)
+            || in_array($observation->status, ['completed', 'cancelled'], true)) {
+            return back()->with('error', 'Lesson plan can only be uploaded or replaced before the classroom observation.');
         }
 
         $validated = $request->validate([
@@ -142,6 +146,14 @@ class ObservationController extends Controller
         $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $originalName);
         $filePath = $file->storeAs('lesson_plans', $filename, 'public');
 
+        $planning = $observation->preObservationPlanning;
+        $isReplacement = (bool) ($planning?->lesson_plan_file);
+
+        // Remove the previous file so replaced uploads don't pile up on disk.
+        if ($isReplacement) {
+            Storage::disk('public')->delete($planning->lesson_plan_file);
+        }
+
         $observation->preObservationPlanning()->updateOrCreate(
             ['observation_id' => $observation->id],
             ['lesson_plan_file' => $filePath]
@@ -149,13 +161,15 @@ class ObservationController extends Controller
 
         app(AuditLogService::class)->log(
             'lesson_plan_uploaded', 'observations', (string) $observation->getKey(),
-            "Teacher uploaded lesson plan for observation #{$observation->getKey()}",
+            $isReplacement
+                ? "Teacher replaced lesson plan for observation #{$observation->getKey()}"
+                : "Teacher uploaded lesson plan for observation #{$observation->getKey()}",
             'success', [], $observation->toArray()
         );
 
         $this->notifyLessonPlanUploaded($observation, $teacher);
 
-        return back()->with('success', 'Lesson plan uploaded successfully.');
+        return back()->with('success', $isReplacement ? 'New lesson plan uploaded successfully. It replaced your previous submission.' : 'Lesson plan uploaded successfully.');
     }
 
     protected function notifyLessonPlanUploaded(Observation $observation, Teacher $teacher): void

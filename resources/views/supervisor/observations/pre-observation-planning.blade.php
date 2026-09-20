@@ -178,7 +178,8 @@
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-yellow-800">No lesson plan uploaded yet</p>
                                 <p class="text-xs text-yellow-700 mt-0.5">The teacher has not submitted a lesson plan for this observation.</p>
-                                <button type="button" onclick="requestLessonPlan(this)"
+                                <div id="lesson-plan-toast-root" class="fixed top-20 right-4 z-[100] w-[calc(100%-2rem)] max-w-sm space-y-2" aria-live="polite"></div>
+                                <button type="button" id="request-lesson-plan-btn" onclick="requestLessonPlan(this)"
                                         class="mt-3 inline-flex min-h-[44px] items-center gap-1.5 px-4 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs rounded-lg font-semibold transition-colors shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                     Request Lesson Plan
@@ -385,7 +386,7 @@
 
                     <!-- Supervisor's Notes -->
                     <div class="mb-4">
-                        <label for="supervisor_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">My Pre-Observation Notes</label>
+                        <label for="supervisor_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Pre-Observation Notes to Teacher</label>
                         <textarea id="supervisor_notes" name="supervisor_notes" rows="5"
                                   class="w-full min-h-[120px] px-3 py-2.5 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
                                   placeholder="{{ $isSchoolHeadObs ? 'Write your preliminary notes, things to watch for, or reminders about the school head\'s supervision practices before the session...' : 'Write your preliminary notes, things to watch for, or reminders before the class visit...' }}">{{ old('supervisor_notes', $planning?->supervisor_notes) }}</textarea>
@@ -486,7 +487,51 @@
 @include('partials.ai-notice')
 @include('partials.ai-loading-state')
 <script>
+function showLessonPlanToast(ok, text) {
+    var root = document.getElementById('lesson-plan-toast-root');
+    if (!root) { alert(text); return; }
+    var toast = document.createElement('div');
+    toast.className = 'flex items-start gap-2.5 rounded-xl px-4 py-3 text-sm font-medium shadow-lg border ' +
+        (ok ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-red-600 text-white border-red-700');
+    toast.setAttribute('role', ok ? 'status' : 'alert');
+    toast.innerHTML =
+        (ok
+            ? '<svg class="w-5 h-5 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            : '<svg class="w-5 h-5 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>') +
+        '<span class="flex-1"></span>' +
+        '<button type="button" aria-label="Dismiss notification" class="shrink-0 opacity-80 hover:opacity-100 font-bold leading-none px-1">&times;</button>';
+    toast.querySelector('span').textContent = text;
+    toast.querySelector('button').addEventListener('click', function () { toast.remove(); });
+    root.appendChild(toast);
+    setTimeout(function () {
+        toast.style.transition = 'opacity 0.4s';
+        toast.style.opacity = '0';
+        setTimeout(function () { toast.remove(); }, 400);
+    }, 5000);
+}
+
+var lessonPlanCooldownTimer = null;
+
+function startLessonPlanCooldown(btn, seconds) {
+    if (lessonPlanCooldownTimer) clearInterval(lessonPlanCooldownTimer);
+    var remaining = Math.max(1, Math.ceil(seconds));
+    var baseLabel = 'Request Lesson Plan';
+    btn.disabled = true;
+    lessonPlanCooldownTimer = setInterval(function () {
+        if (remaining <= 0) {
+            clearInterval(lessonPlanCooldownTimer);
+            lessonPlanCooldownTimer = null;
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg> ' + baseLabel;
+            return;
+        }
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Wait ' + remaining + 's';
+        remaining--;
+    }, 1000);
+}
+
 function requestLessonPlan(btn) {
+    var originalHtml = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Sending...';
     fetch('{{ route("supervisor.observations.request-lesson-plan", $observation) }}', {
@@ -494,15 +539,32 @@ function requestLessonPlan(btn) {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
         },
     })
-    .then(res => {
-        if (res.redirected) window.location.href = res.url;
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        return { status: res.status, ok: res.ok, data };
+    })
+    .then(({ status, ok, data }) => {
+        if (ok && data.success !== false) {
+            showLessonPlanToast(true, data.message || 'Lesson plan request sent. The teacher has been notified in-app and by email.');
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg> Request Sent';
+            btn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'cursor-default');
+        } else if (status === 429) {
+            var wait = (data && data.retry_after) ? parseInt(data.retry_after, 10) : 15;
+            showLessonPlanToast(false, (data && data.message) || 'A request was just sent. Please wait before requesting again.');
+            startLessonPlanCooldown(btn, wait);
+        } else {
+            throw new Error((data && data.message) || 'Request failed');
+        }
     })
     .catch(err => {
-        alert('Failed to request lesson plan. Please try again.');
+        showLessonPlanToast(false, (err && err.message && err.message !== 'Request failed') ? err.message : 'Failed to request lesson plan. Please try again.');
         btn.disabled = false;
-        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg> Request Lesson Plan';
+        btn.innerHTML = originalHtml;
     });
 }
 

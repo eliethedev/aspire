@@ -20,16 +20,18 @@
         'pre_observation_planning' => 'Pre-Observation Planning',
         'pre_conference' => 'Pre-Conference',
         'observation' => 'Observation',
-        'post_conference' => 'Post-Conference',
     ];
     $stageCompleted = [
         'pre_observation_planning' => (bool) $observation->preObservationPlanning,
         'pre_conference' => (bool) $observation->preConference,
         'observation' => $observation->cotRatings && $observation->cotRatings->count() > 0,
-        'post_conference' => (bool) $observation->postConference,
     ];
-    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation'];
     $currentIdx = array_search($observation->stage, $stageKeys);
+    // Teachers may upload (or replace) the lesson plan while the observation
+    // is still being prepared — same rule as the upload endpoint.
+    $canUploadLessonPlan = in_array($observation->stage, ['pre_observation_planning', 'pre_conference'], true)
+        && ! in_array($observation->status, ['completed', 'cancelled'], true);
     $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
     $detailFilter = request('detail_filter') ?? 'all';
 @endphp
@@ -89,11 +91,6 @@
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'pre_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
                 >
             Pre-Conference
-        </button>
-        <button @click="detailFilter = 'post_conference'"
-                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $detailFilter === 'post_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300' }}"
-                >
-            Post-Conference
         </button>
     </div>
 
@@ -300,7 +297,7 @@
                 @endif
             </div>
 
-            @if($observation->stage === 'pre_observation_planning')
+            @if($canUploadLessonPlan && !$observation->preObservationPlanning?->lesson_plan_file)
                 <div class="mb-6 p-5 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center">
@@ -412,14 +409,47 @@
                                     <span class="text-gray-300 dark:text-gray-600">&middot;</span>
                                     <span class="text-xs text-gray-500 dark:text-gray-400">{{ preg_replace('/^\d+_/', '', basename($observation->preObservationPlanning->lesson_plan_file)) }}</span>
                                 </div>
+                                @if($observation->preObservationPlanning->updated_at)
+                                <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Submitted {{ $observation->preObservationPlanning->updated_at->format('M d, Y g:i A') }}</p>
+                                @endif
                             </div>
                         </div>
+                        <div class="flex items-center gap-2 shrink-0">
                         <a href="{{ asset('storage/' . $observation->preObservationPlanning->lesson_plan_file) }}" target="_blank"
                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            View File
+                            Review File
                         </a>
+                        @if($canUploadLessonPlan)
+                        <button type="button" onclick="document.getElementById('replace-lesson-plan-form').classList.toggle('hidden')"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-800/30 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Upload New
+                        </button>
+                        @endif
+                        </div>
                     </div>
+                    @if($canUploadLessonPlan)
+                    <div id="replace-lesson-plan-form" class="hidden mt-3 p-4 rounded-xl border-2 border-dashed border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+                        <p class="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">Upload a new lesson plan</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3">Uploading a new file will replace your current submission and re-notify your supervisor.</p>
+                        <form action="{{ route('teacher.observations.upload-lesson-plan', $observation) }}" method="POST" enctype="multipart/form-data"
+                              x-data="{ submitting: false }" x-on:submit="submitting = true">
+                            @csrf
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <input type="file" name="lesson_plan_file" accept=".pdf,.doc,.docx,.pptx,.xlsx"
+                                       class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 dark:file:bg-amber-900/30 dark:file:text-amber-300 hover:file:bg-amber-200 transition-colors cursor-pointer">
+                                <button type="submit" :disabled="submitting"
+                                        class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg x-show="submitting" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                    <span x-show="!submitting">Replace File</span>
+                                    <span x-show="submitting">Uploading...</span>
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-2">Accepted formats: PDF, DOC, DOCX, PPTX, XLSX (max 20MB)</p>
+                        </form>
+                    </div>
+                    @endif
                     @endif
                     @if($observation->preObservationPlanning->ai_insights)
                     <div class="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800">
@@ -657,73 +687,7 @@
         </div>
         @endif
 
-        <!-- Post-Conference -->
-        @if($observation->postConference)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'post_conference'">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Post-Conference</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Feedback and action plan from supervisor</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @if($observation->postConference->conference_date)
-                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conference Date</span>
-                    <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">{{ $observation->postConference->conference_date->format('M d, Y') }}</p>
-                </div>
-                @endif
-                @if($observation->postConference->start_time_label || $observation->postConference->location)
-                <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conference Schedule</span>
-                    <p class="text-gray-900 dark:text-gray-100 font-medium mt-1">
-                        @if($observation->postConference->start_time_label)
-                            {{ $observation->postConference->start_time_label }}
-                            @if($observation->postConference->end_time_label) - {{ $observation->postConference->end_time_label }} @endif
-                        @endif
-                        @if($observation->postConference->location)
-                            @if($observation->postConference->start_time_label) &middot; @endif
-                            {{ $observation->postConference->location }}
-                        @endif
-                    </p>
-                    @if($observation->postConference->mode)
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 capitalize">{{ str_replace('_', ' ', $observation->postConference->mode) }}</p>
-                    @endif
-                </div>
-                @endif
-                @if($observation->postConference->feedback)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
-                        <span class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Supervisor Feedback</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ $observation->postConference->feedback }}</p>
-                </div>
-                @endif
-                @if($observation->postConference->ai_comparison)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        <span class="text-sm font-semibold text-purple-800 dark:text-purple-300">AI Comparison (Plan vs Actual)</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ $observation->postConference->ai_comparison }}</p>
-                </div>
-                @endif
-                @if($observation->postConference->action_plan)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                        <span class="text-sm font-semibold text-blue-800 dark:text-blue-300">Action Plan</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ $observation->postConference->action_plan }}</p>
-                </div>
-                @endif
-            </div>
-        </div>
-        @endif
+        {{-- Post-conference is intentionally not shown to teachers. --}}
     </div>
         </div>
 

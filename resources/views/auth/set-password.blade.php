@@ -229,6 +229,28 @@
                 </ul>
             </div>
 
+            <!-- Terms and Conditions -->
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-gray-700">
+                <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Terms and Conditions of Use</p>
+                <div class="max-h-56 overflow-y-auto pr-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3" tabindex="0" aria-label="ASPIRE Terms and Conditions of Use">
+                    @include('partials.terms-and-conditions')
+                </div>
+                <label class="mt-3 flex items-start gap-2.5 cursor-pointer group">
+                    <input type="checkbox" id="terms" name="terms" value="1" {{ old('terms') ? 'checked' : '' }}
+                           class="mt-0.5 w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                           onchange="checkPasswordMatch()">
+                    <span class="text-xs text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-white transition-colors">I have read and agree to the ASPIRE Terms and Conditions of Use, including compliance with the Data Privacy Act of 2012 (RA 10173) and applicable DepEd policies.</span>
+                </label>
+                @error('terms')
+                <p class="mt-2 text-sm text-rose-400 flex items-center">
+                    <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    {{ $message }}
+                </p>
+                @enderror
+            </div>
+
             <!-- Submit Button -->
             <button type="submit" id="submit-btn"
                     class="btn-primary w-full py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2">
@@ -363,12 +385,16 @@
         function checkPasswordMatch() {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('password_confirmation').value;
+            const termsAccepted = document.getElementById('terms').checked;
             const submitBtn = document.getElementById('submit-btn');
-            
+
+            const passwordsValid = password.length >= 8 && confirmPassword === password;
+            const canSubmit = passwordsValid && confirmPassword && termsAccepted;
+
             if (confirmPassword && password !== confirmPassword) {
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else if (password.length >= 8 && confirmPassword === password) {
+            } else if (canSubmit) {
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {

@@ -37,6 +37,7 @@ use App\Services\TeacherAttentionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -1405,16 +1406,32 @@ class SupervisorController extends Controller
     /**
      * Request lesson plan from the teacher
      */
-    public function requestLessonPlan(Observation $observation)
+    public function requestLessonPlan(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
 
-        $observation->load(['observee.user', 'observee.school']);
-
-        $teacherUser = $observation->observee?->user;
-        if (! $teacherUser) {
-            return redirect()->back()->with('error', 'Teacher not found for this observation.');
+        // Rate limit: at most one request email per observation every 15 seconds.
+        $rateKey = 'lesson-plan-request:'.$observation->getKey();
+        if (RateLimiter::tooManyAttempts($rateKey, 1)) {
+            $retryAfter = RateLimiter::availableIn($rateKey);
+            $message = "A request was just sent. Please wait {$retryAfter} seconds before requesting again.";
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message, 'retry_after' => $retryAfter], 429);
+            }
+            return redirect()->back()->with('error', $message);
         }
+
+        try {
+            $observation->load(['observee.user', 'observee.school']);
+
+            $teacherUser = $observation->observee?->user;
+            if (! $teacherUser) {
+                $message = 'Teacher not found for this observation.';
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+                return redirect()->back()->with('error', $message);
+            }
 
         $requester = Auth::user();
         $requesterName = $requester->name;
@@ -1459,7 +1476,26 @@ class SupervisorController extends Controller
         $teacherName = $teacherUser->name;
         $this->notificationService->notifyLessonPlanRequestedToSupervisor($requester, $teacherName, $supervisorLink);
 
-        return redirect()->back()->with('success', 'Lesson plan request has been sent to the teacher.');
+        $message = 'Lesson plan request has been sent to the teacher. They were notified in-app and by email.';
+
+        // Start the 15-second cooldown for this observation.
+        RateLimiter::hit($rateKey, 15);
+
+        // AJAX (fetch) callers can't see session flash data after following
+        // the redirect, so respond with JSON they can surface inline.
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $message]);
+        }
+
+        return redirect()->back()->with('success', $message);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send lesson plan request: '.$e->getMessage(), ['observation_id' => $observation->getKey()]);
+            $message = 'Failed to request lesson plan. Please try again.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 500);
+            }
+            return redirect()->back()->with('error', $message);
+        }
     }
 
     protected function buildLessonPlanRequestedEmail(string $requesterName, Observation $observation, string $observationLink): string
@@ -2095,11 +2131,14 @@ class SupervisorController extends Controller
             'ai_comparison' => $request->has('ai_comparison') ? ($validated['ai_comparison'] ?? null) : ($existingPostConference?->ai_comparison ?? null),
             'feedback' => $request->has('feedback') ? ($validated['feedback'] ?? null) : ($existingPostConference?->feedback ?? null),
             'conference_date' => $validated['conference_date'] ?? now(),
-            'star_notes' => $validated['star_notes'] ?? null,
-            'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
-            'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? null,
-            'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? null,
-            'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? null,
+            // CID guide fields are no longer collected on the teacher
+            // post-conference form (CID Form 2 is school-head only). Keep any
+            // previously saved values instead of wiping them with null.
+            'star_notes' => $validated['star_notes'] ?? $existingPostConference?->star_notes ?? null,
+            'areas_for_improvement' => $validated['areas_for_improvement'] ?? $existingPostConference?->areas_for_improvement ?? null,
+            'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? $existingPostConference?->challenges_facing_teacher ?? null,
+            'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? $existingPostConference?->ideas_for_addressing_challenges ?? null,
+            'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? $existingPostConference?->prioritized_next_steps ?? null,
             'teacher_reflection' => $validated['teacher_reflection'] ?? null,
             'supervisor_notes' => $validated['supervisor_notes'] ?? null,
         ];

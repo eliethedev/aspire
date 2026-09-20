@@ -57,6 +57,56 @@
 @endpush
 
 @section('content')
+{{-- Friendly pop-up summary when the schedule form comes back with misinputs.
+     Field-level @error messages still show inline; these toasts make sure
+     the supervisor notices, even when the error sits on another wizard step. --}}
+@if($errors->any())
+    @php
+        $friendlyLabels = [
+            'observation_type' => 'Observation type',
+            'cot_indicator_version_id' => 'COT template',
+            'observee_id' => 'Person to observe',
+            'school_head_id' => 'School head',
+            'observation_date' => 'Observation date',
+            'start_time' => 'Start time',
+            'end_time' => 'End time',
+            'conference_start_time' => 'Conference start time',
+            'conference_end_time' => 'Conference end time',
+        ];
+        $friendlyHints = [];
+        foreach ($errors->toArray() as $field => $messages) {
+            $label = $friendlyLabels[$field] ?? ucwords(str_replace(['_', '.'], ' ', $field));
+            foreach ((array) $messages as $message) {
+                $lower = strtolower($message);
+                if (str_contains($lower, 'required') || str_contains($lower, 'must be selected')) {
+                    $friendlyHints[] = "{$label} is missing — please fill it in.";
+                } elseif (str_contains($lower, 'valid') || str_contains($lower, 'selected') || str_contains($lower, 'exists')) {
+                    $friendlyHints[] = "{$label} needs a valid selection.";
+                } elseif (str_contains($lower, 'after') || str_contains($lower, 'before') || str_contains($lower, 'date') || str_contains($lower, 'time')) {
+                    $friendlyHints[] = "{$label} looks off — please check the date and time.";
+                } else {
+                    $friendlyHints[] = "{$label}: {$message}";
+                }
+            }
+        }
+        $friendlyHints = array_values(array_unique($friendlyHints));
+        $hintCount = count($friendlyHints);
+    @endphp
+    <script>
+        setTimeout(function () {
+            if (typeof window.showToast !== 'function') return;
+            window.showToast('warning', @json($hintCount === 1
+                ? 'Almost there! Just one thing needs your attention before scheduling.'
+                : "Almost there! {$hintCount} things need your attention before scheduling."));
+            @foreach(array_slice($friendlyHints, 0, 3) as $hint)
+                window.showToast('error', @json($hint));
+            @endforeach
+            @if($hintCount > 3)
+                window.showToast('info', @json('Plus ' . ($hintCount - 3) . ' more — the affected fields are highlighted in the form.'));
+            @endif
+        }, 500);
+    </script>
+@endif
 <div class="max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="observationForm()" x-cloak>
     <div class="mb-4">
         <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
