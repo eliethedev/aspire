@@ -17,6 +17,8 @@ class AiSetting extends Model
 {
     protected $table = 'ai_settings';
 
+    protected $primaryKey = 'key';
+
     public $incrementing = false;
 
     protected $keyType = 'string';

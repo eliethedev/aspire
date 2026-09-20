@@ -18,6 +18,11 @@
     .indicator-row.selected { background-color: #eef2ff; }
     .indicator-row.no-selected { background-color: #f9fafb; }
     .indicator-row.na-selected { background-color: #fffbeb; }
+    /* Dark mode: no near-white hover/selection wash on domain + indicator rows */
+    .dark .indicator-row:hover { background-color: rgba(55, 65, 81, 0.45); }
+    .dark .indicator-row.selected { background-color: rgba(67, 56, 202, 0.28); }
+    .dark .indicator-row.no-selected { background-color: rgba(55, 65, 81, 0.35); }
+    .dark .indicator-row.na-selected { background-color: rgba(146, 64, 14, 0.28); }
     .cot-table th { font-size: 0.7rem; letter-spacing: 0.05em; }
     .cot-table td, .cot-table th { vertical-align: middle; }
     .comment-toggle { transition: all 0.15s ease; cursor: pointer; }
@@ -181,12 +186,6 @@
                                         <div class="flex items-start gap-2 max-md:items-center">
                                             <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5 max-md:mt-0">{{ $indicator['code'] }}</span>
                                             <span class="text-gray-800 dark:text-gray-200 text-sm leading-relaxed max-md:text-[15px] max-md:flex-1 max-md:min-w-0">{{ $indicator['description'] }}</span>
-                                            <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
-                                                    class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 max-md:hidden {{ $savedComment ? 'has-comment' : '' }}"
-                                                    title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                                                <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
-                                            </button>
                                         </div>
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator_code]" value="{{ $indicator['code'] }}">
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][domain]" value="{{ $indicator['domain'] }}">
@@ -274,7 +273,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Drop files here or click to upload</p>
                 <p class="text-xs text-gray-400 dark:text-gray-500">Upload photos, videos, or documents as evidence</p>
                 <input type="file" name="evidence_files[]" multiple accept="image/*,video/*,.pdf,.doc,.docx"
-                       class="mt-3 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 dark:bg-indigo-900/20 file:text-indigo-700 hover:file:bg-indigo-100 dark:bg-indigo-900/30">
+                       class="mt-3 block w-full text-sm text-gray-500 dark:text-gray-400 [color-scheme:light] dark:[color-scheme:dark] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-300 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800/40">
             </div>
             @if($observation->evidence_files)
                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">

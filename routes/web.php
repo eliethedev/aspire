@@ -244,6 +244,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/observations', [SupervisorController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
+    Route::get('/observations/term-check', [SupervisorController::class, 'termCheck'])->name('observations.term-check');
     Route::get('/observations/{observation}', [SupervisorController::class, 'showObservation'])->name('observations.show');
     Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
     Route::post('/observations/{observation}/cancel', [SupervisorController::class, 'cancel'])->name('observations.cancel');

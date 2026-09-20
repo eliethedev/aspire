@@ -10,6 +10,9 @@
     .indicator-row { transition: background-color 0.15s ease; }
     .indicator-row:hover { background-color: #f9fafb; }
     .indicator-row.selected { background-color: #eef2ff; }
+    /* Dark mode: no near-white hover/selection wash on domain + indicator rows */
+    .dark .indicator-row:hover { background-color: rgba(55, 65, 81, 0.45); }
+    .dark .indicator-row.selected { background-color: rgba(67, 56, 202, 0.28); }
     .epoc-table th { font-size: 0.7rem; letter-spacing: 0.05em; }
     .epoc-table td, .epoc-table th { vertical-align: middle; }
     .comment-toggle { transition: all 0.15s ease; cursor: pointer; }

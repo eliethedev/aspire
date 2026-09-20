@@ -113,7 +113,7 @@
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $field->help_text }}</p>
             @endif
             <input type="file" name="{{ $fieldKey }}" id="{{ $fieldKey }}"
-                   class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-gray-800 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-gray-700">
+                   class="w-full text-sm text-gray-500 dark:text-gray-400 [color-scheme:light] dark:[color-scheme:dark] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-gray-800 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-gray-700">
             @if($errorMsg)<p class="{{ $errorClass }}">{{ $errorMsg }}</p>@endif
         </div>
         @break

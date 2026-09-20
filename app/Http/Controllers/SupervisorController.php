@@ -827,6 +827,75 @@ class SupervisorController extends Controller
     }
 
     /**
+     * Term alignment check for the schedule wizard: given an observee,
+     * school year and term, report that observee's past (non-cancelled)
+     * observations so the supervisor can see whether the term aligns
+     * (e.g. the ratee was already observed in the chosen term).
+     */
+    public function termCheck(Request $request)
+    {
+        $validated = $request->validate([
+            'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
+            'observee_id' => ['required'],
+            'school_year' => ['nullable', 'string', 'max:20'],
+            'quarter' => ['nullable', 'integer', 'min:1', 'max:4'],
+        ]);
+
+        $observeeType = $validated['observation_type'] === 'teacher_observation'
+            ? Teacher::class
+            : SchoolHeadProfile::class;
+        $schoolYear = $validated['school_year'] ?: $this->getCurrentSchoolYear();
+        $quarter = $validated['quarter'] ?? null;
+
+        $observeeName = null;
+        if ($observeeType === Teacher::class) {
+            $observeeName = Teacher::with('user')->find($validated['observee_id'])?->user?->name;
+        } else {
+            $observeeName = SchoolHeadProfile::with('user')->find($validated['observee_id'])?->user?->name;
+        }
+
+        $inYear = Observation::where('observee_id', $validated['observee_id'])
+            ->where('observee_type', $observeeType)
+            ->where('status', '!=', 'cancelled')
+            ->where('school_year', $schoolYear)
+            ->orderByDesc('observation_date')
+            ->get();
+
+        $termLabels = [1 => '1st Term', 2 => '2nd Term', 3 => '3rd Term', 4 => '4th Term'];
+
+        $inTerm = $quarter
+            ? $inYear->where('quarter', (int) $quarter)->values()
+            : collect();
+
+        $termsSummary = $inYear->groupBy(fn ($o) => $o->quarter ?? 0)
+            ->map(fn ($group, $q) => [
+                'quarter' => (int) $q,
+                'label' => $termLabels[(int) $q] ?? 'No term set',
+                'count' => $group->count(),
+            ])
+            ->sortBy('quarter')
+            ->values();
+
+        return response()->json([
+            'observee_name' => $observeeName,
+            'school_year' => $schoolYear,
+            'quarter' => $quarter ? (int) $quarter : null,
+            'quarter_label' => $quarter ? ($termLabels[(int) $quarter] ?? "Term {$quarter}") : null,
+            'in_term_count' => $inTerm->count(),
+            'in_term' => $inTerm->take(5)->map(fn ($o) => [
+                'id' => $o->id,
+                'date' => $o->observation_date ? $o->observation_date->format('M d, Y') : 'No date',
+                'stage' => ucwords(str_replace('_', ' ', $o->stage ?? '')),
+                'status' => ucwords(str_replace('_', ' ', $o->status ?? '')),
+                'subject' => $o->subject,
+                'url' => route('supervisor.observations.show', $o),
+            ])->values(),
+            'terms_summary' => $termsSummary,
+            'total_in_year' => $inYear->count(),
+        ]);
+    }
+
+    /**
      * Store a newly created observation.
      */
     public function storeObservation(Request $request)

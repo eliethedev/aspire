@@ -257,7 +257,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Drop files here or click to upload</p>
                 <p class="text-xs text-gray-400 dark:text-gray-500">Upload photos, videos, or documents as evidence</p>
                 <input type="file" name="evidence_files[]" multiple accept="image/*,video/*,.pdf,.doc,.docx"
-                       class="mt-3 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 dark:bg-indigo-900/20 file:text-indigo-700 hover:file:bg-indigo-100 dark:bg-indigo-900/30">
+                       class="mt-3 block w-full text-sm text-gray-500 dark:text-gray-400 [color-scheme:light] dark:[color-scheme:dark] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-300 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800/40">
             </div>
             @if($observation->evidence_files)
                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">

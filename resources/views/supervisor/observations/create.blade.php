@@ -549,7 +549,7 @@
                         <!-- School Year -->
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">School Year</label>
-                            <input type="text" name="school_year" x-model="form.school_year"
+                            <input type="text" name="school_year" x-model="form.school_year" @change="checkTermAlignment()"
                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                                    placeholder="2024-2025">
                         </div>
@@ -557,7 +557,7 @@
                         <!-- Term -->
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Term</label>
-                            <select name="quarter" x-model="form.quarter"
+                            <select name="quarter" x-model="form.quarter" @change="checkTermAlignment()"
                                     class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                                 <option value="">Select term</option>
                                 <option value="1">1st Term</option>
@@ -617,6 +617,41 @@
                                       placeholder="Additional notes..."></textarea>
                         </div>
                     </div>
+                </div>
+
+                <!-- Term alignment check — past observations in the chosen term -->
+                <div x-show="termCheck.result || termCheck.loading" x-cloak class="mt-3">
+                    <div x-show="termCheck.loading" class="flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-3.5 py-2.5 text-xs text-gray-500 dark:text-gray-400">
+                        <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Checking past observations for this term…
+                    </div>
+                    <template x-if="termCheck.result && !termCheck.loading">
+                        <div class="rounded-xl border p-3.5" :class="termCheck.result.in_term_count > 0 ? 'border-amber-300 bg-amber-50/60 dark:bg-amber-900/10' : 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/10'">
+                            <div class="flex items-start gap-2.5">
+                                <template x-if="termCheck.result.in_term_count > 0">
+                                    <svg class="w-4 h-4 shrink-0 mt-px text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                                </template>
+                                <template x-if="termCheck.result.in_term_count === 0">
+                                    <svg class="w-4 h-4 shrink-0 mt-px text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </template>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold" :class="termCheck.result.in_term_count > 0 ? 'text-amber-800 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'" x-text="termCheckHeadline()"></p>
+                                    <template x-if="termCheck.result.in_term && termCheck.result.in_term.length">
+                                        <ul class="mt-1.5 space-y-1">
+                                            <template x-for="item in termCheck.result.in_term" :key="item.id">
+                                                <li>
+                                                    <a :href="item.url" target="_blank" class="text-[11px] text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline" x-text="item.date + ' · ' + item.stage + ' · ' + item.status + (item.subject ? ' · ' + item.subject : '')"></a>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                    <template x-if="termCheckSummary()">
+                                        <p class="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400" x-text="termCheckSummary()"></p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Co-Observation — CLEAR FLOW, UX friendly (hidden for School Head observations) -->
@@ -1211,6 +1246,7 @@
             templateManuallySet: !!@json(old('cot_indicator_version_id')),
             selectedObservee: null,
             observeeId: @json(old('observee_id')),
+            termCheck: { loading: false, result: null, seq: 0 },
             searchQuery: '',
             showConfirmModal: false,
             submitting: false,
@@ -1488,6 +1524,7 @@
                 this.selectedObservee = item;
                 this.observeeId = item.id;
                 this.searchQuery = '';
+                this.checkTermAlignment();
                 const suggested = this.suggestTemplateForObservee(item);
                 this.suggestedTemplateId = suggested ? suggested.id : '';
                 if (suggested && (!this.templateManuallySet || !this.selectedCotTemplateId)) {
@@ -1501,9 +1538,71 @@
                 this.observeeId = '';
                 this.searchQuery = '';
                 this.suggestedTemplateId = '';
+                this.termCheck.result = null;
+                this.termCheck.loading = false;
                 if (!this.templateManuallySet) {
                     this.selectedCotTemplateId = '';
                 }
+            },
+
+            // Term alignment: compare the chosen term/SY against the
+            // observee's past (non-cancelled) observations.
+            checkTermAlignment() {
+                const type = this.selectedType;
+                const id = this.selectedObservee ? this.selectedObservee.id : (this.observeeId || '');
+                if (!type || !id) {
+                    this.termCheck.result = null;
+                    this.termCheck.loading = false;
+                    return;
+                }
+                const seq = ++this.termCheck.seq;
+                this.termCheck.loading = true;
+                const params = new URLSearchParams({
+                    observation_type: type,
+                    observee_id: String(id),
+                });
+                const sy = (this.form.school_year || '').trim();
+                if (sy) params.append('school_year', sy);
+                if (this.form.quarter) params.append('quarter', String(this.form.quarter));
+                fetch(@json(route('supervisor.observations.term-check')) + '?' + params.toString(), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                })
+                    .then(res => res.json().catch(() => null).then(data => ({ ok: res.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (seq !== this.termCheck.seq) return;
+                        this.termCheck.loading = false;
+                        this.termCheck.result = (ok && data) ? data : null;
+                    })
+                    .catch(() => {
+                        if (seq !== this.termCheck.seq) return;
+                        this.termCheck.loading = false;
+                        this.termCheck.result = null;
+                    });
+            },
+
+            termCheckHeadline() {
+                const r = this.termCheck.result;
+                if (!r) return '';
+                const name = r.observee_name || 'This ratee';
+                const n = r.in_term_count;
+                if (!r.quarter) {
+                    return r.total_in_year > 0
+                        ? `${name} has ${r.total_in_year} past observation(s) in SY ${r.school_year} — select a term to check alignment.`
+                        : `No past observations for ${name} in SY ${r.school_year} — term is clear.`;
+                }
+                return n > 0
+                    ? `Heads up: ${name} already has ${n} observation(s) in ${r.quarter_label}, SY ${r.school_year}.`
+                    : `${r.quarter_label}, SY ${r.school_year} is clear for ${name} — no past observations in this term.`;
+            },
+
+            termCheckSummary() {
+                const r = this.termCheck.result;
+                if (!r || !r.terms_summary || !r.terms_summary.length) return '';
+                const parts = r.terms_summary
+                    .filter(t => !r.quarter || Number(t.quarter) !== Number(r.quarter))
+                    .map(t => `${t.label} (${t.count})`);
+                if (!parts.length) return '';
+                return `Also observed in ${parts.join(', ')} — SY ${r.school_year}.`;
             },
 
             toggleSchoolHead() {

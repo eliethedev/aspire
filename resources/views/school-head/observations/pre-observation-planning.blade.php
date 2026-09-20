@@ -207,10 +207,10 @@
 
             <div id="ai-insights-container">
                 @if($planning && $planning->ai_insights)
-                    <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
+                    <div id="ai-insights-card" class="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-xl p-5 border border-purple-100 dark:border-purple-900/40">
                         <div class="flex items-center gap-2 mb-3">
                             <div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
-                            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">Suggestions Ready</span>
+                            <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Suggestions Ready</span>
                         </div>
                         @php $insightSections = $planning->insightsSections(); @endphp
                         @if(isset($insightSections['raw']))

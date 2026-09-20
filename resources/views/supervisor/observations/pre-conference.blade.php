@@ -175,20 +175,20 @@
 
             <!-- Pre-Observation Planning Summary (collapsible) -->
             @if($planning)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100" x-data="{ open: {{ $observation->stage === 'pre_conference' ? 'true' : 'false' }} }">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm" x-data="{ open: {{ $observation->stage === 'pre_conference' ? 'true' : 'false' }} }">
                 <button type="button" @click="open = !open"
                         class="w-full flex items-center justify-between p-4 text-left">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Preparation Summary</h2>
                     <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
                 <div x-show="open" x-collapse>
-                    <div class="p-4 pt-0 border-t border-gray-100">
+                    <div class="p-4 pt-0">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @if($planning->lesson_plan_file)
                             <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Lesson Plan</span>
+                                <span class="text-xs text-gray-500 dark:text-dark uppercase tracking-wider font-medium">Lesson Plan</span>
                                 <div class="mt-1 flex items-center justify-between">
-                                    <span class="text-sm text-gray-700 dark:text-gray-300 truncate min-w-0">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</span>
+                                    <span class="text-sm text-gray-700 dark:text-dark truncate min-w-0">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</span>
                                     <a href="{{ asset('storage/' . $planning->lesson_plan_file) }}" target="_blank" class="text-sm text-blue-600 hover:text-blue-700 font-medium shrink-0 ml-2">View</a>
                                 </div>
                             </div>

@@ -374,7 +374,7 @@
                         @csrf
                         <div class="flex items-center gap-3">
                             <input type="file" name="lesson_plan_file" id="lesson_plan" accept=".pdf,.doc,.docx"
-                                   class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-300 hover:file:bg-indigo-200 dark:hover:file:bg-indigo-800/40 transition-colors cursor-pointer">
+                                   class="block w-full text-sm text-gray-500 dark:text-gray-400 [color-scheme:light] dark:[color-scheme:dark] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-300 hover:file:bg-indigo-200 dark:hover:file:bg-indigo-800/40 transition-colors cursor-pointer">
                             <button type="submit"
                                     :disabled="submitting"
                                     class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -407,10 +407,10 @@
                                         Submitted
                                     </span>
                                     <span class="text-gray-300 dark:text-gray-600">&middot;</span>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ preg_replace('/^\d+_/', '', basename($observation->preObservationPlanning->lesson_plan_file)) }}</span>
+                                    <span class="text-xs text-gray-600 dark:text-gray-200">{{ preg_replace('/^\d+_/', '', basename($observation->preObservationPlanning->lesson_plan_file)) }}</span>
                                 </div>
                                 @if($observation->preObservationPlanning->updated_at)
-                                <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Submitted {{ $observation->preObservationPlanning->updated_at->format('M d, Y g:i A') }}</p>
+                                <p class="text-[11px] text-gray-400 dark:text-gray-400 mt-1">Submitted {{ $observation->preObservationPlanning->updated_at->format('M d, Y g:i A') }}</p>
                                 @endif
                             </div>
                         </div>
@@ -438,7 +438,7 @@
                             @csrf
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                 <input type="file" name="lesson_plan_file" accept=".pdf,.doc,.docx,.pptx,.xlsx"
-                                       class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 dark:file:bg-amber-900/30 dark:file:text-amber-300 hover:file:bg-amber-200 transition-colors cursor-pointer">
+                                       class="block w-full text-xs text-gray-500 dark:text-gray-400 [color-scheme:light] dark:[color-scheme:dark] file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 dark:file:bg-amber-900/30 dark:file:text-amber-300 hover:file:bg-amber-200 dark:hover:file:bg-amber-800/40 transition-colors cursor-pointer">
                                 <button type="submit" :disabled="submitting"
                                         class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg x-show="submitting" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>

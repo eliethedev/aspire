@@ -95,14 +95,14 @@
                     @if(is_array($content))
                         <ul class="space-y-2.5">
                             @foreach($content as $item)
-                                <li class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                <li class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                                     <svg class="w-3.5 h-3.5 mt-1 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     <span class="min-w-0">{{ $item }}</span>
                                 </li>
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ $content }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{{ $content }}</p>
                     @endif
                 </div>
             </div>
