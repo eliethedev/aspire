@@ -129,6 +129,8 @@
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">You scheduled</span>
                                     @elseif($isCoObserver)
                                         <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Assigned School Head</span>
+                                    @else
+                                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300" title="Teacher from your school — read-only details">My School · View details</span>
                                     @endif
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $statusColors[$observation->status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
                                         {{ $friendlyStatuses[$observation->status] ?? ucfirst(str_replace('_', ' ', $observation->status)) }}

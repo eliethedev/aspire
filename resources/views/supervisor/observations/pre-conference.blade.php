@@ -251,22 +251,43 @@
                 <div id="suggestions-notice" class="mb-3"></div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teaching Strategies</label>
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teaching Strategies</label>
+                            <button type="button" class="things-suggest-btn shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg transition-colors" data-field="teaching_strategies" data-textarea="teaching_strategies" data-container="things-suggest-teaching_strategies">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                <span>Suggest with AI</span>
+                            </button>
+                        </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What teaching strategies will be used in this lesson?</p>
+                        <div id="things-suggest-teaching_strategies" class="hidden mb-2"></div>
                         <textarea name="teaching_strategies" id="teaching_strategies" rows="3"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="e.g. Direct instruction, collaborative learning, inquiry-based, differentiated instruction...">{{ old('teaching_strategies', $preConference?->teaching_strategies) }}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructional Materials</label>
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Instructional Materials</label>
+                            <button type="button" class="things-suggest-btn shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg transition-colors" data-field="instructional_materials" data-textarea="instructional_materials" data-container="things-suggest-instructional_materials">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                <span>Suggest with AI</span>
+                            </button>
+                        </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">What materials and resources will be used?</p>
-                        <textarea name="instructional_materials" rows="2"
+                        <div id="things-suggest-instructional_materials" class="hidden mb-2"></div>
+                        <textarea name="instructional_materials" id="instructional_materials" rows="2"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="e.g. PowerPoint, worksheets, manipulatives, online resources...">{{ old('instructional_materials', $preConference?->instructional_materials) }}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assessment / Activity</label>
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Assessment / Activity</label>
+                            <button type="button" class="things-suggest-btn shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg transition-colors" data-field="assessment_activity" data-textarea="assessment_activity" data-container="things-suggest-assessment_activity">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                <span>Suggest with AI</span>
+                            </button>
+                        </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">How will learning be assessed? What activities are planned?</p>
+                        <div id="things-suggest-assessment_activity" class="hidden mb-2"></div>
                         <textarea name="assessment_activity" id="assessment_activity" rows="2"
                                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                   placeholder="e.g. Formative assessment, group activity, quiz, performance task...">{{ old('assessment_activity', $preConference?->assessment_activity) }}</textarea>
@@ -627,6 +648,118 @@ function markReviewed() {
     var panel = document.getElementById('ai-insights-panel');
     if (panel) panel.classList.add('opacity-75');
 }
+
+// ===================== Things to Think About — per-field AI suggestions =====================
+// Advisory only: suggestions are tailored to the uploaded lesson plan and
+// PPST cues, but the supervisor picks what (if anything) goes in the box.
+
+function renderThingsSuggestions(container, payload, textareaId) {
+    container.innerHTML = '';
+    container.classList.remove('hidden');
+
+    var card = document.createElement('div');
+    card.className = 'rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/60 dark:bg-purple-900/10 p-3 space-y-2';
+
+    var head = document.createElement('div');
+    head.className = 'flex items-center gap-2';
+    var badge = document.createElement('span');
+    badge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full ' +
+        (payload.fallback
+            ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+            : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300');
+    badge.textContent = payload.fallback ? 'Built-in guide' : 'AI suggestions';
+    head.appendChild(badge);
+    var hint = document.createElement('span');
+    hint.className = 'text-[11px] text-gray-500 dark:text-gray-400';
+    hint.textContent = 'Advisory only — tap Use to add, then review and edit freely.';
+    head.appendChild(hint);
+    card.appendChild(head);
+
+    if (payload.analysis) {
+        var analysis = document.createElement('p');
+        analysis.className = 'text-xs text-gray-600 dark:text-gray-300 leading-relaxed italic';
+        analysis.textContent = payload.analysis;
+        card.appendChild(analysis);
+    }
+
+    var list = document.createElement('ul');
+    list.className = 'space-y-1.5';
+    (payload.suggestions || []).forEach(function (text) {
+        var li = document.createElement('li');
+        li.className = 'flex items-start gap-2 rounded-lg bg-white dark:bg-gray-900 border border-purple-100 dark:border-purple-900/40 px-2.5 py-2';
+        var span = document.createElement('span');
+        span.className = 'flex-1 text-xs text-gray-700 dark:text-gray-200 leading-relaxed';
+        span.textContent = text;
+        var useBtn = document.createElement('button');
+        useBtn.type = 'button';
+        useBtn.className = 'shrink-0 px-2.5 py-1 min-h-[32px] text-[11px] font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors';
+        useBtn.textContent = 'Use';
+        useBtn.addEventListener('click', function () {
+            var ta = document.getElementById(textareaId);
+            if (!ta) return;
+            var current = ta.value.trim();
+            ta.value = current ? current + '\n' + text : text;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.dispatchEvent(new Event('change', { bubbles: true }));
+            showToast('Suggestion added — review and edit freely.');
+        });
+        li.appendChild(span);
+        li.appendChild(useBtn);
+        list.appendChild(li);
+    });
+    card.appendChild(list);
+    container.appendChild(card);
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.querySelectorAll('.things-suggest-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var field = btn.dataset.field;
+        var textareaId = btn.dataset.textarea;
+        var container = document.getElementById(btn.dataset.container);
+        if (!field || !container) return;
+
+        var label = btn.querySelector('span');
+        var originalLabel = label ? label.textContent : '';
+        btn.disabled = true;
+        if (label) label.textContent = 'Thinking…';
+        AINotice.hide(document.getElementById('suggestions-notice'));
+
+        fetch('{{ route("supervisor.observations.generate-things-suggestions", $observation) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ field: field }),
+        })
+        .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (data) { return { ok: res.ok, data: data }; });
+        })
+        .then(function (result) {
+            if (result.ok && result.data.suggestions && result.data.suggestions.length) {
+                renderThingsSuggestions(container, result.data, textareaId);
+            } else {
+                AINotice.show('suggestions-notice', result.data, {
+                    onManual: focusManualEntry,
+                    manualLabel: 'Write them myself',
+                    onRetry: function () { btn.click(); },
+                });
+            }
+        })
+        .catch(function () {
+            AINotice.show('suggestions-notice', { error: 'AI isn\'t available because your connection to the server was interrupted. Please try again.' }, {
+                onManual: focusManualEntry,
+                manualLabel: 'Write them myself',
+                onRetry: function () { btn.click(); },
+            });
+        })
+        .finally(function () {
+            btn.disabled = false;
+            if (label) label.textContent = originalLabel;
+        });
+    });
+});
 
 // ===================== Regenerate AI Insights =====================
 

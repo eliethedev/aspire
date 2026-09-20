@@ -41,7 +41,8 @@ class ObservationController extends Controller
     }
 
     /**
-     * Display observations where the school head is the observee OR the observer.
+     * Display observations where the school head is the observee OR the observer,
+     * plus read-only observations of teachers in the school head's own school.
      */
     public function index(Request $request)
     {
@@ -72,18 +73,27 @@ class ObservationController extends Controller
             });
         }
 
-        $observations = $query
+        // Same-school teachers' observations are visible read-only, even when
+        // the school head is not a party to them. Filters apply to both groups.
+        $combined = (clone $query)->orWhere(function ($q2) use ($user) {
+            $q2->where('observee_type', Teacher::class)
+                ->whereHasMorph('observee', [Teacher::class], fn ($q) => $q->where('school_id', $user->school_id));
+        });
+
+        $combined
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
-            ->when($request->stage, fn($q, $s) => $q->where('stage', $s))
+            ->when($request->stage, fn($q, $s) => $q->where('stage', $s));
+
+        $stats = [
+            'total' => (clone $combined)->count(),
+            'upcoming' => (clone $combined)->whereIn('status', ['scheduled'])->count(),
+            'completed' => (clone $combined)->where('status', 'completed')->count(),
+        ];
+
+        $observations = (clone $combined)
             ->latest()
             ->paginate(10)
             ->withQueryString();
-
-        $stats = [
-            'total' => (clone $query)->count(),
-            'upcoming' => (clone $query)->whereIn('status', ['scheduled'])->count(),
-            'completed' => (clone $query)->where('status', 'completed')->count(),
-        ];
 
         return view('school-head.observations.index', compact('observations', 'stats'));
     }
@@ -122,11 +132,11 @@ class ObservationController extends Controller
     }
 
     /**
-     * Show observation details.
+     * Show observation details (party members and same-school viewers).
      */
     public function show(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $observation->load([
             'observee.user',
@@ -140,7 +150,7 @@ class ObservationController extends Controller
             'schoolHead',
         ]);
 
-        return view('school-head.observations.show', compact('observation'));
+        return view('school-head.observations.show', compact('observation') + ['readOnly' => ! $this->isPartyTo($observation)]);
     }
 
     /**
@@ -152,7 +162,7 @@ class ObservationController extends Controller
      */
     public function downloadCotDocument(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         if ($observation->observee_type !== Teacher::class) {
             return redirect()->back()->with('error', 'COT documents are only available for teacher observations.');
@@ -194,10 +204,18 @@ class ObservationController extends Controller
                 ->with('error', 'Observee type is required.');
         }
 
+        $canViewAll = false;
+        if ($observeeType === Teacher::class) {
+            $teacher = Teacher::find($observeeId);
+            $canViewAll = $teacher && (int) $teacher->school_id === (int) $user->school_id;
+        }
+
         $baseQuery = Observation::with(['observee.user', 'preObservationPlanning', 'preConference', 'postConference', 'cotRatings'])
             ->where('observee_id', $observeeId)
-            ->where('observee_type', $observeeType)
-            ->where(function ($q) use ($user) {
+            ->where('observee_type', $observeeType);
+
+        if (! $canViewAll) {
+            $baseQuery->where(function ($q) use ($user) {
                 $q->where('observer_id', $user->id)
                     ->orWhere('school_head_id', $user->id)
                     ->orWhere(function ($q2) use ($user) {
@@ -205,8 +223,12 @@ class ObservationController extends Controller
                             ->where('observee_type', SchoolHeadProfile::class);
                     });
             });
+        }
 
         $observations = $baseQuery->latest()->paginate(10);
+
+        // Per-row action flag: only parties may continue an observation.
+        $observations->getCollection()->each(fn ($o) => $o->setAttribute('viewer_can_act', $this->isPartyTo($o)));
 
         $observeeName = $observations->first()?->observee?->user?->name ?? 'Unknown';
 
@@ -325,7 +347,7 @@ class ObservationController extends Controller
             'observation_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'school_year' => ['nullable', 'string'],
-            'quarter' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'quarter' => ['nullable', 'integer', 'min:1', 'max:3'],
             'observation_number' => ['nullable', 'integer', 'min:1', 'max:2'],
             'subject' => ['nullable', 'string'],
             'grade_level' => ['nullable', 'string'],
@@ -1234,7 +1256,7 @@ class ObservationController extends Controller
      */
     public function aiInsightsStatus(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
         $observation->load('preObservationPlanning');
 
         $insights = $observation->preObservationPlanning?->ai_insights;
@@ -1380,7 +1402,7 @@ class ObservationController extends Controller
      */
     public function downloadReport(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $reportService = app(\App\Services\ObservationReportService::class);
         $markdown = $reportService->generate($observation);
@@ -1403,7 +1425,7 @@ class ObservationController extends Controller
      */
     public function downloadReportPDF(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $pdfService = app(\App\Services\PDFReportService::class);
         return $pdfService->downloadPDF($observation);
@@ -1414,7 +1436,7 @@ class ObservationController extends Controller
      */
     public function indicatorTrends(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $trendService = app(\App\Services\IndicatorTrendService::class);
         $trends = $trendService->getIndicatorTrends(
@@ -1433,7 +1455,7 @@ class ObservationController extends Controller
      */
     public function progressComparison(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $comparisonService = app(\App\Services\ObservationComparisonService::class);
         $comparison = $comparisonService->compareWithPrevious($observation);
@@ -1460,7 +1482,7 @@ class ObservationController extends Controller
      */
     public function pdRecommendations(Observation $observation)
     {
-        $this->authorizeObservation($observation);
+        $this->authorizeObservationView($observation);
 
         $trendService = app(\App\Services\IndicatorTrendService::class);
         $lowIndicators = $trendService->getConsistentlyLowIndicators(
@@ -1590,11 +1612,47 @@ class ObservationController extends Controller
      */
     private function authorizeObservation(Observation $observation)
     {
-        if ($observation->observer_id !== Auth::id()
-            && $observation->observee_id !== Auth::user()->schoolHeadProfile?->id
-            && $observation->school_head_id !== Auth::id()) {
+        if (! $this->isPartyTo($observation)) {
             abort(403, 'You are not authorized to access this observation.');
         }
+    }
+
+    /**
+     * Whether the user observes, is observed, or is assigned to the observation.
+     */
+    private function isPartyTo(Observation $observation): bool
+    {
+        return $observation->observer_id === Auth::id()
+            || $observation->observee_id === Auth::user()->schoolHeadProfile?->id
+            || $observation->school_head_id === Auth::id();
+    }
+
+    /**
+     * Whether the observation belongs to a teacher in the user's own school.
+     * Grants read-only visibility even when the user is not a party to it.
+     */
+    private function isSameSchoolViewable(Observation $observation): bool
+    {
+        if ($observation->observee_type !== Teacher::class) {
+            return false;
+        }
+
+        $teacher = $observation->observee;
+
+        return $teacher && (int) $teacher->school_id === (int) Auth::user()->school_id;
+    }
+
+    /**
+     * Read access: parties plus same-school teacher observations.
+     * Mutations must keep using authorizeObservation().
+     */
+    private function authorizeObservationView(Observation $observation): void
+    {
+        if ($this->isPartyTo($observation) || $this->isSameSchoolViewable($observation)) {
+            return;
+        }
+
+        abort(403, 'You are not authorized to access this observation.');
     }
 
     private function getCurrentSchoolYear(): string

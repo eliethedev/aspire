@@ -863,7 +863,7 @@ class CotDocumentService
             ['name' => 'Arial', 'size' => 9]
         );
         $table->addCell(6000, ['borderSize' => 0])->addText(
-            'QUARTER: ' . ($blank ? '____________' : ($data['quarter'] ?? '____________')),
+            'TERM: ' . ($blank ? '____________' : ($data['quarter'] ?? '____________')),
             ['name' => 'Arial', 'size' => 9]
         );
 
@@ -1031,7 +1031,7 @@ class CotDocumentService
 
         $table->addRow();
         $this->infoCell($table, 'School:', $data['school_name']);
-        $this->infoCell($table, 'Quarter:', 'Quarter ' . $data['quarter']);
+            $this->infoCell($table, 'Term:', 'Term ' . $data['quarter']);
 
         $table->addRow();
         $this->infoCell($table, 'School Year:', $data['school_year']);
@@ -1068,7 +1068,7 @@ class CotDocumentService
 
         $table->addRow();
         $this->blankInfoCell($table, 'School:', '');
-        $this->blankInfoCell($table, 'Quarter:', '');
+            $this->blankInfoCell($table, 'Term:', '');
 
         $table->addRow();
         $this->blankInfoCell($table, 'School Year:', '');

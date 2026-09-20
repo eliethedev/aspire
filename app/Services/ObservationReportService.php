@@ -122,7 +122,7 @@ class ObservationReportService
 | **Teacher Observed** | {$teacher} |
 | **Observer** | {$observer} |
 | **Date of Observation** | {$date} |
-| **Quarter** | {$quarter} |
+| **Term** | {$quarter} |
 | **Observation Type** | {$obsType} |
 
 ---

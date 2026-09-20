@@ -42,6 +42,11 @@ class AIFeedbackService
         return $this->preObservation->generatePreConferenceSuggestions($observation, $templateFallback);
     }
 
+    public function generateThingsToThinkAbout(Observation $observation, string $field, bool $templateFallback = true): ?array
+    {
+        return $this->preObservation->generateThingsToThinkAbout($observation, $field, $templateFallback);
+    }
+
     public function generatePostConferenceComparison(Observation $observation, bool $templateFallback = true): ?string
     {
         return $this->postConference->generateComparison($observation, $templateFallback);

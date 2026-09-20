@@ -121,14 +121,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::get('/', [AIController::class, 'index'])->name('index');
         Route::post('/', [AIController::class, 'update'])->name('update');
-        Route::post('/test', [AIController::class, 'test'])->name('test');
-        Route::post('/test-provider', [AIController::class, 'testProvider'])->name('test-provider');
+        Route::post('/test', [AIController::class, 'test'])->middleware('ai.rate.limit')->name('test');
+        Route::post('/test-provider', [AIController::class, 'testProvider'])->middleware('ai.rate.limit')->name('test-provider');
         Route::post('/restore', [AIController::class, 'restore'])->name('restore');
         Route::post('/emergency', [AIController::class, 'emergency'])->name('emergency');
         Route::post('/providers', [AIController::class, 'storeCustomProvider'])->name('providers.store');
         Route::post('/providers/{customAiProvider}', [AIController::class, 'updateCustomProvider'])->name('providers.update');
         Route::delete('/providers/{customAiProvider}', [AIController::class, 'destroyCustomProvider'])->name('providers.destroy');
-        Route::post('/providers/{customAiProvider}/test', [AIController::class, 'testCustomProvider'])->name('providers.test');
+        Route::post('/providers/{customAiProvider}/test', [AIController::class,
+'testCustomProvider'])->middleware('ai.rate.limit')->name('providers.test');
     });
 
     // AI usage & cost monitoring
@@ -276,6 +277,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
     Route::get('/observations/{observation}/ai-insights-status', [SupervisorController::class, 'aiInsightsStatus'])->name('observations.ai-insights-status');
     Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
+    Route::post('/observations/{observation}/generate-things-suggestions', [SupervisorController::class, 'generateThingsSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-things-suggestions');
     Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
     Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');

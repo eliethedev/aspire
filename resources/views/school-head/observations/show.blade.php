@@ -71,6 +71,14 @@
         </div>
     </div>
 
+    {{-- Read-only indicator: same-school observation the school head is not a party to --}}
+    @if($readOnly ?? false)
+    <div class="mb-6 flex items-center gap-3 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20 px-4 py-3">
+        <svg class="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <p class="text-sm text-sky-800 dark:text-sky-300"><strong>Read-only view</strong> — this is an observation of a teacher from your school. You can review the details, but only the assigned observer can continue or modify it.</p>
+    </div>
+    @endif
+
     {{-- Current Evaluation / Conference Type Indicator --}}
     @php
         $stageConfig = [
@@ -195,7 +203,7 @@
                 @endif
 
                 {{-- step --}}
-                @if($canAccess)
+                @if($canAccess && !($readOnly ?? false))
                     <a href="{{ route($stageRoutes[$key], $observation) }}"
                        class="flex items-center group cursor-pointer">
                         <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400') }} font-semibold transition-colors group-hover:shadow-md text-sm">
@@ -236,7 +244,7 @@
                 };
             @endphp
 
-            @if($canAccess)
+            @if($canAccess && !($readOnly ?? false))
                 <a href="{{ route($stageRoutes[$key], $observation) }}"
                    class="bg-white dark:bg-gray-900 rounded-xl border {{ $active ? 'border-indigo-300 dark:border-indigo-700 ring-2 ring-indigo-100 dark:ring-indigo-900/40' : 'border-gray-100 dark:border-gray-800' }} shadow-sm p-4 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3 mb-2">
@@ -307,6 +315,9 @@
     </div>
     @endif
 
+    <!-- Stage Details + Reports rail -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="lg:col-span-2 space-y-6 min-w-0">
     <!-- Stage Details -->
     <div class="space-y-6">
         <!-- Pre-Observation Planning -->
@@ -622,15 +633,42 @@
                 </div>
                 @endif
                 @if($observation->postConference->ai_comparison && !$observation->isSchoolHeadObservation())
+                @php $shComparisonSections = $observation->postConference->comparisonSections(); @endphp
                 <div>
                     <span class="text-gray-500 dark:text-gray-400 text-sm">AI Comparison (Plan vs Actual):</span>
-                    <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $observation->postConference->ai_comparison }}</p>
+                    <div class="mt-1">
+                        @if(!empty($shComparisonSections))
+                            @if(isset($shComparisonSections['raw']))
+                                <p class="text-gray-900 dark:text-gray-100 mt-1 leading-relaxed whitespace-pre-wrap">{{ $shComparisonSections['raw'] }}</p>
+                            @else
+                                {!! view('partials.ai-insights-display', ['sections' => $shComparisonSections])->render() !!}
+                            @endif
+                        @endif
+                    </div>
                 </div>
                 @endif
             </div>
         </div>
         @endif
     </div>
+    </div>{{-- /lg:col-span-2 --}}
+
+    {{-- Right rail: Reports (same placement as the supervisor details page) --}}
+    <aside class="lg:col-span-1 space-y-6 min-w-0 lg:sticky lg:top-24">
+        @if($observation->status === 'completed')
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Reports</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="{{ route('school-head.observations.report-pdf', $observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium">PDF</a>
+                <a href="{{ route('school-head.observations.report', $observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium">Markdown</a>
+                <a href="{{ route('school-head.observations.indicator-trends', $observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 text-sm font-medium">Trends</a>
+                <a href="{{ route('school-head.observations.progress-comparison', $observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 text-sm font-medium">Compare</a>
+                <a href="{{ route('school-head.observations.pd-recommendations', $observation) }}" class="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium">PD Recommendations</a>
+            </div>
+        </div>
+        @endif
+    </aside>
+    </div>{{-- /grid --}}
 
     <!-- Cancellation Info -->
     @if($observation->status === 'cancelled')
@@ -651,6 +689,7 @@
     @endif
 
     <!-- Feedback & Coaching Actions -->
+    @if(!($readOnly ?? false))
     <div class="mt-8 mb-4 flex justify-center gap-4">
         <a href="{{ route('supervisor.feedback.index', $observation) }}"
            class="inline-flex items-center gap-3 px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold shadow-lg shadow-purple-600/20 transition-all hover:shadow-xl hover:shadow-purple-600/30">
@@ -665,9 +704,10 @@
         </a>
         @endif
     </div>
+    @endif
 
     <!-- Actions -->
-    @if($observation->status !== 'cancelled' && $observation->status !== 'completed')
+    @if(!($readOnly ?? false) && $observation->status !== 'cancelled' && $observation->status !== 'completed')
     <div class="flex justify-center gap-4">
         @php
             $continueLabel = match($observation->stage) {
@@ -700,37 +740,6 @@
                 Cancel Observation
             </a>
         @endif
-    </div>
-    @endif
-
-    <!-- Download Report (only when completed) -->
-    @if($observation->status === 'completed')
-    <div class="mt-6 flex flex-wrap justify-center gap-3">
-        <a href="{{ route('school-head.observations.report-pdf', $observation) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Download PDF Report
-        </a>
-        <a href="{{ route('school-head.observations.report', $observation) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Download Markdown Report
-        </a>
-        <a href="{{ route('school-head.observations.indicator-trends', $observation) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            Indicator Trends
-        </a>
-        <a href="{{ route('school-head.observations.progress-comparison', $observation) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-            Progress Comparison
-        </a>
-        <a href="{{ route('school-head.observations.pd-recommendations', $observation) }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-sm shadow-sm transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            PD Recommendations
-        </a>
     </div>
     @endif
 

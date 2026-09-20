@@ -370,7 +370,19 @@
                         @if($observation->postConference)
                             <div class="space-y-3">
                                 @if($observation->postConference->conference_date)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Conference Date</p><p class="font-medium mt-1">{{ $observation->postConference->conference_date->format('M d, Y') }}</p></div>@endif
-                                @if($observation->postConference->ai_comparison && !$observation->isSchoolHeadObservation())<div class="rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-indigo-700 dark:text-indigo-300 mb-1">AI Comparison (Plan vs Actual)</p><p class="text-sm">{{ $observation->postConference->ai_comparison }}</p></div>@endif
+                                @if($observation->postConference->ai_comparison && !$observation->isSchoolHeadObservation())
+                                @php $detailComparisonSections = $observation->postConference->comparisonSections(); @endphp
+                                <div class="rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4">
+                                    <p class="text-xs font-semibold tracking-widest uppercase text-indigo-700 dark:text-indigo-300 mb-2">AI Comparison (Plan vs Actual)</p>
+                                    @if(!empty($detailComparisonSections))
+                                        @if(isset($detailComparisonSections['raw']))
+                                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ $detailComparisonSections['raw'] }}</p>
+                                        @else
+                                            {!! view('partials.ai-insights-display', ['sections' => $detailComparisonSections])->render() !!}
+                                        @endif
+                                    @endif
+                                </div>
+                                @endif
                                 @if($observation->postConference->feedback && !$observation->isSchoolHeadObservation())<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500 mb-1">Feedback</p><p class="text-sm whitespace-pre-wrap">{{ $observation->postConference->feedback }}</p></div>@endif
                                 @if(!$observation->postConference->conference_date && !$observation->postConference->feedback && !$observation->postConference->ai_comparison)<p class="text-sm text-gray-500 dark:text-gray-400">Details will appear once post-conference is recorded.</p>@endif
                             </div>

@@ -99,7 +99,7 @@ class FinalReportService extends AIService
         $report .= "**Teacher:** {$teacherName}\n";
         $report .= "**School:** {$schoolName}\n";
         $report .= "**Subject:** {$subject} | **Grade Level:** {$gradeLevel}\n";
-        $report .= "**School Year:** {$schoolYear} | **Quarter:** {$quarter}\n";
+        $report .= "**School Year:** {$schoolYear} | **Term:** {$quarter}\n";
         $report .= "**Observation Date:** {$obsDate}\n";
         $report .= "**Overall Score:** {$scoreText} ({$descriptiveRating})\n\n";
 
@@ -133,7 +133,7 @@ class FinalReportService extends AIService
 
         $report .= "**Next Steps**\n";
         $report .= "1. Teacher to implement agreed-upon strategies in upcoming lessons\n";
-        $report .= "2. Schedule follow-up observation within the next quarter\n";
+        $report .= "2. Schedule follow-up observation within the next term\n";
         $report .= "3. Document progress and adjust support strategies as needed\n";
         $report .= "4. Share best practices with the learning area team\n\n";
 

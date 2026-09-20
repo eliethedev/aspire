@@ -208,6 +208,142 @@ PROMPT;
         return null;
     }
 
+    /**
+     * Per-field AI suggestions for the "Things to Think About" boxes on the
+     * pre-observation conversation form.
+     *
+     * Clinical-supervision boundaries (advisory only, never prescriptive):
+     * - teaching_strategies: 2-3 active learning strategies suited to the
+     *   lesson competency, subtly aligned with PPST practices. Never a rigid
+     *   lesson flow that overrides the teacher's design.
+     * - instructional_materials: contextual, low-cost resources ordinary
+     *   Philippine public schools plausibly have. Never VR headsets, paid
+     *   software, or tools the school may not have.
+     * - assessment_activity: quick, classroom-feasible formative checks.
+     *
+     * Returns ['suggestions' => string[3], 'analysis' => string,
+     * 'fallback' => bool] or null when unavailable.
+     */
+    public function generateThingsToThinkAbout(Observation $observation, string $field, bool $templateFallback = true): ?array
+    {
+        $allowed = ['teaching_strategies', 'instructional_materials', 'assessment_activity'];
+        if (! in_array($field, $allowed, true)) {
+            return null;
+        }
+
+        $observation->loadMissing(['observee.user', 'preObservationPlanning']);
+        $planning = $observation->preObservationPlanning;
+        $subject = $observation->subject ?? 'N/A';
+        $gradeLevel = $observation->grade_level ?? 'N/A';
+        $objective = $planning?->objective ?? 'Not specified';
+
+        $directives = [
+            'teaching_strategies' => 'Suggest exactly 2-3 active learning strategies suited to the lesson\'s target competency and subject (for example Think-Pair-Share, scaffolding through guided practice, or short inquiry-based tasks). Subtly cue PPST practices such as formative questioning and differentiated grouping. Do NOT prescribe a rigid step-by-step lesson flow and do NOT override the teacher\'s own lesson design.',
+            'instructional_materials' => 'Suggest exactly 2-3 contextual, low-cost resources (for example graphic organizers, a slide deck, worksheets, or realia and localized tactile objects). Only suggest materials an ordinary Philippine public school plausibly has on hand. Do NOT suggest VR headsets, paid software subscriptions, or any tool the school may not have.',
+            'assessment_activity' => 'Suggest exactly 2-3 quick, classroom-feasible formative checks or activities (for example an exit ticket checking concept mastery, a 4-station carousel activity, or a pair-share understanding check). Keep every idea doable within a normal class period.',
+        ];
+
+        if ($this->isAvailable()) {
+            $lessonPlanContent = '';
+            $lessonPlanFile = $planning?->lesson_plan_file;
+            if ($lessonPlanFile && Storage::disk('public')->exists($lessonPlanFile)) {
+                $fullPath = Storage::disk('public')->path($lessonPlanFile);
+                $lessonPlanContent = $this->documentExtractor->extractText($fullPath);
+            }
+
+            $lessonPlanSection = $lessonPlanContent
+                ? "--- Uploaded Lesson Plan (tailor every suggestion to its competency and topic) ---\n{$lessonPlanContent}\n\n"
+                : "No lesson plan was uploaded, so base the suggestions on the subject, grade level, and objective below.\n\n";
+
+            $prompt = <<<PROMPT
+You are an expert instructional coach supporting a pre-observation conversation. You give advisory suggestions only; the supervisor and teacher make all final decisions.
+
+Subject: {$subject}
+Grade Level: {$gradeLevel}
+Lesson Objective: {$objective}
+
+{$lessonPlanSection}Task: {$directives[$field]}
+
+Return JSON with exactly two keys:
+1. "suggestions" — an array of exactly 3 strings, one sentence each, concrete and classroom-ready.
+2. "analysis" — 1-2 sentences explaining why these suggestions fit this lesson's competency and the learners' level.
+
+Write as plain text only: no markdown symbols (no **, no *, no backticks, no #).
+PROMPT;
+
+            $result = $this->generateJson($prompt, [
+                'temperature' => 0.4,
+                'max_output_tokens' => 2048,
+            ]);
+
+            if ($result && ! empty($result['suggestions'])) {
+                $suggestions = array_values(array_filter(array_map(
+                    fn ($item) => trim((string) $item),
+                    (array) $result['suggestions']
+                )));
+                $suggestions = array_slice($suggestions, 0, 3);
+
+                if ($suggestions !== []) {
+                    return [
+                        'suggestions' => $suggestions,
+                        'analysis' => trim((string) ($result['analysis'] ?? '')),
+                        'fallback' => false,
+                    ];
+                }
+            }
+        }
+
+        if ($templateFallback && config('ai.fallback', true)) {
+            return $this->buildFallbackThingsToThinkAbout($field, $subject, $gradeLevel, $objective);
+        }
+
+        return null;
+    }
+
+    protected function buildFallbackThingsToThinkAbout(
+        string $field,
+        string $subject,
+        string $gradeLevel,
+        string $objective
+    ): array {
+        $context = $objective !== 'Not specified' ? " for \"{$objective}\"" : " for {$subject}";
+
+        $fallbacks = [
+            'teaching_strategies' => [
+                'suggestions' => [
+                    "Open with a short Think-Pair-Share so learners activate prior knowledge{$context} before direct instruction begins.",
+                    'Use guided practice with scaffolding: model one example, do one together, then release learners to try in pairs.',
+                    'Close with formative questioning that names the PPST-aligned practice to watch for during the observation.',
+                ],
+                'analysis' => "These strategies keep the lesson learner-centered{$context} while leaving the teacher's own lesson design intact.",
+            ],
+            'instructional_materials' => [
+                'suggestions' => [
+                    'Prepare a one-page graphic organizer learners can fill in during the lesson discussion.',
+                    'Ready a short slide deck or Manila-paper visual that states the objective and key steps of the lesson.',
+                    'Bring realia or localized objects related to the topic so abstract ideas become tangible.',
+                ],
+                'analysis' => "Each resource uses materials ordinarily available in a public school and directly supports {$subject} learning.",
+            ],
+            'assessment_activity' => [
+                'suggestions' => [
+                    'End with a 3-minute exit ticket asking learners to state the concept in their own words.',
+                    'Run a quick pair-share check midway: partners explain the idea to each other while the teacher listens in.',
+                    'Use a 4-station carousel with one short task per station to check mastery across the class.',
+                ],
+                'analysis' => "These checks are quick, formative, and feasible within a normal Grade {$gradeLevel} class period.",
+            ],
+        ];
+
+        $fallback = $fallbacks[$field];
+
+        return [
+            'suggestions' => $fallback['suggestions'],
+            'analysis' => $fallback['analysis'],
+            'fallback' => true,
+        ];
+    }
+
     protected function buildFallbackPreConferenceSuggestions(
         string $teacherName,
         string $subject,

@@ -62,6 +62,19 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
+    {{-- Friendly pop-up when the rating sheet comes back with validation errors
+         (e.g. submitted with no indicator rated or marked). --}}
+    @if($errors->any())
+        <script>
+            setTimeout(function () {
+                if (typeof window.showToast !== 'function') return;
+                window.showToast('warning', 'Almost there! Please rate at least one indicator before continuing.');
+                @foreach($errors->all() as $formError)
+                    window.showToast('error', @json($formError));
+                @endforeach
+            }, 500);
+        </script>
+    @endif
     <nav aria-label="Breadcrumb" class="mb-4 sm:mb-6 text-sm">
         <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 dark:text-gray-400">
             <li class="shrink-0"><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Evaluations</a></li>

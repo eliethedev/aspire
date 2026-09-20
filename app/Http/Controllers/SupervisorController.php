@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SupervisorController extends Controller
 {
@@ -123,6 +124,7 @@ class SupervisorController extends Controller
             ->avg('overall_score');
 
         $trend = $prevAvg ? ($stats['average_score'] - round($prevAvg, 2)) : 0;
+        $trendLabel = ($trend > 0 ? '+' : '').number_format($trend, 1);
 
         // Teachers that need the supervisor's attention (dashboard card -> teachers list).
         $attention = app(TeacherAttentionService::class)->forSchool($user->school_id);
@@ -132,7 +134,7 @@ class SupervisorController extends Controller
             ->values();
 
         return view('supervisor.dashboard', compact(
-            'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend',
+            'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend', 'trendLabel',
             'attention', 'needsAttention'
         ));
     }
@@ -838,7 +840,7 @@ class SupervisorController extends Controller
             'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
             'observee_id' => ['required'],
             'school_year' => ['nullable', 'string', 'max:20'],
-            'quarter' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'quarter' => ['nullable', 'integer', 'min:1', 'max:3'],
         ]);
 
         $observeeType = $validated['observation_type'] === 'teacher_observation'
@@ -930,7 +932,7 @@ class SupervisorController extends Controller
             'observation_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'school_year' => ['nullable', 'string'],
-            'quarter' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'quarter' => ['nullable', 'integer', 'min:1', 'max:3'],
             'observation_number' => ['nullable', 'integer', 'min:1', 'max:2'],
             'subject' => ['nullable', 'string'],
             'grade_level' => ['nullable', 'string'],
@@ -1807,6 +1809,18 @@ class SupervisorController extends Controller
             'star_notes' => ['nullable', 'string'],
             'supervisor_notes' => ['nullable', 'string'],
         ]);
+
+        // Reject a completely blank rating sheet: at least one indicator must
+        // have a numeric rating or be explicitly marked NO / N/A. Otherwise
+        // the observation completes with no score and empty dashboard results.
+        $hasSelection = collect($validated['ratings'])->contains(
+            fn ($item) => ! empty($item['rating']) || ! empty($item['not_observed']) || ! empty($item['not_applicable'])
+        );
+        if (! $hasSelection) {
+            throw ValidationException::withMessages([
+                'ratings' => 'Please rate at least one indicator (or mark it NO / N/A) before continuing to the post-conference.',
+            ]);
+        }
 
         // Delete only this user's existing ratings (preserve school head EPOC ratings)
         $observation->cotRatings()->delete();
@@ -2901,7 +2915,7 @@ class SupervisorController extends Controller
 
         $callback = function () use ($observations) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Type', 'Observee', 'Observer', 'Date', 'Stage', 'Status', 'Score', 'Subject', 'Grade Level', 'School Year', 'Quarter', 'Created At']);
+            fputcsv($handle, ['ID', 'Type', 'Observee', 'Observer', 'Date', 'Stage', 'Status', 'Score', 'Subject', 'Grade Level', 'School Year', 'Term', 'Created At']);
 
             foreach ($observations as $obs) {
                 fputcsv($handle, [
@@ -3212,6 +3226,48 @@ class SupervisorController extends Controller
         return response()->json([
             'discussion_notes' => $data['discussion_notes'] ?? '',
             'finalized_focus' => $data['finalized_focus'] ?? '',
+        ]);
+    }
+
+    /**
+     * Per-field AI suggestions for the "Things to Think About" boxes.
+     * Advisory only: the supervisor reviews and applies each suggestion.
+     */
+    public function generateThingsSuggestions(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $validated = $request->validate([
+            'field' => ['required', 'in:teaching_strategies,instructional_materials,assessment_activity'],
+        ]);
+
+        try {
+            $data = $this->aiFeedback->generateThingsToThinkAbout($observation, $validated['field'], templateFallback: true);
+        } catch (AIRateLimitException $e) {
+            return response()->json(AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        if ($data === null || empty($data['suggestions'])) {
+            return response()->json(AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        app(AuditLogService::class)->logAi(
+            'things_suggestions_generated',
+            "Things-to-think-about AI suggestions ({$validated['field']}) generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_conference', 'field' => $validated['field'], 'observation_id' => $observation->id],
+        );
+
+        return response()->json([
+            'field' => $validated['field'],
+            'suggestions' => array_values($data['suggestions']),
+            'analysis' => $data['analysis'] ?? '',
+            'fallback' => (bool) ($data['fallback'] ?? false),
         ]);
     }
 

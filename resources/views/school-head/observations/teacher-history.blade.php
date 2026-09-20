@@ -70,7 +70,7 @@
             <div class="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <a href="{{ route('school-head.observations.show', $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50">View</a>
                 @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'school-head.observations.preObservationPlanning','pre_conference'=>'school-head.observations.preConference','observation'=>'school-head.observations.observation','post_conference'=>$observation->status!=='completed'?'school-head.observations.postConference':null, default=>null }; @endphp
-                @if($continueRoute)
+                @if($continueRoute && ($observation->viewer_can_act ?? true))
                     <a href="{{ route($continueRoute, $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">Continue</a>
                 @endif
             </div>

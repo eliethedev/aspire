@@ -7,7 +7,7 @@
     $schoolName = $user->school?->name ?? ($schoolHead?->school?->name ?? 'Your School');
     $syLabel = $schoolYear ?? (now()->format('Y') . '-' . (now()->year + 1));
     $firstName = explode(' ', trim($user->name ?? ''))[0] ?? 'School Head';
-    $cycleLabel = 'Quarter ' . ($quarter ?? 1) . ' · SY ' . $syLabel;
+    $cycleLabel = 'Term ' . ($quarter ?? 1) . ' · SY ' . $syLabel;
 @endphp
 
 <div class="max-w-7xl mx-auto space-y-4 px-3 py-3 sm:px-1">

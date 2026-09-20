@@ -348,11 +348,34 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AI Comparison (Plan vs Actual)</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? 'AI-generated comparison between the preparation plan and actual supervision session.' : 'AI-generated comparison between the lesson plan and actual classroom observation.' }}</p>
-                            <textarea name="ai_comparison" id="ai_comparison_textarea" rows="4"
-                                      class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                      placeholder="AI-generated comparison analysis will appear here...">{{ old('ai_comparison', $postConference?->ai_comparison) }}</textarea>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">AI Comparison (Plan vs Actual)</label>
+                                <button type="button" id="toggle-comparison-editor-btn"
+                                        class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Edit text</button>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">AI-generated comparison between the lesson plan and actual classroom observation.</p>
+                            @php $shComparisonSections = $postConference?->comparisonSections() ?? []; @endphp
+                            <div id="ai-comparison-preview">
+                                @if(!empty($shComparisonSections))
+                                    @if(isset($shComparisonSections['raw']))
+                                        <div class="rounded-xl border border-purple-100 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-900/10 px-4 py-3">
+                                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ $shComparisonSections['raw'] }}</p>
+                                        </div>
+                                    @else
+                                        {!! view('partials.ai-insights-display', ['sections' => $shComparisonSections])->render() !!}
+                                    @endif
+                                @else
+                                    <div class="rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 px-4 py-6 text-center" data-comparison-empty>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">No comparison yet.</p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Generate with AI, or write your own below.</p>
+                                    </div>
+                                @endif
+                            </div>
+                            <div id="comparison-editor-wrap" class="{{ !empty($shComparisonSections) ? 'hidden' : '' }} mt-3">
+                                <textarea name="ai_comparison" id="ai_comparison_textarea" rows="6"
+                                          class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                          placeholder="AI-generated comparison analysis will appear here...">{{ old('ai_comparison', $postConference?->comparisonText()) }}</textarea>
+                            </div>
                             <button type="button" id="generate-ai-comparison-btn"
                                     class="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm rounded-lg font-medium transition-colors inline-flex items-center gap-2">
                                 <svg id="ai-comparison-spinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,6 +528,122 @@
 </div>
 @push('scripts')
 <script>
+document.getElementById('toggle-comparison-editor-btn')?.addEventListener('click', function() {
+    document.getElementById('comparison-editor-wrap')?.classList.toggle('hidden');
+});
+
+// Client-side organizer mirroring PostConference::comparisonSections() so the
+// preview stays structured right after generating or typing.
+function renderComparisonPreview(text) {
+    var container = document.getElementById('ai-comparison-preview');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!text || !text.trim()) {
+        var empty = document.createElement('div');
+        empty.className = 'rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 px-4 py-6 text-center';
+        var p1 = document.createElement('p');
+        p1.className = 'text-sm text-gray-500 dark:text-gray-400';
+        p1.textContent = 'No comparison yet.';
+        var p2 = document.createElement('p');
+        p2.className = 'text-xs text-gray-400 dark:text-gray-500 mt-1';
+        p2.textContent = 'Generate with AI, or write your own below.';
+        empty.appendChild(p1);
+        empty.appendChild(p2);
+        container.appendChild(empty);
+        return;
+    }
+    function isHeading(line) {
+        var m = line.match(/^\*\*(.+?)\*\*:?\s*$/) || line.match(/^#{1,6}\s+(.+?)\s*:?\s*$/);
+        if (m) return m[1].trim();
+        if (/^[^:]{3,80}:\s*$/.test(line) && /[a-zA-Z]/.test(line) && (line.match(/ /g) || []).length <= 7) {
+            return line.replace(/:\s*$/, '').trim();
+        }
+        return null;
+    }
+    function prettyTitle(s) {
+        return s.replace(/_/g, ' ').replace(/\w\S*/g, function (w) { return w.charAt(0).toUpperCase() + w.slice(1); });
+    }
+    var sections = [];
+    var current = null;
+    text.split(/\r?\n/).forEach(function (raw) {
+        var line = raw.trim();
+        if (!line) return;
+        var heading = isHeading(line);
+        if (heading !== null) {
+            current = { title: heading, items: [], prose: [] };
+            sections.push(current);
+            return;
+        }
+        if (!current) {
+            current = { title: null, items: [], prose: [] };
+            sections.push(current);
+        }
+        var bullet = line.match(/^(?:[-*\u2022]|\d+[.)])\s+(.+)$/);
+        if (bullet) current.items.push(bullet[1].trim().replace(/^\*\*(.+?)\*\*$/, '$1'));
+        else current.prose.push(line.replace(/\*\*(.+?)\*\*/g, '$1'));
+    });
+    if (!sections.length) {
+        var raw = document.createElement('div');
+        raw.className = 'rounded-xl border border-purple-100 dark:border-purple-900/40 bg-purple-50/50 dark:bg-purple-900/10 px-4 py-3';
+        var rawP = document.createElement('p');
+        rawP.className = 'text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap';
+        rawP.textContent = text;
+        raw.appendChild(rawP);
+        container.appendChild(raw);
+        return;
+    }
+    var list = document.createElement('div');
+    list.className = 'space-y-3 min-w-0';
+    sections.forEach(function (sec) {
+        var card = document.createElement('div');
+        card.className = 'rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white/60 dark:bg-gray-800/50 overflow-hidden';
+        if (sec.title) {
+            var head = document.createElement('div');
+            head.className = 'flex items-center gap-2 px-3 py-2 border-b border-indigo-200 dark:border-indigo-800';
+            var label = document.createElement('span');
+            label.className = 'text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide';
+            label.textContent = prettyTitle(sec.title);
+            head.appendChild(label);
+            card.appendChild(head);
+        }
+        var body = document.createElement('div');
+        body.className = 'px-4 py-3 space-y-2';
+        sec.prose.forEach(function (para) {
+            var p = document.createElement('p');
+            p.className = 'text-sm text-gray-600 dark:text-gray-300 leading-relaxed';
+            p.textContent = para;
+            body.appendChild(p);
+        });
+        if (sec.items.length) {
+            var ul = document.createElement('ul');
+            ul.className = 'space-y-2.5';
+            sec.items.forEach(function (item) {
+                var li = document.createElement('li');
+                li.className = 'flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed';
+                var dot = document.createElement('span');
+                dot.className = 'mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0';
+                var span = document.createElement('span');
+                span.className = 'min-w-0';
+                span.textContent = item;
+                li.appendChild(dot);
+                li.appendChild(span);
+                ul.appendChild(li);
+            });
+            body.appendChild(ul);
+        }
+        card.appendChild(body);
+        list.appendChild(card);
+    });
+    container.appendChild(list);
+}
+
+var shComparisonPreviewTimer = null;
+document.getElementById('ai_comparison_textarea')?.addEventListener('input', function() {
+    clearTimeout(shComparisonPreviewTimer);
+    var value = this.value;
+    shComparisonPreviewTimer = setTimeout(function() { renderComparisonPreview(value); }, 600);
+});
+
 document.getElementById('generate-ai-comparison-btn')?.addEventListener('click', function() {
     const btn = this;
     const spinner = document.getElementById('ai-comparison-spinner');
@@ -526,6 +665,7 @@ document.getElementById('generate-ai-comparison-btn')?.addEventListener('click',
     .then(data => {
         if (data.ai_comparison) {
             textarea.value = data.ai_comparison;
+            renderComparisonPreview(data.ai_comparison);
         } else if (data.error) {
             alert(data.error);
         }

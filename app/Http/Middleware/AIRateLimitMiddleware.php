@@ -57,8 +57,12 @@ class AIRateLimitMiddleware
             ]);
         }
 
-        return back()->withErrors([
-            'rate_limit' => "AI service is busy. Please try again in {$availableIn} seconds.",
-        ]);
+        // The error bag preserves field-level handling; the flash key makes the
+        // rejection visible as a toast on layouts that render flash messages.
+        return back()
+            ->withErrors([
+                'rate_limit' => "AI service is busy. Please try again in {$availableIn} seconds.",
+            ])
+            ->with('error', "AI service is busy. Please try again in {$availableIn} seconds.");
     }
 }
