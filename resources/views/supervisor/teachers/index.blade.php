@@ -96,7 +96,7 @@
             <i class="fas fa-bell text-xs"></i> Needs attention
             <span class="text-xs px-1.5 py-0.5 rounded-full {{ $attentionFilter ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">{{ $needsAttentionCount }}</span>
         </a>
-        @if(request('search'))<span class="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium"><i class="fas fa-magnifying-glass text-[11px]"></i> ΓÇ£{{ request('search') }}ΓÇ¥</span>@endif
+        @if(request('search'))<span class="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium"><i class="fas fa-magnifying-glass text-[11px]"></i> “{{ request('search') }}”</span>@endif
     </div>
 
     {{-- Search & Filters --}}

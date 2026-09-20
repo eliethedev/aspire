@@ -1,10 +1,19 @@
+@php
+    // Accept values passed either as view data (second arg of response()->view)
+    // or as Blade sections defined by the child error page.
+    $title = $title ?? trim($__env->yieldContent('title')) ?: 'Error';
+    $heading = $heading ?? trim($__env->yieldContent('heading')) ?: 'Error';
+    $message = $message ?? trim($__env->yieldContent('message')) ?: 'Something went wrong.';
+    $iconBg = $iconBg ?? trim($__env->yieldContent('iconBg')) ?: 'bg-blue-50 border border-blue-100';
+    $icon = $icon ?? $__env->yieldContent('icon');
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? config('app.name', 'ASPIRE') }} - {{ $heading ?? 'Error' }}</title>
+    <title>{{ $title }} - {{ $heading }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -45,22 +54,23 @@
             ASPIRE
         </a>
         <span class="text-xs sm:text-sm text-gray-400 font-medium">
-            {{ $heading ?? 'Error' }}
+            {{ $heading }}
         </span>
     </nav>
 
     <main class="flex-1 flex items-center justify-center p-4">
         <div class="w-full max-w-md glass-card rounded-2xl p-8 sm:p-10 text-center">
-            <div class="float-icon inline-flex items-center justify-center w-20 h-20 rounded-2xl {{ $iconBg ?? 'bg-blue-50 border border-blue-100' }} mb-6">
-                {!! $icon ?? '' !!}
+            <div class="float-icon inline-flex items-center justify-center w-20 h-20 rounded-2xl {{ $iconBg }} mb-6">
+                {!! $icon !!}
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                {{ $title ?? 'Error' }}
+                {{ $title }}
             </h1>
             <p class="text-gray-500 text-sm sm:text-base leading-relaxed mb-8">
-                {{ $message ?? 'Something went wrong.' }}
+                {{ $message }}
             </p>
             @yield('actions')
+            @stack('actions')
         </div>
     </main>
 

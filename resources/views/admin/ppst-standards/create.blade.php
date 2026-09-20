@@ -24,7 +24,7 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Add PPST Standard</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">Create a new indicator in the PPST library. The <span class="font-semibold text-gray-700 dark:text-gray-300">strand is derived automatically</span> from the indicator code (e.g. <span class="font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border text-xs">1.1.2</span> ΓåÆ Strand <span class="font-mono bg-indigo-50 dark:bg-indigo-900/20 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-300 text-xs">1.1</span>).</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">Create a new indicator in the PPST library. The <span class="font-semibold text-gray-700 dark:text-gray-300">strand is derived automatically</span> from the indicator code (e.g. <span class="font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border text-xs">1.1.2</span> → Strand <span class="font-mono bg-indigo-50 dark:bg-indigo-900/20 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-300 text-xs">1.1</span>).</p>
                     </div>
                 </div>
             </div>
@@ -64,7 +64,7 @@
                                        class="w-full pl-9 pr-24 py-2.5 rounded-xl border {{ $errors->has('indicator_code') ? 'border-red-300 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 focus:bg-white dark:focus:bg-gray-900' }} text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono transition-all" required>
                                 <span class="absolute inset-y-0 right-1 flex items-center">
                                     <span x-show="strand" x-text="'Strand ' + strand" class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 text-xs font-mono font-bold"></span>
-                                    <span x-show="!strand" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 text-xs">ΓÇö</span>
+                                    <span x-show="!strand" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 text-xs">—</span>
                                 </span>
                             </div>
                             <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Format <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border text-xs">D.S.I</span> — 1–2 digits per segment (e.g. 3.2.1).</p>
@@ -162,9 +162,9 @@
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">How this indicator will appear in the library.</p>
                 <div class="mt-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 p-4">
                     <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 font-mono font-bold text-xs" x-text="code || 'ΓÇö'"></span>
+                        <span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 font-mono font-bold text-xs" x-text="code || '—'"></span>
                         <span class="px-2 py-1 rounded-lg border text-xs font-medium" :class="isActive ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700'" x-text="isActive ? 'Active' : 'Inactive'"></span>
-                        <span class="px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-500" x-text="strand ? 'Strand ' + strand : 'Strand ΓÇö'"></span>
+                        <span class="px-2 py-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs text-gray-500" x-text="strand ? 'Strand ' + strand : 'Strand —'"></span>
                     </div>
                     <p class="mt-3 text-sm leading-relaxed text-gray-800 dark:text-gray-200" x-text="description || 'Indicator description will appear here…'"></p>
                     <p class="mt-2 text-xs text-gray-400 dark:text-gray-500 truncate" x-text="domain || 'Domain will appear here'"></p>

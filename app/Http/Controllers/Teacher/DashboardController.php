@@ -84,6 +84,18 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
+        // Focus observation: the current schedule takes priority (nearest
+        // upcoming scheduled/in-progress), otherwise the latest scored one,
+        // otherwise the latest observation overall. Cycle Progress reflects
+        // THIS observation only — not an aggregate of all observations.
+        $focusObservation = $nextObservation
+            ?? $recentObservation
+            ?? (clone $observationsQuery)->with('observer')->latest('observation_date')->first();
+
+        if ($focusObservation) {
+            $focusObservation->loadCount('cotRatings');
+        }
+
         $stageLabels = [
             'pre_observation_planning' => 'Pre-Observation Planning',
             'pre_conference' => 'Pre-Conference',
@@ -100,15 +112,13 @@ class DashboardController extends Controller
         ];
 
         foreach ($stageLabels as $key => $label) {
-            $relation = match ($key) {
-                'pre_observation_planning' => 'preObservationPlanning',
-                'pre_conference' => 'preConference',
-                'post_conference' => 'postConference',
-                default => null,
+            // Stage completion is based on the focus observation only.
+            $done = match ($key) {
+                'pre_observation_planning' => $focusObservation && (bool) $focusObservation->preObservationPlanning,
+                'pre_conference' => $focusObservation && (bool) $focusObservation->preConference,
+                'post_conference' => $focusObservation && (bool) $focusObservation->postConference,
+                default => $focusObservation && ($focusObservation->cot_ratings_count ?? 0) > 0,
             };
-            $done = $relation
-                ? $obs->contains(fn($o) => $o->relationLoaded($relation) && $o->$relation)
-                : $obs->contains(fn($o) => $o->cotRatings()->exists());
             $stageStatus[$key] = [
                 'done' => $done,
                 'label' => $label,
@@ -117,7 +127,7 @@ class DashboardController extends Controller
         }
 
         return view('teacher.dashboard', compact(
-            'stats', 'recentObservation', 'nextObservation', 'cotScores', 'cotLabels',
+            'stats', 'recentObservation', 'nextObservation', 'focusObservation', 'cotScores', 'cotLabels',
             'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus'
         ));
     }

@@ -47,18 +47,6 @@
             <p class="mt-0.5 text-md text-gray-500 dark:text-gray-400 leading-none">Track and manage observations.</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-0.5" role="group" aria-label="List layout">
-                <button type="button" @click="setView('grid')" :aria-pressed="(view === 'grid').toString()" title="Grid view" aria-label="Grid view"
-                        class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
-                        :class="view === 'grid' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                </button>
-                <button type="button" @click="setView('table')" :aria-pressed="(view === 'table').toString()" title="Table view" aria-label="Table view"
-                        class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
-                        :class="view === 'table' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                </button>
-            </div>
             <a href="{{ route('supervisor.observations.create') }}"
                class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-md font-semibold shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
@@ -169,6 +157,22 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- View toggle — below filter -->
+    <div class="flex items-center justify-end mb-2">
+        <div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-0.5" role="group" aria-label="List layout">
+            <button type="button" @click="setView('grid')" :aria-pressed="(view === 'grid').toString()" title="Cards view" aria-label="Cards view"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+                    :class="view === 'grid' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </button>
+            <button type="button" @click="setView('table')" :aria-pressed="(view === 'table').toString()" title="Table view" aria-label="Table view"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+                    :class="view === 'table' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
         </div>
     </div>
 

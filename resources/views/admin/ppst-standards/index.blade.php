@@ -42,7 +42,7 @@
         </a>
         <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
         <span class="text-gray-900 dark:text-gray-100 font-medium">PPST Standards</span>
-        <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain ΓåÆ Strand ΓåÆ Indicator</span>
+        <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain → Strand → Indicator</span>
     </nav>
 
     <!-- Header -->

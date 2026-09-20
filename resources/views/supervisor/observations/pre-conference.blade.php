@@ -274,8 +274,53 @@
                 </div>
             </div>
 
-            <!-- Teacher Info Card -->
+            <!-- Actions -->
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mb-4">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Classroom Observation when the conversation is complete.</span>
+                    </div>
+                    <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-2 sm:gap-3">
+                    <button type="submit" name="save_draft" value="1" :disabled="submitting"
+                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
+                            class="flex-1 min-w-0 sm:min-w-[140px] min-h-[44px] px-3 sm:px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 font-medium text-[13px] lg:text-sm text-center leading-tight transition-colors">
+                        <span x-show="!submitting" class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Save Draft
+                        </span>
+                        <span x-show="submitting" class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Saving...
+                        </span>
+                    </button>
+                    <button type="submit" :disabled="submitting"
+                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
+                            class="flex-[2_2_0%] min-w-0 sm:min-w-[200px] lg:min-w-0 min-h-[44px] px-3 sm:px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-[13px] lg:text-sm leading-tight text-center shadow-sm transition-colors">
+                        <span x-show="!submitting" class="flex items-center justify-center gap-1.5 text-center leading-tight">
+                            <span class="sm:hidden lg:inline">Save &amp; Continue to Classroom Observation</span>
+                            <span class="hidden sm:inline lg:hidden">Save &amp; Continue</span>
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </span>
+                        <span x-show="submitting" class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Saving...
+                        </span>
+                    </button>
+                    <button type="button" onclick="openCancelModal()"
+                            class="sm:flex-none lg:flex-initial min-h-[44px] px-3 sm:px-4 py-2.5 rounded-lg border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 font-medium text-[13px] lg:text-sm leading-tight text-center transition-colors">
+                        Cancel Observation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - stacks below main content on mobile, sticky sidebar on md+ -->
+        <aside class="min-w-0 space-y-4 sm:space-y-6 md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto sidebar-scroll">
+            <!-- Teacher Information -->
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-5 border border-gray-100 dark:border-gray-800">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Teacher Information</h3>
                 <div class="space-y-3">
                     <div>
@@ -292,86 +337,42 @@
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($observation->status) }}</span>
+                        <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($observation->status) }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Conversation Checklist -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-5 border border-gray-100 dark:border-gray-800">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Conversation Checklist</h3>
-                <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="0" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Lesson information reviewed</label>
+                <ul class="space-y-2" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="0" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Lesson information reviewed</label>
                     </li>
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="1" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teaching strategies discussed</label>
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="1" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teaching strategies discussed</label>
                     </li>
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="2" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Instructional materials confirmed</label>
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="2" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Instructional materials confirmed</label>
                     </li>
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="3" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teacher concerns addressed</label>
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="3" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Teacher concerns addressed</label>
                     </li>
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="4" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Assessment and activities confirmed</label>
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="4" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Assessment and activities confirmed</label>
                     </li>
-                    <li class="agenda-item flex items-center gap-3 min-h-[44px]">
-                        <input type="checkbox" data-index="5" class="w-5 h-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
-                        <label class="flex-1 text-[13px] text-gray-600 dark:text-gray-400 cursor-pointer select-none">Observation schedule confirmed</label>
+                    <li class="agenda-item flex items-center gap-2.5 min-h-[36px]">
+                        <input type="checkbox" data-index="5" class="w-4 h-4 shrink-0 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer">
+                        <label class="flex-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">Observation schedule confirmed</label>
                     </li>
                 </ul>
             </div>
 
-            <!-- Actions -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mb-4">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-4 h-4 mt-0.5 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Classroom Observation when the conversation is complete.</span>
-                    </div>
-                    <p id="autosave-status" data-autosave-status class="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0"></p>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button type="submit" name="save_draft" value="1" :disabled="submitting"
-                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
-                            class="flex-1 min-h-[44px] px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 font-medium text-sm text-center transition-colors">
-                        <span x-show="!submitting" class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Save Draft
-                        </span>
-                        <span x-show="submitting" class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Saving...
-                        </span>
-                    </button>
-                    <button type="submit" :disabled="submitting"
-                            :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
-                            class="flex-[2] min-h-[44px] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
-                        <span x-show="!submitting" class="flex items-center justify-center gap-2">
-                            Save &amp; Continue to Classroom Observation
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                        </span>
-                        <span x-show="submitting" class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Saving...
-                        </span>
-                    </button>
-                    <button type="button" onclick="openCancelModal()"
-                            class="min-h-[44px] px-4 py-2.5 rounded-lg border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 font-medium text-sm transition-colors">
-                        Cancel Observation
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column - stacks below main content on mobile, sticky sidebar on md+ -->
-        <aside class="min-w-0 space-y-4 sm:space-y-6 md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto sidebar-scroll">
             <!-- Observation Form Info -->
             @if($planning?->observation_tool)
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
