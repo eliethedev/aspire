@@ -189,12 +189,15 @@ class ObservationController extends Controller
             );
         }
 
-        // Notify the school head(s) of the teacher's school
+        // Notify the school head(s) of the teacher's school. They must land on
+        // the school-head route: the supervisor route bounces them on the
+        // role middleware, and school-head observations show explicitly
+        // authorizes co-observers and same-school heads (read-only).
         $school = $teacher->school;
         if ($school) {
             $schoolHeads = $school->users()->where('role', 'school_head')->get();
             foreach ($schoolHeads as $schoolHead) {
-                $link = route('supervisor.observations.show', $observation);
+                $link = route('school-head.observations.show', $observation);
                 $this->notificationService->notifyLessonPlanUploaded($schoolHead, $teacherName, $link);
                 $this->mailer->sendGenericEmailLater(
                     $schoolHead->email, $schoolHead->name, $subject,

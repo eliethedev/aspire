@@ -58,7 +58,7 @@
                 </div>
                 <div class="bg-slate-50 dark:bg-gray-800 rounded-lg px-4 py-3">
                     <p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase">School</p>
-                    <p class="mt-0.5 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $schoolHead->school?->name ?? '—' }}</p>
+                    <p class="mt-0.5 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $schoolHead->school_name ?? '—' }}</p>
                 </div>
                 <div class="bg-slate-50 dark:bg-gray-800 rounded-lg px-4 py-3">
                     <p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase">Total Observations</p>

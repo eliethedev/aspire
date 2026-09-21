@@ -108,6 +108,16 @@
     </script>
 @endif
 <div class="max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="observationForm()" x-cloak>
+    {{-- Offline-first (Architecture B): cache before the school visit, encode with zero connectivity. --}}
+    <div class="mb-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+        <div class="flex flex-wrap items-center gap-2">
+            <strong>Low-connectivity mode:</strong>
+            <span>1) While online, cache data · 2) Encode offline in the field · 3) Sync when signal returns.</span>
+            <button type="button" id="aspire-cache-offline" class="aspire-cache-offline ml-auto px-3 py-1.5 rounded-md bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">Cache offline data</button>
+            <button type="button" id="aspire-sync-now" class="aspire-sync-now px-3 py-1.5 rounded-md bg-white text-indigo-700 text-xs font-semibold border border-indigo-300 hover:bg-indigo-100">Sync now</button>
+            <a href="{{ route('supervisor.observations.offline') }}" class="px-3 py-1.5 rounded-md bg-white text-indigo-700 text-xs font-semibold border border-indigo-300 hover:bg-indigo-100">Open offline capture</a>
+        </div>
+    </div>
     <div class="mb-4">
         <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — <span x-text="visibleSteps.length - 1 + ' quick steps'"></span>.</p>

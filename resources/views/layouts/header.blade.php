@@ -35,6 +35,17 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
           </svg>
       </button>
+      @if(auth()->check() && auth()->user()->role === 'supervisor')
+      <!-- Offline status pill (Architecture B): ambient connectivity + pending sync count -->
+      <span id="aspire-net-pill" class="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 px-2.5 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300" title="Offline sync status">
+        <span id="aspire-net-dot" class="h-2 w-2 rounded-full bg-gray-400"></span>
+        <span id="aspire-net-label">Checking…</span>
+        <span id="aspire-net-count" class="hidden items-center rounded-full bg-amber-100 dark:bg-amber-900/40 px-1.5 py-px text-[11px] font-bold text-amber-800 dark:text-amber-200"></span>
+      </span>
+      <button type="button" class="aspire-sync-now hidden sm:inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors" title="Push queued observations to the server">
+        Sync
+      </button>
+      @endif
       @php
         $user = Auth::user();
         $initials = strtoupper(substr($user->first_name ?? $user->name, 0, 1) . substr($user->last_name ?? '', 0, 1));

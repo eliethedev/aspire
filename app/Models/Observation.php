@@ -16,6 +16,12 @@ class Observation extends Model
     use HasFactory, SchoolAware;
 
     protected $fillable = [
+        'client_id',
+        'sync_source',
+        'sync_status',
+        'device_updated_at',
+        'ai_status',
+        'server_version',
         'observer_id',
         'observer_type',
         'observee_id',
@@ -54,6 +60,7 @@ class Observation extends Model
     ];
 
     protected $casts = [
+        'device_updated_at' => 'datetime',
         'observation_date' => 'date',
         'overall_score' => 'decimal:2',
         'evidence_files' => 'array',

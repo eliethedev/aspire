@@ -97,6 +97,7 @@
                 @endisset
 
                 <!-- Page Content -->
+                @include('partials.offline-sync')
                 <main id="main-content" class="p-4 sm:p-6">
                     <div class="mx-auto">
                         @yield('content')

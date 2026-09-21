@@ -240,6 +240,7 @@
                             <div class="flex flex-wrap items-center gap-1 mt-0.5">
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border {{ $isTeacher ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' }}">{{ $roleLabel }}</span>
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border {{ $statusConfig['bg'] }}">{{ $statusConfig['label'] }}</span>
+                                @include('partials.sync-badges', ['observation' => $observation])
                             </div>
                         </div>
                     </div>
@@ -402,6 +403,7 @@
                         </td>
                         <td class="px-3 py-2.5">
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border {{ $statusConfig['bg'] }}">{{ $statusConfig['label'] }}</span>
+                            <span class="inline-flex flex-wrap items-center gap-1 mt-0.5">@include('partials.sync-badges', ['observation' => $observation])</span>
                             @if($observation->schoolHead)
                                 <p class="text-[11px] text-purple-600 dark:text-purple-300 truncate mt-0.5 leading-tight">SH: {{ $observation->schoolHead->name }}</p>
                             @endif

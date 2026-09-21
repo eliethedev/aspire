@@ -159,7 +159,7 @@
                         </div>
                         <p class="text-sm text-slate-500 dark:text-gray-400 truncate">{{ $shEmail }}</p>
                         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
-                            @if($schoolHead->school)<span class="inline-flex items-center gap-1"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $schoolHead->school->name }}</span>@endif
+                            @if($schoolHead->school_name)<span class="inline-flex items-center gap-1"><i class="fas fa-school text-[11px] text-slate-400 dark:text-gray-500"></i> {{ $schoolHead->school_name }}</span>@endif
                         </div>
                     </div>
                 </div>
@@ -235,7 +235,7 @@
                             </div>
                         </td>
                         <td class="px-3 py-2.5">
-                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->school ? $schoolHead->school->name : '—' }}</span>
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->school_name ?? '—' }}</span>
                         </td>
                         <td class="px-3 py-2.5 whitespace-nowrap">
                             <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $schoolHead->position_level ? $schoolHead->position_level_label : '—' }}</span>

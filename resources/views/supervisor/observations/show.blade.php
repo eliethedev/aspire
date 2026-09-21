@@ -109,6 +109,16 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-500/20">{{ $stageConfig[$observation->stage]['label'] ?? ucfirst(str_replace('_',' ', $observation->status)) }}</span>
                         @endif
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-500/20 border border-indigo-100 dark:border-indigo-500/20">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School Head' }}</span>
+                        @include('partials.sync-badges', ['observation' => $observation])
+                        @if($observation->ai_status === 'failed')
+                            <form method="POST" action="{{ route('supervisor.observations.retry-ai', $observation) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-colors" title="Requeue AI suggestion generation">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    Retry AI
+                                </button>
+                            </form>
+                        @endif
                     </div>
                     <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">

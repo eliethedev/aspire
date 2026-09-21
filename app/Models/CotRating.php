@@ -14,6 +14,8 @@ class CotRating extends Model
     protected $table = 'cot_ratings';
 
     protected $fillable = [
+        'client_id',
+        'device_updated_at',
         'observation_id',
         'indicator_code',
         'domain',
@@ -25,6 +27,7 @@ class CotRating extends Model
     ];
 
     protected $casts = [
+        'device_updated_at' => 'datetime',
         'rating' => 'integer',
         'not_observed' => 'boolean',
         'not_applicable' => 'boolean',

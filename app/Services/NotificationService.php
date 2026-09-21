@@ -6,6 +6,7 @@ use App\Enums\NotificationPriority;
 use App\Enums\NotificationType;
 use App\Models\CareerAdvancement;
 use App\Models\Notification;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -230,10 +231,15 @@ class NotificationService
      * Notify the ratee (teacher) and the school head(s) of the same school
      * whenever a career readiness assessment is saved or edited.
      */
-    public function notifyCareerAssessment(User $ratee, ?string $schoolId, string $statusLabel, string $link, bool $edited = false): void
+    public function notifyCareerAssessment(User $ratee, ?string $schoolId, string $statusLabel, bool $edited = false): void
     {
         $action = $edited ? 'updated' : 'recorded';
         $title = $edited ? 'Career Readiness Assessment Updated' : 'Career Readiness Assessment';
+
+        // Each recipient must land on a route their role can actually open —
+        // the supervisor link this method receives would bounce teachers and
+        // school heads on the role middleware.
+        $teacher = Teacher::where('user_id', $ratee->id)->first();
 
         $this->notify(
             $ratee,
@@ -241,7 +247,7 @@ class NotificationService
             $title,
             "Your career readiness has been assessed as \"{$statusLabel}\".",
             null,
-            $link
+            route('teacher.dashboard')
         );
 
         if ($schoolId) {
@@ -250,6 +256,10 @@ class NotificationService
                 ->where('school_id', $schoolId)
                 ->get();
 
+            $headLink = $teacher
+                ? route('school-head.teachers.show', $teacher)
+                : route('school-head.dashboard');
+
             foreach ($schoolHeads as $schoolHead) {
                 $this->notify(
                     $schoolHead,
@@ -257,7 +267,7 @@ class NotificationService
                     $title,
                     "Career readiness for {$ratee->name} has been {$action} as \"{$statusLabel}\".",
                     null,
-                    $link
+                    $headLink
                 );
             }
         }

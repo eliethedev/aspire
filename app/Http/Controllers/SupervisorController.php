@@ -321,7 +321,6 @@ class SupervisorController extends Controller
             $teacher->user,
             $teacher->user->school_id,
             CareerProgressionAssessment::statusLabelFor($data['status']),
-            route('supervisor.teachers.show', $teacher).'#readiness',
             $edited
         );
     }
@@ -579,7 +578,7 @@ class SupervisorController extends Controller
         $user = Auth::user();
 
         $schoolHeads = SchoolHeadProfile::query()
-            ->with(['user', 'school'])
+            ->with(['user.school', 'school'])
             ->withCount(['observations as total_observations' => function ($q) {
                 $q->where('observee_type', SchoolHeadProfile::class);
             }])
@@ -620,7 +619,7 @@ class SupervisorController extends Controller
     {
         $this->assertSchoolHeadBelongsToSupervisorSchool($schoolHead);
 
-        $schoolHead->load(['user', 'school']);
+        $schoolHead->load(['user.school', 'school']);
 
         $observations = Observation::where('observee_id', $schoolHead->id)
             ->where('observee_type', SchoolHeadProfile::class)
@@ -665,9 +664,12 @@ class SupervisorController extends Controller
             ->where('school_id', $user->school_id)
             ->get();
 
-        // Get school heads (can filter by division/district later)
+        // Get school heads (can filter by division/district later).
+        // user.school is eager-loaded for the school_name fallback: some
+        // profiles have no school_id of their own (user assigned later) and
+        // would otherwise render as "No school assigned".
         $schoolHeads = SchoolHeadProfile::query()
-            ->with(['user', 'school'])
+            ->with(['user.school', 'school'])
             ->get();
 
         // Prepare teacher data for JavaScript (richer info for browse & preview)
@@ -740,7 +742,7 @@ class SupervisorController extends Controller
                 'position' => $schoolHead->position ?? $schoolHead->current_designation ?? 'School Head',
                 'position_label' => $schoolHead->position_level ? $schoolHead->position_level_label : ($schoolHead->position ?? $schoolHead->current_designation ?? 'School Head'),
                 'position_level' => $schoolHead->position_level ?? '—',
-                'school_name' => $schoolHead->school?->name ?? 'No school assigned',
+                'school_name' => $schoolHead->school_name ?? 'No school assigned',
             ];
         })->values();
 
@@ -2487,7 +2489,7 @@ class SupervisorController extends Controller
             'preObservationPlanning',
             'preConference',
             'postConference',
-            'cotRatings',
+            'cotRatings.aiFeedback',
             'epocEvaluation.ratings',
             'cancelledBy',
             'schoolHead',
@@ -2597,6 +2599,10 @@ class SupervisorController extends Controller
 
         $query = Observation::query()
             ->with(['observee.user', 'postConference', 'schoolHead', 'epocEvaluation'])
+            ->withCount([
+                'cotRatings',
+                'cotRatings as ai_ready_count' => fn ($q) => $q->whereHas('aiFeedback'),
+            ])
             ->where('observer_id', $user->id);
 
         // Search
@@ -3162,6 +3168,29 @@ class SupervisorController extends Controller
             'status' => 'processing',
             'message' => 'AI insights are still being generated.',
         ]);
+    }
+
+    /**
+     * Requeue deferred AI generation for an observation stuck at ai_status=failed
+     * (Architecture B). Pending observations may still have jobs in flight, so
+     * only failed ones can be retried — otherwise feedback rows could duplicate.
+     */
+    public function retryAi(Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        if ($observation->ai_status !== 'failed') {
+            return back()->with('info', 'AI does not need retrying for this observation.');
+        }
+
+        $count = app(\App\Services\AiRetryService::class)->retry($observation);
+
+        return back()->with(
+            'success',
+            $count > 0
+                ? "AI regeneration queued for {$count} rating(s). Check back shortly."
+                : 'AI feedback is already present — marked as ready.'
+        );
     }
 
     public function clearAiInsights(Observation $observation)

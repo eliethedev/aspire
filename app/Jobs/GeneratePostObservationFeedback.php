@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\AI\Services\AIFeedbackService;
 use App\Models\CotRating;
+use App\Models\Observation;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -54,6 +55,46 @@ class GeneratePostObservationFeedback implements ShouldQueue
                 ['type' => 'post_observation', 'cot_rating_id' => $this->cotRating->id, 'observation_id' => $this->cotRating->observation_id],
             );
         }
+
+        $this->refreshObservationAiStatus($feedback === null);
+    }
+
+    /**
+     * Advance the parent observation's deferred-AI flag (Architecture B).
+     *
+     * Only observations synced with ai_status=pending are touched; the online
+     * flow leaves ai_status=none and its badges derive from real feedback.
+     * Not-Applicable ratings need no AI, so they count as satisfied.
+     */
+    protected function refreshObservationAiStatus(bool $justFailed): void
+    {
+        $observation = Observation::find($this->cotRating->observation_id);
+
+        if (! $observation || $observation->ai_status !== 'pending') {
+            return;
+        }
+
+        if (! $observation->cotRatings()->exists()) {
+            return;
+        }
+
+        $stillWaiting = $observation->cotRatings()
+            ->where('not_applicable', false)
+            ->whereDoesntHave('aiFeedback')
+            ->exists();
+
+        if (! $stillWaiting) {
+            $observation->update(['ai_status' => 'done']);
+
+            return;
+        }
+
+        $hasAnyFeedback = $observation->cotRatings()->whereHas('aiFeedback')->exists();
+
+        if ($justFailed && ! $hasAnyFeedback) {
+            $observation->update(['ai_status' => 'failed']);
+        }
+        // Otherwise: other ratings' jobs are still queued — stay pending.
     }
 
     public function tags(): array

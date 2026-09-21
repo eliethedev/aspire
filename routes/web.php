@@ -243,6 +243,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
     Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
     Route::get('/observations', [SupervisorController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
+    Route::get('/observations/offline', [App\Http\Controllers\Api\SyncController::class, 'offlinePage'])->name('observations.offline');
     Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/term-check', [SupervisorController::class, 'termCheck'])->name('observations.term-check');
@@ -279,6 +280,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
     Route::post('/observations/{observation}/generate-things-suggestions', [SupervisorController::class, 'generateThingsSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-things-suggestions');
     Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
+    Route::post('/observations/{observation}/retry-ai', [SupervisorController::class, 'retryAi'])->middleware('ai.rate.limit')->name('observations.retry-ai');
     Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
     Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
 
@@ -415,6 +417,15 @@ Route::middleware(['school', 'require.school', 'auth'])->prefix('{school}')->nam
     })->name('dashboard');
 
     // Add more school-specific routes here
+});
+
+// Offline-first sync (Architecture B): tablet encodes with zero connectivity,
+// then pushes the IndexedDB outbox here when signal returns. Session auth is
+// reused so no new token system is needed for v1.
+Route::middleware(['auth'])->prefix('sync')->name('sync.')->group(function () {
+    Route::get('/bootstrap', [App\Http\Controllers\Api\SyncController::class, 'bootstrap'])->name('bootstrap');
+    Route::post('/push', [App\Http\Controllers\Api\SyncController::class, 'push'])->middleware('throttle:60,1')->name('push');
+    Route::post('/push-files', [App\Http\Controllers\Api\SyncController::class, 'pushFiles'])->middleware('throttle:30,1')->name('push-files');
 });
 
 require __DIR__.'/auth.php';
