@@ -33,6 +33,12 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Design mockups (preview only, no auth). Registered before the {school}
+// wildcard group so `mockups/dashboard` is not swallowed by `{school}/dashboard`.
+Route::prefix('mockups')->name('mockups.')->group(function () {
+    Route::get('/dashboard', fn () => view('mockups.dashboard'))->name('dashboard');
+});
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
 // Invitation-based password setup (public route for invited users)

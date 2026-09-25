@@ -6,6 +6,12 @@
 <div class="max-w-3xl mx-auto px-3 py-4">
     <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Offline observation capture</h1>
     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">No signal in the school? No problem — follow the 3 steps below. Your work saves on this device and syncs later.</p>
+    <div class="mt-2 flex flex-wrap items-center gap-2">
+        <span id="offline-mode-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-800" role="status">
+            <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+            <span data-badge-label>Offline Mode (Saved Locally)</span>
+        </span>
+    </div>
     <p id="of-diag" class="mt-1 text-xs text-gray-400 dark:text-gray-500">Starting offline tools…</p>
     @if(empty($bundle['teachers']) && empty($bundle['school_heads']))
         <div class="mt-3 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 p-3 text-sm text-rose-900 dark:text-rose-100">
@@ -40,7 +46,7 @@
                 Sync &amp; get AI
             </p>
             <p id="of-sync-status" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Nothing waiting yet.</p>
-            <button type="button" class="aspire-sync-now mt-2 w-full px-3 py-2 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors">Sync now</button>
+            <button type="button" data-sync-now class="aspire-sync-now mt-2 w-full px-3 py-2 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors">Sync Now</button>
         </div>
     </div>
 
@@ -95,7 +101,7 @@
             <p class="text-xs text-gray-400 mt-1">Files stay on this device and upload automatically on sync.</p>
             <ul id="of-file-preview" class="mt-1 space-y-0.5 text-xs text-gray-500 dark:text-gray-400"></ul>
         </div>
-        <button type="submit" id="of-save" class="w-full px-4 py-2.5 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors">Save on this device</button>
+        <button type="submit" id="of-save" class="w-full px-4 py-2.5 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors">Save Observation</button>
     </form>
 
     <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
@@ -607,6 +613,10 @@
             return;
         }
         AspireOffline.saveObservation(payload).then(function (item) {
+            // The change-autosave draft (lightweight workflow) is superseded by this explicit save.
+            if (window.OfflineEncode && window.__encodeDraftId) {
+                OfflineEncode.clearOutbox([window.__encodeDraftId]).catch(function () {});
+            }
             var afterSave = function (fileNote) {
                 notify('success', navigator.onLine
                     ? 'Saved on this device' + fileNote + '. Tap Sync now (step 3) to send it.'
@@ -667,6 +677,115 @@
         updateDiag('startup error: ' + ((err && err.message) || err));
         notify('error', 'Offline page hit a startup error. Reload while online; if it persists, tell your admin.');
     }
+})();
+</script>
+@endpush
+@push('scripts')
+<script src="{{ request()->getBaseUrl() }}/js/offline-encode.js"></script>
+<script>
+/* Lightweight offline encoding bridge (vanilla JS):
+ * - loads the cached observation from IndexedDB store `offline_observations` when the
+ *   main engine has nothing cached (e.g. preparation happened on the show page);
+ * - saves ratings/notes/comments to the `outbox` store on every form change;
+ * - drives the "Offline Mode (Saved Locally)" badge. */
+(function () {
+    if (!window.OfflineEncode) return;
+    var form = document.getElementById('offline-form');
+    var badge = document.getElementById('offline-mode-badge');
+    if (!form) return;
+
+    var draftId = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (Math.random() * 16) | 0, v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    window.__encodeDraftId = draftId;
+
+    // Seed the main engine's cache from `offline_observations` so lists render
+    // with zero connectivity even if caching happened on another page.
+    if (window.AspireOffline) {
+        AspireOffline.getCacheInfo().then(function (info) {
+            if (info) return;
+            OfflineEncode.loadCachedObservation('bootstrap').then(function (bundle) {
+                if (bundle) AspireOffline.saveBootstrap(bundle).then(function () { location.reload(); });
+            }).catch(function () {});
+        }).catch(function () {});
+    }
+
+    function snapshot() {
+        var typeBtn = document.getElementById('of-type-head');
+        var isHead = typeBtn && typeBtn.getAttribute('aria-pressed') === 'true';
+        var ratings = [];
+        if (!isHead) {
+            var box = document.getElementById('of-ratings');
+            if (box) box.querySelectorAll('[data-code][type="number"]').forEach(function (input) {
+                if (!input.value) return;
+                var code = input.getAttribute('data-code');
+                var comment = box.querySelector('[data-comment][data-code="' + code + '"]');
+                ratings.push({
+                    indicator_code: code,
+                    domain: input.getAttribute('data-domain') || 'General',
+                    rating: parseInt(input.value, 10),
+                    comments: comment ? comment.value : null,
+                });
+            });
+        }
+        var sel = document.getElementById('of-teacher');
+        return {
+            observation_type: isHead ? 'school_head_observation' : 'teacher_observation',
+            observee_id: sel && sel.value ? parseInt(sel.value, 10) : null,
+            observation_date: (document.getElementById('of-date') || {}).value || null,
+            subject: (document.getElementById('of-subject') || {}).value || null,
+            grade_level: isHead ? null : ((document.getElementById('of-grade') || {}).value || null),
+            notes: (document.getElementById('of-notes') || {}).value || null,
+            ratings: ratings,
+        };
+    }
+
+    var timer = null;
+    form.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            var data = snapshot();
+            if (!data.observee_id && !data.notes && !(data.ratings || []).length) return;
+            OfflineEncode.saveDraft({ client_id: draftId, payload: data }).then(refreshBadge).catch(function () {});
+        }, 500);
+    });
+    form.addEventListener('change', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            var data = snapshot();
+            if (!data.observee_id && !data.notes && !(data.ratings || []).length) return;
+            OfflineEncode.saveDraft({ client_id: draftId, payload: data }).then(refreshBadge).catch(function () {});
+        }, 500);
+    });
+
+    function refreshBadge() {
+        if (!badge) return;
+        var encodeCount = OfflineEncode.listOutbox()
+            .then(function (items) { return items.filter(function (i) { return i.status === 'dirty'; }).length; })
+            .catch(function () { return 0; });
+        var legacyCount = window.AspireOffline
+            ? AspireOffline.pendingCount().catch(function () { return 0; })
+            : Promise.resolve(0);
+        Promise.all([encodeCount, legacyCount]).then(function (res) {
+            var pending = res[0] + res[1];
+            var show = !navigator.onLine || pending > 0;
+            badge.classList.toggle('hidden', !show);
+            badge.classList.toggle('inline-flex', show);
+            var label = badge.querySelector('[data-badge-label]');
+            if (label) label.textContent = 'Offline Mode (Saved Locally)' + (pending ? ' · ' + pending + ' waiting' : '');
+        });
+    }
+
+    window.addEventListener('online', refreshBadge);
+    window.addEventListener('offline', refreshBadge);
+    document.addEventListener('aspire:sync', refreshBadge);
+    document.addEventListener('aspire:sync-error', refreshBadge);
+    document.addEventListener('offline-encode:synced', refreshBadge);
+    document.addEventListener('offline-encode:saved', refreshBadge);
+    refreshBadge();
 })();
 </script>
 @endpush

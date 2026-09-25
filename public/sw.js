@@ -1,16 +1,21 @@
-/* ASPIRE minimal service worker (Architecture B v1).
- * Goal: keep the offline capture shell usable with zero connectivity.
- * Strategy: cache-first ONLY for versioned static assets + offline page shell;
+/* ASPIRE minimal service worker (offline encoding workflow).
+ * Goal: keep /supervisor/observations/offline usable with zero connectivity.
+ * Strategy: cache-first ONLY for the offline page shell + required CSS/JS assets;
  * everything else is network-first so authenticated Blade pages never go stale.
  */
-const CACHE = 'aspire-offline-v2';
+const CACHE = 'aspire-offline-v3';
 const PRECACHE = [
     '/js/aspire-offline.js',
+    '/js/offline-encode.js',
+    '/supervisor/observations/offline',
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting())
+        caches.open(CACHE)
+            // Add individually so one 404 (e.g. sub-path hosting) never kills the install.
+            .then((cache) => Promise.all(PRECACHE.map((u) => cache.add(u).catch(() => null))))
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -27,8 +32,10 @@ self.addEventListener('fetch', (event) => {
     if (request.method !== 'GET') return;
 
     const url = new URL(request.url);
-    const isStatic = url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/') || url.pathname.startsWith('/build/');
-    const isOfflinePage = url.pathname.endsWith('/observations/offline');
+    const p = url.pathname;
+    const isStatic = p.includes('/js/') || p.includes('/css/') || p.includes('/build/')
+        || p.endsWith('.css') || p.endsWith('.js');
+    const isOfflinePage = p.endsWith('/observations/offline');
 
     if (isStatic || isOfflinePage) {
         // Cache-first with network fallback + background refresh.

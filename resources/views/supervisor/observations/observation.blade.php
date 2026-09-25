@@ -83,6 +83,10 @@
             <li aria-hidden="true" class="hidden sm:inline shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li class="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px] sm:max-w-none" aria-current="page">{{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}</li>
         </ol>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+            {{-- Offline encoding workflow: pre-cache this observation while online. --}}
+            @include('partials.offline-encode', ['observation' => $observation])
+        </div>
     </nav>
 
     @include('partials.draft-banner')

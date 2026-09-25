@@ -86,9 +86,13 @@
             <li class="hidden sm:inline text-gray-300 dark:text-gray-600">/</li>
             <li class="hidden sm:inline text-gray-400 dark:text-gray-500 truncate">Details</li>
         </ol>
-        <a href="{{ route('supervisor.observations.index') }}" class="shrink-0 hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <div class="flex shrink-0 items-center gap-2">
+        <a href="{{ route('supervisor.observations.index') }}" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back to list
         </a>
+        {{-- Offline encoding workflow: pre-cache this observation while online. --}}
+        @include('partials.offline-encode', ['observation' => $observation])
+        </div>
     </nav>
 
     {{-- Hero Card --}}
