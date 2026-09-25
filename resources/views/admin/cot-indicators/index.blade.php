@@ -1,26 +1,26 @@
 @extends('layouts.admin')
 
 @section('title', 'COT Indicators')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 space-y-4">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>COT / PPST Indicators</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">COT / PPST Indicators</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Manage versioned indicator sets used by classroom observations, AI feedback, and reports.</p>
+                
+                
             </div>
             <a href="{{ route('admin.cot-indicators.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+               class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 New Version
             </a>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>COT / PPST Indicators</h1><p class="text-gray-500 dark:text-gray-400 mt-1">Manage versioned indicator sets used by classroom observations, AI feedback, and reports.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($versions as $version)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 {{ $version->is_default ? 'ring-2 ring-indigo-400' : '' }}">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 {{ $version->is_default ? 'ring-2 ring-indigo-400' : '' }}">
                 <div class="p-5">
                     <div class="flex items-start justify-between mb-3">
                         <div>
@@ -80,7 +80,7 @@
                         @endif
                     </div>
                 </div>
-            </div>
+            </section>
         @empty
             <div class="col-span-full text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
                 <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>

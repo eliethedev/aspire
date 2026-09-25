@@ -1,9 +1,13 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit PPST Standard')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 space-y-6" x-data="ppstEditForm()">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="ppstEditForm()">
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit PPST Standard</b></div></div>
+<div class="mock-title"><div><h1>Edit PPST Standard</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <a href="{{ route('admin.ppst-standards.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
@@ -17,7 +21,7 @@
 
     <div class="flex flex-col lg:flex-row gap-6 items-start">
         <!-- Form -->
-        <div class="flex-1 w-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden">
+        <section class="mock-panel flex-1 w-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden">
             <div class="px-6 lg:px-6 py-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-900/10 dark:to-violet-900/10">
                 <div class="flex gap-4">
                     <div class="hidden sm:flex w-11 h-11 rounded-2xl bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 items-center justify-center shadow-sm shrink-0">
@@ -153,11 +157,11 @@
                     <span class="hidden sm:inline text-xs text-gray-400 dark:text-gray-500 ml-2">ID #{{ $ppstStandard->id }} · Strand {{ $ppstStandard->strand }}</span>
                 </div>
             </form>
-        </div>
+        </section>
 
         <!-- Preview / Meta -->
         <div class="w-full lg:w-[340px] shrink-0 space-y-4">
-            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/60 dark:border-gray-800 p-5">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/60 dark:border-gray-800 p-5">
                 <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400 flex items-center gap-2"><i class="fas fa-eye text-indigo-500"></i> Live preview</h3>
                 <div class="mt-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 p-4">
                     <div class="flex flex-wrap items-center gap-1.5">
@@ -169,7 +173,7 @@
                     <p class="mt-2 text-xs text-gray-400 dark:text-gray-500 truncate" x-text="domain || 'Domain will appear here'"></p>
                 </div>
                 <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">This is how the indicator appears in the library. COT Templates reference it by code.</p>
-            </div>
+            </section>
 
             <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-5 border border-gray-200 dark:border-gray-700">
                 <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400 flex items-center gap-2"><i class="fas fa-circle-info text-blue-500"></i> About this record</h3>

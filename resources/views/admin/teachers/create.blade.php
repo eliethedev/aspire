@@ -1,26 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'Create New Teacher')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center">
-            <a href="{{ route('admin.teachers.index') }}" class="mr-4 text-white hover:text-white">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create New Teacher</b></div><div class="mock-actions"><a href="{{ route('admin.teachers.index') }}" class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
+            </a></div></div>
+<div class="mock-title"><div><h1>Create New Teacher</h1><p class="text-white mt-1">Add a new teacher to the system.</p>
+        <div class="flex items-center">
+            
             <div>
-                <h1 class="text-2xl font-bold text-white">Create New Teacher</h1>
-                <p class="text-white mt-1">Add a new teacher to the system.</p>
+                
+                
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-8">
             @csrf
             
@@ -211,6 +213,6 @@
                 </button>
             </div>
         </form>
-    </div>
+    </div></section>
 </div>
 @endsection

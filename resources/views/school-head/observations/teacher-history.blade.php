@@ -2,8 +2,25 @@
 
 @section('title', 'Observation History - ' . $observeeName)
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} observations</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Back to Observations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>{{ $observeeName }}</h1>
+            <p>Observation history</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Header — minimized -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div>
@@ -18,15 +35,15 @@
 
     <!-- Stats — compact -->
     <div class="grid grid-cols-3 gap-2 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
             <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['total'] }}</p>
             <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Total</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
             <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['completed'] }}</p>
             <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Completed</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
             <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['avg_score'] ? number_format($stats['avg_score'], 2) : 'N/A' }}</p>
             <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Avg Score</p>
         </div>
@@ -43,7 +60,7 @@
                 default => 'bg-blue-100 text-blue-700',
             };
         @endphp
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:shadow-sm transition-shadow flex flex-col gap-2 min-h-[140px] h-full">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:shadow-sm transition-shadow flex flex-col gap-2 min-h-[140px] h-full">
             <div class="flex items-start justify-between gap-2">
                 <div class="flex gap-2 min-w-0">
                     <div class="text-center shrink-0 leading-none">

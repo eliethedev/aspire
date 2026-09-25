@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Post-Observation Conference')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -18,28 +19,29 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Observation Conference</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Post-Observation Conference</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Details</a>
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">All Evaluations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Post-Observation Conference</h1>
+            <p>{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+        </div>
+        <time>Step 4 of 4</time>
+    </div>
 
     @include('partials.draft-banner')
 
     <!-- Progress Steps -->
     @include('partials.observation-stepper')
 
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
-    </div>
-
+    {{-- Page header lives in the mock shell above --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Left Column -->
@@ -118,7 +120,9 @@
             @endif
             @else
             @if($cotRatings && $cotRatings->count() > 0)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <section class="mock-panel" aria-label="Observation ratings">
+                <div class="mock-panel-head"><h2>Observation Ratings</h2><span class="hint">{{ $cotRatings->count() }} indicators</span></div>
+                <div style="padding:14px 16px">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
                     <div class="text-right">
@@ -165,11 +169,13 @@
                     </table>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">{{ $cotRatings->count() }} indicator(s) rated</p>
-            </div>
+                </div>
+            </section>
 
             <!-- Score Breakdown -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Score Breakdown by Domain</h2>
+            <section class="mock-panel" aria-label="Score breakdown">
+                <div class="mock-panel-head"><h2>Score Breakdown by Domain</h2></div>
+                <div style="padding:14px 16px">
                 <div class="space-y-3">
                     @php
                         $grouped = $cotRatings->groupBy('domain');
@@ -187,7 +193,8 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
+                </div>
+            </section>
             @endif
             @endif
 

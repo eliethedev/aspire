@@ -1,14 +1,31 @@
 @extends('layouts.teacher')
 @section('title','Performance Analytics')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Analytics</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} observations</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('teacher.dashboard') }}">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Performance Analytics</h1>
+            <p>Insights from your classroom observations over the last 12 months</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/70 dark:border-gray-800 p-6 shadow-sm">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/70 dark:border-gray-800 p-6 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <p class="text-blue-600 text-xs tracking-widest uppercase font-semibold">Analytics</p>
@@ -22,8 +39,8 @@
     </div>
 
     <!-- Stat cards -->
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
+    <div class="mock-kpis grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="mock-kpi bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Total Observations</p>
@@ -33,7 +50,7 @@
                 <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-clipboard-list"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
+        <div class="mock-kpi bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Completed</p>
@@ -43,7 +60,7 @@
                 <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400"><i class="fas fa-check-circle"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
+        <div class="mock-kpi bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Average COT</p>
@@ -53,7 +70,7 @@
                 <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-chart-column"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
+        <div class="mock-kpi bg-white dark:bg-gray-900 rounded-2xl border p-5 hover:shadow-md transition">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Best Score</p>
@@ -67,22 +84,22 @@
 
     <!-- Charts grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-1"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Observations per Month</h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">Last 12 months</p>
             <canvas id="monthlyChart" height="210"></canvas>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-1"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Average Score per Month</h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">COT overall score, 2&ndash;6 scale</p>
             <canvas id="scoreTrendChart" height="210"></canvas>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-1"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Rating Distribution</h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">All COT indicator ratings you received</p>
             <canvas id="distributionChart" height="210"></canvas>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-1"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Domain Averages</h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">Average rating per COT domain</p>
             @if($domainAverages->isNotEmpty())
@@ -108,7 +125,7 @@
 
     <!-- Strengths / Weaknesses -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-emerald-500 rounded-full"></span> <i class="fas fa-thumbs-up text-emerald-600"></i> Your Strengths</h2>
             @forelse($strengths as $row)
                 <div class="flex items-start justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
@@ -122,7 +139,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Not enough data yet &mdash; keep getting observed!</p>
             @endforelse
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-red-500 rounded-full"></span> <i class="fas fa-seedling text-red-500"></i> Growth Opportunities</h2>
             @forelse($weaknesses as $row)
                 <div class="flex items-start justify-between gap-3 py-2 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
@@ -139,7 +156,7 @@
     </div>
 
     <!-- Status breakdown -->
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border p-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
         <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Observation Status Breakdown</h2>
         <div class="flex flex-wrap gap-2">
             @forelse($statusCounts as $status => $count)

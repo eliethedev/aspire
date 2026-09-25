@@ -1,30 +1,25 @@
 @extends('layouts.admin')
 
 @section('title', 'AI Settings')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
 @php
     $aiCatalog = $aiCatalog ?? config('ai.model_catalog', []);
 @endphp
-<div x-data="aiSettings({ provider: {{ Js::from($config['provider'] ?? 'gemini') }}, catalog: {{ Js::from($aiCatalog) }} })" class="max-w-7xl mx-auto px-6 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="aiSettings({ provider: {{ Js::from($config['provider'] ?? 'gemini') }}, catalog: {{ Js::from($aiCatalog) }} })">
 
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">AI Settings</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure AI providers and the single default model used for every feature, then view usage.</p>
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Saving runs a live connectivity check on the selected provider/model first — a broken configuration is rejected before it reaches users.</p>
-        </div>
-        <div class="flex items-center gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>AI Settings</b></div><div class="mock-actions">
             <form method="POST" action="{{ route('admin.ai.restore') }}">
                 @csrf
-                <button type="submit" onclick="return confirm('Restore AI settings from the most recent backup?')" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                <button type="submit" onclick="return confirm('Restore AI settings from the most recent backup?')" class="mock-btn">
                     Restore Last Save
                 </button>
             </form>
             <form method="POST" action="{{ route('admin.ai.test') }}">
                 @csrf
-                <button type="submit" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                <button type="submit" class="mock-btn">
                     Test Active Provider
                 </button>
             </form>
@@ -33,14 +28,13 @@
                 <input type="hidden" name="action" value="{{ $config['enabled'] ? 'disable' : 'enable' }}">
                 <button type="submit"
                     onclick="return {{ $config['enabled'] ? "confirm('Disable all AI processing now? Users will fall back to rule-based responses.')" : "confirm('Re-enable AI processing?')" }}"
-                    class="px-4 py-2 rounded-lg transition-colors text-sm font-medium {{ $config['enabled']
-                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50'
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
+                    class="mock-btn{{ $config['enabled'] ? '' : ' primary' }}">
                     {{ $config['enabled'] ? 'Disable AI Now' : 'Re-enable AI' }}
                 </button>
             </form>
-        </div>
-    </div>
+        </div></div>
+<div class="mock-title"><div><h1>AI Settings</h1><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure AI providers and the single default model used for every feature, then view usage.</p>
+<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Saving runs a live connectivity check on the selected provider/model first — a broken configuration is rejected before it reaches users.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Tabs -->
     <div class="border-b border-gray-200 dark:border-gray-700">
@@ -57,7 +51,7 @@
         </nav>
     </div>
 
-    <form method="POST" action="{{ route('admin.ai.update') }}">
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.ai.update') }}">
         @csrf
 
         <!-- PROVIDERS TAB -->
@@ -338,10 +332,10 @@
                 Save Configuration
             </button>
         </div>
-    </form>
+    </form></section>
 
     <!-- CUSTOM PROVIDERS -->
-    <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Custom Providers</h3>
@@ -466,7 +460,7 @@
         @empty
         <p class="text-sm text-gray-400 dark:text-gray-500 py-4">No custom providers yet. Click "Add Provider" above to connect an OpenAI-compatible endpoint.</p>
         @endforelse
-    </div>
+    </div></section>
 
     <!-- Provider connectivity test form (kept outside the main form to avoid illegal nesting) -->
     <form id="provider-test-form" method="POST" action="{{ route('admin.ai.test-provider') }}" class="hidden">

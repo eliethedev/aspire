@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GradeLevel;
 use App\Models\Traits\SchoolAware;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -54,6 +55,13 @@ class Observation extends Model
         'rejection_notes',
         'confirmed_at',
         'rejected_at',
+        'teacher_confirmed_at',
+        'lesson_plan_path',
+        'lesson_plan_summary',
+        'pre_observation_ai_prompts',
+        'offline_downloaded_at',
+        'lesson_plan_reviewed_at',
+        'lesson_plan_reviewed_by',
         'school_head_id',
         'finalized_at',
         'finalized_by',
@@ -67,6 +75,10 @@ class Observation extends Model
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'teacher_confirmed_at' => 'datetime',
+        'pre_observation_ai_prompts' => 'array',
+        'offline_downloaded_at' => 'datetime',
+        'lesson_plan_reviewed_at' => 'datetime',
         'finalized_at' => 'datetime',
     ];
 
@@ -289,6 +301,7 @@ class Observation extends Model
     public function ratingScaleMax(): int
     {
         $keys = array_keys($this->ratingScale());
+
         return $keys ? max($keys) : 6;
     }
 
@@ -298,6 +311,7 @@ class Observation extends Model
     public function ratingScaleMin(): int
     {
         $keys = array_keys($this->ratingScale());
+
         return $keys ? min($keys) : 2;
     }
 
@@ -371,7 +385,7 @@ class Observation extends Model
      */
     public function canFinalize(): bool
     {
-        return $this->status === 'cot_completed' && !$this->isFinalized();
+        return $this->status === 'cot_completed' && ! $this->isFinalized();
     }
 
     /**
@@ -509,7 +523,7 @@ class Observation extends Model
      */
     public function getGradeLevelLabelAttribute(): ?string
     {
-        return \App\Enums\GradeLevel::labelFor($this->grade_level);
+        return GradeLevel::labelFor($this->grade_level);
     }
 
     /**
@@ -534,5 +548,101 @@ class Observation extends Model
     public function isLinkedObservation(): bool
     {
         return $this->hasRelatedObservation();
+    }
+
+    // ------------------------------------------------------------------
+    // Offline clinical-supervision workflow (IT adviser mandate).
+    // ------------------------------------------------------------------
+
+    /** Statuses that gate the offline package behind teacher acceptance. */
+    public const PRE_CONFIRM_STATUSES = ['pending_teacher_confirmation', 'scheduled', 'pending'];
+
+    /** Statuses that hold a downloadable offline package. */
+    public const PACKAGE_READY_STATUSES = ['confirmed_ready_for_download', 'downloaded_offline'];
+
+    /**
+     * Whether the observation is still waiting on the teacher.
+     * Legacy `scheduled` + pending confirmation behaves identically to the
+     * explicit `pending_teacher_confirmation` state.
+     */
+    public function isPendingTeacherConfirmation(): bool
+    {
+        if ($this->status === 'pending_teacher_confirmation') {
+            return true;
+        }
+
+        return in_array($this->status, ['scheduled', 'pending'], true)
+            && ($this->confirmation_status ?? 'pending') === 'pending';
+    }
+
+    /** Whether the supervisor may prepare/download the offline package. */
+    public function isReadyForDownload(): bool
+    {
+        return in_array($this->status, self::PACKAGE_READY_STATUSES, true)
+            && ($this->confirmation_status ?? null) === 'confirmed'
+            && $this->teacher_confirmed_at !== null;
+    }
+
+    /** Whether pre-observation AI prompts were generated (or fell back). */
+    public function hasPreObservationPrompts(): bool
+    {
+        $prompts = $this->pre_observation_ai_prompts;
+
+        return is_array($prompts) && ! empty($prompts);
+    }
+
+    /**
+     * Confirm schedule + lesson plan in one step (teacher action).
+     * Moves the observation to `confirmed_ready_for_download`.
+     */
+    public function confirmWithLessonPlan(?string $lessonPlanPath = null, ?string $lessonPlanSummary = null): void
+    {
+        // Capture before update(): save() re-syncs originals afterwards.
+        $fromStatus = $this->status;
+
+        $this->update([
+            'confirmation_status' => 'confirmed',
+            'confirmed_at' => now(),
+            'teacher_confirmed_at' => now(),
+            'lesson_plan_path' => $lessonPlanPath ?? $this->lesson_plan_path,
+            'lesson_plan_summary' => $lessonPlanSummary ?? $this->lesson_plan_summary,
+            'status' => 'confirmed_ready_for_download',
+        ]);
+
+        $this->logChange([
+            'from_status' => $fromStatus,
+            'to_status' => 'confirmed_ready_for_download',
+            'notes' => 'Teacher confirmed schedule and submitted lesson plan.',
+        ]);
+    }
+
+    /** Whether the observer confirmed reviewing the teacher's lesson plan. */
+    public function hasLessonPlanReview(): bool
+    {
+        return $this->lesson_plan_reviewed_at !== null;
+    }
+
+    /** Observer who reviewed the lesson plan. */
+    public function lessonPlanReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lesson_plan_reviewed_by');
+    }
+
+    /** Record the observer's lesson-plan review (required before prepare). */
+    public function markLessonPlanReviewed(int $reviewerId): void
+    {
+        $this->update([
+            'lesson_plan_reviewed_at' => now(),
+            'lesson_plan_reviewed_by' => $reviewerId,
+        ]);
+    }
+
+    /** Mark the first offline-package download. */
+    public function markPackageDownloaded(): void
+    {
+        $this->update([
+            'status' => 'downloaded_offline',
+            'offline_downloaded_at' => $this->offline_downloaded_at ?? now(),
+        ]);
     }
 }

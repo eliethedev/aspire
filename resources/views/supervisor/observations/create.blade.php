@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Schedule Observation')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -107,7 +108,23 @@
         }, 500);
     </script>
 @endif
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="observationForm()" x-cloak>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="observationForm()" x-cloak>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Schedule Observation</b></div>
+        <span class="mock-pill"><span class="pulse"></span>New cycle</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">← Back to Evaluations</a>
+            <a class="mock-btn" href="{{ route('supervisor.observations.offline') }}">Open offline capture</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Schedule Observation</h1>
+            <p>Set up a classroom or leadership evaluation — <span x-text="visibleSteps.length - 1 + ' quick steps'"></span>.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     {{-- Offline-first (Architecture B): cache before the school visit, encode with zero connectivity. --}}
     <div class="mb-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
         <div class="flex flex-wrap items-center gap-2">
@@ -118,10 +135,8 @@
             <a href="{{ route('supervisor.observations.offline') }}" class="px-3 py-1.5 rounded-md bg-white text-indigo-700 text-xs font-semibold border border-indigo-300 hover:bg-indigo-100">Open offline capture</a>
         </div>
     </div>
+    {{-- Page header lives in the mock shell above; live context chips stay with the wizard --}}
     <div class="mb-4">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Schedule Observation</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Set up a classroom or leadership evaluation — <span x-text="visibleSteps.length - 1 + ' quick steps'"></span>.</p>
-
         <!-- Live context chips — compact -->
         <div x-show="selectedObservee" x-cloak class="mt-2 flex flex-wrap items-center gap-1.5">
             <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">Observing</span>
@@ -138,7 +153,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start mock-panel" style="padding:14px 16px">
         <form method="POST" action="{{ route('supervisor.observations.store') }}" class="lg:col-span-2" novalidate>
         @csrf
 

@@ -1,26 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Supervisor')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center">
-            <a href="{{ route('admin.supervisors.index') }}" class="mr-4 text-white hover:text-white">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Supervisor</b></div><div class="mock-actions"><a href="{{ route('admin.supervisors.index') }}" class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
+            </a></div></div>
+<div class="mock-title"><div><h1>Edit Supervisor</h1><p class="text-white mt-1">{{ $supervisor->user->name }}</p>
+        <div class="flex items-center">
+            
             <div>
-                <h1 class="text-2xl font-bold text-white">Edit Supervisor</h1>
-                <p class="text-white mt-1">{{ $supervisor->user->name }}</p>
+                
+                
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Supervisor Info Card -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mb-6">
+    <section class="mock-panel">
         <div class="flex items-center space-x-4">
             <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,10 +42,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.supervisors.update', $supervisor) }}" class="space-y-8">
             @csrf
             @method('PUT')
@@ -173,10 +175,10 @@
                 </div>
             </div>
         </form>
-    </div>
+    </div></section>
 
     <!-- Delete Form Outside Main Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mt-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mt-6">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-lg font-medium text-white">Danger Zone</h3>
@@ -193,6 +195,6 @@
                 </button>
             </form>
         </div>
-    </div>
+    </div></section>
 </div>
 @endsection

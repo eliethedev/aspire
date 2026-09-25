@@ -1,57 +1,58 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Career Progression')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Career Progression</b></div>
+        @if($statusFilter)<span class="mock-pill amber"><span class="pulse"></span>Filtered</span>@endif
+    </div>
+
+    <div class="mock-title">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Career Progression</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">
+            <h1>Career Progression</h1>
+            <p>
                 Readiness overview across your ratees. Assessments are support-only &mdash; they never change a teacher's position or career stage.
             </p>
         </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
 
     <!-- Status summary cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+    <div class="mock-kpis" role="list" aria-label="Readiness summary">
         <a href="{{ route('supervisor.career.index', ['status' => 'ready_for_consideration']) }}"
-           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 hover:border-green-300 dark:hover:border-green-700 transition-colors {{ $statusFilter === 'ready_for_consideration' ? 'ring-2 ring-green-500/40' : '' }}">
-            <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Ready for Consideration</span>
-                <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
-            </div>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $statusCounts['ready_for_consideration'] }}</p>
+           class="mock-kpi {{ $statusFilter === 'ready_for_consideration' ? 'hot' : '' }}" role="listitem">
+            <label>Ready for Consideration</label>
+            <div class="val">{{ $statusCounts['ready_for_consideration'] }}</div>
+            <div class="delta mock-flat">Click to filter</div>
         </a>
         <a href="{{ route('supervisor.career.index', ['status' => 'for_review']) }}"
-           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 hover:border-amber-300 dark:hover:border-amber-700 transition-colors {{ $statusFilter === 'for_review' ? 'ring-2 ring-amber-500/40' : '' }}">
-            <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">For Review</span>
-                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-            </div>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $statusCounts['for_review'] }}</p>
+           class="mock-kpi {{ $statusFilter === 'for_review' ? 'hot' : '' }}" role="listitem">
+            <label>For Review</label>
+            <div class="val">{{ $statusCounts['for_review'] }}</div>
+            <div class="delta mock-flat">Click to filter</div>
         </a>
         <a href="{{ route('supervisor.career.index', ['status' => 'needs_development']) }}"
-           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 hover:border-red-300 dark:hover:border-red-700 transition-colors {{ $statusFilter === 'needs_development' ? 'ring-2 ring-red-500/40' : '' }}">
-            <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Needs Development</span>
-                <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
-            </div>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $statusCounts['needs_development'] }}</p>
+           class="mock-kpi {{ $statusFilter === 'needs_development' ? 'hot' : '' }}" role="listitem">
+            <label>Needs Development</label>
+            <div class="val">{{ $statusCounts['needs_development'] }}</div>
+            <div class="delta mock-flat">Click to filter</div>
         </a>
         <a href="{{ route('supervisor.career.index', ['status' => 'not_yet_assessed']) }}"
-           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors {{ $statusFilter === 'not_yet_assessed' ? 'ring-2 ring-indigo-500/40' : '' }}">
-            <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Not Yet Assessed</span>
-                <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
-            </div>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $statusCounts['not_yet_assessed'] }}</p>
+           class="mock-kpi {{ $statusFilter === 'not_yet_assessed' ? 'hot' : '' }}" role="listitem">
+            <label>Not Yet Assessed</label>
+            <div class="val">{{ $statusCounts['not_yet_assessed'] }}</div>
+            <div class="delta mock-flat">Click to filter</div>
         </a>
     </div>
 
     <!-- Search + filter -->
-    <form method="GET" action="{{ route('supervisor.career.index') }}" class="flex flex-col sm:flex-row gap-2 mb-4">
+    <section class="mock-panel" aria-label="Search">
+        <div class="mock-panel-head"><h2>Search</h2></div>
+        <div style="padding:14px 16px">
+    <form method="GET" action="{{ route('supervisor.career.index') }}" class="flex flex-col sm:flex-row gap-2">
         @if ($statusFilter)
             <input type="hidden" name="status" value="{{ $statusFilter }}">
         @endif
@@ -62,9 +63,12 @@
         </div>
         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Search</button>
     </form>
+        </div>
+    </section>
 
     <!-- List -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <section class="mock-panel" aria-label="Career progression list">
+        <div class="mock-panel-head"><h2>Ratees</h2><span class="hint">Readiness overview</span></div>
         <div class="hidden md:grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             <div class="col-span-4">Teacher</div>
             <div class="col-span-2">Current Stage</div>
@@ -149,7 +153,7 @@
                 @endif
             </div>
         @endforelse
-    </div>
+    </section>
 
     <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
         Readiness assessments support (never replace) DepEd's official promotion process. Click a status card to filter.

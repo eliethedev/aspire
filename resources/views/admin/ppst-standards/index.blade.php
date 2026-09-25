@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'PPST Standards')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
 @php
@@ -33,7 +34,7 @@
     };
 @endphp
 
-<div class="max-w-7xl mx-auto px-4 space-y-5" x-data="ppstStandardsPage()" x-init="init()">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="ppstStandardsPage()" x-init="init()">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
@@ -45,8 +46,11 @@
         <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain → Strand → Indicator</span>
     </nav>
 
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>PPST Standards</b></div><div class="mock-actions"><a class="mock-btn" href="{{ route('admin.cot-indicators.index') }}">COT Templates</a><a class="mock-btn primary" href="{{ route('admin.ppst-standards.create') }}">＋ Add Standard</a></div></div>
+    <div class="mock-title"><div><h1>PPST Standards</h1><p>The Philippine Professional Standards for Teachers library — your single source of truth for Domains, Strands and Indicators.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden">
+    <section class="mock-panel overflow-hidden">
         <div class="p-6 lg:p-7">
             <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
                 <div class="flex gap-4">
@@ -132,10 +136,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Controls -->
-    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 p-4 lg:p-5 sticky top-[64px] z-20 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
+    <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 p-4 lg:p-5 sticky top-[64px] z-20 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
         <div class="flex flex-col lg:flex-row gap-4">
             <!-- Search -->
             <div class="flex-1 relative">
@@ -197,7 +201,7 @@
                 Tip: click a domain pill to jump, or search <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border">1.4.2</span>
             </p>
         </div>
-    </div>
+    </section>
 
     <!-- Domain quick nav -->
     @if($domains->isNotEmpty())

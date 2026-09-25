@@ -2,6 +2,8 @@
 
 @section('title', 'My Profile')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
 @php
     $user = Auth::user();
@@ -23,7 +25,19 @@
     }
 @endphp
 
-<div class="max-w-5xl mx-auto" x-data="{ activeTab: '{{ $errorTab }}' }">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="{ activeTab: '{{ $errorTab }}' }">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Profile</b></div>
+        <span class="mock-pill"><span class="pulse"></span>School Head</span>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>My Profile</h1>
+            <p>Manage your personal and professional details</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
 
     @if (session('status') === 'profile-incomplete' || session('profile_incomplete'))
         <div x-data="{ show: true }" x-show="show" x-transition
@@ -83,7 +97,7 @@
             <!-- Left Sidebar - Profile Card + Tabs -->
             <div class="w-full md:w-64 shrink-0 space-y-4">
                 <!-- Profile Card -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 text-center">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 text-center">
                     <div class="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mx-auto mb-3">
                         <span class="text-indigo-600 dark:text-indigo-400 text-2xl font-bold">{{ $initials }}</span>
                     </div>
@@ -95,7 +109,7 @@
                 </div>
 
                 <!-- Tab Navigation -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-2">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-2">
                     <nav class="space-y-0.5">
                         <button type="button" @click="activeTab = 'basic'"
                                 class="profile-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left"
@@ -142,7 +156,7 @@
 
                 <!-- Basic Information -->
                 <div x-show="activeTab === 'basic'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Basic Information</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your name and email address.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -161,7 +175,7 @@
 
                 <!-- Personal Profile -->
                 <div x-show="activeTab === 'personal'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Personal Profile</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your personal details and employment status.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -201,7 +215,7 @@
 
                 <!-- Address -->
                 <div x-show="activeTab === 'address'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Address</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your residential address information.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -225,7 +239,7 @@
 
                 <!-- Professional Details -->
                 <div x-show="activeTab === 'professional'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Professional Details</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your educational background and work experience.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -270,7 +284,7 @@
 
                 <!-- School Head Information -->
                 <div x-show="activeTab === 'schoolhead'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">School Head Information</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Your leadership role and school details.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -335,7 +349,7 @@
 
                 <!-- Display & Accessibility (system-wide setting) -->
                 <div x-show="activeTab === 'display'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                     class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Display & Accessibility</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">System-wide settings that affect all pages. Your choice is saved on this device.</p>
 

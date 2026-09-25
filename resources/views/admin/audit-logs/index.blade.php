@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Audit Logs')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -14,20 +15,21 @@
 @endpush
 
 @section('content')
-<div class="max-w-[1100px] mx-auto px-4 sm:px-4">
-    <div class="flex items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Audit Logs</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Complete audit trail of all system activities. Append-only — logs cannot be edited or deleted.</p>
-        </div>
-        <div class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-500">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Audit Logs</b></div><div class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-500">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
             <span>Live</span>
+        </div></div>
+<div class="mock-title"><div><h1>Audit Logs</h1><p class="text-gray-500 dark:text-gray-400 mt-1">Complete audit trail of all system activities. Append-only — logs cannot be edited or deleted.</p>
+        <div>
+            
+            
         </div>
-    </div>
+        
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 mb-5">
-        <form method="GET" action="{{ route('admin.audit-logs.index') }}">
+    <section class="mock-panel">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.audit-logs.index') }}">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Date From</label>
@@ -108,10 +110,10 @@
                 @endif
                 <span class="text-xs text-gray-400 dark:text-gray-500 ml-auto">{{ $logs->total() }} entries</span>
             </div>
-        </form>
-    </div>
+        </form></section>
+    </section>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>Audit Logs</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm min-w-[780px]">
                 <thead>
@@ -192,7 +194,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     @if($logs->hasPages())
         <div class="mt-5">

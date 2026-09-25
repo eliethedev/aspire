@@ -1,12 +1,18 @@
 /* ASPIRE minimal service worker (offline encoding workflow).
  * Goal: keep /supervisor/observations/offline usable with zero connectivity.
- * Strategy: cache-first ONLY for the offline page shell + required CSS/JS assets;
+ * Strategy: cache-first ONLY for the offline page shells + required CSS/JS assets;
  * everything else is network-first so authenticated Blade pages never go stale.
+ *
+ * Offline-package workspace pages (/offline-workspace/...) are cached at
+ * RUNTIME on first online visit (cache-first below), so the exact per-observation
+ * URL works later with zero connectivity. The JSON bundle itself lives in
+ * IndexedDB (see public/js/aspire-offline-package.js), not the HTTP cache.
  */
-const CACHE = 'aspire-offline-v3';
+const CACHE = 'aspire-offline-v4';
 const PRECACHE = [
     '/js/aspire-offline.js',
     '/js/offline-encode.js',
+    '/js/aspire-offline-package.js',
     '/supervisor/observations/offline',
 ];
 
@@ -36,8 +42,10 @@ self.addEventListener('fetch', (event) => {
     const isStatic = p.includes('/js/') || p.includes('/css/') || p.includes('/build/')
         || p.endsWith('.css') || p.endsWith('.js');
     const isOfflinePage = p.endsWith('/observations/offline');
+    // Per-observation offline workspace shell (opened once online, reused offline).
+    const isPackageWorkspace = p.includes('/offline-workspace');
 
-    if (isStatic || isOfflinePage) {
+    if (isStatic || isOfflinePage || isPackageWorkspace) {
         // Cache-first with network fallback + background refresh.
         event.respondWith(
             caches.match(request).then((hit) => {

@@ -1,11 +1,24 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Offline Capture')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-3xl mx-auto px-3 py-4">
-    <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Offline observation capture</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">No signal in the school? No problem — follow the 3 steps below. Your work saves on this device and syncs later.</p>
+<div class="mock-wrap max-w-3xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Offline Capture</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">← Back to Evaluations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Offline observation visits</h1>
+            <p>Confirmed observations → downloaded packages → zero-signal encoding → sync. 1 Confirm (teacher) · 2 Prepare + download · 3 Encode offline · 4 Sync.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="mt-2 flex flex-wrap items-center gap-2">
         <span id="offline-mode-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-800" role="status">
             <span class="h-2 w-2 rounded-full bg-amber-500"></span>
@@ -23,7 +36,9 @@
     <script>window.ASPIRE_BOOTSTRAP = @json($bundle ?? null);</script>
 
     {{-- Step cards --}}
-    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <section class="mock-panel" aria-label="Offline steps">
+        <div class="mock-panel-head"><h2>How offline capture works</h2><span class="hint">3 steps</span></div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="padding:14px 16px">
         <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
             <p class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
                 <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white text-xs">1</span>
@@ -49,17 +64,44 @@
             <button type="button" data-sync-now class="aspire-sync-now mt-2 w-full px-3 py-2 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors">Sync Now</button>
         </div>
     </div>
+    </section>
+
+    {{-- Offline visit packages: the mandated flow hub. Observations the teacher
+         confirmed appear here after you tap "Download for Offline Use" on each
+         observation page. Open a workspace with zero connectivity, encode, sync. --}}
+    <section class="mock-panel" style="margin-top:12px" aria-label="Ready packages">
+        <div class="mock-panel-head">
+            <h2>Ready for offline visit</h2>
+            <span class="hint" id="pkg-ready-count"></span>
+            <span class="link" id="pkg-outbox-note"></span>
+        </div>
+        <div style="padding:14px 16px">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Downloaded packages live on this device (lesson plan, pinned rubric, AI prompts). Open one at the school with no signal, encode scores, then sync when you're back online.</p>
+            <ul id="pkg-ready-list" class="mt-2 space-y-1.5"></ul>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <button type="button" id="pkg-sync-now" class="mock-btn primary">Sync package outbox</button>
+                <span class="text-xs text-gray-400" id="pkg-sync-note">Pushes saved package observations to the server.</span>
+            </div>
+        </div>
+    </section>
 
     {{-- Last sync result --}}
     <div id="of-result" class="hidden mt-3 rounded-lg border p-3 text-sm"></div>
 
-    <div class="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 class="font-semibold text-gray-900 dark:text-gray-100">Already on the server — don't re-capture</h2>
+    <section class="mock-panel" style="margin-top:12px" aria-label="Scheduled observations">
+        <div class="mock-panel-head"><h2>Already on the server — don't re-capture</h2></div>
+        <div style="padding:14px 16px">
         <p class="text-xs text-gray-400 mt-0.5">These observations exist on the server. Capturing the same person + date offline will be rejected as a duplicate on sync.</p>
         <ul id="of-scheduled" class="mt-2 space-y-1.5 text-sm text-gray-700 dark:text-gray-300"></ul>
-    </div>
+        </div>
+    </section>
 
-    <form id="offline-form" class="mt-4 space-y-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+    {{-- Ad-hoc capture (legacy quick form for unscheduled observations). Kept
+         working as-is; the mandated flow above covers scheduled visits. --}}
+    <details class="mock-panel" style="margin-top:16px">
+        <summary class="mock-panel-head" style="cursor:pointer;list-style:none"><h2>Ad-hoc capture (no scheduled observation)</h2><span class="hint">legacy quick-capture form</span></summary>
+        <div style="padding:0 16px 16px">
+    <form id="offline-form" class="space-y-3" style="margin-top:4px">
         <div>
             <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Who are you observing?</span>
             <div class="mt-1 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Observee type">
@@ -72,6 +114,7 @@
             <input id="of-teacher-search" type="text" class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="Type to search…" autocomplete="off">
             <select id="of-teacher" class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" required></select>
             <p class="text-xs text-gray-400 mt-1">List comes from your cached data — do step 1 while online first.</p>
+            <p id="of-no-cache" class="hidden mt-1 text-xs font-semibold text-amber-700 dark:text-amber-300 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-2 py-1.5"></p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -116,6 +159,8 @@
         <input id="of-history-search" type="text" class="mt-2 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm" placeholder="Search by name or subject…" autocomplete="off">
         <ul id="of-history-list" class="mt-2 space-y-2 text-sm text-gray-700 dark:text-gray-300"></ul>
     </div>
+        </div>
+    </details>
 </div>
 
 @push('scripts')
@@ -201,6 +246,25 @@
         }
         source.forEach(function (t) { teacherSel.appendChild(opt(t.id, t.label)); });
         filterTeachers();
+        updateNoCacheBanner(source.length);
+    }
+
+    // Unmistakable empty-cache guidance: tells the supervisor exactly why the
+    // dropdown is empty and what to do. Fires on every toggle + refresh.
+    function updateNoCacheBanner(count) {
+        var banner = document.getElementById('of-no-cache');
+        if (!banner) return;
+        if (count > 0) { banner.classList.add('hidden'); return; }
+        var isHead = observeeType === 'school_head_observation';
+        var who = isHead ? 'school heads' : 'teachers';
+        var msg = !bundle
+            ? 'No cached data on this device — while online, tap “Cache data” above, then pick ' + who + ' here.'
+            : 'No ' + who + ' in your cached data — tap “Cache data” above while online to refresh the list.';
+        if (!navigator.onLine && !bundle) {
+            msg = 'You are offline and nothing is cached yet — reconnect, tap “Cache data”, then reload this page.';
+        }
+        banner.textContent = msg;
+        banner.classList.remove('hidden');
     }
 
     function setObserveeType(type) {
@@ -474,7 +538,6 @@
             resultBox.innerHTML = html + '</ul>';
         }
     }
-    }
 
     var filesByObservation = {};
 
@@ -681,7 +744,92 @@
 </script>
 @endpush
 @push('scripts')
+<script>window.ASPIRE_BASE_URL = window.ASPIRE_BASE_URL || @json(request()->getBaseUrl());</script>
 <script src="{{ request()->getBaseUrl() }}/js/offline-encode.js"></script>
+<script src="{{ request()->getBaseUrl() }}/js/aspire-offline-package.js"></script>
+<script>
+/* Offline visit packages hub: lists IndexedDB-cached observation bundles and
+ * drives the package outbox. Read-only when the engine is missing. */
+(function () {
+    var P = window.AspireOfflinePackage;
+    var list = document.getElementById('pkg-ready-list');
+    var count = document.getElementById('pkg-ready-count');
+    var note = document.getElementById('pkg-outbox-note');
+    var syncBtn = document.getElementById('pkg-sync-now');
+    var syncNote = document.getElementById('pkg-sync-note');
+    if (!list) return;
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    function workspaceUrl(serverId) {
+        return (window.ASPIRE_BASE_URL || '') + '/supervisor/observations/' + serverId + '/offline-workspace';
+    }
+
+    function refresh() {
+        if (!P) {
+            list.innerHTML = '<li class="text-xs text-gray-400">Package engine failed to load — hard-refresh while online.</li>';
+            return;
+        }
+        P.listPackages().then(function (pkgs) {
+            count.textContent = pkgs.length ? '(' + pkgs.length + ')' : '';
+            list.innerHTML = '';
+            if (!pkgs.length) {
+                var empty = document.createElement('li');
+                empty.className = 'text-xs text-gray-400';
+                empty.textContent = 'No packages yet. While online, open a confirmed observation and tap “Download for Offline Use”.';
+                list.appendChild(empty);
+            }
+            pkgs.forEach(function (rec) {
+                var b = rec.bundle || {};
+                var o = b.observation || {};
+                var li = document.createElement('li');
+                li.className = 'flex items-center gap-2 rounded-md border border-gray-100 dark:border-gray-700 px-2 py-1.5';
+                var dot = document.createElement('span');
+                dot.className = 'h-2 w-2 shrink-0 rounded-full bg-emerald-500';
+                var body = document.createElement('div');
+                body.className = 'flex-1 min-w-0';
+                var title = document.createElement('p');
+                title.className = 'font-medium truncate text-sm';
+                title.textContent = (o.teacher ? o.teacher.name : 'Observation #' + rec.observation_server_id)
+                    + ' · ' + (o.subject || 'No subject') + ' · ' + (o.observation_date || 'no date');
+                var sub = document.createElement('p');
+                sub.className = 'text-xs text-gray-500 dark:text-gray-400 truncate';
+                sub.textContent = 'Saved ' + (rec.saved_at ? new Date(rec.saved_at).toLocaleString() : 'on this device')
+                    + (b.ai_ready ? ' · AI prompts included' : '');
+                body.appendChild(title);
+                body.appendChild(sub);
+                var open = document.createElement('a');
+                open.href = workspaceUrl(rec.observation_server_id);
+                open.className = 'mock-btn shrink-0';
+                open.textContent = 'Open workspace';
+                li.appendChild(dot);
+                li.appendChild(body);
+                li.appendChild(open);
+                list.appendChild(li);
+            });
+        }).catch(function () {});
+        P.pendingCount().then(function (n) {
+            note.textContent = n ? n + ' waiting to sync' : '';
+            if (syncNote) syncNote.textContent = n
+                ? n + ' package observation(s) will push when you sync.'
+                : 'Pushes saved package observations to the server.';
+        }).catch(function () {});
+    }
+
+    if (syncBtn) syncBtn.addEventListener('click', function () {
+        if (!P) return;
+        syncBtn.disabled = true;
+        P.syncNow().then(refresh).catch(refresh).then(function () { syncBtn.disabled = false; });
+    });
+    document.addEventListener('offline-package:synced', refresh);
+    document.addEventListener('offline-package:sync-error', refresh);
+    refresh();
+})();
+</script>
 <script>
 /* Lightweight offline encoding bridge (vanilla JS):
  * - loads the cached observation from IndexedDB store `offline_observations` when the

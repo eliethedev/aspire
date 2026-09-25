@@ -1,81 +1,233 @@
 @extends('layouts.teacher')
 @section('title','Teacher Dashboard')
-@push('styles')<style>.progress-ring{transform:rotate(-90deg)}</style>@endpush
+@include('partials.dashboard.mock-styles')
 @section('content')
-@php $user=Auth::user(); $completion=$stats['total']>0?round(($stats['completed']/$stats['total'])*100):0; $circ=2*3.14159*44; $dash=$circ*$completion/100; @endphp
-<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1">
- <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/70 dark:border-gray-800 p-6 lg:p-7 shadow-sm">
-  <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
-   <div class="flex items-center gap-5">
-    <div class="relative shrink-0"><svg width="96" height="96" class="progress-ring"><circle cx="48" cy="48" r="44" stroke="#dbeafe" stroke-width="8" fill="none"/><circle cx="48" cy="48" r="44" stroke="#2563eb" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="{{ $circ }} {{ $circ }}" stroke-dashoffset="{{ $circ - $dash }}"/></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{{ $completion }}%</span><span class="text-[10px] tracking-widest uppercase text-gray-500 dark:text-gray-400">Complete</span></div></div>
-    <div><p class="text-blue-600 dark:text-blue-400 text-xs tracking-widest uppercase font-semibold">Teacher Portfolio</p><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Hey, {{ explode(' ',$user->name)[0] }} — keep growing!</h1><p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ now()->format('l, F j, Y') }} · {{ $stats['completed'] }} completed · {{ $stats['scheduled'] }} scheduled</p><div class="mt-3 flex gap-2 text-xs"><span class="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full"><i class="fas fa-chart-line mr-1"></i> Avg {{ number_format($stats['average_cot_score'],1) }}</span><span class="bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 px-3 py-1.5 rounded-full text-gray-700 dark:text-gray-300"><i class="fas fa-clock mr-1"></i> {{ $stats['pending_confirmation'] }} awaiting confirm</span></div></div>
-   </div>
-   <div class="flex gap-3 w-full lg:w-auto">
-    <a href="{{ route('teacher.observations.index') }}" class="flex-1 lg:flex-none inline-flex justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-sm font-semibold"><i class="fas fa-eye"></i> View Observations</a>
-    <a href="{{ route('teacher.profile.edit') }}" class="hidden sm:inline-flex bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 px-5 py-3 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-user mr-2"></i>Profile</a>
-   </div>
-  </div>
- </div>
- <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5 hover:shadow-md transition"><div class="flex justify-between items-start"><div><p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Total Cycles</p><p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['total'] }}</p><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $stats['completed'] }} done · {{ $stats['in_progress'] }} active</p></div><div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-clipboard-list"></i></div></div><div class="mt-3 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-2 bg-blue-600 rounded-full" style="width: {{ $completion }}%"></div></div></div>
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5 hover:shadow-md transition"><div class="flex justify-between items-start"><div><p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Avg COT</p><p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ number_format($stats['average_cot_score'],1) }}</p></div><div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-chart-column"></i></div></div><div class="mt-3 text-xs flex gap-2">@if($trend>0)<span class="px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold"><i class="fas fa-arrow-trend-up mr-1"></i>+{{ number_format($trend,1) }}</span>@elseif($trend<0)<span class="px-2 py-1 rounded-full bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 font-semibold"><i class="fas fa-arrow-trend-down mr-1"></i>{{ number_format($trend,1) }}</span>@else<span class="text-gray-400 dark:text-gray-500">No trend yet</span>@endif</div></div>
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5 hover:shadow-md transition"><div class="flex justify-between items-start"><div><p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Completed</p><p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['completed'] }}</p></div><div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-check-circle"></i></div></div><p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Next observation unlocks deeper insights.</p></div>
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5 hover:shadow-md transition"><div class="flex justify-between items-start"><div><p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Scheduled</p><p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ $stats['scheduled'] }}</p></div><div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400"><i class="fas fa-calendar-days"></i></div></div>@if($stats['pending_confirmation']>0)<a href="{{ route('teacher.observations.index') }}" class="mt-3 inline-flex text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-blue-700 dark:text-blue-300"><i class="fas fa-exclamation-circle mr-1"></i>{{ $stats['pending_confirmation'] }} need confirmation →</a>@else<p class="text-xs text-gray-500 dark:text-gray-400 mt-3">All caught up.</p>@endif</div>
- </div>
- <div class="grid lg:grid-cols-3 gap-6">
-  <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-6">
-    <h2 class="text-xs font-bold tracking-widest uppercase text-gray-900 dark:text-white flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> <i class="fas fa-layer-group text-blue-600 dark:text-blue-400"></i> Cycle Progress</h2>
-    @if($focusObservation)
-    @php
-      $focusStatusClass = match($focusObservation->status) {
-        'completed' => 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20',
-        'in_progress' => 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20',
-        'cancelled' => 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700',
-        default => 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20',
-      };
-    @endphp
-    <div class="mb-4 rounded-xl border border-blue-100 dark:border-blue-500/20 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <p class="text-sm font-bold text-gray-900 dark:text-white"><i class="fas fa-calendar-days text-blue-600 dark:text-blue-400 mr-1.5"></i>{{ $focusObservation->observation_date?->format('l, M d, Y') ?? 'No date set' }}</p>
-        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border {{ $focusStatusClass }}">{{ ucfirst(str_replace('_',' ',$focusObservation->status)) }}</span>
-      </div>
-      <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
-        @if($focusObservation->subject)<span><i class="fas fa-book-open mr-1 text-gray-400 dark:text-gray-500"></i>{{ $focusObservation->subject }}</span>@endif
-        @if($focusObservation->observer?->name)<span><i class="fas fa-user-tie mr-1 text-gray-400 dark:text-gray-500"></i>{{ $focusObservation->observer->name }}</span>@endif
-        <span><i class="fas fa-flag mr-1 text-gray-400 dark:text-gray-500"></i>{{ ucfirst(str_replace('_',' ',$focusObservation->stage)) }}</span>
-        <a href="{{ route('teacher.observations.show',$focusObservation) }}" class="ml-auto font-semibold text-blue-600 dark:text-blue-400 hover:underline">View details →</a>
-      </div>
-    </div>
-    @else
-    <div class="mb-4 text-center py-6 border-2 border-dashed dark:border-gray-700 rounded-xl text-sm text-gray-500 dark:text-gray-400"><i class="fas fa-calendar text-2xl text-gray-300 dark:text-gray-600 mb-2 block"></i>No observation scheduled yet.</div>
+@php
+  $user = Auth::user();
+  $completion = $stats['total'] > 0 ? round(($stats['completed'] / $stats['total']) * 100) : 0;
+  $hour = (int) now()->format('G');
+  $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+  $firstName = explode(' ', trim($user->name ?? ''))[0] ?? 'Teacher';
+  $focus = $focusObservation ?? $nextObservation ?? $recentObservation;
+  $trendLabel = ($trend > 0 ? '+' : '') . number_format((float) $trend, 1);
+  $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+  $stageTitles = ['Pre-observation planning', 'Pre-observation conference', 'Classroom observation', 'Post-observation conference'];
+  $activeObs = $observations->whereIn('status', ['scheduled', 'in_progress'])->values();
+  $doneObs = $observations->where('status', 'completed')->values();
+@endphp
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+
+  <div class="mock-topbar">
+    <div class="mock-crumbs">Teacher <span>/</span> <b>Dashboard</b></div>
+    <span class="mock-pill"><span class="pulse"></span>{{ $completion }}% portfolio complete</span>
+    @if($stats['pending_confirmation'] > 0)
+      <span class="mock-pill amber"><span class="pulse"></span>{{ $stats['pending_confirmation'] }} awaiting confirmation</span>
     @endif
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      @foreach($stageStatus as $k=>$stage)
-      <div class="rounded-xl border p-4 text-center {{ $stage['done']?'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20':'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700' }}">
-        <div class="w-10 h-10 mx-auto rounded-xl flex items-center justify-center {{ $stage['done']?'bg-blue-600 text-white':'bg-white dark:bg-gray-800 border dark:border-gray-700 text-gray-400 dark:text-gray-500' }}"><i class="fas {{ $stage['done']?'fa-check':'fa-clock' }}"></i></div>
-        <p class="text-xs font-semibold mt-2 {{ $stage['done']?'text-blue-700 dark:text-blue-300':'text-gray-600 dark:text-gray-400' }}">{{ $stage['label'] }}</p>
-        <p class="text-[11px] mt-1 {{ $stage['done']?'text-blue-600 dark:text-blue-400':'text-gray-400 dark:text-gray-500' }}">{{ $stage['done']?'Done':'Pending' }}</p>
-      </div>
-      @endforeach
+    <div class="mock-actions">
+      <a class="mock-btn" href="{{ route('teacher.observations.index') }}">My observations</a>
+      <a class="mock-btn primary" href="{{ route('teacher.feedback.index') }}">View feedback</a>
     </div>
-    <div class="mt-6 h-52"><canvas id="growthChart"></canvas></div>
-    @if(count($cotScores)==0)<p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-3">Complete more observations to see growth.</p>@endif
   </div>
-  <div class="space-y-6">
-   <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5">
-    <div class="flex justify-between mb-3"><h3 class="text-xs font-bold tracking-widest uppercase text-gray-900 dark:text-white"><i class="fas fa-star text-amber-500 mr-1"></i> Recent Observation</h3>@if($recentObservation)<a href="{{ route('teacher.observations.show',$recentObservation) }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400">View →</a>@endif</div>
-    @if($recentObservation)<div class="flex gap-3 items-center"><div class="w-14 h-14 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold">{{ number_format($recentObservation->overall_score,1) }}</div><div><p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $recentObservation->observation_date?->format('M d, Y') }}</p><p class="text-xs text-gray-500 dark:text-gray-400"><i class="fas fa-user mr-1"></i>{{ $recentObservation->observer?->name ?? '—' }}</p></div></div><dl class="mt-4 grid grid-cols-2 gap-3 text-xs"><div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3"><dt class="text-gray-500 dark:text-gray-400">Subject</dt><dd class="font-semibold text-gray-900 dark:text-white">{{ $recentObservation->subject ?? '—' }}</dd></div><div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3"><dt class="text-gray-500 dark:text-gray-400">Stage</dt><dd class="font-semibold capitalize text-gray-900 dark:text-white">{{ str_replace('_',' ',$recentObservation->stage) }}</dd></div></dl>@else<div class="text-center py-8 border-2 border-dashed dark:border-gray-700 rounded-xl text-sm text-gray-500 dark:text-gray-400"><i class="fas fa-inbox text-2xl text-gray-300 dark:text-gray-600 mb-2 block"></i>No observation yet</div>@endif
-   </div>
-   <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-5">
-    <div class="flex justify-between mb-3"><h3 class="text-xs font-bold tracking-widest uppercase text-gray-900 dark:text-white"><i class="fas fa-calendar-check text-blue-600 dark:text-blue-400 mr-1"></i> Next Observation</h3>@if($nextObservation)<a href="{{ route('teacher.observations.show',$nextObservation) }}" class="text-xs font-semibold text-blue-600 dark:text-blue-400">View →</a>@endif</div>
-    @if($nextObservation)@php $days=$nextObservation->observation_date?(int) now()->diffInDays($nextObservation->observation_date,false):0; @endphp<div class="flex gap-3 items-center"><div class="w-14 h-14 rounded-xl flex items-center justify-center {{ $days<=0?'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400':($days<=3?'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400':'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400') }}"><i class="fas fa-calendar-days"></i></div><div><p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $nextObservation->observation_date?->format('M d, Y') }}</p><p class="text-xs {{ $days<=0?'text-red-600 dark:text-red-400':($days<=3?'text-amber-600 dark:text-amber-400':'text-blue-600 dark:text-blue-400') }} font-semibold">@if($days>0){{ $days }} days away @elseif($days==0) Today @else {{ abs($days) }} days overdue @endif</p></div></div>@else<div class="text-center py-8 border-2 border-dashed dark:border-gray-700 rounded-xl text-sm text-gray-500 dark:text-gray-400"><i class="fas fa-calendar text-2xl text-gray-300 dark:text-gray-600 mb-2 block"></i>No upcoming</div>@endif
-   </div>
+
+  <div class="mock-title">
+    <div>
+      <h1>{{ $greeting }}, {{ $firstName }} — keep growing</h1>
+      <p>{{ $stats['completed'] }} completed · {{ $stats['scheduled'] }} scheduled · avg {{ number_format((float) $stats['average_cot_score'], 1) }}</p>
+    </div>
+    <time>{{ now()->format('l, F j, Y') }} · Teacher Portfolio</time>
   </div>
- </div>
- <div class="grid lg:grid-cols-2 gap-6">
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-6"><h3 class="text-xs font-bold tracking-widest uppercase text-gray-900 dark:text-white flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> <i class="fas fa-comments text-blue-600 dark:text-blue-400"></i> Post-Conference Feedback</h3>@if($recentFeedback)@if($recentFeedback->feedback)<div class="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-4"><p class="text-xs font-semibold tracking-widest uppercase text-blue-700 dark:text-blue-300 mb-1">Feedback</p><p class="text-sm text-gray-800 dark:text-gray-200">{{ Str::limit($recentFeedback->feedback,260) }}</p></div>@endif @if($recentFeedback->supervisor_notes)<div class="mt-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700"><p class="text-xs font-semibold tracking-widest uppercase text-gray-500 dark:text-gray-400 mb-1">Next Steps</p><p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($recentFeedback->supervisor_notes,260) }}</p></div>@endif @else<div class="text-center py-10 border-2 border-dashed dark:border-gray-700 rounded-xl"><p class="text-sm text-gray-500 dark:text-gray-400"><i class="fas fa-comment-dots text-xl text-gray-300 dark:text-gray-600 mb-2 block"></i>No feedback yet.</p></div>@endif</div>
-  <div class="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 p-6"><h3 class="text-xs font-bold tracking-widest uppercase text-gray-900 dark:text-white flex items-center gap-2 mb-4"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> <i class="fas fa-bolt text-amber-500"></i> Quick Links</h3><div class="grid grid-cols-2 gap-3"><a href="{{ route('teacher.observations.index') }}" class="p-4 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"><p class="text-sm font-semibold"><i class="fas fa-eye mr-1"></i>Observations</p><p class="text-xs opacity-80">History</p></a><a href="{{ route('notifications.index') }}" class="p-4 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 hover:shadow-sm"><p class="text-sm font-semibold text-gray-900 dark:text-white"><i class="fas fa-bell mr-1"></i>Notifications</p><p class="text-xs text-gray-500 dark:text-gray-400">Alerts</p></a><a href="{{ route('teacher.feedback.index') }}" class="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-500/20"><p class="text-sm font-semibold text-blue-700 dark:text-blue-300"><i class="fas fa-star mr-1"></i>Feedback</p><p class="text-xs text-blue-600 dark:text-blue-400">AI & supervisor</p></a><a href="{{ route('teacher.profile.edit') }}" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"><p class="text-sm font-semibold text-gray-900 dark:text-white"><i class="fas fa-user-cog mr-1"></i>Profile</p><p class="text-xs text-gray-500 dark:text-gray-400">Update info</p></a></div></div>
- </div>
+
+  <div class="mock-kpis">
+    <div class="mock-kpi hot">
+      <label>Total cycles</label>
+      <div class="val">{{ $stats['total'] }}</div>
+      <div class="delta mock-flat">{{ $stats['completed'] }} done · {{ $stats['in_progress'] }} active</div>
+    </div>
+    <div class="mock-kpi">
+      <label>Avg COT</label>
+      <div class="val">{{ number_format((float) $stats['average_cot_score'], 1) }} <small>/ 7.0</small></div>
+      <div class="delta {{ $trend > 0 ? 'mock-up' : ($trend < 0 ? 'mock-down' : 'mock-flat') }}">{{ $trend != 0 ? ($trend > 0 ? '▲ ' : '▼ ') . $trendLabel : '● No trend yet' }}</div>
+    </div>
+    <div class="mock-kpi">
+      <label>Completed</label>
+      <div class="val">{{ $stats['completed'] }} <small>/ {{ $stats['total'] }}</small></div>
+      <div class="delta mock-flat">{{ $completion }}% portfolio progress</div>
+    </div>
+    <div class="mock-kpi">
+      <label>Scheduled</label>
+      <div class="val">{{ $stats['scheduled'] }}</div>
+      <div class="delta {{ $stats['pending_confirmation'] > 0 ? 'mock-down' : 'mock-flat' }}">{{ $stats['pending_confirmation'] > 0 ? $stats['pending_confirmation'] . ' need confirmation' : 'All caught up' }}</div>
+    </div>
+  </div>
+
+  <div class="mock-grid">
+    <div class="min-w-0">
+      <section class="mock-panel" aria-label="My observation workflow">
+        <div class="mock-panel-head">
+          <h2>My cycle · {{ $focus ? ($focus->observation_date?->format('M d, Y') ?? 'No date set') : 'No cycle yet' }}</h2>
+          <span class="hint">{{ $focus ? ucwords(str_replace('_', ' ', $focus->stage ?? '')) . ' · ' . ($focus->observer?->name ?? '—') : 'Your growth workspace' }}</span>
+          @if($focus)<a class="link" href="{{ route('teacher.observations.show', $focus) }}">View details →</a>@endif
+        </div>
+        @if($focus)
+          <div class="mock-steps">
+            @foreach($stageKeys as $i => $key)
+              @php
+                $done = $stageStatus[$key]['done'] ?? false;
+                $isCurrent = !$done && ($i === 0 || ($stageStatus[$stageKeys[$i - 1]]['done'] ?? false));
+                $state = $done ? 'done' : ($isCurrent ? 'now' : '');
+              @endphp
+              <div class="mock-step {{ $state }}">
+                <div class="mock-step-num">{{ $done ? '✓' : $i + 1 }}</div>
+                <div>
+                  <h3>{{ $i + 1 }} · {{ $stageTitles[$i] }}</h3>
+                  <p>{{ $stageStatus[$key]['label'] ?? $stageTitles[$i] }}</p>
+                  <div class="meta">{{ $done ? 'completed' : ($isCurrent ? 'in progress · ' . ($focus->subject ?? '—') : 'locked until previous step is done') }}</div>
+                </div>
+                <span class="mock-status {{ $done ? 'done' : ($isCurrent ? 'now' : 'todo') }}">{{ $done ? 'Done' : ($isCurrent ? 'In progress' : 'Queued') }}</span>
+              </div>
+            @endforeach
+          </div>
+        @else
+          <div class="mock-empty">No observation scheduled yet. Your supervisor will schedule your first COT cycle here.</div>
+        @endif
+      </section>
+
+      <section class="mock-panel" aria-label="Observation groups">
+        <div class="mock-panel-head">
+          <h2>Observation groups</h2>
+          <span class="hint">folders with your observation files</span>
+          <a class="link" href="{{ route('teacher.observations.index') }}">All observations →</a>
+        </div>
+        @if($observations->isNotEmpty())
+          <div>
+            <details class="mock-folder" open>
+              <summary>
+                <span class="caret">▸</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+                <span>Active &amp; scheduled</span>
+                <span class="spacer"><span class="mock-status {{ $activeObs->isNotEmpty() ? 'now' : 'todo' }}">{{ $activeObs->count() }} files</span></span>
+              </summary>
+              <div>
+                @forelse($activeObs as $ob)
+                  @php $live = $ob->status === 'in_progress'; @endphp
+                  <a class="mock-file {{ $live ? 'live' : '' }}" href="{{ route('teacher.observations.show', $ob) }}">
+                    <span class="mock-fdot"></span>
+                    <span class="mock-fmain"><b>{{ $ob->subject ?? 'Observation' }} · {{ $ob->observation_date?->format('M d, Y') ?? 'No date' }}</b><span>{{ $ob->observer?->name ?? '—' }}</span></span>
+                    <span class="mock-fright"><span class="mock-status now">{{ ucwords(str_replace('_', ' ', $ob->status)) }}</span></span>
+                  </a>
+                @empty
+                  <div class="mock-empty">Nothing scheduled — new cycles appear here.</div>
+                @endforelse
+              </div>
+            </details>
+            <details class="mock-folder" open>
+              <summary>
+                <span class="caret">▸</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+                <span>Completed</span>
+                <span class="spacer"><span class="mock-status done">{{ $doneObs->count() }} files</span></span>
+              </summary>
+              <div>
+                @forelse($doneObs as $ob)
+                  @php
+                    $score = $ob->overall_score !== null ? (float) $ob->overall_score : null;
+                    $tone = $score === null ? 'lo' : ($score >= 4.5 ? 'hi' : ($score >= 3.5 ? 'mid' : 'lo'));
+                  @endphp
+                  <a class="mock-file" href="{{ route('teacher.observations.show', $ob) }}">
+                    <span class="mock-fdot"></span>
+                    <span class="mock-fmain"><b>{{ $ob->subject ?? 'Observation' }} · {{ $ob->observation_date?->format('M d, Y') ?? 'No date' }}</b><span>{{ $ob->observer?->name ?? '—' }}</span></span>
+                    <span class="mock-fright"><span class="mock-score {{ $tone }}">{{ $score !== null ? number_format($score, 1) : '—' }}</span><span class="mock-status done">Finalized</span></span>
+                  </a>
+                @empty
+                  <div class="mock-empty">No completed cycles yet.</div>
+                @endforelse
+              </div>
+            </details>
+          </div>
+        @else
+          <div class="mock-empty">No observation files yet. Your supervisor will schedule your first COT cycle here.</div>
+        @endif
+      </section>
+
+      <section class="mock-panel" aria-label="Growth trend">
+        <div class="mock-panel-head">
+          <h2>Growth trend</h2>
+          <span class="hint">{{ count($cotScores) }} scored observations</span>
+          <a class="link" href="{{ route('teacher.analytics') }}">Performance analytics →</a>
+        </div>
+        @if(count($cotScores) > 0)
+          <div style="padding:14px 16px"><div style="position:relative;height:220px"><canvas id="growthChart"></canvas></div></div>
+        @else
+          <div class="mock-empty">Complete more observations to see your growth over time.</div>
+        @endif
+      </section>
+
+      <section class="mock-panel" aria-label="Post-conference feedback">
+        <div class="mock-panel-head">
+          <h2>Post-conference feedback</h2>
+          <span class="hint">Latest guidance from your observer</span>
+          <a class="link" href="{{ route('teacher.feedback.index') }}">All feedback →</a>
+        </div>
+        @if($recentFeedback)
+          @if($recentFeedback->feedback)<div style="padding:12px 16px 0"><div class="mock-mod" style="background:var(--m-accent-soft)"><div class="mock-mod-body"><b style="font-size:12px">Feedback</b><p style="font-size:12.5px;color:var(--m-text)">{{ Str::limit($recentFeedback->feedback, 260) }}</p></div></div></div>@endif
+          @if($recentFeedback->supervisor_notes)<div style="padding:12px 16px"><div class="mock-mod"><div class="mock-mod-body"><b style="font-size:12px">Next steps</b><p style="font-size:12.5px;color:var(--m-muted)">{{ Str::limit($recentFeedback->supervisor_notes, 260) }}</p></div></div></div>@endif
+        @else
+          <div class="mock-empty">No feedback yet — it appears here after your post-conference.</div>
+        @endif
+      </section>
+    </div>
+
+    <aside class="mock-rail" aria-label="Contextual utilities">
+      <div class="mock-mod">
+        <div class="mock-mod-head"><h3>System insights</h3><span class="tick {{ $stats['pending_confirmation'] > 0 ? 'warn' : '' }}"></span></div>
+        <div class="mock-mod-body">
+          <div class="mock-insight"><div><b>Portfolio progress</b><span>{{ $stats['completed'] }} of {{ $stats['total'] }} cycles complete</span><div class="mock-bar"><i style="width:{{ $completion }}%"></i></div></div></div>
+          <div class="mock-insight"><div><b>Average rating</b><span>{{ number_format((float) $stats['average_cot_score'], 1) }} / 7.0 · {{ $trendLabel }} vs earlier</span></div></div>
+          <div class="mock-insight"><div><b>Confirmations</b><span>{{ $stats['pending_confirmation'] }} scheduled observations need your confirmation</span></div></div>
+        </div>
+      </div>
+      <div class="mock-mod">
+        <div class="mock-mod-head"><h3>Quick actions</h3></div>
+        <div class="mock-mod-body">
+          <a class="mock-act solid" href="{{ route('teacher.observations.index') }}">👁 View observations</a>
+          <a class="mock-act" href="{{ route('teacher.feedback.index') }}">⭐ Feedback &amp; coaching</a>
+          <a class="mock-act" href="{{ route('teacher.coaching.index') }}">📋 Improvement plan</a>
+          <a class="mock-act" href="{{ route('teacher.profile.edit') }}">👤 Update profile</a>
+        </div>
+      </div>
+      <div class="mock-mod">
+        <div class="mock-mod-head"><h3>Observation metadata</h3><span class="tick"></span></div>
+        <div class="mock-mod-body">
+          <dl>
+            <div class="mock-kv"><dt>Focus cycle</dt><dd>{{ $focus ? '#OBS-' . $focus->id : '—' }}</dd></div>
+            <div class="mock-kv"><dt>Stage</dt><dd>{{ $focus ? ucwords(str_replace('_', ' ', $focus->stage ?? '')) : '—' }}</dd></div>
+            <div class="mock-kv"><dt>Date</dt><dd>{{ $focus?->observation_date?->format('M d, Y') ?? '—' }}</dd></div>
+            <div class="mock-kv"><dt>Observer</dt><dd>{{ $focus?->observer?->name ?? '—' }}</dd></div>
+            <div class="mock-kv"><dt>Subject</dt><dd>{{ $focus->subject ?? '—' }}</dd></div>
+          </dl>
+        </div>
+      </div>
+      <div class="mock-mod">
+        <div class="mock-mod-head"><h3>Recent observation</h3></div>
+        <div class="mock-mod-body">
+          @if($recentObservation)
+            <div class="mock-kv"><dt>Date</dt><dd>{{ $recentObservation->observation_date?->format('M d, Y') }}</dd></div>
+            <div class="mock-kv"><dt>Score</dt><dd>{{ $recentObservation->overall_score !== null ? number_format((float) $recentObservation->overall_score, 1) : '—' }}</dd></div>
+            <div class="mock-kv"><dt>Observer</dt><dd>{{ $recentObservation->observer?->name ?? '—' }}</dd></div>
+            <a class="mock-act" style="margin-top:10px" href="{{ route('teacher.observations.show', $recentObservation) }}">Open result →</a>
+          @else
+            <p style="font-size:12px;color:var(--m-muted)">No scored observation yet.</p>
+          @endif
+          @if($nextObservation)
+            <div class="mock-kv"><dt>Next</dt><dd>{{ $nextObservation->observation_date?->format('M d, Y') }}</dd></div>
+          @endif
+        </div>
+      </div>
+    </aside>
+  </div>
 </div>
-@if(count($cotScores)>0)<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script>const ctx=document.getElementById('growthChart').getContext('2d');new Chart(ctx,{type:'line',data:{labels:{!! json_encode($cotLabels) !!},datasets:[{data:{!! json_encode($cotScores) !!},borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.08)',fill:true,tension:.38,pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:7,ticks:{stepSize:1}},x:{grid:{display:false}}}}});</script>@endif
+@if(count($cotScores) > 0)
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>(function(){const el=document.getElementById('growthChart');if(!el)return;const dark=document.documentElement.classList.contains('dark');new Chart(el.getContext('2d'),{type:'line',data:{labels:{!! json_encode($cotLabels) !!},datasets:[{data:{!! json_encode($cotScores) !!},borderColor:'#2f81f7',backgroundColor:'rgba(47,129,247,.10)',fill:true,tension:.38,pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:7,ticks:{stepSize:1,color:dark?'#8b949e':'#64748b'}},x:{grid:{display:false},ticks:{color:dark?'#8b949e':'#64748b'}}}}});})();</script>
+@endif
 @endsection

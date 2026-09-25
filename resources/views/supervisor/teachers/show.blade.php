@@ -1,5 +1,6 @@
 @extends('layouts.supervisor')
 @section('title', 'Teacher Profile - ' . $teacher->user->name)
+@include('partials.dashboard.mock-styles')
 @push('styles')
 <style>
 .hero-card{background:linear-gradient(135deg,#eef2ff 0%,#f8fafc 55%,#ffffff 100%)}
@@ -19,17 +20,25 @@
     $initial = strtoupper(substr($teacher->user->name,0,1));
     $avgScore = $stats['avg_score'] ?? $rateeProfile['stats']['average_rating'] ?? null;
 @endphp
-<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1 lg:px-0">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 space-y-6">
 
-    {{-- Breadcrumb --}}
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
-        <a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1"><i class="fas fa-house text-[11px]"></i> Dashboard</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <a href="{{ route('supervisor.teachers.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Teachers</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <span class="font-semibold text-slate-700 dark:text-gray-200 truncate">{{ $teacher->user->name }}</span>
-        @if($needsAttention)<span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold"><i class="fas fa-bell text-[10px]"></i> Needs attention</span>@endif
-    </nav>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>{{ $teacher->user->name }}</b></div>
+        @if($needsAttention)<span class="mock-pill amber"><span class="pulse"></span>Needs attention</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.teachers.index') }}">Back to list</a>
+            <a class="mock-btn" href="{{ route('supervisor.observations.teacher-history', ['observeeId' => $teacher->id, 'type' => 'App\\Models\\Teacher']) }}">History</a>
+            <a class="mock-btn primary" href="{{ route('supervisor.observations.create') }}?teacher_id={{ $teacher->id }}">＋ New Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>{{ $rateeProfile['name'] }}</h1>
+            <p>{{ $teacher->user->email }} · {{ $rateeProfile['position'] }} · {{ $levelLabel }}</p>
+        </div>
+        <time>{{ $teacher->school?->name ?? '' }}</time>
+    </div>
 
     {{-- Hero --}}
     <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 shadow-sm overflow-hidden">
@@ -80,35 +89,35 @@
             </div>
 
             {{-- Stats strip --}}
-            <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Total Observations</p>
-                    <p class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{{ $rateeProfile['stats']['total'] }}</p>
-                    <p class="text-xs text-slate-500 dark:text-gray-400">{{ $rateeProfile['stats']['completed'] }} completed · {{ $rateeProfile['stats']['in_progress'] }} in progress</p>
+            <div class="mock-kpis" role="list" aria-label="Teacher summary">
+                <div class="mock-kpi hot" role="listitem">
+                    <label>Total Observations</label>
+                    <div class="val">{{ $rateeProfile['stats']['total'] }}</div>
+                    <div class="delta mock-flat">{{ $rateeProfile['stats']['completed'] }} completed · {{ $rateeProfile['stats']['in_progress'] }} in progress</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Average Rating</p>
-                    <p class="text-xl font-extrabold {{ $avgScore!==null && $avgScore<4 ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400' }} mt-1">{{ $avgScore!==null ? number_format($avgScore,2).' / 6' : '—' }}</p>
-                    <p class="text-xs text-slate-500 dark:text-gray-400">Across scored observations</p>
+                <div class="mock-kpi" role="listitem">
+                    <label>Average Rating</label>
+                    <div class="val">{{ $avgScore!==null ? number_format($avgScore,2).' / 6' : '—' }}</div>
+                    <div class="delta mock-flat">Across scored observations</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Latest Observation</p>
+                <div class="mock-kpi" role="listitem">
+                    <label>Latest Observation</label>
                     @if(!empty($rateeProfile['stats']['latest_observation']))
-                        <p class="text-sm font-semibold text-slate-900 dark:text-gray-100 mt-1">{{ $rateeProfile['stats']['latest_observation']['date'] }} @if(!empty($rateeProfile['stats']['latest_observation']['rating']))· {{ number_format($rateeProfile['stats']['latest_observation']['rating'],2) }}@endif</p>
-                        <p class="text-xs text-slate-500 dark:text-gray-400">Most recent scored</p>
+                        <div class="val" style="font-size:16px">{{ $rateeProfile['stats']['latest_observation']['date'] }} @if(!empty($rateeProfile['stats']['latest_observation']['rating']))· {{ number_format($rateeProfile['stats']['latest_observation']['rating'],2) }}@endif</div>
+                        <div class="delta mock-flat">Most recent scored</div>
                     @else
-                        <p class="text-sm font-semibold text-slate-400 dark:text-gray-500 mt-1">None yet</p>
-                        <p class="text-xs text-slate-500 dark:text-gray-400">Awaiting first observation</p>
+                        <div class="val">—</div>
+                        <div class="delta mock-flat">Awaiting first observation</div>
                     @endif
                 </div>
-                <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                    <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Upcoming</p>
+                <div class="mock-kpi" role="listitem">
+                    <label>Upcoming</label>
                     @if(!empty($rateeProfile['stats']['upcoming_observation']))
-                        <p class="text-sm font-semibold text-slate-900 dark:text-gray-100 mt-1">{{ $rateeProfile['stats']['upcoming_observation']['date'] }}</p>
-                        <p class="text-xs text-slate-500 dark:text-gray-400">Scheduled</p>
+                        <div class="val" style="font-size:16px">{{ $rateeProfile['stats']['upcoming_observation']['date'] }}</div>
+                        <div class="delta mock-flat">Scheduled</div>
                     @else
-                        <p class="text-sm font-semibold text-slate-400 dark:text-gray-500 mt-1">None scheduled</p>
-                        <a href="{{ route('supervisor.observations.create') }}?teacher_id={{ $teacher->id }}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">Schedule now →</a>
+                        <div class="val">—</div>
+                        <div class="delta mock-flat"><a href="{{ route('supervisor.observations.create') }}?teacher_id={{ $teacher->id }}" style="color:var(--m-accent);font-weight:600">Schedule now →</a></div>
                     @endif
                 </div>
             </div>
@@ -131,11 +140,9 @@
             @include('partials.ratee.areas-attention', ['rateeProfile' => $rateeProfile])
 
             {{-- Recent Observations --}}
-            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-6 section-card">
-                <div class="flex items-center justify-between gap-3 mb-5">
-                    <h2 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span class="w-1.5 h-5 rounded-full bg-indigo-600"></span> Recent Observations</h2>
-                    <a href="{{ route('supervisor.observations.teacher-history', ['observeeId' => $teacher->id, 'type' => 'App\\Models\\Teacher']) }}" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20">View all</a>
-                </div>
+            <section class="mock-panel" aria-label="Recent observations">
+                <div class="mock-panel-head"><h2>Recent Observations</h2><a class="link" href="{{ route('supervisor.observations.teacher-history', ['observeeId' => $teacher->id, 'type' => 'App\\Models\\Teacher']) }}">View all →</a></div>
+                <div style="padding:4px 16px 14px">
                 @forelse($observations as $observation)
                     @php
                         $stageLabels = ['pre_observation_planning' => 'Planning', 'pre_conference' => 'Pre-Conference', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
@@ -191,22 +198,25 @@
                         {{ $observations->links() }}
                     </div>
                 @endif
-            </div>
+                </div>
+            </section>
         </div>
 
         {{-- Sidebar --}}
         <div class="lg:col-span-4 space-y-6">
             <div class="sticky top-6 space-y-6">
                 @include('partials.ratee.supervisor-actions', ['rateeProfile' => $rateeProfile])
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-5">
-                    <h3 class="text-sm font-bold tracking-widest uppercase text-slate-700 dark:text-gray-200 flex items-center gap-2"><span class="w-1.5 h-4 rounded-full bg-slate-400"></span> At a glance</h3>
+                <section class="mock-panel" aria-label="At a glance">
+                    <div class="mock-panel-head"><h2>At a glance</h2></div>
+                    <div style="padding:4px 16px 14px">
                     <dl class="mt-4 space-y-3 text-sm">
                         <div class="flex justify-between gap-4"><dt class="text-slate-500 dark:text-gray-400">Email</dt><dd class="font-medium text-slate-900 dark:text-gray-100 truncate">{{ $teacher->user->email }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-slate-500 dark:text-gray-400">Role</dt><dd class="font-medium text-slate-900 dark:text-gray-100">{{ $rateeProfile['role_label'] ?? 'Teacher' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-slate-500 dark:text-gray-400">School</dt><dd class="font-medium text-slate-900 dark:text-gray-100 truncate">{{ $teacher->school?->name ?? '—' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-slate-500 dark:text-gray-400">Career stage</dt><dd class="font-medium text-slate-900 dark:text-gray-100">{{ $rateeProfile['career_stage_label'] ?: '—' }}</dd></div>
                     </dl>
-                </div>
+                    </div>
+                </section>
                 <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-2xl p-4">
                     <p class="text-xs font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5"><i class="fas fa-circle-info text-indigo-600 dark:text-indigo-400"></i> How we flag attention</p>
                     <p class="text-xs text-indigo-700/80 dark:text-indigo-300/80 mt-1 leading-relaxed">Below Satisfactory (&lt; 4), declining trend, never-observed, or has a pending observation waiting on you. Flags are supportive — not punitive.</p>

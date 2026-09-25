@@ -1,21 +1,30 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Progress Comparison - Observation #' . $observation->id)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-3 py-8">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Progress Comparison</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Progress Comparison</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">← Back to Observation</a>
         </div>
-        <a href="{{ route('supervisor.observations.show', $observation) }}" class="text-sm text-indigo-600 hover:text-indigo-700">← Back to Observation</a>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Progress Comparison</h1>
+            <p>{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+        </div>
+        <time>Observation #{{ $observation->id }}</time>
     </div>
 
     @if($comparison)
     <!-- Overall Score Comparison -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-6 mb-8">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+    <section class="mock-panel" aria-label="Overall score comparison">
+        <div class="mock-panel-head"><h2>Overall Score</h2><span class="hint">Previous vs current</span></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center" style="padding:14px 16px">
             <div>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Previous ({{ $comparison['previous_date'] }})</p>
                 <p class="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($comparison['previous_overall'], 2) }}%</p>
@@ -38,13 +47,11 @@
                 <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">{{ number_format($comparison['current_overall'], 2) }}%</p>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Detailed Comparison -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm mb-8">
-        <div class="p-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Indicator-by-Indicator Comparison</h2>
-        </div>
+    <section class="mock-panel" aria-label="Indicator comparison">
+        <div class="mock-panel-head"><h2>Indicator-by-Indicator Comparison</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-800">
@@ -80,12 +87,13 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     <!-- PD Plan -->
     @if($pdPlan && (!empty($pdPlan['short_term_goals']) || !empty($pdPlan['long_term_goals'])))
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Professional Development Plan</h2>
+    <section class="mock-panel" aria-label="Professional development plan">
+        <div class="mock-panel-head"><h2>Professional Development Plan</h2></div>
+        <div style="padding:14px 16px">
 
         @if(!empty($pdPlan['short_term_goals']))
         <h3 class="text-sm font-semibold text-red-700 dark:text-red-400 mb-3">Short-Term Goals (1-2 Months)</h3>
@@ -125,12 +133,13 @@
         </div>
         @endif
     </div>
+    </section>
     @endif
 
     @else
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
+    <div class="mock-panel"><div class="mock-empty">
         <p class="text-gray-500 dark:text-gray-400">No previous observation found for comparison. At least two completed observations are needed.</p>
-    </div>
+    </div></div>
     @endif
 </div>
 @endsection

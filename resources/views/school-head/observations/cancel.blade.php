@@ -2,8 +2,25 @@
 
 @section('title', 'Cancel Observation')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-3xl mx-auto px-4 sm:px-4">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill amber"><span class="pulse"></span>Cancel request</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Cancel Observation</h1>
+            <p>Cancel the observation for {{ $observation->observee?->user?->name ?? 'Unknown' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="mb-8">
         <a href="{{ route('school-head.observations.show', $observation) }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors mb-4">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -23,7 +40,7 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Details</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
@@ -55,7 +72,7 @@
         </dl>
     </div>
 
-    <form method="POST" action="{{ route('school-head.observations.cancel', $observation) }}" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
+    <form method="POST" action="{{ route('school-head.observations.cancel', $observation) }}" class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
 

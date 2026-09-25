@@ -1,73 +1,47 @@
 @extends('layouts.admin')
 
 @section('title', 'User Invitations')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 space-y-8">
-    <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <h1 class="text-2xl font-bold text-dark">User Invitations</h1>
-                <p class="text-dark mt-1">Manage user invitations and track their status.</p>
-            </div>
-            <a href="{{ route('admin.invitations.create') }}" 
-               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i>New Invitation
-            </a>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Admin <span>/</span> <b>User Invitations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $statistics['total'] }} invitations</span>
+        <div class="mock-actions">
+            <a href="{{ route('admin.invitations.create') }}" class="mock-btn primary"><i class="fas fa-plus mr-2"></i>New Invitation</a>
         </div>
     </div>
+    <div class="mock-title"><div><h1>User Invitations</h1><p>Manage user invitations and track their status.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <!-- Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <i class="fas fa-envelope text-blue-600 dark:text-blue-400"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm text-dark">Total Invitations</p>
-                    <p class="text-2xl font-bold text-dark">{{ $statistics['total'] }}</p>
-                </div>
-            </div>
+    <!-- Statistics — mockup KPIs -->
+    <div class="mock-kpis">
+        <div class="mock-kpi hot">
+            <label>Total Invitations</label>
+            <div class="val">{{ $statistics['total'] }}</div>
+            <div class="delta mock-flat">All sent invites</div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-yellow-100 rounded-lg">
-                    <i class="fas fa-clock text-yellow-600"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm text-dark">Pending</p>
-                    <p class="text-2xl font-bold text-dark">{{ $statistics['pending'] }}</p>
-                </div>
-            </div>
+        <div class="mock-kpi">
+            <label>Pending</label>
+            <div class="val">{{ $statistics['pending'] }}</div>
+            <div class="delta mock-flat">Awaiting acceptance</div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <i class="fas fa-check text-green-600 dark:text-green-400"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm text-dark">Accepted</p>
-                    <p class="text-2xl font-bold text-dark">{{ $statistics['used'] }}</p>
-                </div>
-            </div>
+        <div class="mock-kpi">
+            <label>Accepted</label>
+            <div class="val">{{ $statistics['used'] }}</div>
+            <div class="delta mock-flat">Joined the system</div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                    <i class="fas fa-times text-red-600 dark:text-red-400"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm text-dark">Expired</p>
-                    <p class="text-2xl font-bold text-dark">{{ $statistics['expired'] }}</p>
-                </div>
-            </div>
+        <div class="mock-kpi">
+            <label>Expired</label>
+            <div class="val">{{ $statistics['expired'] }}</div>
+            <div class="delta mock-flat">Lapsed invites</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel">
+        <div class="mock-panel-head"><h2>Filters</h2></div>
+        <div style="padding:12px 16px">
         <form method="GET" action="{{ route('admin.invitations.index') }}" class="flex flex-wrap gap-4">
             <div>
                 <select name="status" class="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -103,10 +77,11 @@
                 Clear
             </a>
         </form>
-    </div>
+        </div>
+    </section>
 
     <!-- Invitations Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card overflow-x-auto">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>User Invitations</h2></div>
         <table class="w-full">
             <thead class="bg-gray-50 dark:bg-gray-800">
                 <tr>
@@ -125,11 +100,11 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                    <span class="text-blue-600 dark:text-blue-400 font-medium">{{ substr($invitation->user->name, 0, 1) }}</span>
+                                    <span class="text-blue-600 dark:text-blue-400 font-medium">{{ substr($invitation->user?->name ?? $invitation->email, 0, 1) }}</span>
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $invitation->user->name }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Invited by {{ $invitation->invitedBy->name }}</div>
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $invitation->user?->name ?? $invitation->email }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Invited by {{ $invitation->invitedBy?->name ?? 'System' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -162,18 +137,18 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                             @if(!$invitation->is_used && !$invitation->isExpired())
-                                <form method="POST" action="{{ route('admin.invitations.resend', $invitation) }}" class="inline">
+                                <section class="mock-panel"><form method="POST" action="{{ route('admin.invitations.resend', $invitation) }}" class="inline">
                                     @csrf
                                     <button type="submit" class="text-blue-600 dark:text-blue-400 hover:text-blue-900" title="Resend">
                                         <i class="fas fa-redo"></i>
                                     </button>
-                                </form>
-                                <form method="POST" action="{{ route('admin.invitations.cancel', $invitation) }}" class="inline" onsubmit="return confirm('Are you sure you want to cancel this invitation?');">
+                                </form></section>
+                                <section class="mock-panel"><form method="POST" action="{{ route('admin.invitations.cancel', $invitation) }}" class="inline" onsubmit="return confirm('Are you sure you want to cancel this invitation?');">
                                     @csrf
                                     <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900" title="Cancel">
                                         <i class="fas fa-times"></i>
                                     </button>
-                                </form>
+                                </form></section>
                             @endif
                             @if($invitation->is_used)
                                 <a href="{{ route('admin.users.show', $invitation->user) }}" class="text-green-600 dark:text-green-400 hover:text-green-900" title="View User">
@@ -195,7 +170,7 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
+    </section>
 
     <!-- Pagination -->
     @if($invitations->hasPages())

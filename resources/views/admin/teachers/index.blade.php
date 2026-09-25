@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'Teachers Management')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Teachers</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-dark dark:text-white">Teachers</h1>
-                <p class="text-dark mt-1  dark:text-gray-300">Manage teacher profiles and assignments.</p>
+                
+                
             </div>
-            <a href="{{ route('admin.invitations.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white  dark:text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <a href="{{ route('admin.invitations.create') }}" class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Add New Teacher
             </a>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>Teachers</h1><p class="text-dark mt-1  dark:text-gray-300">Manage teacher profiles and assignments.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Search and Filter Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4">
+    <section class="mock-panel">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-sm font-medium text-dark  dark:text-white mb-1">Search</label>
@@ -58,8 +58,8 @@
                 </a>
             </div>
             @endif
-        </form>
-    </div>
+        </form></section>
+    </section>
 
     <!-- Teachers Table -->
     <div class="glass-card rounded-xl shadow-sm  overflow-hidden">

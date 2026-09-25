@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Feedback Center')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -10,17 +11,24 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Feedback Center</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $observations->total() }} observations</span>
+    </div>
+
+    <div class="mock-title">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Feedback Center</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Review, edit, and publish feedback for all observations.</p>
+            <h1>Feedback Center</h1>
+            <p>Review, edit, and publish feedback for all observations.</p>
         </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
 
     <!-- Search & Filter -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
+    <section class="mock-panel" aria-label="Search and filter">
+        <div class="mock-panel-head"><h2>Search &amp; Filter</h2></div>
+        <div style="padding:14px 16px">
         <form method="GET" action="{{ route('supervisor.feedback.center') }}">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
@@ -52,7 +60,8 @@
                 @endif
             </div>
         </form>
-    </div>
+        </div>
+    </section>
 
     <!-- List -->
     @forelse($observations as $observation)
@@ -65,7 +74,7 @@
             $publishedFb = $feedbacks->where('status', 'published')->count();
             $hasUnpublished = $draftFb > 0;
         @endphp
-        <div class="fb-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4">
+        <div class="fb-card mock-panel p-5 mb-4">
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <div class="w-11 h-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base font-bold shrink-0">
@@ -125,7 +134,7 @@
     @endforelse
 
     @if($observations->hasPages())
-        <div class="mt-8">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $observations->appends(request()->query())->links() }}
         </div>
     @endif

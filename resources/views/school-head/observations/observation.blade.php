@@ -2,6 +2,8 @@
 
 @section('title', 'Classroom Observation')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .rating-btn { transition: all 0.15s ease; min-width: 2.75rem; cursor: pointer; }
@@ -45,7 +47,22 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Observation stage</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Details</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Classroom Observation</h1>
+            <p>Live classroom observation ratings and notes</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <li><a href="{{ route('school-head.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
@@ -69,7 +86,7 @@
     </div>
 
     @if($preConference && !$observation->isSchoolHeadObservation())
-    <div x-data="{ open: true }" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div x-data="{ open: true }" class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between p-4 text-left">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Observation Conversation Summary</h2>
@@ -100,7 +117,7 @@
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             @if($observation->isSchoolHeadObservation())
                 <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
                     <div class="flex items-center justify-between">
@@ -231,7 +248,7 @@
             @endif
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Notes</h2>
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">These notes will be used during the Post-Observation Conference and will inform the AI analysis.</p>
             <div class="space-y-4">
@@ -250,7 +267,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Evidence Files <span class="text-gray-400 dark:text-gray-500 font-normal">(photos, videos, documents)</span></h2>
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>

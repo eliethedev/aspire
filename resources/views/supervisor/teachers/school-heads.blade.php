@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'School Heads List')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -12,41 +13,30 @@
 </style>
 @endpush
 @section('content')
-<div class="max-w-7xl mx-auto space-y-6 px-3 py-3 sm:px-1 lg:px-0"
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorSchoolHeadsView') || 'list'; } catch (e) { return 'list'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorSchoolHeadsView', v); } catch (e) {} },
      }">
 
-    {{-- Breadcrumb --}}
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
-        <a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1"><i class="fas fa-house text-[11px]"></i> Dashboard</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <span class="font-semibold text-slate-700 dark:text-gray-200">School Heads</span>
-    </nav>
-
-    {{-- Hero --}}
-    <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 p-6 lg:p-7 shadow-sm">
-        <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div class="min-w-0">
-                <p class="text-slate-500 dark:text-gray-400 text-xs tracking-widest uppercase font-semibold">Supervisor Workspace · {{ now()->format('l, F j, Y') }}</p>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white leading-tight mt-1">School Heads</h1>
-                <p class="text-slate-500 dark:text-gray-400 text-sm mt-1 max-w-2xl">View the school heads under your supervision and schedule leadership observations.</p>
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ $schoolHeads->total() }} total</span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-building-columns text-[11px] text-slate-400 dark:text-gray-500"></i> School leaders</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('supervisor.observations.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-                    <i class="fas fa-plus text-xs"></i> New Observation
-                </a>
-            </div>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>School Heads</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $schoolHeads->total() }} school leaders</span>
+        <div class="mock-actions">
+            <a class="mock-btn primary" href="{{ route('supervisor.observations.create') }}">＋ New Observation</a>
         </div>
     </div>
 
+    <div class="mock-title">
+        <div>
+            <h1>School Heads</h1>
+            <p>View the school heads under your supervision and schedule leadership observations.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
     {{-- Search & Filters --}}
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden section-card" x-data="{ open: @json(true) }">
+    <section class="mock-panel" x-data="{ open: @json(true) }" aria-label="Search and filters">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
                 :aria-expanded="open.toString()">
@@ -103,7 +93,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </section>
 
     {{-- Results Summary --}}
     <div class="flex items-center justify-between">
@@ -128,7 +118,8 @@
     </div>
 
     {{-- School heads — List view --}}
-    <div x-show="view === 'list'">
+    <section class="mock-panel" x-show="view === 'list'" aria-label="School heads">
+        <div class="mock-panel-head"><h2>School Heads</h2><span class="hint">{{ $schoolHeads->total() }} total · list view</span></div>
     @forelse($schoolHeads as $schoolHead)
         @php
             $shName = $schoolHead->user?->name ?? $schoolHead->display_name ?? 'Unnamed School Head';
@@ -201,10 +192,11 @@
             @endif
         </div>
     @endforelse
-    </div>
+    </section>
 
     {{-- School heads — Table view --}}
-    <div x-show="view === 'table'" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" aria-label="School heads table">
+    <section class="mock-panel" x-show="view === 'table'" aria-label="School heads table">
+        <div class="mock-panel-head"><h2>School Heads</h2><span class="hint">{{ $schoolHeads->total() }} total · table view</span></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -260,10 +252,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     @if($schoolHeads->hasPages())
-        <div class="pt-2">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $schoolHeads->appends(request()->query())->links() }}
         </div>
     @endif

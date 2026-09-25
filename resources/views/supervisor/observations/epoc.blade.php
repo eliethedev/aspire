@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'EPOC Evaluation')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -82,38 +83,39 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Post-Observation Conference Evaluation</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>EPOC Evaluation</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Details</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Post-Observation Conference Evaluation</h1>
+            <p>
+                Rate the School Head's post-observation conference practices
+                @if($schoolHead)
+                    &middot; {{ $schoolHead->name }}
+                @endif
+                &middot; {{ $observation->observation_date?->format('M d, Y') ?? '' }}
+            </p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
 
     @include('partials.draft-banner')
 
     <!-- Progress Steps -->
     @include('partials.observation-stepper')
 
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Post-Observation Conference Evaluation</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">
-            Rate the School Head's post-observation conference practices
-            @if($schoolHead)
-                &middot; {{ $schoolHead->name }}
-            @endif
-            &middot; {{ $observation->observation_date?->format('M d, Y') ?? '' }}
-        </p>
-    </div>
-
+    {{-- Page header lives in the mock shell above --}}
     <form method="POST" action="{{ route('supervisor.observations.storeEPOC', $observation) }}" class="space-y-6"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <section class="mock-panel" aria-label="EPOC rating sheet">
             <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
                 <div class="flex items-center justify-between">
                     <div>
@@ -203,23 +205,25 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Narrative Observation</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Provide a detailed narrative of the post-observation conference session.</p>
+        <section class="mock-panel" aria-label="Narrative observation">
+            <div class="mock-panel-head"><h2>Narrative Observation</h2><span class="hint">Session flow and key moments</span></div>
+            <div style="padding:14px 16px">
             <textarea name="narrative_observation" rows="6"
                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                      placeholder="Describe the overall flow and key moments of the post-observation conference...">{{ $epocEvaluation->narrative_observation ?? '' }}</textarea>
-        </div>
+                       placeholder="Describe the overall flow and key moments of the post-observation conference...">{{ $epocEvaluation->narrative_observation ?? '' }}</textarea>
+            </div>
+        </section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Agreement</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Document any agreements or commitments made during the conference.</p>
+        <section class="mock-panel" aria-label="Agreement">
+            <div class="mock-panel-head"><h2>Agreement</h2><span class="hint">Commitments and next steps</span></div>
+            <div style="padding:14px 16px">
             <textarea name="agreement" rows="4"
                       class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                      placeholder="Record the agreements and next steps decided upon...">{{ $epocEvaluation->agreement ?? '' }}</textarea>
-        </div>
+                       placeholder="Record the agreements and next steps decided upon...">{{ $epocEvaluation->agreement ?? '' }}</textarea>
+            </div>
+        </section>
 
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="flex flex-col sm:flex-row gap-3">

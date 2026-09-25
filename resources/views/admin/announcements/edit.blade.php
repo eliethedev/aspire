@@ -1,35 +1,37 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Announcement')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-4">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-8">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.announcements.index') }}"
-               class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:border-gray-300 transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Announcement</h1>
-                <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Update the draft before sending.</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-200">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Announcement</b></div><div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-200">
             <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
             <span class="text-xs font-medium text-yellow-800">Draft â€” not yet sent</span>
+        </div><div class="mock-actions"><a href="{{ route('admin.announcements.index') }}"
+               class="mock-btn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a></div></div>
+<div class="mock-title"><div><h1>Edit Announcement</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Update the draft before sending.</p>
+        <div class="flex items-center gap-4">
+            
+            <div>
+                
+                
+            </div>
         </div>
-    </div>
+        
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <form method="POST" action="{{ route('admin.announcements.update', $announcement) }}" class="space-y-6">
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.announcements.update', $announcement) }}" class="space-y-6">
         @csrf
         @method('PUT')
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,9 +94,9 @@
                     @enderror
                 </div>
             </div>
-        </div>
+        </div></section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +219,7 @@
                     @enderror
                 </div>
             </div>
-        </div>
+        </section>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
             <a href="{{ route('admin.announcements.index') }}"
@@ -240,6 +242,6 @@
                 </button>
             </div>
         </div>
-    </form>
+    </form></section>
 </div>
 @endsection

@@ -2,6 +2,8 @@
 
 @section('title', 'Feedback & Coaching')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .fb-card { transition: all 0.2s ease; }
@@ -11,12 +13,24 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Feedback</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Published feedback</span>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Feedback &amp; Coaching</h1>
+            <p>View published feedback from your observations</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Header -->
     <x-page-header title="Feedback & Coaching" subtitle="View published feedback from your observations." />
 
     @if($feedbacks->isEmpty())
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             </div>

@@ -1,37 +1,37 @@
 @extends('layouts.admin')
 
 @section('title', 'Supervisor Details')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Supervisor Details</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-dark dark:text-gray-300">Supervisor Details</h1>
-                <p class="text-dark dark:text-gray-300 mt-1">View supervisor profile and information.</p>
+                
+                
             </div>
             <div class="flex flex-wrap items-center gap-4">
                 <a href="{{ route('admin.supervisors.edit', $supervisor) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/200 text-white dark:text-dark rounded-lg hover:bg-indigo-700 transition-colors">
+                   class="mock-btn primary">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
                     </svg>
                     Edit Supervisor
                 </a>
                 <a href="{{ route('admin.supervisors.index') }}" 
-                   class="inline-flex items-center px-4 py-2 text-dark dark:text-gray-300 glass-card rounded-lg hover:bg-white/10 transition-colors">
+                   class="mock-btn">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                     Back to List
                 </a>
             </div>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>Supervisor Details</h1><p class="text-dark dark:text-gray-300 mt-1">View supervisor profile and information.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Supervisor Profile Card -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mb-6">
+    <section class="mock-panel">
         <div class="flex items-start space-x-6">
             <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-10 h-10 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +56,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Information Cards -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -109,7 +109,7 @@
         </div>
 
         <!-- Supervisor Information -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+        <div class="mock-kpi hot">
             <div class="flex items-center mb-4">
                 <div class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +140,7 @@
     </div>
 
     <!-- System Information -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel">
         <div class="flex items-center mb-4">
             <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
                 <svg class="w-4 h-4 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,10 +171,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Actions -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h3 class="text-lg font-medium text-dark">Quick Actions</h3>
@@ -205,6 +205,6 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div></section>
 </div>
 @endsection

@@ -1,20 +1,20 @@
 @extends($layout)
 
 @section('title', 'Report a Bug or Send Feedback')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
-    <div class="flex items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Report a Bug or Send Feedback</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Your message goes directly to the system administrators.</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Support <span>/</span> <b>Report a Bug or Send Feedback</b></div><div class="mock-actions"><div>
+            
+            
         </div>
-        <a href="{{ route('support.index') }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 shrink-0">
+        <a href="{{ route('support.index') }}" class="mock-btn">
             My Messages
-        </a>
-    </div>
+        </a></div></div>
+<div class="mock-title"><div><h1>Report a Bug or Send Feedback</h1><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Your message goes directly to the system administrators.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <form method="POST" action="{{ route('support.store') }}" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
+    <section class="mock-panel"><form method="POST" action="{{ route('support.store') }}" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
         @csrf
 
         <div>
@@ -49,6 +49,6 @@
             </a>
             <x-primary-button>{{ __('Send Message') }}</x-primary-button>
         </div>
-    </form>
+    </form></section>
 </div>
 @endsection

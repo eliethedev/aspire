@@ -2,88 +2,60 @@
 
 @section('title', 'Observations')
 
+@include('partials.dashboard.mock-styles')
 @push('styles')
 <style>
-    .obs-card {
-        transition: all 0.2s ease;
-    }
-    .obs-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    }
-    .stage-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-    .stage-line {
-        flex: 1;
-        height: 2px;
-        border-radius: 1px;
-    }
+    .obs-card { transition: all 0.2s ease; }
+    .obs-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06); }
+    .stage-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .stage-line { flex: 1; height: 2px; border-radius: 1px; }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-        <div>
-            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Observations</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">Monitor all classroom observations and evaluations across the system.</p>
-        </div>
-    </div>
-
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     @php $hasFilters = request()->anyFilled(['search', 'observation_type', 'status', 'stage']); @endphp
-
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ $stats['total'] }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Total Observations</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ $stats['in_progress'] }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">In Progress</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ $stats['completed'] }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Completed</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-3">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ $stats['cancelled'] }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Cancelled</p>
-                </div>
-            </div>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Admin <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} observations</span>
+        @if($hasFilters)<span class="mock-pill amber"><span class="pulse"></span>Filters active</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('admin.reports.index') }}">Open reports</a>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
+    <div class="mock-title">
+        <div>
+            <h1>Observations</h1>
+            <p>Monitor all classroom observations across the system</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
+    <div class="mock-kpis">
+        <div class="mock-kpi hot">
+            <label>Total Observations</label>
+            <div class="val">{{ $stats['total'] }}</div>
+            <div class="delta mock-flat">System-wide cycles</div>
+        </div>
+        <div class="mock-kpi">
+            <label>In Progress</label>
+            <div class="val">{{ $stats['in_progress'] }}</div>
+            <div class="delta mock-flat">Active cycles</div>
+        </div>
+        <div class="mock-kpi">
+            <label>Completed</label>
+            <div class="val">{{ $stats['completed'] }}</div>
+            <div class="delta mock-flat">Finalized results</div>
+        </div>
+        <div class="mock-kpi">
+            <label>Cancelled</label>
+            <div class="val">{{ $stats['cancelled'] }}</div>
+            <div class="delta mock-flat">Withdrawn cycles</div>
+        </div>
+    </div>
+
+    <div class="mock-panel" x-data="{ open: @json($hasFilters) }">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -153,6 +125,9 @@
         </div>
     </div>
 
+    <section class="mock-panel" aria-label="Observations">
+        <div class="mock-panel-head"><h2>Observations</h2><span class="hint">{{ $observations->total() }} total</span></div>
+        <div style="padding:12px 16px;display:grid;gap:12px">
     @forelse($observations as $observation)
         @php
             $observee = $observation->observee;
@@ -168,7 +143,7 @@
             $stageLabel = str_replace('Pre Conference', 'Pre-Conference', $stageLabel);
         @endphp
 
-        <div class="obs-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 mb-3">
+        <div class="obs-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
             <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <div class="w-11 h-11 rounded-full {{ $isTeacher ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' }} flex items-center justify-center text-base font-bold shrink-0">
@@ -270,9 +245,11 @@
             </a>
         </div>
     @endforelse
+        </div>
+    </section>
 
     @if($observations->hasPages())
-        <div class="mt-4">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $observations->links() }}
         </div>
     @endif

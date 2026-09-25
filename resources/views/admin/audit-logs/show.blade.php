@@ -1,21 +1,21 @@
 @extends('layouts.admin')
 
 @section('title', 'Audit Log Details')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Audit Log Details</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Complete record of the action performed.</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Audit Log Details</b></div><div class="mock-actions"><div>
+            
+            
         </div>
         <a href="{{ route('admin.audit-logs.index') }}"
-           class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors text-sm">
+           class="mock-btn">
             Back to Logs
-        </a>
-    </div>
+        </a></div></div>
+<div class="mock-title"><div><h1>Audit Log Details</h1><p class="text-gray-500 dark:text-gray-400 mt-1">Complete record of the action performed.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+    <section class="mock-panel">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
                 <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Action</p>
@@ -54,9 +54,9 @@
                 <p class="text-gray-900 dark:text-gray-100">{{ $auditLog->description ?? 'â€”' }}</p>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+    <section class="mock-panel">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Performed By</h2>
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-lg font-bold shrink-0">
@@ -73,10 +73,10 @@
                 </span>
             @endif
         </div>
-    </div>
+    </section>
 
     @if(!empty($auditLog->old_values) || !empty($auditLog->new_values))
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>Audit Log Details</h2></div>
         <div class="flex items-center gap-2 mb-4">
             <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Changes</h2>
@@ -130,7 +130,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
     @endif
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
@@ -147,7 +147,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div class="mock-kpi hot">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Additional Metadata</h2>
             <div class="space-y-3">
                 @if($auditLog->metadata && count($auditLog->metadata) > 0)

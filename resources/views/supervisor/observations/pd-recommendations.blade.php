@@ -1,19 +1,29 @@
 @extends('layouts.supervisor')
 
 @section('title', 'PD Recommendations - Observation #' . $observation->id)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Professional Development Recommendations</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>PD Recommendations</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">← Back to Observation</a>
         </div>
-        <a href="{{ route('supervisor.observations.show', $observation) }}" class="text-sm text-indigo-600 hover:text-indigo-700">← Back to Observation</a>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Professional Development Recommendations</h1>
+            <p>{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+        </div>
+        <time>Observation #{{ $observation->id }}</time>
     </div>
 
     @if($recommendations)
-    <div class="space-y-6">
+    <section class="mock-panel" aria-label="PD recommendations">
+        <div class="mock-panel-head"><h2>Recommendations</h2><span class="hint">{{ count($recommendations) }} focus areas</span></div>
+    <div class="space-y-6" style="padding:14px 16px">
         @foreach($recommendations as $rec)
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6
             @if($rec['severity'] === 'critical') border-l-4 border-l-red-500
@@ -65,10 +75,12 @@
         </div>
         @endforeach
     </div>
+    </section>
 
     @if(!empty($pdPlan['short_term_goals']) || !empty($pdPlan['long_term_goals']))
-    <div class="mt-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Development Plan Summary</h2>
+    <section class="mock-panel" style="margin-top:16px" aria-label="Development plan summary">
+        <div class="mock-panel-head"><h2>Development Plan Summary</h2></div>
+        <div style="padding:14px 16px">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @if(!empty($pdPlan['short_term_goals']))
             <div>
@@ -94,14 +106,15 @@
             @endif
         </div>
     </div>
+    </section>
     @endif
 
     @else
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
+    <div class="mock-panel"><div class="mock-empty">
         <svg class="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <p class="text-gray-500 dark:text-gray-400 font-medium">No low-rated indicators found</p>
         <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">This teacher has no consistently low indicators across observations. Great performance!</p>
-    </div>
+    </div></div>
     @endif
 </div>
 @endsection

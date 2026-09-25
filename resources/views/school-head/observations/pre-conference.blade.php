@@ -2,6 +2,8 @@
 
 @section('title', 'Pre-Observation Conversation')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     select option { background-color: #1f2937; color: #ffffff; }
@@ -44,7 +46,22 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Pre-conference stage</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Details</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Pre-Observation Conversation</h1>
+            <p>Pre-observation discussion with teacher</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -124,7 +141,7 @@
             @if(!$isSchoolHeadObs)
             <!-- AI Pre-Observation Insights Panel -->
             <div id="ai-insights-panel"
-                 class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-purple-200 dark:border-purple-900/40 ai-panel-enter {{ $aiReviewed ? 'opacity-75' : '' }}">
+                 class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-purple-200 dark:border-purple-900/40 ai-panel-enter {{ $aiReviewed ? 'opacity-75' : '' }}">
                 <div class="flex items-center justify-between p-4 border-b border-purple-100 dark:border-purple-900/40 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/20 rounded-t-xl">
                     <div class="flex items-center gap-2">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -152,55 +169,9 @@
 
                     <div id="ai-panel-notice"></div>
 
+                    <div id="ai-result-slot">
                     @if($aiInsights)
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 insight-card">
-                            <div class="flex items-start justify-between gap-3">
-                                @php $insightSections = $planning?->insightsSections(); @endphp
-                                @if(isset($insightSections['raw']))
-                                    <div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed flex-1" id="ai-insights-text">{{ $insightSections['raw'] }}</div>
-                                @else
-                                    <div id="ai-insights-text" class="flex-1 ai-insights-body">{!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}</div>
-                                @endif
-                                <button type="button" onclick="copyToClipboard(this, 'ai-insights-text')"
-                                        class="copy-btn p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 hover:bg-gray-200 transition-colors shrink-0" title="Copy AI Insights">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-2" id="ai-action-buttons">
-                            <button type="button" onclick="acceptAiInsights()"
-                                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                Accept &amp; Apply
-                            </button>
-                            <button type="button" onclick="modifyAiInsights()"
-                                    class="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:bg-amber-900/30 border border-amber-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                                Modify
-                            </button>
-                            <button type="button" onclick="rejectAiInsights()"
-                                    class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-600 dark:text-red-400 bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:bg-red-900/20 border border-gray-200 dark:border-gray-700 hover:border-red-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                Dismiss
-                            </button>
-                            <button type="button" id="clear-ai-insights-btn"
-                                    class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-white bg-red-50 dark:bg-red-900/20 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-lg transition-colors inline-flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                Clear
-                            </button>
-                        </div>
-
-                        <div id="modify-ai-container" class="hidden space-y-3">
-                            <textarea id="modify-ai-textarea" rows="6"
-                                      class="w-full px-3 py-2 rounded-lg border border-amber-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">{{ is_array($aiInsights) ? (json_encode($aiInsights) ?: '') : $aiInsights }}</textarea>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="applyModifiedInsights()"
-                                        class="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors">Apply Modified Insights</button>
-                                <button type="button" onclick="cancelModify()"
-                                        class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors">Cancel</button>
-                            </div>
-                        </div>
+                        @include('partials.ai-insights-result', ['insights' => $aiInsights])
                     @else
                         <div class="text-center py-6" id="ai-empty-state">
                             <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -213,13 +184,14 @@
                             </button>
                         </div>
                     @endif
+                    </div>
                 </div>
             </div>
             @endif
 
             <!-- Pre-Observation Planning Summary (collapsible) -->
             @if($planning)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100" x-data="{ open: {{ $observation->stage === 'pre_conference' ? 'true' : 'false' }} }">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100" x-data="{ open: {{ $observation->stage === 'pre_conference' ? 'true' : 'false' }} }">
                 <button type="button" @click="open = !open"
                         class="w-full flex items-center justify-between p-4 text-left">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Observation Planning Summary</h2>
@@ -265,7 +237,7 @@
                  and conference date live in the Teacher Information card, and the
                  date is submitted with its default value (see hidden input above). --}}
             @if($isSchoolHeadObs)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Session Context</h2>
                     <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">Pre-Conference</span>
@@ -307,7 +279,7 @@
 
             <!-- Section 2: Lesson Plan & Strategy -->
             @if(!$isSchoolHeadObs)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan & Strategy</h2>
                     <button type="button" onclick="useAiSuggestions()"
@@ -342,7 +314,7 @@
                 </div>
             </div>
             @else
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Supervision Practices &amp; Focus</h2>
                     <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">EPOC</span>
@@ -374,7 +346,7 @@
             @endif
 
             <!-- Actions -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-4">
                     <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="text-xs text-gray-500 dark:text-gray-400">Save and continue to the Observation stage when the pre-conference is complete.</span>
@@ -415,7 +387,7 @@
         <!-- Right Column -->
         <div class="space-y-6 sidebar-sticky">
             <!-- Teacher Info Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h3>
                 <div class="space-y-3">
                     <div>
@@ -453,7 +425,7 @@
 
             <!-- Observation Tool Info -->
             @if($isSchoolHeadObs || $planning?->observation_tool)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Observation Tool</h3>
                 <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 border border-indigo-100">
                     @if($isSchoolHeadObs)
@@ -475,7 +447,7 @@
 
             <!-- Previous Observation Performance Summary -->
             @if(isset($prevStrengths) && $prevStrengths->isNotEmpty())
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Previous Observation Performance</h3>
                 <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-100 mb-3">
                     <p class="text-xs font-semibold text-green-800 dark:text-green-300 uppercase tracking-wider mb-2">Strengths</p>
@@ -506,14 +478,14 @@
 
             <!-- Focus Areas Summary -->
             @if($planning?->suggested_focus)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">AI Suggested Focus</h3>
                 <p class="text-sm text-gray-700 dark:text-gray-300">{{ is_array($planning->suggested_focus) ? implode(', ', $planning->suggested_focus) : $planning->suggested_focus }}</p>
             </div>
             @endif
 
             <!-- Agenda Checklist -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Pre-Conference Checklist</h3>
                 <ul class="space-y-2.5" id="agenda-checklist" data-saved="{{ json_encode($preConference?->form_responses['agenda_checklist'] ?? []) }}">
                     <li class="agenda-item flex items-start gap-2.5">
@@ -565,7 +537,7 @@
 
 <!-- Cancel Observation Modal -->
 <div id="cancel-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
         <div class="flex items-center gap-2 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
@@ -666,7 +638,31 @@ function rejectAiInsights() {
     showToast('AI insights dismissed.');
 }
 
-document.getElementById('clear-ai-insights-btn')?.addEventListener('click', function() {
+var EMPTY_AI_TEMPLATE = ''
+    + '<div class="text-center py-6" id="ai-empty-state">'
+    + '<svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'
+    + '<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">No AI insights generated yet.</p>'
+    + '<p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Generate insights from the lesson plan — or skip AI entirely and complete the form below yourself.</p>'
+    + '<button type="button" onclick="generateAiInsights(event)" class="generate-ai-btn px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 rounded-lg transition-colors inline-flex items-center gap-2">'
+    + '<svg class="generate-spinner hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
+    + '<span class="generate-btn-text">Generate AI Insights</span>'
+    + '</button></div>';
+
+// Swaps freshly generated, server-organized insights into the result slot —
+// same organized sections as first paint, no page reload.
+function renderGeneratedInsights(data, btn, btnText, spinner, isRegenerate) {
+    hideAiLoading();
+    aiGenerating = false;
+    var slot = document.getElementById('ai-result-slot');
+    if (slot && data.panel_html) {
+        slot.innerHTML = data.panel_html;
+        slot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('AI suggestions ready — review the organized sections below.');
+    }
+    restoreAiBtn(btn, btnText, spinner, isRegenerate);
+}
+
+function clearAiInsights() {
     if (!confirm('Clear AI insights from the database? This cannot be undone.')) return;
 
     fetch('{{ route("school-head.observations.clear-ai-insights", $observation) }}', {
@@ -679,14 +675,18 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.success) {
-            location.reload();
+            var slot = document.getElementById('ai-result-slot');
+            if (slot) slot.innerHTML = EMPTY_AI_TEMPLATE;
+            var reviewed = document.getElementById('ai_insights_reviewed_input');
+            if (reviewed) reviewed.value = '0';
+            showToast('AI insights cleared.');
         }
     })
     .catch(function(err) {
         alert('Failed to clear AI insights.');
         console.error(err);
     });
-});
+}
 
 function useAiSuggestions() {
     fetch('{{ route("school-head.observations.generate-ai-suggestions", $observation) }}', {
@@ -786,7 +786,7 @@ function generateAiInsights(e, isRegenerate) {
     })
     .then(function(result) {
         if (result.ok && result.data.ai_insights) {
-            location.reload();
+            renderGeneratedInsights(result.data, btn, btnText, spinner, isRegenerate);
             return;
         }
         if (result.status === 202 && result.data.status === 'processing') {
@@ -850,7 +850,7 @@ function pollAiInsightsStatus(btn, btnText, spinner, isRegenerate) {
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.status === 'completed' && data.ai_insights) {
-                location.reload();
+                renderGeneratedInsights(data, btn, btnText, spinner, isRegenerate);
             } else {
                 setTimeout(check, 5000);
             }

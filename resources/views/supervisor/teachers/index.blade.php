@@ -1,5 +1,6 @@
 @extends('layouts.supervisor')
 @section('title', 'Teachers List')
+@include('partials.dashboard.mock-styles')
 @push('styles')
 <style>
     .hero-card{background:linear-gradient(135deg,#eef2ff 0%,#f8fafc 55%,#ffffff 100%)}
@@ -17,44 +18,30 @@
     $levelLabel = ['high' => 'High priority', 'medium' => 'Medium', 'low' => 'Watch', 'ok' => 'On track'];
     $todayStr = now()->format('l, F j, Y');
 @endphp
-<div class="max-w-7xl mx-auto {{ $attentionFilter ? 'space-y-3' : 'space-y-6' }} px-3 py-3 sm:px-1 lg:px-0"
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorTeachersView') || 'list'; } catch (e) { return 'list'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorTeachersView', v); } catch (e) {} },
      }">
 
-    {{-- Breadcrumb --}}
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
-        <a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1"><i class="fas fa-house text-[11px]"></i> Dashboard</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <span class="font-semibold text-slate-700 dark:text-gray-200">Teachers</span>
-        @if($attentionFilter)<span class="text-slate-300 dark:text-gray-600">/</span><span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold">Needs attention</span>@endif
-    </nav>
-
-    {{-- Hero --}}
-    <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 {{ $attentionFilter ? 'p-4 lg:p-5' : 'p-6 lg:p-7' }} shadow-sm">
-        <div class="flex flex-col lg:flex-row lg:items-start justify-between {{ $attentionFilter ? 'gap-3' : 'gap-6' }}">
-            <div class="min-w-0">
-                <p class="text-slate-500 dark:text-gray-400 text-xs tracking-widest uppercase font-semibold">Supervisor Workspace · {{ $todayStr }}</p>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white leading-tight mt-1">Teachers</h1>
-                <p class="text-slate-500 dark:text-gray-400 text-sm mt-1 max-w-2xl">Manage your faculty roster. Teachers flagged on the left need your focus first — sorted by priority.</p>
-                <div class="{{ $attentionFilter ? 'mt-2' : 'mt-3' }} flex flex-wrap items-center gap-2 text-xs">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> {{ $teachers->total() }} total</span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border {{ $needsAttentionCount>0?'border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10':'border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200' }}"><span class="w-2 h-2 rounded-full {{ $needsAttentionCount>0?'bg-amber-500':'bg-emerald-500' }}"></span> {{ $needsAttentionCount }} needs attention</span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200"><i class="fas fa-magnifying-glass text-[11px] text-slate-400 dark:text-gray-500"></i> Sorted by priority</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('supervisor.teachers.index', ['attention'=>'needs']) }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors {{ $attentionFilter?'ring-2 ring-amber-200 border-amber-300':'' }}">
-                    <i class="fas fa-bell text-amber-500 dark:text-amber-400 text-xs"></i> Needs attention
-                    <span class="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-bold">{{ $needsAttentionCount }}</span>
-                </a>
-                <a href="{{ route('supervisor.observations.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-                    <i class="fas fa-plus text-xs"></i> New Observation
-                </a>
-            </div>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Teachers</b></div>
+        @if($attentionFilter)<span class="mock-pill amber"><span class="pulse"></span>Needs attention</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.teachers.index', ['attention'=>'needs']) }}">Needs attention · {{ $needsAttentionCount }}</a>
+            <a class="mock-btn primary" href="{{ route('supervisor.observations.create') }}">＋ New Observation</a>
         </div>
     </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Teachers</h1>
+            <p>Manage your faculty roster · {{ $teachers->total() }} total · {{ $needsAttentionCount }} need attention · {{ $todayStr }}</p>
+        </div>
+        <time>{{ $teachers->total() }} teachers</time>
+    </div>
+
+    {{-- Summary moved to the mock shell above --}}
 
     {{-- Attention summary banner --}}
     <div class="rounded-2xl overflow-hidden border shadow-sm {{ $needsAttentionCount > 0 ? 'bg-gradient-to-r from-amber-50 dark:from-amber-500/10 via-amber-50/60 dark:via-amber-500/5 to-white dark:to-gray-900 border-amber-200 dark:border-amber-500/20' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800' }}">
@@ -101,7 +88,7 @@
 
     {{-- Search & Filters --}}
     @php $hasTeacherFilters = request()->anyFilled(['search', 'per_page']) && request('search'); @endphp
-    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm overflow-hidden section-card" x-data="{ open: @json($hasTeacherFilters || true) }">
+    <section class="mock-panel" x-data="{ open: @json($hasTeacherFilters || true) }" aria-label="Search and filters">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
                 :aria-expanded="open.toString()">
@@ -159,7 +146,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </section>
 
     {{-- Results Summary --}}
     <div class="flex items-center justify-between">
@@ -187,7 +174,8 @@
     </div>
 
     {{-- Teachers — List view --}}
-    <div x-show="view === 'list'">
+    <section class="mock-panel" x-show="view === 'list'" aria-label="Teachers">
+        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $teachers->total() }} total · list view</span></div>
     @forelse($teachers as $teacher)
         @php
             $initial = strtoupper(substr($teacher->user->name, 0, 1));
@@ -295,10 +283,11 @@
             @endif
         </div>
     @endforelse
-    </div>
+    </section>
 
     {{-- Teachers — Table view --}}
-    <div x-show="view === 'table'" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" aria-label="Teachers table">
+    <section class="mock-panel" x-show="view === 'table'" aria-label="Teachers table">
+        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $teachers->total() }} total · table view</span></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -364,10 +353,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     @if($teachers->hasPages())
-        <div class="pt-2">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $teachers->appends(request()->query())->links() }}
         </div>
     @endif

@@ -1,45 +1,46 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Indicator Trends - Observation #' . $observation->id)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <div class="flex items-center justify-between mb-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Indicator Trends</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">← Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Indicator Trend Analysis</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h1>Indicator Trend Analysis</h1>
+            <p>
                 {{ $observation->observee?->user?->name ?? 'Teacher' }} | {{ $trends['total_observations'] }} observations
                 @if($trends['date_range']['start'])
                     ({{ $trends['date_range']['start'] }} — {{ $trends['date_range']['end'] }})
                 @endif
             </p>
         </div>
-        <a href="{{ route('supervisor.observations.show', $observation) }}" class="text-sm text-indigo-600 hover:text-indigo-700">← Back to Observation</a>
+        <time>Observation #{{ $observation->id }}</time>
     </div>
 
     <!-- Domain Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+    <div class="mock-kpis" role="list" aria-label="Domain summary" style="grid-template-columns:repeat(5,minmax(0,1fr))">
         @foreach($trends['domains'] as $domain)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-4">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ Str::replace('Domain ', 'D', $domain['domain']) }}</p>
-                <p class="text-2xl font-bold
-                    @if($domain['average_percentage'] >= 83) text-green-600
-                    @elseif($domain['average_percentage'] >= 67) text-blue-600
-                    @elseif($domain['average_percentage'] >= 50) text-yellow-600
-                    @else text-red-600
-                    @endif">{{ number_format($domain['average_percentage'], 0) }}%</p>
-                <p class="text-[10px] text-gray-400 mt-1">{{ $domain['descriptive'] }}</p>
-                @if($domain['low_indicator_count'] > 0)
-                    <p class="text-[10px] text-red-500 mt-1">{{ $domain['low_indicator_count'] }} low indicator(s)</p>
-                @endif
+            <div class="mock-kpi" role="listitem">
+                <label>{{ Str::replace('Domain ', 'D', $domain['domain']) }}</label>
+                <div class="val">{{ number_format($domain['average_percentage'], 0) }}%</div>
+                <div class="delta mock-flat">{{ $domain['descriptive'] }}@if($domain['low_indicator_count'] > 0) · {{ $domain['low_indicator_count'] }} low @endif</div>
             </div>
         @endforeach
     </div>
 
     <!-- Consistently Low Indicators -->
     @if($trends['low_indicators']->isNotEmpty())
-    <div class="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 p-6 mb-8">
-        <h2 class="text-lg font-semibold text-red-800 dark:text-red-300 mb-4">⚠️ Consistently Low-Rated Indicators</h2>
+    <section class="mock-panel" aria-label="Low indicators">
+        <div class="mock-panel-head"><h2>Consistently Low-Rated Indicators</h2><span class="hint">Below 3/6 across multiple observations</span></div>
+        <div style="padding:14px 16px">
         <p class="text-sm text-red-600 dark:text-red-400 mb-4">These indicators scored below 3/6 across multiple observations and require targeted intervention.</p>
         <div class="space-y-3">
             @foreach($trends['low_indicators'] as $ind)
@@ -68,13 +69,12 @@
             @endforeach
         </div>
     </div>
+    </section>
     @endif
 
     <!-- All Indicators Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm">
-        <div class="p-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">All Indicators</h2>
-        </div>
+    <section class="mock-panel" aria-label="All indicators">
+        <div class="mock-panel-head"><h2>All Indicators</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-800">
@@ -116,6 +116,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 </div>
 @endsection

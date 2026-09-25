@@ -1,40 +1,31 @@
 @extends('layouts.admin')
 
 @section('title', 'User Details')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center">
-                <a href="{{ route('admin.users.index') }}" class="mr-4 text-slate-600 dark:text-gray-400 hover:text-slate-800 dark:hover:text-gray-200">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>User Details</b></div><div class="mock-actions"><a href="{{ route('admin.users.index') }}" class="mock-btn">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </a>
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">User Details</h1>
-                    <p class="text-slate-600 dark:text-gray-400 mt-1">View user information and activity.</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
                 <a href="{{ route('admin.users.edit', $user) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                   class="mock-btn primary">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Edit User
                 </a>
-            </div>
-        </div>
-    </div>
+</div></div>
+<div class="mock-title"><div><h1>User Details</h1><p class="text-slate-600 dark:text-gray-400 mt-1">View user information and activity.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- User Profile -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Profile Card -->
         <div class="lg:col-span-1">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
                 <div class="text-center">
                     <div class="w-24 h-24 bg-slate-200 dark:bg-gray-700 rounded-full mx-auto flex items-center justify-center">
                         <svg class="w-12 h-12 text-slate-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,13 +75,13 @@
                     </div>
                     @endif
                 </div>
-            </div>
+            </section>
         </div>
 
         <!-- Details and Activity -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Contact Information -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Contact Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -110,11 +101,11 @@
                         <p class="text-slate-900 dark:text-white">{{ $user->school?->name ?? 'No School Assigned' }}</p>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Teacher Specific Information (if applicable) -->
             @if($user->teacher)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Teacher Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -134,11 +125,11 @@
                         <p class="text-slate-900 dark:text-white">{{ $user->teacher->observations()->completed()->count() }}</p>
                     </div>
                 </div>
-            </div>
+            </section>
             @endif
 
             <!-- Recent Activity -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Recent Activity</h2>
                 <div class="space-y-4">
                     <div class="flex items-start space-x-3">
@@ -167,10 +158,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Actions -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-800 p-6">
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Quick Actions</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="{{ route('admin.users.edit', $user) }}" 
@@ -192,7 +183,7 @@
                         </button>
                     </form>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>

@@ -2,6 +2,8 @@
 
 @section('title', 'Feedback Details')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .feedback-card { transition: all 0.2s ease; }
@@ -9,7 +11,22 @@
 @endpush
 
 @section('content')
-<div class="max-w-4xl mx-auto px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Feedback</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $feedback->feedbackTypeLabel() }}</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('teacher.feedback.index') }}">Back to List</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>{{ $feedback->feedbackTypeLabel() }}</h1>
+            <p>{{ $feedback->observation->observation_date->format('M d, Y') }} · {{ $feedback->observation->observer?->name ?? 'Supervisor' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -30,7 +47,7 @@
     </x-page-header>
 
     <!-- Feedback Content -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <!-- Analysis -->
         <div class="p-6 border-b border-gray-100 dark:border-gray-700">
             <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Analysis</h3>

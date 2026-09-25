@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'My Profile')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
 @php
@@ -8,7 +9,10 @@
     $initials = strtoupper(substr($user->first_name ?? $user->name, 0, 1) . substr($user->last_name ?? '', 0, 1));
 @endphp
 
-<div class="max-w-5xl mx-auto" x-data="{ activeTab: 'basic' }">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="{ activeTab: 'basic' }">
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>My Profile</b></div></div>
+<div class="mock-title"><div><h1>My Profile</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
 
     @if (session('status') === 'profile-updated')
         <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)"
@@ -36,7 +40,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.profile.update') }}">
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.profile.update') }}">
         @csrf
         @method('patch')
 
@@ -271,6 +275,6 @@
 
             </div>
         </div>
-    </form>
+    </form></section>
 </div>
 @endsection

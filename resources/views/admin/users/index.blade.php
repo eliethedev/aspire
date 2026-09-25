@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'User Management')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-dark rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>User Management</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-dark dark:text-white">User Management</h1>
-                <p class="text-dark dark:text-gray-400 mt-1">Manage system users and their roles.</p>
+                
+                
             </div>
-            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <a href="{{ route('admin.users.create') }}" class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Invite Registration 
             </a>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>User Management</h1><p class="text-dark dark:text-gray-400 mt-1">Manage system users and their roles.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Filters -->
-    <div class="bg-dark rounded-xl shadow-sm border glass-card p-6">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="space-y-4">
+    <section class="mock-panel">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.users.index') }}" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label for="search" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Search</label>
@@ -69,11 +69,11 @@
                 </a>
             </div>
             @endif
-        </form>
-    </div>
+        </form></section>
+    </section>
 
     <!-- Users Table -->
-    <div class="bg-dark rounded-xl shadow-sm border glass-card overflow-hidden">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>User Management</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-slate-50 dark:bg-gray-800 border-b dark:border-gray-700 glass-card">
@@ -202,6 +202,6 @@
             {{ $users->links() }}
         </div>
         @endif
-    </div>
+    </section>
 </div>
 @endsection

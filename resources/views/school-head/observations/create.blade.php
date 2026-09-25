@@ -2,6 +2,8 @@
 
 @section('title', 'Schedule Teacher Observation')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .observee-card {
@@ -37,7 +39,22 @@
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6" x-data="observationForm()" x-cloak>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="observationForm()" x-cloak>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>New observation</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Back to Observations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Schedule Teacher Observation</h1>
+            <p>Schedule a classroom observation for a teacher in your school</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -73,7 +90,7 @@
 
         <!-- ===== STEP 1: SELECT TEACHER ===== -->
         <div x-show="currentStep === 1" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Select a Teacher</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Search or browse to find the teacher you want to observe.</p>
 
@@ -235,7 +252,7 @@
 
         <!-- ===== STEP 2: OBSERVATION DETAILS ===== -->
         <div x-show="currentStep === 2" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Observation Details</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Configure the schedule and observation parameters.</p>
 
@@ -337,7 +354,7 @@
 
         <!-- ===== STEP 3: SCHEDULE TYPE & NOTES ===== -->
         <div x-show="currentStep === 3" class="fade-in">
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule & Notes</h2>
                 <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Choose when to conduct the observation and add notes.</p>
 

@@ -1,26 +1,19 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Teacher')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
-    <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center">
-            <a href="{{ route('admin.teachers.index') }}" class="mr-4 text-dark dark:text-white hover:text-dark">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Teacher</b></div><div class="mock-actions"><a href="{{ route('admin.teachers.index') }}" class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold text-dark dark:text-gray-300 ">Edit Teacher</h1>
-                <p class="text-dark dark:text-gray-300  mt-1">{{ $teacher->user->name }}</p>
-            </div>
-        </div>
-    </div>
+            </a></div></div>
+<div class="mock-title"><div><h1 class="text-2xl font-bold text-dark dark:text-gray-300 ">Edit Teacher</h1><p class="text-dark dark:text-gray-300  mt-1">{{ $teacher->user->name }}</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Teacher Info Card -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mb-6">
+    <section class="mock-panel">
         <div class="flex items-center space-x-4">
             <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,9 +33,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Form -->
+    <section class="mock-panel">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.teachers.update', $teacher) }}" class="space-y-8">
             @csrf
@@ -249,9 +243,10 @@
             </div>
         </form>
     </div>
+    </section>
 
     <!-- Delete Form Outside Main Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6 mt-6">
+    <section class="mock-panel">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-lg font-medium text-dark dark:text-gray-300">Danger Zone</h3>
@@ -268,5 +263,5 @@
                 </button>
             </form>
         </div>
-    </div>
+    </section>
 @endsection

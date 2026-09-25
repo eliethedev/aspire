@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Observation Details')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -73,27 +74,23 @@
     if ($observation->isSchoolHeadObservation()) {
         $filterTabs = array_values(array_filter($filterTabs, fn($tab) => $tab['key'] !== 'pre_conference'));
     }
+    // EPOC evaluates school heads only — hide its tab for teacher observations.
+    if (! $observation->isSchoolHeadObservation()) {
+        $filterTabs = array_values(array_filter($filterTabs, fn($tab) => $tab['key'] !== 'epoc'));
+    }
 @endphp
 
-<div class="obs-show max-w-7xl mx-auto px-4 sm:px-6 lg:px-0" x-data="{ detailFilter: '{{ $initialFilter }}' }">
+<div class="obs-show mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="{ detailFilter: '{{ $initialFilter }}' }">
 
-    {{-- Breadcrumb + Back --}}
-    <nav class="flex items-center justify-between gap-4 mb-4 text-sm" aria-label="Breadcrumb">
-        <ol class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 min-w-0">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Observations</a></li>
-            <li class="text-gray-300 dark:text-gray-600">/</li>
-            <li class="text-gray-900 dark:text-white font-medium truncate">{{ $observeeName }}</li>
-            <li class="hidden sm:inline text-gray-300 dark:text-gray-600">/</li>
-            <li class="hidden sm:inline text-gray-400 dark:text-gray-500 truncate">Details</li>
-        </ol>
-        <div class="flex shrink-0 items-center gap-2">
-        <a href="{{ route('supervisor.observations.index') }}" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back to list
-        </a>
-        {{-- Offline encoding workflow: pre-cache this observation while online. --}}
-        @include('partials.offline-encode', ['observation' => $observation])
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Observation Details</b></div>
+        <div class="mock-actions">
+            <span class="my-px inline-flex flex-wrap items-center gap-2">@include('partials.offline-encode', ['observation' => $observation])</span>
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">← Back to list</a>
         </div>
-    </nav>
+    </div>
+    {{-- Offline clinical-supervision package (teacher-gated download). --}}
+    @include('partials.offline-package-card', ['observation' => $observation])
 
     {{-- Hero Card --}}
     <div class="hero-card rounded-2xl p-5 sm:p-6 shadow-sm mb-5">
@@ -224,7 +221,9 @@
             @endif
 
             {{-- Stepper Cards --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <section class="mock-panel" aria-label="Workflow stages">
+                <div class="mock-panel-head"><h2>Workflow Stages</h2><span class="hint">{{ $stageConfig[$observation->stage]['label'] ?? '' }}</span></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="padding:14px 16px">
                 @foreach($stageKeys as $i => $key)
                     @php
                         $done = $stageCompleted[$key];
@@ -247,6 +246,7 @@
                     @endif
                 @endforeach
             </div>
+            </section>
 
             {{-- Stage Details - filtered --}}
             <div class="space-y-5">
@@ -339,9 +339,9 @@
                 </div>
                 @endif
 
-                {{-- EPOC --}}
+                {{-- EPOC (school-head observees only) --}}
                 <div x-show="detailFilter==='all' || detailFilter==='epoc'" x-transition.opacity>
-                @if($observation->epocEvaluation)
+                @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
                 <div class="section-card page-card overflow-hidden">
                     <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                         <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></span><div><h2 class="font-semibold text-gray-900 dark:text-white">Post-Observation Conference Evaluation</h2><p class="text-xs text-gray-500 dark:text-gray-400">School Head assessment &middot; DepEd CID</p></div></div>
@@ -365,7 +365,7 @@
                         @endif
                     </div>
                 </div>
-                @elseif($observation->schoolHead && !$observation->isFinalized())
+                @elseif($observation->isSchoolHeadObservation() && $observation->schoolHead && !$observation->isFinalized())
                 <div class="section-card rounded-2xl border-2 border-dashed border-violet-200 dark:border-violet-500/20 bg-violet-50/40 dark:bg-violet-500/10 p-8 text-center">
                     <div class="w-12 h-12 rounded-2xl bg-violet-600 text-white flex items-center justify-center mx-auto mb-3"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></div>
                     <h3 class="font-semibold text-gray-900 dark:text-white">Post-Observation Conference not yet completed</h3><p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">Evaluate the School Head's post-observation conference practices.</p>
@@ -467,7 +467,7 @@
                     <a href="{{ route('supervisor.observations.report',$observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium">Markdown</a>
                     <a href="{{ route('supervisor.observations.indicator-trends',$observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 text-sm font-medium">Trends</a>
                     <a href="{{ route('supervisor.observations.progress-comparison',$observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 text-sm font-medium">Compare</a>
-                    <a href="{{ route('supervisor.observations.pd-recommendations',$observation) }}" class="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium">PD Recommendations</a>
+                    <a href="{{ route('supervisor.observations.pd-recommendations',$observation) }}" class="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium">Professional Development Recommendations</a>
                 </div>
                 <div class="mt-4 rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
                     <p class="text-sm font-semibold">Observation Document</p><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Official form populated from ratings.</p>

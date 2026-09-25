@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SupportMessageController as AdminSupportMessageCo
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OfflineWorkflowController;
 use App\Http\Controllers\Profile\AdminProfileController;
 use App\Http\Controllers\Profile\SchoolHeadProfileController;
 use App\Http\Controllers\Profile\SupervisorProfileController;
@@ -37,6 +38,11 @@ Route::get('/', function () {
 // wildcard group so `mockups/dashboard` is not swallowed by `{school}/dashboard`.
 Route::prefix('mockups')->name('mockups.')->group(function () {
     Route::get('/dashboard', fn () => view('mockups.dashboard'))->name('dashboard');
+    Route::get('/dashboard/{role}', function (string $role) {
+        abort_unless(in_array($role, ['admin', 'supervisor', 'school-head', 'teacher'], true), 404);
+
+        return view('mockups.role', ['role' => $role]);
+    })->name('dashboard.role');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
@@ -216,6 +222,9 @@ Route::middleware(['auth', 'role:teacher', 'profile.complete'])->prefix('teacher
     Route::patch('/observations/{observation}/update-location', [App\Http\Controllers\Teacher\ObservationController::class, 'updateLocation'])->name('observations.update-location');
     Route::post('/observations/{observation}/confirm', [App\Http\Controllers\Teacher\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [App\Http\Controllers\Teacher\ObservationController::class, 'reject'])->name('observations.reject');
+    // Offline workflow: teacher accepts the schedule + uploads the DLL in
+    // one step (status -> confirmed_ready_for_download, AI prompts queued).
+    Route::post('/observations/{observation}/confirm-package', [OfflineWorkflowController::class, 'confirmByTeacher'])->middleware('throttle:uploads')->name('observations.confirm-package');
 
     // Feedback & Coaching
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
@@ -254,6 +263,11 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/term-check', [SupervisorController::class, 'termCheck'])->name('observations.term-check');
     Route::get('/observations/{observation}', [SupervisorController::class, 'showObservation'])->name('observations.show');
+    // Offline clinical-supervision workflow: prepare AI prompts, download the
+    // JSON bundle, and open the cached offline workspace for zero-signal visits.
+    Route::post('/observations/{observation}/prepare-package', [OfflineWorkflowController::class, 'preparePackage'])->middleware('ai.rate.limit')->name('observations.prepare-package');
+    Route::get('/observations/{observation}/offline-package', [OfflineWorkflowController::class, 'offlinePackage'])->name('observations.offline-package');
+    Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
     Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
     Route::post('/observations/{observation}/cancel', [SupervisorController::class, 'cancel'])->name('observations.cancel');
 
@@ -353,6 +367,10 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     Route::get('/observations/create', [App\Http\Controllers\SchoolHead\ObservationController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
+    // Offline clinical-supervision workflow (school head as observer).
+    Route::post('/observations/{observation}/prepare-package', [OfflineWorkflowController::class, 'preparePackage'])->middleware('ai.rate.limit')->name('observations.prepare-package');
+    Route::get('/observations/{observation}/offline-package', [OfflineWorkflowController::class, 'offlinePackage'])->name('observations.offline-package');
+    Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
     Route::get('/co-observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'coObservations'])->middleware('throttle:search')->name('co-observations.index');
     Route::post('/observations/{observation}/confirm', [App\Http\Controllers\SchoolHead\ObservationController::class, 'confirm'])->name('observations.confirm');
     Route::post('/observations/{observation}/reject', [App\Http\Controllers\SchoolHead\ObservationController::class, 'reject'])->name('observations.reject');

@@ -5,27 +5,31 @@
 })
 
 @section('title', 'Profile')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-6 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-900 shadow sm:rounded-lg">
+        <div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+<div class="mock-topbar"><div class="mock-crumbs">Profile <span>/</span> <b>Profile</b></div></div>
+<div class="mock-title"><div><h1>Profile</h1><p>Manage your account, security and preferences.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
+            <section class="mock-panel">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
-            </div>
+            </section>
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-900 shadow sm:rounded-lg">
+            <section class="mock-panel">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
                 </div>
-            </div>
+            </section>
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-900 shadow sm:rounded-lg">
+            <section class="mock-panel">
                 <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 @endsection

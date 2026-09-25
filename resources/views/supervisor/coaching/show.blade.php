@@ -1,60 +1,41 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Coaching Agreement')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.coaching.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Coaching Agreements</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Agreement Details</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-4xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Coaching Agreement</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ ucfirst($agreement->status) }}</span>
+        <div class="mock-actions">
+            @if($agreement->isDraft())
+                <a class="mock-btn" href="{{ route('supervisor.coaching.edit', $agreement) }}">Edit</a>
+                <form method="POST" action="{{ route('supervisor.coaching.destroy', $agreement) }}" class="inline" onsubmit="return confirm('Delete this agreement?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="mock-btn">Delete</button>
+                </form>
+            @endif
+            <a class="mock-btn" href="{{ route('supervisor.coaching.export', $agreement) }}">Export</a>
+            <a class="mock-btn" href="{{ route('supervisor.coaching.index') }}">Back</a>
+        </div>
+    </div>
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="mock-title">
         <div>
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Coaching Agreement</h1>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $agreement->statusBadgeClass() }}">
-                    {{ ucfirst($agreement->status) }}
-                </span>
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">
+            <h1>Coaching Agreement</h1>
+            <p>
                 {{ $agreement->teacher->user->name ?? 'Teacher' }}
                 &middot; {{ $agreement->observation->observation_date->format('M d, Y') }}
             </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            @if($agreement->isDraft())
-                <a href="{{ route('supervisor.coaching.edit', $agreement) }}"
-                   class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
-                    Edit
-                </a>
-                <form method="POST" action="{{ route('supervisor.coaching.destroy', $agreement) }}" class="inline" onsubmit="return confirm('Delete this agreement?')">
-                    @csrf @method('DELETE')
-                    <button type="submit"
-                            class="px-4 py-2 border border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:bg-red-900/20 rounded-lg text-sm font-medium transition-colors">
-                        Delete
-                    </button>
-                </form>
-            @endif
-            <a href="{{ route('supervisor.coaching.export', $agreement) }}"
-               class="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
-                Export
-            </a>
-            <a href="{{ route('supervisor.coaching.index') }}"
-               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 text-sm font-medium transition-colors">
-                Back
-            </a>
-        </div>
+        <time>#AGR-{{ $agreement->id }}</time>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-6 mock-panel" style="padding:14px 16px">
+            <div class="mock-panel-head" style="margin:-14px -16px 14px"><h2>Agreement Details</h2><span class="hint">{{ ucfirst($agreement->status) }}</span></div>
             @if($agreement->focus_areas)
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Focus Areas</h3>

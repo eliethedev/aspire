@@ -2,6 +2,8 @@
 
 @section('title', 'Improvement Plan')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .agreement-card { transition: all 0.2s ease; }
@@ -11,12 +13,24 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Coaching</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $agreements->count() }} plans</span>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Improvement Plan</h1>
+            <p>Coaching agreements and action plans from your observations</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Header -->
     <x-page-header title="Improvement Plan" subtitle="Coaching agreements and action plans from your observations." />
 
     @if($agreements->isEmpty())
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>

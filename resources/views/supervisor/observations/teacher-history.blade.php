@@ -1,39 +1,47 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Observation History - ' . $observeeName)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <!-- Header — minimized -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-        <div>
-            <a href="{{ route('supervisor.observations.index') }}" class="inline-flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 mb-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Back to Evaluations
-            </a>
-            <h1 class="text-base font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $observeeName }}</h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-none">Observation history</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Observation History</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">← Back to Evaluations</a>
         </div>
     </div>
 
-    <!-- Stats — compact -->
-    <div class="grid grid-cols-3 gap-2 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
-            <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['total'] }}</p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Total</p>
+    <div class="mock-title">
+        <div>
+            <h1>{{ $observeeName }}</h1>
+            <p>Observation history</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
-            <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['completed'] }}</p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Completed</p>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
+    <div class="mock-kpis" role="list" aria-label="History summary">
+        <div class="mock-kpi hot" role="listitem">
+            <label>Total</label>
+            <div class="val">{{ $stats['total'] }}</div>
+            <div class="delta mock-flat">All observations</div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
-            <p class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-none">{{ $stats['avg_score'] ? number_format($stats['avg_score'], 2) : 'N/A' }}</p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Avg Score</p>
+        <div class="mock-kpi" role="listitem">
+            <label>Completed</label>
+            <div class="val">{{ $stats['completed'] }}</div>
+            <div class="delta mock-flat">Finalized results</div>
+        </div>
+        <div class="mock-kpi" role="listitem">
+            <label>Avg Score</label>
+            <div class="val">{{ $stats['avg_score'] ? number_format($stats['avg_score'], 2) : 'N/A' }}</div>
+            <div class="delta mock-flat">Across observations</div>
         </div>
     </div>
 
     <!-- Observations List — 2-col compact -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+    <section class="mock-panel" aria-label="Observation history">
+        <div class="mock-panel-head"><h2>Observations</h2><span class="hint">{{ $observations->total() }} total</span></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5" style="padding:14px 16px">
     @forelse($observations as $observation)
         @php
             $stageLabels = ['pre_observation_planning' => 'Prepare', 'pre_conference' => 'Pre-Observation Conversation', 'observation' => 'Classroom Observation', 'post_conference' => 'Post-Observation Conference'];
@@ -82,9 +90,10 @@
         </div>
     @endforelse
     </div>
+    </section>
 
     @if($observations->hasPages())
-        <div class="mt-3">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $observations->links() }}
         </div>
     @endif

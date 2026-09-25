@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Feedback Management')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -11,34 +12,24 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Feedback Management</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Feedback Management</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div class="mock-title">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Feedback Management</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">
+            <h1>Feedback Management</h1>
+            <p>
                 {{ $observation->observee->user->name ?? 'Unknown' }}
                 &middot; {{ $observation->observation_date->format('M d, Y') }}
                 @if($observation->subject) &middot; {{ $observation->subject }} @endif
             </p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('supervisor.observations.show', $observation) }}"
-               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 text-sm font-medium transition-colors">
-                Back to Observation
-            </a>
-        </div>
+        <time>#OBS-{{ $observation->id }}</time>
     </div>
 
     @php
@@ -80,7 +71,8 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-6 mock-panel" style="padding:14px 16px">
+            <div class="mock-panel-head" style="margin:-14px -16px 14px"><h2>{{ $feedbackTypes[$selectedType] }} Feedback</h2></div>
             @php
                 $typeFeedbacks = $feedbacks->where('feedback_type', $selectedType);
             @endphp
@@ -110,7 +102,7 @@
                 </div>
             @else
                 @foreach($typeFeedbacks as $feedback)
-                    <div class="feedback-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                    <div class="feedback-card mock-panel" style="overflow:hidden">
                         <!-- Header -->
                         <div class="flex flex-wrap items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                             <div class="flex items-center gap-3">

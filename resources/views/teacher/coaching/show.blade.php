@@ -2,8 +2,25 @@
 
 @section('title', 'Coaching Agreement')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-4xl mx-auto px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Coaching</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ ucfirst($agreement->status) }}</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('teacher.coaching.index') }}">Back to List</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Coaching Agreement</h1>
+            <p>{{ $agreement->observation->observation_date->format('M d, Y') }} · {{ $agreement->supervisor?->name ?? 'Supervisor' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -31,7 +48,7 @@
         <div class="lg:col-span-2 space-y-6">
             <!-- Focus Areas -->
             @if($agreement->focus_areas)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Focus Areas</h3>
                 <ul class="space-y-2">
                     @foreach($agreement->focus_areas as $area)
@@ -46,7 +63,7 @@
 
             <!-- Action Steps -->
             @if($agreement->action_steps)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Action Steps</h3>
                 <ol class="space-y-3">
                     @foreach($agreement->action_steps as $i => $step)
@@ -62,14 +79,14 @@
             <!-- Resources & Success Indicators -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 @if($agreement->resources_needed)
-                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Resources Needed</h3>
                     <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $agreement->resources_needed }}</p>
                 </div>
                 @endif
 
                 @if($agreement->success_indicators)
-                <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Success Indicators</h3>
                     <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $agreement->success_indicators }}</p>
                 </div>
@@ -77,21 +94,21 @@
             </div>
 
             @if($agreement->timeline)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Timeline</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ $agreement->timeline }}</p>
             </div>
             @endif
 
             @if($agreement->supervisor_notes)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Supervisor Notes</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $agreement->supervisor_notes }}</p>
             </div>
             @endif
 
             @if($agreement->teacher_notes)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Your Notes</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $agreement->teacher_notes }}</p>
             </div>
@@ -101,7 +118,7 @@
         <!-- Sidebar -->
         <div class="space-y-6">
             <!-- Signatures -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Signatures</h3>
                 <div class="space-y-4">
                     <!-- Teacher Signature -->
@@ -144,7 +161,7 @@
 
             <!-- Sign Form -->
             @if(!$agreement->teacher_signed_at)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6" x-data="{ showForm: false }">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6" x-data="{ showForm: false }">
                 <button @click="showForm = !showForm"
                         class="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                     Sign Agreement

@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Form Template')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -14,7 +15,10 @@
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Form Template</b></div></div>
+<div class="mock-title"><div><h1>Edit Form Template</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
             <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Form Templates</a></li>
@@ -25,7 +29,7 @@
 
     <script>window._templateSections = @json($formTemplate->sections);</script>
 
-    <form method="POST" action="{{ route('admin.form-templates.update', $formTemplate) }}"
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.form-templates.update', $formTemplate) }}"
           x-data="formBuilder()"
           x-init="init(window._templateSections)">
         @csrf @method('PUT')
@@ -247,7 +251,7 @@
                 </div>
             </div>
         </div>
-    </form>
+    </form></section>
 </div>
 @endsection
 

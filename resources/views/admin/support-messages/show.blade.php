@@ -1,15 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', $supportMessage->subject)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-4">
-    <div class="mb-6">
-        <a href="{{ route('admin.support-messages.index') }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800">&larr; Back to Support Messages</a>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $supportMessage->subject }}</h1>
-    </div>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Support Message</b></div><div class="mock-actions"><a href="{{ route('admin.support-messages.index') }}" class="mock-btn">&larr; Back to Support Messages</a></div></div>
+<div class="mock-title"><div><h1>{{ $supportMessage->subject }}</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-4">
+    <section class="mock-panel">
         <div class="flex items-center gap-2 mb-5">
             <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-sm font-bold shrink-0">
@@ -30,9 +29,9 @@
         </div>
 
         <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ $supportMessage->message }}</p>
-    </div>
+    </section>
 
-    <form method="POST" action="{{ route('admin.support-messages.update', $supportMessage) }}"
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.support-messages.update', $supportMessage) }}"
           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
         @csrf
         @method('PATCH')
@@ -62,7 +61,7 @@
                 Update Message
             </button>
         </div>
-    </form>
+    </form></section>
 
     <div class="mt-4 flex items-center justify-end">
         <form method="POST" action="{{ route('admin.support-messages.destroy', $supportMessage) }}"

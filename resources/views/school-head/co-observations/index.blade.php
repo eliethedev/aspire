@@ -2,6 +2,8 @@
 
 @section('title', 'Co-Observations')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .obs-card {
@@ -16,7 +18,23 @@
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'status']); @endphp
-<div class="max-w-7xl mx-auto px-4 sm:px-4">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Co-Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} assigned</span>
+        @if($hasFilters)<span class="mock-pill amber"><span class="pulse"></span>Filters active</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Classroom Observations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Co-Observations</h1>
+            <p>Teacher observations you are assigned to as co-observer / co-evaluator</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Header -->
     <x-page-header title="Co-Observations" subtitle="Teacher observations you are assigned to as co-observer / co-evaluator.">
         <x-slot name="actions">
@@ -29,7 +47,7 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
@@ -40,7 +58,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
@@ -51,7 +69,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Completed</p>
@@ -65,7 +83,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left border-b border-gray-100 dark:border-gray-800">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">

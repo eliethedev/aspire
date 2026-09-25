@@ -91,6 +91,16 @@ class DashboardController extends Controller
 
         $dll = $this->dllStatusBoard($teachers, $schoolId, $quarter);
 
+        // Observation groups: teachers -> latest observation files.
+        $teacherFolders = collect();
+        if ($schoolId) {
+            $teacherFolders = Teacher::with(['user:id,name', 'observations' => fn ($q) => $q->latest('observation_date')->take(3)])
+                ->where('school_id', $schoolId)
+                ->orderBy('id')
+                ->take(8)
+                ->get();
+        }
+
         $quickStats = [
             'total' => $stats['total'],
             'completed' => $stats['completed'],
@@ -104,7 +114,7 @@ class DashboardController extends Controller
         return view('school-head.dashboard', compact(
             'user', 'schoolHead', 'attention', 'teacherRows', 'rubricScoring',
             'cotTrend', 'cotLabels', 'coaching', 'dll', 'quickStats',
-            'quarter', 'schoolYear'
+            'quarter', 'schoolYear', 'teacherFolders'
         ));
     }
 

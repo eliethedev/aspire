@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Observation Details')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -14,11 +15,37 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Observation Details</b></div><div class="mock-actions">
+            @if($observation->status === 'completed')
+            <a href="{{ route('admin.observations.cot-document', $observation) }}"
+               class="mock-btn primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                Download COT Document
+            </a>
+            @endif
+            @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
+            <a href="{{ route('admin.observations.epoc-document', $observation) }}"
+               class="mock-btn primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                Download EPOC Document
+            </a>
+            @endif
+            <a href="{{ route('admin.observations.index') }}"
+               class="mock-btn">
+                Back to List
+            </a>
+        </div></div>
+<div class="mock-title"><div><h1>Observation Details</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+<p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
+                @if($observation->isTeacherObservation() && $observation->subject)
+                    | {{ $observation->subject }} - {{ $observation->grade_level_label }}
+                @endif
+            </p>
         <div>
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Observation Details</h1>
+                
                 @if($observation->status === 'cancelled')
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                         <span class="w-1.5 h-1.5 rounded-full bg-red-50 dark:bg-red-900/200"></span>
@@ -26,35 +53,11 @@
                     </span>
                 @endif
             </div>
-            <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">{{ $observation->observee->user->name ?? 'Unknown' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
-            <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
-                {{ $observation->isTeacherObservation() ? 'Teacher Observation' : 'School Head Observation' }}
-                @if($observation->isTeacherObservation() && $observation->subject)
-                    | {{ $observation->subject }} - {{ $observation->grade_level_label }}
-                @endif
-            </p>
+            
+            
         </div>
-        <div class="flex items-center gap-3">
-            @if($observation->status === 'completed')
-            <a href="{{ route('admin.observations.cot-document', $observation) }}"
-               class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                Download COT Document
-            </a>
-            @endif
-            @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
-            <a href="{{ route('admin.observations.epoc-document', $observation) }}"
-               class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                Download EPOC Document
-            </a>
-            @endif
-            <a href="{{ route('admin.observations.index') }}"
-               class="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                Back to List
-            </a>
-        </div>
-    </div>
+        
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     @php
         $stageLabels = [
@@ -136,7 +139,7 @@
     </div>
 
     {{-- Observer Info --}}
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 mb-6">
+    <section class="mock-panel">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -146,7 +149,7 @@
                 <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $observation->observer?->user?->name ?? $observation->observer?->name ?? 'Unknown' }}</p>
             </div>
         </div>
-    </div>
+    </section>
 
     {{-- Confirmation Status --}}
     @if($observation->confirmation_status === 'confirmed')

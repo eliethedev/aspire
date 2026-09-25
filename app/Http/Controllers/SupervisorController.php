@@ -3142,6 +3142,11 @@ class SupervisorController extends Controller
             'ai_insights' => $insights,
             'source' => 'ai',
             'meta' => $routing,
+            // Server-organized sections (Lesson Focus, Key Things to Watch,
+            // Pre-Conference Talking Points, Potential Challenges) rendered
+            // with the same partial as first paint — the frontend swaps this
+            // in with zero page reload.
+            'panel_html' => view('partials.ai-insights-result', ['insights' => $insights])->render(),
         ]);
     }
 
@@ -3162,6 +3167,7 @@ class SupervisorController extends Controller
                 'ai_insights' => $insights,
                 'source' => 'ai',
                 'meta' => $observation->preObservationPlanning?->ai_insights_meta,
+                'panel_html' => view('partials.ai-insights-result', ['insights' => $insights])->render(),
             ]);
         }
 

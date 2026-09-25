@@ -1,36 +1,36 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Create Coaching Agreement')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Create Coaching Agreement</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-6xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Create Coaching Agreement</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
 
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Coaching Agreement</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">
-            {{ $observation->observee->user->name ?? 'Unknown' }}
-            &middot; {{ $observation->observation_date->format('M d, Y') }}
-        </p>
+    <div class="mock-title">
+        <div>
+            <h1>Create Coaching Agreement</h1>
+            <p>
+                {{ $observation->observee->user->name ?? 'Unknown' }}
+                &middot; {{ $observation->observation_date->format('M d, Y') }}
+            </p>
+        </div>
+        <time>#OBS-{{ $observation->id }}</time>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         <!-- LEFT — Coaching Agreement Form -->
-        <form method="POST" action="{{ route('supervisor.coaching.store') }}" class="lg:col-span-2 space-y-6"
+        <form method="POST" action="{{ route('supervisor.coaching.store') }}" class="lg:col-span-2 space-y-6 mock-panel" style="padding:14px 16px"
               x-data="{ submitting: false }" x-on:submit="submitting = true">
             @csrf
             <input type="hidden" name="observation_id" value="{{ $observation->id }}">
+            <div class="mock-panel-head" style="margin:-14px -16px 14px"><h2>New Coaching Agreement</h2><span class="hint">{{ $observation->observee->user->name ?? '' }}</span></div>
 
             <!-- Focus Areas -->
             @php

@@ -1,46 +1,37 @@
 @extends('layouts.admin')
 
 @section('title', $announcement->title)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-6 py-8 space-y-8">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center">
-                <a href="{{ route('admin.announcements.index') }}" class="mr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:text-gray-500">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Announcement</b></div><div class="mock-actions"><a href="{{ route('admin.announcements.index') }}" class="mock-btn">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </a>
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $announcement->title }}</h1>
-                    <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
-                        {{ $announcement->isSent() ? 'Sent' : 'Draft' }} announcement
-                        @if($announcement->sender)
-                            by {{ $announcement->sender->name }}
-                        @endif
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
                 @if($announcement->isDraft())
                 <a href="{{ route('admin.announcements.edit', $announcement) }}"
-                   class="px-4 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 transition-colors text-sm">
+                   class="mock-btn">
                     Edit
                 </a>
                 <form method="POST" action="{{ route('admin.announcements.send', $announcement) }}" class="inline">
                     @csrf
                     <button type="submit" onclick="return confirm('Send this announcement?')"
-                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                            class="mock-btn primary">
                         Send Now
                     </button>
                 </form>
                 @endif
-            </div>
-        </div>
-    </div>
+</div></div>
+<div class="mock-title"><div><h1>{{ $announcement->title }}</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">
+                        {{ $announcement->isSent() ? 'Sent' : 'Draft' }} announcement
+                        @if($announcement->sender)
+                            by {{ $announcement->sender->name }}
+                        @endif
+                    </p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
+    <section class="mock-panel">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</h3>
@@ -97,7 +88,7 @@
                 {{ $announcement->message }}
             </div>
         </div>
-    </div>
+    </section>
 
     <div class="flex items-center justify-between">
         <a href="{{ route('admin.announcements.index') }}"

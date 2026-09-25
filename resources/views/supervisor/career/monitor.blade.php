@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Career Monitor')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -20,7 +21,7 @@
         'slate' => ['bg-slate-50 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700', 'bg-slate-100 dark:bg-gray-400 text-slate-600 dark:text-gray-400'],
     ];
 @endphp
-<div class="max-w-7xl mx-auto space-y-6 px-4 sm:px-6 lg:px-0"
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 space-y-6"
     x-data="{
         actionOpen: false,
         actionType: 'announce',
@@ -54,50 +55,51 @@
         }
     }">
 
-    {{-- Breadcrumb --}}
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400">
-        <a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 inline-flex items-center gap-1"><i class="fas fa-house text-[11px]"></i> Dashboard</a>
-        <span class="text-slate-300 dark:text-gray-600">/</span>
-        <span class="font-semibold text-slate-700 dark:text-gray-200">Career Monitor</span>
-    </nav>
-
-    {{-- Hero --}}
-    <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 shadow-sm p-6 lg:p-7">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Career Monitor</h1>
-                <p class="text-sm text-slate-500 dark:text-gray-400 mt-1 max-w-2xl">See whether each teacher's performance aligns with their position and career stage, and allow or announce a higher stage when they're ready.</p>
-            </div>
-            <a href="{{ route('supervisor.career.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors shrink-0">
-                <i class="fas fa-arrow-right text-xs"></i> Career Progression
-            </a>
-        </div>
-
-        {{-- KPI summary --}}
-        <div class="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <div class="bg-white dark:bg-gray-900 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-4 py-3">
-                <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Aligned</p>
-                <p class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{{ $counts['aligned'] }}</p>
-            </div>
-            <div class="bg-white dark:bg-gray-900 border border-amber-200 dark:border-amber-500/20 rounded-xl px-4 py-3">
-                <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Partially aligned</p>
-                <p class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{{ $counts['partial'] }}</p>
-            </div>
-            <div class="bg-white dark:bg-gray-900 border border-red-200 dark:border-red-500/20 rounded-xl px-4 py-3">
-                <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Needs development</p>
-                <p class="text-2xl font-extrabold text-red-600 dark:text-red-400 mt-1">{{ $counts['not_aligned'] }}</p>
-            </div>
-            <div class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3">
-                <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Insufficient data</p>
-                <p class="text-2xl font-extrabold text-slate-600 dark:text-gray-400 mt-1">{{ $counts['insufficient'] }}</p>
-            </div>
-            <div class="bg-indigo-50/60 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl px-4 py-3">
-                <p class="text-[11px] font-semibold tracking-widest uppercase text-slate-500 dark:text-gray-400">Ready to advance</p>
-                <p class="text-2xl font-extrabold text-indigo-700 dark:text-indigo-300 mt-1">{{ $counts['ready'] }}</p>
-                <p class="text-[11px] text-indigo-600/80 dark:text-indigo-400/80 mt-0.5">Aligned with a next stage</p>
-            </div>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Career Monitor</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.career.index') }}">Career Progression</a>
         </div>
     </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Career Monitor</h1>
+            <p>See whether each teacher's performance aligns with their position and career stage, and allow or announce a higher stage when they're ready.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
+    {{-- Hero summary moved to the mock shell above; KPI summary below --}}
+
+        {{-- KPI summary --}}
+        <div class="mock-kpis" role="list" aria-label="Alignment summary" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+            <div class="mock-kpi hot" role="listitem">
+                <label>Aligned</label>
+                <div class="val">{{ $counts['aligned'] }}</div>
+                <div class="delta mock-flat">Performance matches stage</div>
+            </div>
+            <div class="mock-kpi" role="listitem">
+                <label>Partially aligned</label>
+                <div class="val">{{ $counts['partial'] }}</div>
+                <div class="delta mock-flat">Close to the next stage</div>
+            </div>
+            <div class="mock-kpi" role="listitem">
+                <label>Needs development</label>
+                <div class="val">{{ $counts['not_aligned'] }}</div>
+                <div class="delta mock-flat">Targeted support needed</div>
+            </div>
+            <div class="mock-kpi" role="listitem">
+                <label>Insufficient data</label>
+                <div class="val">{{ $counts['insufficient'] }}</div>
+                <div class="delta mock-flat">More observations needed</div>
+            </div>
+            <div class="mock-kpi" role="listitem">
+                <label>Ready to advance</label>
+                <div class="val">{{ $counts['ready'] }}</div>
+                <div class="delta mock-flat">Aligned with a next stage</div>
+            </div>
+        </div>
 
     {{-- Alignment filter tabs --}}
     <div class="flex flex-wrap items-center gap-2">
@@ -155,7 +157,7 @@
                 'Needs Improvement' => 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-500/20',
             ][$descriptor] ?? 'bg-slate-50 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700';
         @endphp
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-5 section-card">
+        <div class="mock-panel p-5 section-card">
             <div class="flex flex-col xl:flex-row xl:items-center gap-4">
                 {{-- Teacher --}}
                 <div class="flex items-center gap-3 min-w-0 xl:w-60 xl:shrink-0">

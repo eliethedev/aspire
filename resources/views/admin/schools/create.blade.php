@@ -1,29 +1,31 @@
 @extends('layouts.admin')
 
 @section('title', 'Create New School')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-4">
-    <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.schools.index') }}"
-               class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 hover:border-gray-300 transition-all">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create New School</b></div><div class="mock-actions"><a href="{{ route('admin.schools.index') }}"
+               class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
+            </a></div></div>
+<div class="mock-title"><div><h1>Create New School</h1><p class="text-gray-500 dark:text-gray-400 mt-1">Add a new educational institution to the system.</p>
+        <div class="flex items-center gap-4">
+            
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create New School</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Add a new educational institution to the system.</p>
+                
+                
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <form method="POST" action="{{ route('admin.schools.store') }}" class="space-y-6">
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.schools.store') }}" class="space-y-6">
         @csrf
 
         <!-- School Information -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,10 +63,10 @@
                     <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Unique identifier for URL (e.g., "manila-science-high-school")</p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Domain Settings -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,10 +107,10 @@
                     <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Subdomain for this school</p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- School Status -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,10 +154,10 @@
                     <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">When trial period ends (leave empty for no trial)</p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- School Settings (JSON) -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
             <div class="flex items-center gap-2 mb-6">
                 <div class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 dark:text-gray-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +181,7 @@
                 @enderror
                 <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">JSON object with school-specific configuration settings.</p>
             </div>
-        </div>
+        </div></section>
 
         <!-- Form Actions -->
         <div class="flex items-center justify-between">
@@ -197,7 +199,7 @@
                 </span>
             </button>
         </div>
-    </form>
+    </form></section>
 </div>
 
 @push('scripts')

@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'School Management')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 space-y-4">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Schools</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Schools</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Manage educational institutions and their settings.</p>
+                
+                
             </div>
-            <a href="{{ route('admin.schools.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+            <a href="{{ route('admin.schools.create') }}" class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Add New School
             </a>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>Schools</h1><p class="text-gray-500 dark:text-gray-400 mt-1">Manage educational institutions and their settings.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Search and Filter Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <form method="GET" action="{{ route('admin.schools.index') }}" class="space-y-4">
+    <section class="mock-panel">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.schools.index') }}" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
@@ -55,11 +55,11 @@
                 </a>
             </div>
             @endif
-        </form>
-    </div>
+        </form></section>
+    </section>
 
     <!-- Schools Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card overflow-hidden">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>Schools</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 dark:bg-gray-800">
@@ -155,7 +155,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     @if($schools->hasPages())
     <div class="mt-4">

@@ -1,39 +1,12 @@
 @extends('layouts.admin')
 
 @section('title', $school->name)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('admin.schools.index') }}" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </a>
-                <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ $school->name }}</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $school->domain ?? $school->subdomain ?? 'No domain set' }}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('admin.schools.edit', $school) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
-                    </svg>
-                    Edit School
-                </a>
-            </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-4 mt-4 pl-0 sm:pl-16">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>School</b></div><div class="flex flex-wrap items-center gap-4 mt-4 pl-0 sm:pl-16">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                 @if($school->is_active)
                     bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
@@ -52,12 +25,24 @@
             </span>
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ $school->users_count ?? 0 }} users</span>
             <span class="text-sm text-gray-500 dark:text-gray-400">Created {{ $school->created_at->format('M j, Y') }}</span>
-        </div>
-    </div>
+        </div><div class="mock-actions"><a href="{{ route('admin.schools.index') }}" class="mock-btn">
+                    <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <a href="{{ route('admin.schools.edit', $school) }}" 
+                   class="mock-btn primary">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586 8.586z"/>
+                    </svg>
+                    Edit School
+                </a>
+</div></div>
+<div class="mock-title"><div><h1>{{ $school->name }}</h1><p class="text-sm text-gray-500 dark:text-gray-400">{{ $school->domain ?? $school->subdomain ?? 'No domain set' }}</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="mock-kpis">
+        <div class="mock-kpi">
             <div class="flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                     <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi">
             <div class="flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
                     <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +68,7 @@
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi hot">
             <div class="flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-violet-50">
                     <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +152,7 @@
         </div>
 
         <!-- School Settings -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="mock-kpi hot">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-white">School Settings</h2>
             </div>
@@ -184,7 +169,7 @@
     </div>
 
     <!-- User Management -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+    <section class="mock-panel">
         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-white">User Management</h2>
@@ -212,10 +197,10 @@
                 <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $school->supervisors_count ?? 0 }}</p>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Quick Actions -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
         </div>
@@ -242,6 +227,6 @@
                 </button>
             </form>
         </div>
-    </div>
+    </div></section>
 </div>
 @endsection

@@ -126,9 +126,12 @@ class DashboardController extends Controller
             ];
         }
 
+        // Observation groups: the teacher's own observation files, newest first.
+        $observations = $obs->sortByDesc(fn ($o) => $o->observation_date?->timestamp ?? 0)->values();
+
         return view('teacher.dashboard', compact(
             'stats', 'recentObservation', 'nextObservation', 'focusObservation', 'cotScores', 'cotLabels',
-            'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus'
+            'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus', 'observations'
         ));
     }
 

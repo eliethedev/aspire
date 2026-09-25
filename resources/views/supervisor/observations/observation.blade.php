@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Classroom Observation')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -61,7 +62,7 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     {{-- Friendly pop-up when the rating sheet comes back with validation errors
          (e.g. submitted with no indicator rated or marked). --}}
     @if($errors->any())
@@ -75,19 +76,24 @@
             }, 500);
         </script>
     @endif
-    <nav aria-label="Breadcrumb" class="mb-4 sm:mb-6 text-sm">
-        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 dark:text-gray-400">
-            <li class="shrink-0"><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li aria-hidden="true" class="shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="hidden sm:inline min-w-0"><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li aria-hidden="true" class="hidden sm:inline shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px] sm:max-w-none" aria-current="page">{{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}</li>
-        </ol>
-        <div class="mt-2 flex flex-wrap items-center gap-2">
-            {{-- Offline encoding workflow: pre-cache this observation while online. --}}
-            @include('partials.offline-encode', ['observation' => $observation])
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>{{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Details</a>
         </div>
-    </nav>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>{{ $observation->isTeacherObservation() ? 'Classroom Observation' : 'School Head Observation' }}</h1>
+            <p>{{ $observation->observee->user->name ?? 'Unknown' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }} · Step 3 of 4</p>
+        </div>
+        <time>SY {{ $schoolYear }}</time>
+    </div>
+    <div class="mt-2 flex flex-wrap items-center gap-2">
+        {{-- Offline encoding workflow: pre-cache this observation while online. --}}
+        @include('partials.offline-encode', ['observation' => $observation])
+    </div>
 
     @include('partials.draft-banner')
 
@@ -127,7 +133,7 @@
           id="observation-form" data-autosave-form>
         @csrf
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden max-md:overflow-visible">
+        <section class="mock-panel" aria-label="Observation rating sheet">
             @if($observation->isSchoolHeadObservation())
                 {{-- Single consolidated header lives inside the EPOC partial below --}}
             @else
@@ -262,9 +268,9 @@
                           placeholder="Additional comments or observations...">{{ $observation->cotRatings->first()?->comments ?? '' }}</textarea>
             </div>
             @endif
-        </div>
+        </section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+        <section class="mock-panel" aria-label="Observer notes" style="padding:16px 20px">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Your Notes</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">These notes will be used during the Post-Observation Conference and will inform the AI analysis.</p>
             <div class="space-y-4">
@@ -281,9 +287,9 @@
                               placeholder="Your private notes for future reference...">{{ $observation->postConference?->supervisor_notes }}</textarea>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+        <section class="mock-panel" aria-label="Evidence files" style="padding:16px 20px">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Evidence Files <span class="text-gray-400 dark:text-gray-500 font-normal">(photos, videos, documents)</span></h2>
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
@@ -304,7 +310,7 @@
                     @endforeach
                 </div>
             @endif
-        </div>
+        </section>
 
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between gap-3 mb-3">

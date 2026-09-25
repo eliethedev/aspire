@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'AI Usage — '.$user->name)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
 @php
@@ -8,21 +9,23 @@
     $hasData = ($analysis['stats']['calls'] ?? 0) > 0;
 @endphp
 
-<div class="max-w-7xl mx-auto px-6 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
 
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                <a href="{{ route('admin.ai-usage.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">&larr; AI Usage &amp; Cost</a>
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>AI Usage</b></div><div class="mock-actions"><a href="{{ route('admin.ai-usage.index') }}" class="mock-btn">&larr; AI Usage &amp; Cost</a></div></div>
+<div class="mock-title"><div><h1>{{ $user->name }}</h1><p class="text-sm text-gray-500 dark:text-gray-400">
+                
             </p>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $user->name }}</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $user->email }} &middot; {{ ucwords($user->role) }} &middot; AI usage and estimated spend for this user.</p>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $user->email }} &middot; {{ ucwords($user->role) }} &middot; AI usage and estimated spend for this user.</p>
+        <div>
+            
+            
+            
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Date filter -->
-    <form method="GET" action="{{ route('admin.ai-usage.users.show', $user->id) }}" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <section class="mock-panel"><form method="GET" action="{{ route('admin.ai-usage.users.show', $user->id) }}" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
@@ -37,31 +40,31 @@
             <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">Apply</button>
             <a href="{{ route('admin.ai-usage.users.show', $user->id) }}" class="px-5 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">Reset</a>
         </div>
-    </form>
+    </form></section>
 
     <!-- Stats cards -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="mock-kpis">
+        <div class="mock-kpi">
             <p class="text-xs text-gray-500 dark:text-gray-400">Estimated Spend</p>
             <p class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">{{ $symbol }}{{ number_format($analysis['stats']['cost'], 2) }}</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi">
             <p class="text-xs text-gray-500 dark:text-gray-400">Total Calls</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($analysis['stats']['calls']) }}</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi">
             <p class="text-xs text-gray-500 dark:text-gray-400">Total Tokens</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($analysis['stats']['tokens']) }}</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi">
             <p class="text-xs text-gray-500 dark:text-gray-400">Success Rate</p>
             <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ $analysis['stats']['success_rate'] }}%</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi">
             <p class="text-xs text-gray-500 dark:text-gray-400">Avg Response</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($analysis['stats']['avg_response_ms'], 0) }}ms</p>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div class="mock-kpi hot">
             <p class="text-xs text-gray-500 dark:text-gray-400">Avg Cost / Call</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $symbol }}{{ number_format($analysis['stats']['avg_cost_per_call'], 4) }}</p>
         </div>
@@ -108,7 +111,7 @@
     </div>
 
     <!-- Call log -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>Details</h2></div>
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Call History</h3>
             <form method="GET" action="{{ route('admin.ai-usage.users.show', $user->id) }}" class="flex items-center gap-2">
@@ -174,7 +177,7 @@
                 {{ $logs->links() }}
             </div>
         @endif
-    </div>
+    </section>
 </div>
 
 @push('scripts')

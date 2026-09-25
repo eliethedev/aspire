@@ -138,7 +138,7 @@
             <!-- EPOC note -->
             <section class="rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 px-4 py-3">
                 <p class="text-xs text-indigo-700 dark:text-indigo-300">
-                    <strong>School Head observations</strong> use the EPOC rating sheet with its own independent
+                    <strong>School Head observations</strong> use the Enhanced Post Observation Conference rating sheet with its own independent
                     <strong>1&ndash;5</strong> scale — the same NO/N/A and evidence-based principles above still apply.
                 </p>
             </section>

@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Manage COT Indicator Version')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -10,7 +11,10 @@
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Manage COT Indicator Version</b></div></div>
+<div class="mock-title"><div><h1>Manage COT Indicator Version</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <li><a href="{{ route('admin.cot-indicators.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">COT Indicators</a></li>
@@ -29,7 +33,7 @@
     </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="mock-panel" style="padding:14px 16px"><div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Version Settings -->
         <div class="lg:col-span-1 space-y-6">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 lg:sticky lg:top-6">
@@ -430,7 +434,7 @@
                 @endif
             </div>
         </div>
-    </div>
+    </div></section>
 </div>
 
 @if($cotIndicatorVersion->canEdit())

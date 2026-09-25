@@ -2,8 +2,25 @@
 
 @section('title', 'Indicator Trends - Observation #' . $observation->id)
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-3 py-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $trends['total_observations'] }} observations</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Indicator Trend Analysis</h1>
+            <p>{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Indicator Trend Analysis</h1>
@@ -20,7 +37,7 @@
     <!-- Domain Summary -->
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         @foreach($trends['domains'] as $domain)
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-4">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-4">
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ Str::replace('Domain ', 'D', $domain['domain']) }}</p>
                 <p class="text-2xl font-bold
                     @if($domain['average_percentage'] >= 83) text-green-600
@@ -43,7 +60,7 @@
         <p class="text-sm text-red-600 dark:text-red-400 mb-4">These indicators scored below 3/6 across multiple observations and require targeted intervention.</p>
         <div class="space-y-3">
             @foreach($trends['low_indicators'] as $ind)
-            <div class="bg-white dark:bg-gray-900 rounded-lg p-4 border border-red-200 dark:border-red-800">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-lg p-4 border border-red-200 dark:border-red-800">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm">{{ $ind['code'] }}: {{ $ind['indicator'] }}</p>
@@ -71,7 +88,7 @@
     @endif
 
     <!-- All Indicators Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm">
         <div class="p-4 border-b border-gray-100 dark:border-gray-800">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">All Indicators</h2>
         </div>

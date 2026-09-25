@@ -2,6 +2,8 @@
 
 @section('title', 'Post-Observation Conference')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     select option { background-color: #1f2937; color: #ffffff; }
@@ -34,7 +36,22 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Post-conference stage</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Details</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Post-Observation Conference</h1>
+            <p>Feedback discussion and action plan</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -92,7 +109,7 @@
 
             @if($isSchoolHeadObs)
             @if($epocEvaluation && $epocEvaluation->ratings->count() > 0)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">EPOC Ratings</h2>
                     <span class="text-2xl font-bold text-indigo-600">{{ number_format($observation->overall_score, 2) }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/ 5.00</span></span>
@@ -126,7 +143,7 @@
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">{{ $epocEvaluation->ratings->count() }} indicator(s) rated</p>
             </div>
 
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-indigo-100">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Score Breakdown by Domain</h2>
                 <div class="space-y-3">
                     @php $groupedEpoc = $epocEvaluation->ratings->groupBy('domain'); @endphp
@@ -147,7 +164,7 @@
             @endif
             @else
             @if($cotRatings && $cotRatings->count() > 0)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Ratings</h2>
                     <div class="text-right">
@@ -197,7 +214,7 @@
             </div>
 
             <!-- Score Breakdown -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Score Breakdown by Domain</h2>
                 <div class="space-y-3">
                     @php
@@ -222,7 +239,7 @@
 
             <!-- Evidence Files -->
             @if($observation->evidence_files)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Evidence Files</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @foreach($observation->evidence_files as $file)
@@ -247,7 +264,7 @@
 
                 <!-- Enhanced Post Observation Conference Guide -->
                 @if(!$isSchoolHeadObs)
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Guide</h2>
                         <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-1 rounded-full font-medium">DepEd CID Format</span>
@@ -331,7 +348,7 @@
                 @endif
 
                 <!-- Teacher Reflection -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Reflection' : 'Teacher Reflection' }}</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ $isSchoolHeadObs ? "The school head's reflection on the observed supervision session and the post-conference discussion." : "The teacher's reflection on their observed lesson and the post-conference discussion." }}</p>
                     <textarea name="teacher_reflection" rows="4"
@@ -341,7 +358,7 @@
 
                 <!-- AI Comparison -->
                 @if(!$isSchoolHeadObs)
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100" x-data="{ generating: false }">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100" x-data="{ generating: false }">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Comparison & Feedback</h2>
                         <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 px-2 py-1 rounded-full font-medium">AI-Powered</span>
@@ -396,7 +413,7 @@
                 @endif
 
                 <!-- Private Notes -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Private Notes</h2>
                         <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full font-medium">Private</span>
@@ -443,7 +460,7 @@
         <div class="space-y-6 sidebar-sticky">
 
             <!-- Teacher Info Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h3>
                 <div class="space-y-3">
                     <div>
@@ -467,7 +484,7 @@
 
             <!-- Overall Score Card -->
             @if($observation->overall_score)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 text-center">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Overall Score</h3>
                 <div class="text-4xl font-bold {{ $observation->overall_score >= 4 ? 'text-green-600 dark:text-green-400' : ($observation->overall_score >= 3 ? 'text-yellow-600' : 'text-red-600 dark:text-red-400') }}">
                     {{ number_format($observation->overall_score, 2) }}
@@ -482,7 +499,7 @@
 
             <!-- Pre-Observation Planning Summary -->
             @if($planning)
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Planning Summary</h3>
                 <div class="space-y-2">
                     @if($isSchoolHeadObs || $planning->observation_tool)

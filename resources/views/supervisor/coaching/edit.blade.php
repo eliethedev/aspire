@@ -1,25 +1,29 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Edit Coaching Agreement')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-3 py-3 sm:px-1">
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <li><a href="{{ route('supervisor.coaching.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Coaching Agreements</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Edit Agreement</li>
-        </ol>
-    </nav>
-
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Coaching Agreement</h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $agreement->observation->observee->user->name ?? 'Teacher' }}</p>
+<div class="mock-wrap max-w-4xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Edit Coaching Agreement</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.coaching.show', $agreement) }}">Cancel</a>
+        </div>
     </div>
 
-    <form method="POST" action="{{ route('supervisor.coaching.update', $agreement) }}" class="space-y-6"
+    <div class="mock-title">
+        <div>
+            <h1>Edit Coaching Agreement</h1>
+            <p>{{ $agreement->observation->observee->user->name ?? 'Teacher' }}</p>
+        </div>
+        <time>#AGR-{{ $agreement->id }}</time>
+    </div>
+
+    <form method="POST" action="{{ route('supervisor.coaching.update', $agreement) }}" class="space-y-6 mock-panel" style="padding:14px 16px"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf @method('PATCH')
+        <div class="mock-panel-head" style="margin:-14px -16px 14px"><h2>Agreement Fields</h2></div>
 
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6" x-data="{ areas: {{ json_encode($agreement->focus_areas ?? ['']) }} }">
             <label class="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Focus Areas</label>

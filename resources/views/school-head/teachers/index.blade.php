@@ -2,11 +2,21 @@
 
 @section('title', 'Teachers')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Teachers</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $teachers->total() }} teachers</span>
+    </div>
+
+    <div class="mock-title">
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <x-page-header title="Teachers" subtitle="View all teachers in your school." />
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
         <form method="GET" action="{{ route('school-head.teachers.index') }}">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
@@ -39,7 +49,7 @@
     </div>
 
     @forelse($teachers as $teacher)
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-4 hover:shadow-md transition-shadow">
         <div class="flex items-center gap-4">
             <div class="w-11 h-11 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0">
                 <span class="text-indigo-600 dark:text-indigo-400 font-semibold text-sm">{{ strtoupper(substr($teacher->user->name, 0, 1)) }}</span>
@@ -66,7 +76,7 @@
         </div>
     </div>
     @empty
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
         <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
         </div>

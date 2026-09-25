@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
 @section('title', 'Create Form Template')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-3xl mx-auto px-4 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
             <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Form Templates</a></li>
@@ -12,15 +13,13 @@
         </ol>
     </nav>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Create Form Template</h1>
-        <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Create a new form template, then configure sections and fields.</p>
-    </div>
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create Form Template</b></div></div>
+<div class="mock-title"><div><h1>Create Form Template</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Create a new form template, then configure sections and fields.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <form method="POST" action="{{ route('admin.form-templates.store') }}" class="space-y-6">
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.form-templates.store') }}" class="space-y-6">
         @csrf
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 space-y-4">
+        <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 space-y-4">
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Template Name</label>
                 <input type="text" name="name" id="name" value="{{ old('name') }}"
@@ -55,9 +54,9 @@
                 </select>
                 <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Assign this template to a specific observation type, or leave as "All Types".</p>
             </div>
-        </div>
+        </div></section>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <section class="mock-panel">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Default Sections</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-4">You can add, remove, and configure sections and fields in the next step.</p>
             @foreach($sectionKeys as $key => $label)
@@ -68,7 +67,7 @@
                     <input type="hidden" name="sections[{{ $loop->index }}][label]" value="{{ $label }}">
                 </div>
             @endforeach
-        </div>
+        </section>
 
         <div class="flex items-center gap-3">
             <button type="submit"
@@ -78,6 +77,6 @@
             <a href="{{ route('admin.form-templates.index') }}"
                class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 font-medium text-sm transition-colors">Cancel</a>
         </div>
-    </form>
+    </form></section>
 </div>
 @endsection

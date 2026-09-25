@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'Supervisors Management')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Supervisors</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-dark dark:text-gray-300 ">Supervisors</h1>
-                <p class="text-dark dark:text-gray-300 mt-1">Manage school supervisors and their information.</p>
+                
+                
             </div>
-            <a href="{{ route('admin.supervisors.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <a href="{{ route('admin.supervisors.create') }}" class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Add New Supervisor
             </a>
-        </div>
-    </div>
+        </div></div></div>
+<div class="mock-title"><div><h1>Supervisors</h1><p class="text-dark dark:text-gray-300 mt-1">Manage school supervisors and their information.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Search and Filter Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card p-6">
-        <form method="GET" action="{{ route('admin.supervisors.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <section class="mock-panel">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.supervisors.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
                 <label for="search" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Search</label>
                 <input type="text" id="search" name="search" value="{{ request('search') }}"
@@ -58,11 +58,11 @@
                     Clear
                 </a>
             </div>
-        </form>
-    </div>
+        </form></section>
+    </section>
 
     <!-- Supervisors Table -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm glass-card overflow-hidden">
+    <section class="mock-panel"><div class="mock-panel-head"><h2>Supervisors</h2></div>
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-dark border-glass-card">
@@ -152,6 +152,6 @@
             {{ $supervisors->appends(request()->query())->links() }}
         </div>
         @endif
-    </div>
+    </section>
 </div>
 @endsection

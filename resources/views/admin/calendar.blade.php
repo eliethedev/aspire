@@ -1,25 +1,26 @@
 @extends('layouts.admin')
 
 @section('title', 'System Calendar')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     {{-- Admin header --}}
-    <div class="flex flex-wrap items-start justify-between gap-4 px-1">
-        <div>
-            <p class="text-indigo-600 dark:text-indigo-400 text-xs tracking-widest uppercase font-semibold">System Oversight</p>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">System Calendar</h1>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Every observation and conference across all schools — filter by school, status, or type.</p>
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>System Calendar</b></div><div class="mock-actions"><div>
+            
+            
+            
         </div>
         <a href="{{ route('admin.observations.index') }}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-colors">
+           class="mock-btn primary">
             <i class="fa-solid fa-clipboard-list text-xs"></i>All Observations
-        </a>
-    </div>
+        </a></div></div>
+<div class="mock-title"><div><h1>System Calendar</h1><p class="text-indigo-600 dark:text-indigo-400 text-xs tracking-widest uppercase font-semibold">System Oversight</p>
+<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Every observation and conference across all schools — filter by school, status, or type.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     {{-- Stats row --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
+    <div class="mock-kpis">
+        <div class="mock-kpi">
             <div class="flex justify-between items-start gap-2">
                 <div class="min-w-0">
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Today</p>
@@ -29,7 +30,7 @@
                 <div class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 rounded-xl bg-indigo-50 border border-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400"><i class="fas fa-calendar-day"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
+        <div class="mock-kpi">
             <div class="flex justify-between items-start gap-2">
                 <div class="min-w-0">
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Next 7 Days</p>
@@ -39,7 +40,7 @@
                 <div class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 rounded-xl bg-sky-50 border border-sky-200 dark:bg-sky-500/10 dark:border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400"><i class="fas fa-calendar-week"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
+        <div class="mock-kpi">
             <div class="flex justify-between items-start gap-2">
                 <div class="min-w-0">
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Pending Cycles</p>
@@ -49,7 +50,7 @@
                 <div class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400"><i class="fas fa-hourglass-half"></i></div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 p-4 sm:p-5">
+        <div class="mock-kpi hot">
             <div class="flex justify-between items-start gap-2">
                 <div class="min-w-0">
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-slate-500 dark:text-gray-400">Completion</p>
@@ -79,7 +80,7 @@
         {{-- Admin sidebar --}}
         <div class="space-y-4 sm:space-y-6 min-w-0">
             {{-- Needs attention --}}
-            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 text-slate-700 dark:text-gray-200"><span class="w-1.5 h-5 bg-rose-500 rounded-full"></span><i class="fas fa-triangle-exclamation text-rose-500"></i> Needs Attention</h2>
                     <span class="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 rounded-full">{{ $attentionCount }}</span>
@@ -101,10 +102,10 @@
                 @if($attentionCount > count($attention))
                     <a href="{{ route('admin.observations.index') }}" class="mt-3 block text-center text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">View all {{ $attentionCount }} →</a>
                 @endif
-            </div>
+            </section>
 
             {{-- Schools to watch --}}
-            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 text-slate-700 dark:text-gray-200"><span class="w-1.5 h-5 bg-violet-500 rounded-full"></span><i class="fas fa-school text-violet-600"></i> Busiest Schools · 30 Days</h2>
                     <a href="{{ route('admin.schools.index') }}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">View all →</a>
@@ -120,7 +121,7 @@
                         <p class="text-sm text-slate-400 text-center py-8 border-2 border-dashed border-slate-200 dark:border-gray-700 rounded-xl">No upcoming school load.</p>
                     @endforelse
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>

@@ -221,6 +221,19 @@ class ObservationController extends Controller
 
         $observation->confirm();
 
+        // Bridge to the offline workflow: a classic confirm counts as package
+        // readiness when the DLL is already on file (the combined
+        // confirm-package endpoint does both steps atomically otherwise).
+        $planningFile = $observation->preObservationPlanning?->lesson_plan_file;
+        if ($planningFile && in_array($observation->status, ['scheduled', 'pending', 'pending_teacher_confirmation'], true)) {
+            $observation->update([
+                'teacher_confirmed_at' => now(),
+                'lesson_plan_path' => $planningFile,
+                'status' => 'confirmed_ready_for_download',
+            ]);
+            \App\Jobs\GeneratePreObservationAiPromptsJob::dispatch($observation->id);
+        }
+
         app(AuditLogService::class)->log(
             'confirmed', 'observations', (string) $observation->getKey(),
             "Teacher confirmed observation #{$observation->getKey()}",

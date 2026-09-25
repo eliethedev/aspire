@@ -5,6 +5,7 @@
 })
 
 @section('title', 'Notifications')
+@include('partials.dashboard.mock-styles')
 
 @php
     $priorityClasses = [
@@ -24,19 +25,19 @@
 @endphp
 
 @section('content')
-<div class="max-w-5xl mx-auto">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
-            @if($notifications->total() > 0)
-                <form method="POST" action="{{ route('notifications.mark-all-read') }}">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+<div class="mock-topbar"><div class="mock-crumbs">Notifications <span>/</span> <b>Inbox</b></div>
+<div class="mock-actions"></div>
+</div>
+<div class="mock-title"><div><h1>Notifications</h1><p>Your latest alerts, mentions and system updates.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
+    <section class="mock-panel">
+        <div class="mock-panel-head"><h2>All notifications</h2><span class="hint">{{ $notifications->total() }} total</span>@if($notifications->total() > 0)<form method="POST" action="{{ route('notifications.mark-all-read') }}">
                     @csrf
                     <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         Mark all as read
                     </button>
-                </form>
-            @endif
-        </div>
+                </form>@endif</div>
 
         {{-- Filters --}}
         <div class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -149,6 +150,6 @@
                 {{ $notifications->links() }}
             </div>
         @endif
-    </div>
+    </section>
 </div>
 @endsection

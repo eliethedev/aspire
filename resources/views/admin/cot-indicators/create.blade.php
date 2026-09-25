@@ -1,9 +1,13 @@
 @extends('layouts.admin')
 
 @section('title', 'New COT Indicator Version')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-3xl mx-auto px-4 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>New COT Indicator Version</b></div></div>
+<div class="mock-title"><div><h1>New COT Indicator Version</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <li><a href="{{ route('admin.cot-indicators.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">COT Indicators</a></li>
@@ -12,7 +16,7 @@
         </ol>
     </nav>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Version Details</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">The career stage is determined automatically from the framework, career track, and ratee position.</p>
 
@@ -138,7 +142,7 @@
                 <a href="{{ route('admin.cot-indicators.index') }}" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 transition-colors">Cancel</a>
             </div>
         </form>
-    </div>
+    </div></section>
 </div>
 
 @push('scripts')

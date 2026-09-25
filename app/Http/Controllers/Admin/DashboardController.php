@@ -83,7 +83,21 @@ class DashboardController extends Controller
             'scoreMax' => $this->globalScaleMax(),
         ];
 
-        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'recentObservations', 'topSchools', 'systemStatus', 'charts'));
+        // Observation groups: schools -> latest observation files.
+        $schoolFolders = School::where('is_active', true)
+            ->orderBy('name')
+            ->take(6)
+            ->get()
+            ->map(fn ($school) => [
+                'school' => $school,
+                'observations' => Observation::with(['observee', 'teacher.user'])
+                    ->where('school_id', $school->id)
+                    ->latest()
+                    ->take(3)
+                    ->get(),
+            ]);
+
+        return view('admin.dashboard', compact('stats', 'performance', 'recentAuditLogs', 'recentObservations', 'topSchools', 'systemStatus', 'charts', 'schoolFolders'));
     }
 
     public function systemStatus(): JsonResponse

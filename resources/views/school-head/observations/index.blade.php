@@ -2,53 +2,55 @@
 
 @section('title', 'Observations')
 
+@include('partials.dashboard.mock-styles')
 @push('styles')
 <style>
-    .obs-card {
-        transition: all 0.2s ease;
-    }
-    .obs-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    }
+    .obs-card { transition: all 0.2s ease; }
+    .obs-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06); }
 </style>
 @endpush
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'status']); @endphp
-<div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <!-- Header -->
-    <x-page-header title="Observations" subtitle="Manage teacher observations you've scheduled and your own performance observations.">
-        <x-slot name="actions">
-            <a href="{{ route('school-head.observations.create') }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                Schedule Observation
-            </a>
-        </x-slot>
-    </x-page-header>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3" role="list" aria-label="Observation summary">
-        <x-stat-card label="Total" :value="$stats['total']" accent="indigo" role="listitem">
-            <x-slot name="icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-            </x-slot>
-        </x-stat-card>
-        <x-stat-card label="Upcoming" :value="$stats['upcoming']" accent="amber" role="listitem">
-            <x-slot name="icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </x-slot>
-        </x-stat-card>
-        <x-stat-card label="Completed" :value="$stats['completed']" accent="green" role="listitem">
-            <x-slot name="icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </x-slot>
-        </x-stat-card>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} observations</span>
+        @if($hasFilters)<span class="mock-pill amber"><span class="pulse"></span>Filters active</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn primary" href="{{ route('school-head.observations.create') }}">＋ Schedule Observation</a>
+        </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-3" x-data="{ open: @json($hasFilters) }">
+    <div class="mock-title">
+        <div>
+            <h1>Observations</h1>
+            <p>Observations you've scheduled and your own performance reviews</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
+    <!-- Stats — mockup KPIs -->
+    <div class="mock-kpis" role="list" aria-label="Observation summary">
+        <div class="mock-kpi hot" role="listitem">
+            <label>Total</label>
+            <div class="val">{{ $stats['total'] }}</div>
+            <div class="delta mock-flat">All observations</div>
+        </div>
+        <div class="mock-kpi" role="listitem">
+            <label>Upcoming</label>
+            <div class="val">{{ $stats['upcoming'] }}</div>
+            <div class="delta mock-flat">Scheduled cycles</div>
+        </div>
+        <div class="mock-kpi" role="listitem">
+            <label>Completed</label>
+            <div class="val">{{ $stats['completed'] }}</div>
+            <div class="delta mock-flat">Finalized results</div>
+        </div>
+    </div>
+
+    <!-- Filters — mockup panel -->
+    <div class="mock-panel" x-data="{ open: @json($hasFilters) }">
         <button type="button" @click="open = !open" :aria-expanded="open.toString()"
                 class="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors rounded-t-xl">
             <span class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -82,8 +84,11 @@
                 </form>
             </div>
         </div>
+    </section>
 
-        <!-- Observation List -->
+    <!-- Observation List — mockup panel -->
+    <section class="mock-panel" aria-label="Observations">
+        <div class="mock-panel-head"><h2>Observations</h2><span class="hint">{{ $observations->total() }} total</span></div>
         <div class="divide-y divide-gray-100 dark:divide-gray-800">
             @forelse($observations as $observation)
                 @php
@@ -110,7 +115,9 @@
                         'observation' => 'Observation',
                         'post_conference' => 'Post-Conference',
                     ];
-                    $epocPending = $observation->schoolHead
+                    // EPOC is only valid when the observee is a school head.
+                    $epocPending = $observation->isSchoolHeadObservation()
+                        && $observation->schoolHead
                         && !$observation->epocEvaluation
                         && $observation->status !== 'cancelled'
                         && !$observation->isFinalized();
@@ -193,11 +200,11 @@
                 </x-empty-state>
             @endforelse
         </div>
-    </div>
+    </section>
 
     <!-- Pagination -->
     @if($observations->hasPages())
-        <div class="mt-4">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $observations->withQueryString()->links() }}
         </div>
     @endif

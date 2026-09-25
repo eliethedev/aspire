@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Coaching Agreements')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -10,26 +11,25 @@
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
-            <li><a href="{{ route('supervisor.dashboard') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Dashboard</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Coaching Agreements</li>
-        </ol>
-    </nav>
-
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Coaching Agreements</h1>
-            <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Create and manage coaching agreements for your teachers.</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Coaching Agreements</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $agreements->total() }} agreements</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">Browse Observations</a>
         </div>
     </div>
 
+    <div class="mock-title">
+        <div>
+            <h1>Coaching Agreements</h1>
+            <p>Create and manage coaching agreements for your teachers.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
     @if($agreements->isEmpty())
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+        <section class="mock-panel" style="padding:32px 16px;text-align:center" aria-label="No agreements">
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
@@ -40,9 +40,11 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Browse Observations
             </a>
-        </div>
+        </section>
     @else
-        <div class="space-y-4">
+        <section class="mock-panel" aria-label="Coaching agreements">
+            <div class="mock-panel-head"><h2>Agreements</h2><span class="hint">{{ $agreements->total() }} total</span></div>
+        <div class="space-y-4" style="padding:14px 16px">
             @foreach($agreements as $agreement)
                 <div class="agreement-card bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                     <div class="p-5">
@@ -88,8 +90,9 @@
                 </div>
             @endforeach
         </div>
+        </section>
 
-        <div class="mt-6">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $agreements->links() }}
         </div>
     @endif

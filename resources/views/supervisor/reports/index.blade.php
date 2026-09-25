@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', $view === 'analytics' ? 'Analytics' : ($view === 'performance' ? 'Teacher Performance' : 'Observation Reports'))
+@include('partials.dashboard.mock-styles')
 
 @if(in_array($view, ['overview', 'analytics']))
     @push('styles')
@@ -9,18 +10,21 @@
 @endif
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1>
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Reports</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">Observation insights across your ratees.</p>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Reports</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $view === 'analytics' ? 'Analytics' : ($view === 'performance' ? 'Teacher Performance' : 'Observation Reports') }}</span>
+        <div class="mock-actions">
+            <a class="mock-btn primary" href="{{ route('supervisor.reports.export') }}">⭳ Export CSV</a>
         </div>
-        <a href="{{ route('supervisor.reports.export') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2M7 9l5-5 5 5"/></svg>
-            Export CSV
-        </a>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Reports</h1>
+            <p>Observation insights across your ratees.</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
 
     <!-- Tab navigation -->

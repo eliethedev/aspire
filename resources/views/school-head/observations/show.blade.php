@@ -2,6 +2,8 @@
 
 @section('title', 'Observation Details')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .stage-card {
@@ -20,7 +22,24 @@
 @endpush
 
 @section('content')
-<div class="obs-show max-w-7xl mx-auto px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 obs-show">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ ucwords(str_replace('_', ' ', $observation->status)) }}</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Back to List</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Observation Details</h1>
+            <p>{{ $observation->observee->user->name ?? 'Unknown' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+    {{-- Offline clinical-supervision package (teacher-gated download). --}}
+    @include('partials.offline-package-card', ['observation' => $observation])
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">
@@ -246,7 +265,7 @@
 
             @if($canAccess && !($readOnly ?? false))
                 <a href="{{ route($stageRoutes[$key], $observation) }}"
-                   class="bg-white dark:bg-gray-900 rounded-xl border {{ $active ? 'border-indigo-300 dark:border-indigo-700 ring-2 ring-indigo-100 dark:ring-indigo-900/40' : 'border-gray-100 dark:border-gray-800' }} shadow-sm p-4 hover:shadow-md transition-all group">
+                   class="mock-panel bg-white dark:bg-gray-900 rounded-xl border {{ $active ? 'border-indigo-300 dark:border-indigo-700 ring-2 ring-indigo-100 dark:ring-indigo-900/40' : 'border-gray-100 dark:border-gray-800' }} shadow-sm p-4 hover:shadow-md transition-all group">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-9 h-9 rounded-lg {{ $done ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : ($active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500') }} flex items-center justify-center">
                             {!! $icon !!}
@@ -322,7 +341,7 @@
     <div class="space-y-6">
         <!-- Pre-Observation Planning -->
         @if($observation->preObservationPlanning)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Planning</h2>
             <div class="space-y-3">
                 @if($observation->preObservationPlanning->lesson_plan_file)
@@ -356,7 +375,7 @@
 
         <!-- Pre-Conference -->
         @if($observation->preConference && !$observation->isSchoolHeadObservation())
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
@@ -462,7 +481,7 @@
 
         <!-- Observation (COT Ratings) -->
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -535,9 +554,9 @@
         </div>
         @endif
 
-        <!-- EPOC Evaluation (School Head) -->
-        @if($observation->epocEvaluation)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <!-- EPOC Evaluation (School Head observees only) -->
+        @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -601,8 +620,8 @@
             </div>
             @endif
         </div>
-        @elseif($observation->schoolHead && !$observation->isFinalized())
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-dashed border-purple-200 dark:border-purple-800 p-6">
+        @elseif($observation->isSchoolHeadObservation() && $observation->schoolHead && !$observation->isFinalized())
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-dashed border-purple-200 dark:border-purple-800 p-6">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -617,7 +636,7 @@
 
         <!-- Post-Conference -->
         @if($observation->postConference)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Post-Conference</h2>
             <div class="space-y-3">
                 @if($observation->postConference->conference_date)
@@ -656,7 +675,7 @@
     {{-- Right rail: Reports (same placement as the supervisor details page) --}}
     <aside class="lg:col-span-1 space-y-6 min-w-0 lg:sticky lg:top-24">
         @if($observation->status === 'completed')
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Reports</h3>
             <div class="grid grid-cols-2 gap-2">
                 <a href="{{ route('school-head.observations.report-pdf', $observation) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium">PDF</a>

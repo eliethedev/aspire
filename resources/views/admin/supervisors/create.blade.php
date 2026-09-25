@@ -1,26 +1,28 @@
 @extends('layouts.admin')
 
 @section('title', 'Create New Supervisor')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center">
-            <a href="{{ route('admin.supervisors.index') }}" class="mr-4 text-dark hover:text-blue-600 dark:text-blue-400">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create New Supervisor</b></div><div class="mock-actions"><a href="{{ route('admin.supervisors.index') }}" class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
+            </a></div></div>
+<div class="mock-title"><div><h1>Create New Supervisor</h1><p class="text-dark mt-1">Add a new supervisor to the system.</p>
+        <div class="flex items-center">
+            
             <div>
-                <h1 class="text-2xl font-bold text-dark">Create New Supervisor</h1>
-                <p class="text-dark mt-1">Add a new supervisor to the system.</p>
+                
+                
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
         <form method="POST" action="{{ route('admin.supervisors.store') }}" class="space-y-8">
             @csrf
             
@@ -173,6 +175,6 @@
                 </button>
             </div>
         </form>
-    </div>
+    </div></section>
 </div>
 @endsection

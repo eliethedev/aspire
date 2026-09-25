@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Edit Feedback')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -10,56 +11,43 @@
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm">
-        <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
-            <li><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li><a href="{{ route('supervisor.feedback.index', $observation) }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Feedback</a></li>
-            <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Edit Feedback</li>
-        </ol>
-    </nav>
-
-    <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Feedback</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">
-                {{ $observation->observee->user->name ?? 'Unknown' }}
-                &middot; {{ $feedback->feedbackTypeLabel() }}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium {{ $feedback->statusBadgeClass() }}">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $feedback->status === 'published' ? 'bg-green-50 dark:bg-green-900/200' : ($feedback->status === 'draft' ? 'bg-amber-500' : 'bg-gray-400') }}"></span>
-                    {{ ucfirst($feedback->status) }}
-                </span>
-            </p>
-        </div>
-        <div class="flex items-center gap-2">
+<div class="mock-wrap max-w-5xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Edit Feedback</b></div>
+        @if($feedback->status === 'draft')
+            <span class="mock-pill amber"><span class="pulse"></span>Draft</span>
+        @else
+            <span class="mock-pill"><span class="pulse"></span>{{ ucfirst($feedback->status) }}</span>
+        @endif
+        <div class="mock-actions">
             @if($feedback->status === 'draft')
                 <form method="POST" action="{{ route('supervisor.feedback.publish', [$observation, $feedback]) }}" class="inline">
                     @csrf
-                    <button type="submit"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Publish
-                    </button>
+                    <button type="submit" class="mock-btn primary">Publish</button>
                 </form>
             @endif
-            <a href="{{ route('supervisor.feedback.index', $observation) }}"
-               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-800 text-sm font-medium transition-colors">
-                Cancel
-            </a>
+            <a class="mock-btn" href="{{ route('supervisor.feedback.index', $observation) }}">Cancel</a>
         </div>
     </div>
 
+    <div class="mock-title">
+        <div>
+            <h1>Edit Feedback</h1>
+            <p>
+                {{ $observation->observee->user->name ?? 'Unknown' }}
+                &middot; {{ $feedback->feedbackTypeLabel() }}
+            </p>
+        </div>
+        <time>#OBS-{{ $observation->id }}</time>
+    </div>
+
+    {{-- Page header lives in the mock shell above --}}
     <form method="POST" action="{{ route('supervisor.feedback.update', [$observation, $feedback]) }}">
         @csrf
         @method('PATCH')
 
-        <div class="space-y-6">
+        <div class="space-y-6 mock-panel" style="padding:14px 16px">
+            <div class="mock-panel-head" style="margin:-14px -16px 14px"><h2>{{ $feedback->feedbackTypeLabel() }}</h2><span class="hint">{{ ucfirst($feedback->status) }}</span></div>
             <!-- Analysis -->
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                 <div class="flex items-center gap-2.5 mb-4">

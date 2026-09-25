@@ -2,8 +2,25 @@
 
 @section('title', 'PD Recommendations - Observation #' . $observation->id)
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-3 py-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>PD guidance</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Professional Development Recommendations</h1>
+            <p>{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Professional Development Recommendations</h1>
@@ -15,7 +32,7 @@
     @if($recommendations)
     <div class="space-y-6">
         @foreach($recommendations as $rec)
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6
             @if($rec['severity'] === 'critical') border-l-4 border-l-red-500
             @elseif($rec['severity'] === 'high') border-l-4 border-l-orange-500
             @elseif($rec['severity'] === 'medium') border-l-4 border-l-yellow-500
@@ -97,7 +114,7 @@
     @endif
 
     @else
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
         <svg class="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <p class="text-gray-500 dark:text-gray-400 font-medium">No low-rated indicators found</p>
         <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">This teacher has no consistently low indicators across observations. Great performance!</p>

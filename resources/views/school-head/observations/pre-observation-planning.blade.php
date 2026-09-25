@@ -2,6 +2,8 @@
 
 @section('title', 'Prepare for the Observation')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     select option {
@@ -17,7 +19,22 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Prepare stage</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Details</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Prepare for the Observation</h1>
+            <p>{{ $observation->observee->user->name ?? 'Unknown' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <!-- Breadcrumb -->
     <nav class="mb-6 text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -52,7 +69,7 @@
         <div class="lg:col-span-2 space-y-6">
 
             <!-- Observer Information Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="col-span-2">
@@ -81,7 +98,7 @@
 
             @if(!$isSchoolHeadObs)
             <!-- Lesson Plan -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lesson Plan</h2>
@@ -172,7 +189,7 @@
                 @endif
             </div>
             @else
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center gap-2 mb-4">
                     <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
@@ -192,7 +209,7 @@
 
             @if(!$isSchoolHeadObs)
             <!-- AI Observation Assistant -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Observation Assistant</h2>
@@ -275,7 +292,7 @@
 
             <!-- Previous Observation Highlights (from past data) -->
             @if($previousObservations->isNotEmpty())
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Previous Observation Highlights</h2>
@@ -360,7 +377,7 @@
         <div class="space-y-6">
 
                 <!-- Observation Preparation -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Setup</h2>
 
                     <!-- Supervisor's Notes -->
@@ -378,7 +395,7 @@
 
                 <!-- Pre-Observation Conversation Details -->
                 @if(!$isSchoolHeadObs)
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Conversation</h2>
                     @if($preConference && $preConference->conference_date)
                         <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100">
@@ -402,7 +419,7 @@
                 @endif
 
                 <!-- Action Buttons -->
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

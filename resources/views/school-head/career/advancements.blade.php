@@ -2,8 +2,22 @@
 
 @section('title', 'Career Advancement Approvals')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-4" x-data="careerApprovals">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="careerApprovals">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Career</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $advancements->count() }} for review</span>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Career Advancement Approvals</h1>
+            <p>Review and approve supervisor recommendations for teacher career advancements</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <x-page-header title="Career Advancement Approvals" subtitle="Review and approve supervisor recommendations for teacher career advancements." />
 
     <!-- Tabs -->
@@ -19,7 +33,7 @@
     </div>
 
     @if($advancements->isEmpty())
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-10 text-center">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-10 text-center">
             <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
                 <svg class="w-7 h-7 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             </div>
@@ -38,7 +52,7 @@
             @php
                 $isPending = $advancement->isPendingApproval();
             @endphp
-            <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
                 <div class="flex flex-wrap items-start gap-4">
                     <div class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 {{ $isPending ? 'bg-amber-50 dark:bg-amber-900/20' : ($advancement->isApproved() ? 'bg-emerald-50 dark:bg-emerald-900/20' : ($advancement->isCancelled() ? 'bg-gray-100 dark:bg-gray-800' : 'bg-red-50 dark:bg-red-900/20')) }}">
                         <span class="font-semibold text-sm {{ $isPending ? 'text-amber-600 dark:text-amber-400' : ($advancement->isApproved() ? 'text-emerald-600 dark:text-emerald-400' : ($advancement->isCancelled() ? 'text-gray-500 dark:text-gray-400' : 'text-red-600 dark:text-red-400')) }}">{{ strtoupper(substr($advancement->teacher->user->name, 0, 1)) }}</span>

@@ -1,6 +1,7 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Prepare for the Observation')
+@include('partials.dashboard.mock-styles')
 
 @push('styles')
 <style>
@@ -17,47 +18,29 @@
 @endphp
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:py-1">
-    <!-- Breadcrumb -->
-    <nav aria-label="Breadcrumb" class="mb-4 sm:mb-5 text-sm">
-        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500 dark:text-gray-400">
-            <li class="shrink-0"><a href="{{ route('supervisor.observations.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Evaluations</a></li>
-            <li aria-hidden="true" class="shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="hidden sm:inline min-w-0"><a href="{{ route('supervisor.observations.show', $observation) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Observation Details</a></li>
-            <li aria-hidden="true" class="hidden sm:inline shrink-0"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px] sm:max-w-none" aria-current="page">Prepare for the Observation</li>
-        </ol>
-    </nav>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Prepare</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Details</a>
+            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">All Evaluations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Prepare for the Observation</h1>
+            <p>{{ $observation->observee->user->name ?? 'Unknown' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+        </div>
+        <time>{{ ucfirst($observation->status) }} · Step 1 of 4</time>
+    </div>
 
     @include('partials.draft-banner')
 
     <!-- Progress Steps -->
     @include('partials.observation-stepper')
 
-    <div class="mb-5 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Prepare for the Observation</h1>
-                <span class="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-900/30 px-1 py-0.5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-800">Step 1 of 4</span>
-            </div>
-            <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
-                <span class="inline-flex min-w-0 items-center gap-1.5">
-                    <svg class="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    <span class="truncate font-medium text-gray-700 dark:text-gray-300">{{ $observation->observee->user->name ?? 'Unknown' }}</span>
-                </span>
-                <span aria-hidden="true" class="text-gray-300 dark:text-gray-600">&middot;</span>
-                <span class="inline-flex items-center gap-1.5">
-                    <svg class="w-4 h-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
-                </span>
-            </p>
-        </div>
-        <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300 ring-1 ring-inset ring-blue-200 dark:ring-blue-800">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" aria-hidden="true"></span>
-            {{ ucfirst($observation->status) }}
-        </span>
-    </div>
-
+    {{-- Page header lives in the mock shell above --}}
     <form method="POST" action="{{ route('supervisor.observations.storePreObservationPlanning', $observation) }}"
           x-data="{ submitting: false }" @submit="setTimeout(() => submitting = true, 100)"
           id="planning-form" data-autosave-form>
@@ -69,7 +52,7 @@
         <div class="min-w-0 md:col-span-2 space-y-4 sm:space-y-6">
 
             <!-- Observer Information Card -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
+            <section class="mock-panel" aria-label="Observee information" style="padding:16px 20px">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Information' : 'Teacher Information' }}</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                     <div class="sm:col-span-2">
@@ -94,7 +77,7 @@
                     </div>
                     @endif
                 </div>
-            </div>
+            </section>
 
             @if(!$isSchoolHeadObs)
             <!-- Lesson Plan -->

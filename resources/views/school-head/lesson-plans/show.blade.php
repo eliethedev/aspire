@@ -2,8 +2,25 @@
 
 @section('title', 'Lesson Plan')
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-4">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Lesson Plans</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Submitted plan</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.lesson-plans.index') }}">Back to Lesson Plans</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>{{ $observation->subject ?? 'Lesson Plan' }}</h1>
+            <p>Submitted by {{ $observation->observee?->user?->name ?? 'Unknown' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="mb-8">
         <a href="{{ route('school-head.lesson-plans.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors mb-4">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
@@ -11,7 +28,7 @@
         </a>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
         <div class="flex items-center gap-4 mb-6">
             <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>

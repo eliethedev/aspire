@@ -1,21 +1,23 @@
 @extends('layouts.admin')
 
 @section('title', 'Invite New User')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-6 space-y-6">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-                <div class="flex items-center flex-wrap gap-y-2">
-            <div class="flex items-center">
-                <a href="{{ route('admin.invitations.index') }}" class="mr-4 text-dark hover:text-dark">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Invite New User</b></div><div class="mock-actions"><a href="{{ route('admin.invitations.index') }}" class="mock-btn">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                </a>
+                </a></div></div>
+<div class="mock-title"><div><h1>Invite New User</h1><p class="text-dark mt-1 text-sm">Create an invitation for a new user to join ASPIRE.</p>
+                <div class="flex items-center flex-wrap gap-y-2">
+            <div class="flex items-center">
+                
                 <div>
-                    <h1 class="text-2xl font-bold text-dark">Invite New User</h1>
-                    <p class="text-dark mt-1 text-sm">Create an invitation for a new user to join ASPIRE.</p>
+                    
+                    
                 </div>
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
@@ -27,10 +29,10 @@
                 </span>
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Form -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card">
+    <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card">
         <form method="POST" action="{{ route('admin.invitations.store') }}" id="invitationForm" class="space-y-0">
             @csrf
 
@@ -383,7 +385,7 @@
                 </button>
             </div>
         </form>
-    </div>  
+    </div></section>  
 </div>
 
 <style>

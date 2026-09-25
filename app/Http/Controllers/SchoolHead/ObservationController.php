@@ -1248,6 +1248,9 @@ class ObservationController extends Controller
             'ai_insights' => $insights,
             'source' => 'ai',
             'meta' => $routing,
+            // Same organized-sections partial as first paint — swapped in
+            // with zero page reload.
+            'panel_html' => view('partials.ai-insights-result', ['insights' => $insights])->render(),
         ]);
     }
 
@@ -1269,6 +1272,7 @@ class ObservationController extends Controller
                 'ai_insights' => $insights,
                 'source' => $source,
                 'meta' => $observation->preObservationPlanning?->ai_insights_meta,
+                'panel_html' => view('partials.ai-insights-result', ['insights' => $insights])->render(),
             ]);
         }
 

@@ -270,6 +270,9 @@ class SyncController extends Controller
             'items' => ['required', 'array', 'max:50'],
             'items.*.client_id' => ['required', 'uuid'],
             'items.*.device_updated_at' => ['nullable', 'date'],
+            // Offline-workflow items reference the PRE-SCHEDULED observation
+            // (confirmed + downloaded) instead of creating a new one.
+            'items.*.server_id' => ['nullable', 'integer'],
             'items.*.payload' => ['required', 'array'],
         ]);
 
@@ -327,6 +330,13 @@ class SyncController extends Controller
                 'status' => 'already_synced',
                 'ai_status' => $existing->ai_status,
             ];
+        }
+
+        // Offline-workflow path: the tablet encoded ratings for a
+        // PRE-SCHEDULED, teacher-confirmed observation. Update it in place —
+        // never create a duplicate — keyed by server_id + observer ownership.
+        if (! empty($item['server_id'])) {
+            return $this->storeOfflineWorkflowItem($item, $deviceId);
         }
 
         $data = validator($payload, [
@@ -497,5 +507,173 @@ class SyncController extends Controller
         $year = $now->month >= 8 ? $now->year : $now->year - 1;
 
         return $year.'-'.($year + 1);
+    }
+
+    /**
+     * Offline-workflow sync (IT adviser mandate): write tablet-encoded COT
+     * ratings + STAR notes back onto the PRE-SCHEDULED observation.
+     *
+     * Guards:
+     * - server_id must exist and belong to the pushing observer;
+     * - the observation must have passed teacher confirmation (package states);
+     * - per-rating idempotency by rating client_id (tablet retries safe);
+     * - if the server already holds ratings for this observation, the push
+     *   is a `server_already_rated` conflict instead of a silent overwrite —
+     *   the supervisor resolves it online.
+     *
+     * On success the row moves to `synced`, overall_score is recomputed, and
+     * post-observation analytics jobs are queued (never inline).
+     */
+    protected function storeOfflineWorkflowItem(array $item, ?string $deviceId): array
+    {
+        $user = Auth::user();
+        $clientId = $item['client_id'];
+        $payload = $item['payload'];
+        $deviceUpdatedAt = $item['device_updated_at'] ?? null;
+
+        $observation = Observation::with('cotRatings')->find($item['server_id']);
+
+        if (! $observation) {
+            return [
+                'client_id' => $clientId,
+                'status' => 'conflict',
+                'reason' => 'observation_not_found',
+                'message' => 'This observation no longer exists on the server.',
+            ];
+        }
+
+        $isOwner = (int) $observation->observer_id === (int) $user->id;
+        $isAssignedHead = $observation->school_head_id !== null
+            && (int) $observation->school_head_id === (int) $user->id;
+
+        if (! $isOwner && ! $isAssignedHead) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'conflict',
+                'reason' => 'not_observer',
+                'message' => 'You are not the observer for this observation.',
+            ];
+        }
+
+        if (! in_array($observation->status, ['confirmed_ready_for_download', 'downloaded_offline', 'synced'], true)) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'conflict',
+                'reason' => 'not_confirmed',
+                'message' => 'The teacher has not confirmed this observation yet.',
+            ];
+        }
+
+        // Duplicate-submission prevention: a retry of an already-applied
+        // tablet save carries the same observation client_id.
+        if ($observation->client_id && $observation->client_id === $clientId) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'already_synced',
+                'ai_status' => $observation->ai_status,
+            ];
+        }
+
+        // The tablet is the source of truth for a strictly-offline encoding,
+        // so server-side ratings mean someone encoded online meanwhile.
+        if ($observation->cotRatings->isNotEmpty()) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'conflict',
+                'reason' => 'server_already_rated',
+                'message' => 'Ratings already exist on the server. Review online before re-pushing.',
+            ];
+        }
+
+        $data = validator($payload, [
+            'notes' => ['nullable', 'string', 'max:10000'],
+            'star_notes' => ['nullable', 'string', 'max:10000'],
+            'ratings' => ['required', 'array', 'min:1', 'max:50'],
+            'ratings.*.indicator_code' => ['required', 'string', 'max:50'],
+            'ratings.*.rating' => ['nullable', 'integer', 'min:2', 'max:8'],
+            'ratings.*.not_observed' => ['nullable', 'boolean'],
+            'ratings.*.not_applicable' => ['nullable', 'boolean'],
+            'ratings.*.comments' => ['nullable', 'string', 'max:2000'],
+            'ratings.*.client_id' => ['nullable', 'uuid'],
+            'ratings.*.domain' => ['nullable', 'string', 'max:100'],
+            'ratings.*.indicator' => ['nullable', 'string', 'max:1000'],
+        ])->validate();
+
+        return DB::transaction(function () use ($user, $observation, $data, $clientId, $deviceUpdatedAt, $deviceId) {
+            // Capture before update(): save() re-syncs originals afterwards.
+            $fromStatus = $observation->status;
+            $ratingIds = [];
+            foreach ($data['ratings'] as $r) {
+                if (! empty($r['client_id']) && ($dup = CotRating::where('client_id', $r['client_id'])->first())) {
+                    $ratingIds[] = $dup->id;
+                    continue;
+                }
+
+                $rating = CotRating::create([
+                    'client_id' => $r['client_id'] ?? null,
+                    'device_updated_at' => $deviceUpdatedAt,
+                    'observation_id' => $observation->id,
+                    'indicator_code' => $r['indicator_code'],
+                    'domain' => $r['domain'] ?? 'General',
+                    'indicator' => $r['indicator'] ?? $r['indicator_code'],
+                    'rating' => $r['rating'] ?? null,
+                    'not_observed' => (bool) ($r['not_observed'] ?? false),
+                    'not_applicable' => (bool) ($r['not_applicable'] ?? false),
+                    'comments' => $r['comments'] ?? null,
+                ]);
+                $ratingIds[] = $rating->id;
+
+                try {
+                    GeneratePostObservationFeedback::dispatch($rating);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to dispatch AI job for synced rating', [
+                        'rating_id' => $rating->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Deterministic rule-based summary (same math as the tablet shows
+            // offline): average of numeric ratings + adjectival band.
+            $scores = collect($data['ratings'])
+                ->where('not_observed', '!==', true)
+                ->whereNotNull('rating')
+                ->pluck('rating');
+            $average = $scores->isNotEmpty() ? round($scores->avg(), 2) : null;
+            $scaleMax = $observation->ratingScaleMax();
+
+            $observation->update([
+                'client_id' => $clientId,
+                'sync_source' => 'offline',
+                'sync_status' => 'synced',
+                'device_updated_at' => $deviceUpdatedAt,
+                'ai_status' => 'pending',
+                'server_version' => ($observation->server_version ?? 0) + 1,
+                'notes' => $data['notes'] ?? $observation->notes,
+                'stage' => 'observation',
+                'status' => 'synced',
+                'overall_score' => $average,
+            ]);
+
+            $observation->logChange([
+                'from_status' => $fromStatus,
+                'to_status' => 'synced',
+                'notes' => 'Offline tablet sync'.($deviceId ? " (device {$deviceId})" : ''),
+            ]);
+
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'rating_ids' => $ratingIds,
+                'status' => 'synced',
+                'overall_score' => $average,
+                'descriptive' => CotRating::descriptiveTotal($average, (float) $scaleMax),
+                'ai_status' => 'pending',
+            ];
+        });
     }
 }

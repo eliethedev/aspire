@@ -2,101 +2,67 @@
 
 @section('title', 'My Evaluations')
 
+@include('partials.dashboard.mock-styles')
 @push('styles')
 <style>
-    /* Compact minimized cards for efficient browsing */
-    .senior-card {
-        transition: box-shadow 0.15s ease;
-        border-width: 1px;
-    }
-    .senior-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-    .stage-circle {
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-    .stage-connector {
-        height: 2px;
-        border-radius: 9999px;
-        flex: 1;
-        min-width: 8px;
-    }
-    #main-content { padding-top: 0.75rem !important; }
+    .senior-card { transition: box-shadow 0.15s ease; border-width: 1px; }
+    .senior-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .stage-circle { width: 22px; height: 22px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .stage-connector { height: 2px; border-radius: 9999px; flex: 1; min-width: 8px; }
 </style>
 @endpush
 
 @section('content')
 @php $hasFilters = request()->anyFilled(['search', 'observation_type', 'status', 'stage', 'date_from', 'date_to']); @endphp
-<div class="max-w-7xl mx-auto px-3 py-3"
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1"
      x-data="{
         view: (function () { try { return localStorage.getItem('supervisorObsView') || 'grid'; } catch (e) { return 'grid'; } })(),
         setView(v) { this.view = v; try { localStorage.setItem('supervisorObsView', v); } catch (e) {} },
      }">
-    {{-- Compact header — minimized --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-        <div class="min-w-0">
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 leading-none">My Evaluations</h1>
-            <p class="mt-0.5 text-md text-gray-500 dark:text-gray-400 leading-none">Track and manage observations.</p>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-            <a href="{{ route('supervisor.observations.create') }}"
-               class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-md font-semibold shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                New Evaluation
-            </a>
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} evaluations</span>
+        @if($hasFilters)<span class="mock-pill amber"><span class="pulse"></span>Filters active</span>@endif
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.offline') }}">Open offline capture</a>
+            <a class="mock-btn primary" href="{{ route('supervisor.observations.create') }}">＋ New Evaluation</a>
         </div>
     </div>
 
-    <!-- Stats — minimized -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2" role="list" aria-label="Evaluation summary">
-        <div class="senior-card bg-white dark:bg-gray-900 rounded-lg border-gray-200 dark:border-gray-700 p-2.5 flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-md bg-indigo-600 flex items-center justify-center shrink-0" aria-hidden="true">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-            <div class="min-w-0">
-                <p class="text-2xl font-bold leading-none text-gray-900 dark:text-gray-100">{{ $stats['total'] }}</p>
-                <p class="text-[15px] font-medium text-gray-600 dark:text-gray-400 leading-none mt-0.5">Total</p>
-            </div>
+    <div class="mock-title">
+        <div>
+            <h1>My Evaluations</h1>
+            <p>Track and manage observations across your schools</p>
         </div>
-        <div class="senior-card bg-white dark:bg-gray-900 rounded-lg border-amber-200 dark:border-amber-900/40 p-2.5 flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-md bg-amber-500 flex items-center justify-center shrink-0" aria-hidden="true">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div class="min-w-0">
-                <p class="text-2xl font-bold leading-none text-gray-900 dark:text-gray-100">{{ $stats['in_progress'] }}</p>
-                <p class="text-[15px] font-medium text-amber-700 dark:text-amber-300 leading-none mt-0.5">In Progress</p>
-            </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
+
+    <!-- Stats — mockup KPIs -->
+    <div class="mock-kpis" role="list" aria-label="Evaluation summary">
+        <div class="mock-kpi hot" role="listitem">
+            <label>Total</label>
+            <div class="val">{{ $stats['total'] }}</div>
+            <div class="delta mock-flat">All evaluations</div>
         </div>
-        <div class="senior-card bg-white dark:bg-gray-900 rounded-lg border-emerald-200 dark:border-emerald-900/40 p-2.5 flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-md bg-emerald-600 flex items-center justify-center shrink-0" aria-hidden="true">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div class="min-w-0">
-                <p class="text-2xl font-bold leading-none text-gray-900 dark:text-gray-100">{{ $stats['completed'] }}</p>
-                <p class="text-[15px] font-medium text-emerald-700 dark:text-emerald-300 leading-none mt-0.5">Completed</p>
-            </div>
+        <div class="mock-kpi" role="listitem">
+            <label>In Progress</label>
+            <div class="val">{{ $stats['in_progress'] }}</div>
+            <div class="delta mock-flat">Active cycles</div>
         </div>
-        <div class="senior-card bg-white dark:bg-gray-900 rounded-lg border-gray-200 dark:border-gray-700 p-2.5 flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-md bg-gray-600 flex items-center justify-center shrink-0" aria-hidden="true">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </div>
-            <div class="min-w-0">
-                <p class="text-2xl font-bold leading-none text-gray-900 dark:text-gray-100">{{ $stats['cancelled'] }}</p>
-                <p class="text-[15px] font-medium text-gray-500 dark:text-gray-400 leading-none mt-0.5">Cancelled</p>
-            </div>
+        <div class="mock-kpi" role="listitem">
+            <label>Completed</label>
+            <div class="val">{{ $stats['completed'] }}</div>
+            <div class="delta mock-flat">Finalized results</div>
+        </div>
+        <div class="mock-kpi" role="listitem">
+            <label>Cancelled</label>
+            <div class="val">{{ $stats['cancelled'] }}</div>
+            <div class="delta mock-flat">Withdrawn cycles</div>
         </div>
     </div>
 
-    <!-- Search & Filters — compact -->
-    <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mb-2 overflow-hidden" x-data="{ open: @json($hasFilters) }">
+    <!-- Search & Filters — mockup panel -->
+    <div class="mock-panel" x-data="{ open: @json($hasFilters) }">
         <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                 :aria-expanded="open.toString()">
@@ -177,7 +143,9 @@
     </div>
 
     <!-- Evaluations List — Grid view -->
-    <div x-show="view === 'grid'" class="grid grid-cols-1 md:grid-cols-2 gap-2.5" role="list" aria-label="Evaluations">
+    <section class="mock-panel" x-show="view === 'grid'" aria-label="Evaluations">
+        <div class="mock-panel-head"><h2>Evaluations</h2><span class="hint">{{ $observations->total() }} total · cards view</span></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" style="padding:14px 16px" role="list" aria-label="Evaluations">
     @foreach($observations as $observation)
         @php
             $observee = $observation->observee;
@@ -185,7 +153,10 @@
             $observeeInitial = strtoupper(substr($observeeName, 0, 1));
             $isTeacher = $observation->observation_type === 'teacher_observation';
             $roleLabel = $isTeacher ? 'Teacher' : 'School Head';
-            $epocPending = $observation->schoolHead
+            // EPOC is only valid when the observee is a school head — never
+            // for teacher observations, even if a school head is attached.
+            $epocPending = $observation->isSchoolHeadObservation()
+                && $observation->schoolHead
                 && !$observation->epocEvaluation
                 && $observation->status !== 'cancelled'
                 && !$observation->isFinalized();
@@ -323,10 +294,12 @@
             </div>
         </article>
     @endforeach
-    </div>
+        </div>
+    </section>
 
     <!-- Evaluations List — Table view -->
-    <div x-show="view === 'table'" class="senior-card bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" aria-label="Evaluations table">
+    <section class="mock-panel" x-show="view === 'table'" aria-label="Evaluations table">
+        <div class="mock-panel-head"><h2>Evaluations</h2><span class="hint">{{ $observations->total() }} total · table view</span></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -373,8 +346,9 @@
                         };
                         $hideConfirm = $observation->confirmation_status === 'pending'
                             && in_array($observation->status, ['completed', 'cancelled'], true);
-                        $epoc = $observation->epocEvaluation;
-                        $epocPending = $observation->schoolHead
+                        $epoc = $observation->isSchoolHeadObservation() ? $observation->epocEvaluation : null;
+                        $epocPending = $observation->isSchoolHeadObservation()
+                            && $observation->schoolHead
                             && !$epoc
                             && $observation->status !== 'cancelled'
                             && !$observation->isFinalized();
@@ -451,10 +425,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 
     @if($observations->isEmpty())
-        <div class="senior-card bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+        <div class="mock-panel"><div class="mock-empty">
             <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-2">
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             </div>
@@ -467,11 +441,11 @@
                 <p class="mt-1 text-xs text-gray-500">Schedule your first evaluation.</p>
                 <a href="{{ route('supervisor.observations.create') }}" class="mt-3 inline-flex gap-1 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-xs font-semibold">Create Evaluation</a>
             @endif
-        </div>
+        </div></div>
     @endif
 
     @if($observations->hasPages())
-        <div class="mt-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
+        <div class="mock-panel" style="padding:8px 12px">
             {{ $observations->links() }}
         </div>
     @endif

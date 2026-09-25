@@ -1,29 +1,31 @@
 @extends('layouts.admin')
 
 @section('title', 'Invitation Details')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-6 space-y-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
-        <div class="flex items-center">
-            <a href="{{ route('admin.invitations.index') }}" class="mr-4 text-dark hover:text-dark">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Invitation Details</b></div><div class="mock-actions"><a href="{{ route('admin.invitations.index') }}" class="mock-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-            </a>
+            </a></div></div>
+<div class="mock-title"><div><h1>Invitation Details</h1><p class="text-dark mt-1">View invitation information and status.</p>
+        <div class="flex items-center">
+            
             <div>
-                <h1 class="text-2xl font-bold text-dark">Invitation Details</h1>
-                <p class="text-dark mt-1">View invitation information and status.</p>
+                
+                
             </div>
         </div>
-    </div>
+    </div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <!-- Invitation Details -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- User Information -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
                 <h3 class="text-lg font-medium text-dark mb-4 pb-2 border-b">User Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -53,10 +55,10 @@
                         <p class="text-dark">{{ $invitation->created_at->format('F j, Y \a\t g:i A') }}</p>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Status Information -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
                 <h3 class="text-lg font-medium text-dark mb-4 pb-2 border-b">Status Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -96,11 +98,11 @@
                         </div>
                     @endif
                 </div>
-            </div>
+            </section>
 
             <!-- User Profile Information (if available) -->
             @if($invitation->user->profile)
-                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+                <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
                     <h3 class="text-lg font-medium text-dark mb-4 pb-2 border-b">Profile Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @if($invitation->user->profile->mobile_number)
@@ -128,13 +130,13 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </section>
             @endif
         </div>
 
         <!-- Actions Sidebar -->
         <div class="space-y-6">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
                 <h3 class="text-lg font-medium text-dark mb-4 pb-2 border-b">Actions</h3>
                 <div class="space-y-3">
                     @if(!$invitation->is_used && !$invitation->isExpired())
@@ -169,10 +171,10 @@
                         </form>
                     @endif
                 </div>
-            </div>
+            </section>
 
             <!-- Technical Information -->
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
+            <section class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border glass-card p-6">
                 <h3 class="text-lg font-medium text-dark mb-4 pb-2 border-b">Technical Information</h3>
                 <div class="space-y-3 text-sm">
                     <div>
@@ -192,7 +194,7 @@
                         </div>
                     @endif
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>

@@ -1,35 +1,29 @@
 @extends('layouts.supervisor')
 
 @section('title', 'School Head Profile - ' . $schoolHead->user->name)
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 py-3 sm:px-1">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-            <a href="{{ route('supervisor.school-heads.index') }}" class="inline-flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 mb-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Back to School Heads List
-            </a>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $rateeProfile['name'] }}</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $rateeProfile['position'] }} &middot; {{ $schoolHead->user->email }}</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('supervisor.school-heads.observations', $schoolHead) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:bg-gray-800 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                All Observations
-            </a>
-            <a href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                New Observation
-            </a>
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>School Head Profile</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.school-heads.index') }}">← Back to School Heads</a>
+            <a class="mock-btn" href="{{ route('supervisor.school-heads.observations', $schoolHead) }}">All Observations</a>
+            <a class="mock-btn primary" href="{{ route('supervisor.observations.create', ['school_head' => $schoolHead->id]) }}">＋ New Observation</a>
         </div>
     </div>
 
+    <div class="mock-title">
+        <div>
+            <h1>{{ $rateeProfile['name'] }}</h1>
+            <p>{{ $rateeProfile['position'] }} &middot; {{ $schoolHead->user->email }}</p>
+        </div>
+        <time>{{ $schoolHead->school_name ?? '' }}</time>
+    </div>
+
     <!-- Profile Header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-8">
+    <section class="mock-panel" style="padding:20px 24px" aria-label="Profile">
         <div class="flex flex-col md:flex-row md:items-center gap-6">
             <div class="flex items-center gap-5">
                 <div class="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 flex items-center justify-center text-3xl font-bold shrink-0">
@@ -66,7 +60,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Observation Summary -->
     @include('partials.ratee.observation-summary', ['rateeProfile' => $rateeProfile])
@@ -83,14 +77,9 @@
 
     <!-- Recent Observations -->
     <div class="mt-8">
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-5">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Recent Observations</h2>
-                <a href="{{ route('supervisor.school-heads.observations', $schoolHead) }}"
-                   class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors">
-                    View All &rarr;
-                </a>
-            </div>
+        <section class="mock-panel" aria-label="Recent observations">
+            <div class="mock-panel-head"><h2>Recent Observations</h2><a class="link" href="{{ route('supervisor.school-heads.observations', $schoolHead) }}">View All &rarr;</a></div>
+            <div style="padding:4px 16px 14px">
 
             @forelse($observations as $observation)
                 @php
@@ -151,7 +140,8 @@
                     {{ $observations->links() }}
                 </div>
             @endif
-        </div>
+            </div>
+        </section>
     </div>
 
     <!-- Supervisor Actions -->

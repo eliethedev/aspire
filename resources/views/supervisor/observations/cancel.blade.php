@@ -1,16 +1,23 @@
 @extends('layouts.supervisor')
 
 @section('title', 'Cancel Observation')
+@include('partials.dashboard.mock-styles')
 
 @section('content')
-<div class="max-w-3xl mx-auto px-3 py-3 sm:px-1">
-    <div class="mb-8">
-        <a href="{{ route('supervisor.observations.show', $observation) }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors mb-4">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Back to Observation
-        </a>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Cancel Observation</h1>
-        <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">This action will cancel the observation for {{ $observation->observee?->user?->name ?? 'Unknown' }}.</p>
+<div class="mock-wrap max-w-3xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Supervisor <span>/</span> <b>Cancel Observation</b></div>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('supervisor.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Cancel Observation</h1>
+            <p>This action will cancel the observation for {{ $observation->observee?->user?->name ?? 'Unknown' }}.</p>
+        </div>
+        <time>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</time>
     </div>
 
     <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
@@ -23,8 +30,9 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Observation Details</h2>
+    <section class="mock-panel" aria-label="Observation details">
+        <div class="mock-panel-head"><h2>Observation Details</h2></div>
+        <div style="padding:14px 16px">
         <dl class="grid grid-cols-2 gap-4 text-sm">
             <div>
                 <dt class="text-gray-500 dark:text-gray-400 dark:text-gray-500">Observee</dt>
@@ -53,9 +61,10 @@
             </div>
             @endif
         </dl>
-    </div>
+        </div>
+    </section>
 
-    <form method="POST" action="{{ route('supervisor.observations.cancel', $observation) }}" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
+    <form method="POST" action="{{ route('supervisor.observations.cancel', $observation) }}" class="mock-panel p-6"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
 

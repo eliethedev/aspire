@@ -2,6 +2,8 @@
 
 @section('title', 'Observation Details')
 
+@include('partials.dashboard.mock-styles')
+
 @push('styles')
 <style>
     .progress-step {
@@ -35,7 +37,22 @@
     $defaultRoom = $observation->teacher?->user?->teacherProfile?->default_room;
     $detailFilter = request('detail_filter') ?? 'all';
 @endphp
-<div class="obs-show max-w-7xl mx-auto px-3 py-3 sm:px-1" x-data="{ detailFilter: '{{ $detailFilter }}' }">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 obs-show" x-data="{ detailFilter: '{{ $detailFilter }}' }">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">Teacher <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>{{ ucwords(str_replace('_', ' ', $observation->status)) }}</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('teacher.observations.index') }}">Back to Observations</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Observation Details</h1>
+            <p>{{ $observation->observer?->name ?? 'Unknown Supervisor' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="flex justify-between items-center mb-6">
         <div>
             <div class="flex items-center gap-3">
@@ -275,7 +292,7 @@
     <!-- Stage Details -->
     <div class="space-y-6">
         <!-- Pre-Observation Planning -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_observation'">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_observation'">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -500,7 +517,7 @@
 
         <!-- Pre-Conference -->
         @if($observation->preConference)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_conference'">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'pre_conference'">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
@@ -606,7 +623,7 @@
 
         <!-- Observation (COT Ratings) -->
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'ratings'">
+        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6" x-show="detailFilter === 'all' || detailFilter === 'ratings'">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -692,8 +709,8 @@
         </div>
 
         {{-- Right rail: schedule details --}}
-        <aside class="lg:col-span-1 lg:order-none lg:sticky lg:top-24 space-y-6 min-w-0" x-data="{ editing: false, saving: false }">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <aside class="lg:col-span-1 lg:order-none lg:sticky lg:top-24 space-y-6 min-w-0" x-data="{ editing: false, saving: false }" aria-label="Schedule utilities">
+            <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Schedule Details</h2>

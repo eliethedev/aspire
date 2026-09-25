@@ -2,8 +2,25 @@
 
 @section('title', 'Progress Comparison - Observation #' . $observation->id)
 
+@include('partials.dashboard.mock-styles')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-3 py-8">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar">
+        <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
+        <span class="mock-pill"><span class="pulse"></span>Progress report</span>
+        <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.show', $observation) }}">Back to Observation</a>
+        </div>
+    </div>
+
+    <div class="mock-title">
+        <div>
+            <h1>Progress Comparison</h1>
+            <p>{{ $observation->observee?->user?->name ?? 'Teacher' }}</p>
+        </div>
+        <time>{{ now()->format('l, F j, Y') }}</time>
+    </div>
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Progress Comparison</h1>
@@ -14,7 +31,7 @@
 
     @if($comparison)
     <!-- Overall Score Comparison -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-6 mb-8">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-6 mb-8">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             <div>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Previous ({{ $comparison['previous_date'] }})</p>
@@ -41,7 +58,7 @@
     </div>
 
     <!-- Detailed Comparison -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm mb-8">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm mb-8">
         <div class="p-4 border-b border-gray-100 dark:border-gray-800">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Indicator-by-Indicator Comparison</h2>
         </div>
@@ -84,7 +101,7 @@
 
     <!-- PD Plan -->
     @if($pdPlan && (!empty($pdPlan['short_term_goals']) || !empty($pdPlan['long_term_goals'])))
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 shadow-sm p-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Professional Development Plan</h2>
 
         @if(!empty($pdPlan['short_term_goals']))
@@ -128,7 +145,7 @@
     @endif
 
     @else
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
+    <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 p-8 text-center">
         <p class="text-gray-500 dark:text-gray-400">No previous observation found for comparison. At least two completed observations are needed.</p>
     </div>
     @endif

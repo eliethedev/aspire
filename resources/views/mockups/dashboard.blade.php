@@ -320,12 +320,22 @@
         .rail{display:none}
         .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
+    @media (max-width:860px){
+        .app{grid-template-columns:minmax(0,1fr)}
+        .canvas{padding:14px 12px 22px}
+        .top-actions{margin-left:0;width:100%}
+        .top-actions .btn{flex:1;justify-content:center}
+    }
 </style>
 </head>
 <body>
 <div class="app">
 
-    <!-- ══════════ LEFT · navigation ══════════ -->
+    @php($role = 'supervisor')
+    @php($cfg = ['console' => 'Supervisor Console', 'user' => 'M. Santiago', 'userSub' => 'Supervisor · District 4'])
+    @include('mockups._sidebar')
+    @if(false)
+    <!-- ══════════ LEFT · navigation (superseded by mockups._sidebar) ══════════ -->
     <aside class="side" aria-label="Primary navigation">
         <div class="brand">
             <div class="brand-mark">A</div>
@@ -415,10 +425,12 @@
             <div class="user-meta"><b>M. Santiago</b><span>Supervisor · District 4</span></div>
         </div>
     </aside>
+    @endif
 
     <!-- ══════════ CENTER · workspace ══════════ -->
     <main class="main">
         <div class="topbar">
+            <button class="mk-hamb" id="mkHamb" type="button" aria-label="Open side menu" aria-controls="mkSideNav" title="Open menu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
             <div class="crumbs">Supervisor <span class="sep">/</span> <b>Dashboard</b></div>
             <span class="pill"><span class="pulse"></span>Online</span>
             <span class="pill amber"><span class="pulse"></span>3 queued offline</span>
