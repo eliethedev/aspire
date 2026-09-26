@@ -15,6 +15,7 @@ class EpocEvaluation extends Model
 
     protected $fillable = [
         'observation_id',
+        'epoc_template_id',
         'school_head_name',
         'observation_date',
         'narrative_observation',
@@ -30,6 +31,11 @@ class EpocEvaluation extends Model
     public function observation(): BelongsTo
     {
         return $this->belongsTo(Observation::class);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(EpocTemplate::class, 'epoc_template_id');
     }
 
     public function ratings(): HasMany

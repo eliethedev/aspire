@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Form Templates')
+@section('title', 'Enhanced Post Observation Conference Form Templates')
 @include('partials.dashboard.mock-styles')
 
 @push('styles')
@@ -12,7 +12,7 @@
 
 @section('content')
 <div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
-    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Observation Form Templates</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Enhanced Post Observation Conference Form Templates</b></div><div class="mock-actions"><div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 
                 
@@ -20,10 +20,10 @@
             <a href="{{ route('admin.form-templates.create') }}"
                class="mock-btn primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                New Template
+                New Form
             </a>
         </div></div></div>
-<div class="mock-title"><div><h1>Observation Form Templates</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Manage dynamic form templates for classroom observations.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+<div class="mock-title"><div><h1>Enhanced Post Observation Conference Form Templates</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Manage the enhanced post-observation conference forms used after classroom visits.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($templates as $template)
@@ -69,22 +69,22 @@
         @empty
             <div class="col-span-full text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
                 <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">No form templates yet.</p>
-                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Create your first template to define observation forms dynamically.</p>
-                <a href="{{ route('admin.form-templates.create') }}" class="inline-flex items-center mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm transition-colors">Create Template</a>
+                <p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">No post-conference forms yet.</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Create your first enhanced post-observation conference form.</p>
+                <a href="{{ route('admin.form-templates.create') }}" class="inline-flex items-center mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm transition-colors">Create Form</a>
             </div>
         @endforelse
     </div>
 
     <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800">
-        <h3 class="text-sm font-semibold text-blue-800 mb-2">How Form Templates Work</h3>
+        <h3 class="text-sm font-semibold text-blue-800 mb-2">How Post-Conference Forms Work</h3>
         <ul class="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
-            <li>Templates define the form fields for each observation stage (Pre-Conference, Observation, Post-Conference).</li>
-            <li>Only <strong>one template per school year per observation type</strong> can be active at a time.</li>
-            <li>Assign a template to <strong>Teacher</strong> or <strong>School Head</strong> observations, or leave as <strong>All Types</strong> to serve both.</li>
-            <li>New observations use the active template matching their school year and observation type.</li>
-            <li>Duplicate a template to create next year's version, then modify as needed.</li>
-            <li>Fields with a <strong>column map</strong> save to dedicated database columns for reporting.</li>
+            <li>Each form holds the extra <strong>Post-Conference</strong> fields asked after the classroom visit (feedback, STAR notes, next steps and more).</li>
+            <li>Only <strong>one form per school year per observation type</strong> can be active at a time.</li>
+            <li>Assign a form to <strong>Teacher</strong> or <strong>School Head</strong> observations, or leave as <strong>All Types</strong> to serve both.</li>
+            <li>New post-conferences use the active form matching their school year and observation type.</li>
+            <li>Duplicate a form to create next year's version, then modify as needed.</li>
+            <li>Fields with a <strong>column map</strong> save to dedicated PostConference columns for reporting.</li>
             <li>Fields without a column map save to the <code>form_responses</code> JSON column.</li>
         </ul>
     </div>

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             PpstStandardSeeder::class,
             CotIndicatorSeeder::class,
             FormTemplateSeeder::class,
+            EpocTemplateSeeder::class,
         ]);
 
         // User::factory(10)->create();

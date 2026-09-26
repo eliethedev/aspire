@@ -7,6 +7,12 @@
 <style>
     .indicator-row { transition: all 0.2s ease; }
     .indicator-row:hover { border-color: #a5b4fc; }
+    .settings-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    .settings-scroll::-webkit-scrollbar { width: 6px; }
+    .settings-scroll::-webkit-scrollbar-track { background: transparent; }
+    .settings-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .dark .settings-scroll { scrollbar-color: #1f293d transparent; }
+    .dark .settings-scroll::-webkit-scrollbar-thumb { background: #1f293d; }
 </style>
 @endpush
 
@@ -36,7 +42,8 @@
     <section class="mock-panel" style="padding:14px 16px"><div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Version Settings -->
         <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 lg:sticky lg:top-6">
+            <a href="{{ route('admin.cot-indicators.index') }}" class="mock-btn">← Back to versions</a>
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto settings-scroll">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Version Settings</h2>
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium

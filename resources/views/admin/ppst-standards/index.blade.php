@@ -35,125 +35,51 @@
 @endphp
 
 <div class="mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="ppstStandardsPage()" x-init="init()">
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            Dashboard
-        </a>
-        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg>
-        <span class="text-gray-900 dark:text-gray-100 font-medium">PPST Standards</span>
-        <span class="hidden sm:inline-flex items-center ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">Domain → Strand → Indicator</span>
-    </nav>
+
 
     <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>PPST Standards</b></div><div class="mock-actions"><a class="mock-btn" href="{{ route('admin.cot-indicators.index') }}">COT Templates</a><a class="mock-btn primary" href="{{ route('admin.ppst-standards.create') }}">＋ Add Standard</a></div></div>
     <div class="mock-title"><div><h1>PPST Standards</h1><p>The Philippine Professional Standards for Teachers library — your single source of truth for Domains, Strands and Indicators.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
-    <!-- Header -->
-    <section class="mock-panel overflow-hidden">
-        <div class="p-6 lg:p-7">
-            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-                <div class="flex gap-4">
-                    <div class="hidden sm:flex w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white items-center justify-center shadow-sm shrink-0">
-                        <i class="fas fa-book-open text-lg"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
-                            Manage PPST Standards
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                                {{ $totals['indicators'] }} indicators
-                            </span>
-                        </h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1.5 text-sm leading-relaxed max-w-2xl">
-                            The Philippine Professional Standards for Teachers library — your single source of truth for Domains, Strands and Indicators. COT Templates pick from this library per school year and career stage.
-                        </p>
-                        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ $totals['active'] }} active
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-                                {{ $totals['inactive'] }} inactive
-                            </span>
-                            <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-                                <i class="fas fa-layer-group text-[11px]"></i> {{ $totals['domains'] }} domains · {{ $totals['strands'] }} strands
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 self-start">
-                    <a href="{{ route('admin.cot-indicators.index') }}" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-clipboard-list text-xs"></i> COT Templates
-                    </a>
-                    <a href="{{ route('admin.ppst-standards.create') }}"
-                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-sm hover:shadow transition-all text-sm font-semibold">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        Add Standard
-                    </a>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div class="rounded-2xl border border-indigo-100 dark:border-indigo-900/40 bg-gradient-to-br from-indigo-50 to-violet-50/50 dark:from-indigo-900/10 dark:to-violet-900/10 p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-9 h-9 rounded-xl bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
-                            <i class="fas fa-layer-group text-sm"></i>
-                        </div>
-                        <span class="text-xs font-medium px-2 py-1 rounded-full bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300">7 max</span>
-                    </div>
-                    <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-3 leading-none">{{ $totals['domains'] }}</p>
-                    <p class="text-xs font-semibold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 mt-1">Domains</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Broad competency areas</p>
-                </div>
-                <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                        <i class="fas fa-code-branch text-sm"></i>
-                    </div>
-                    <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-3 leading-none">{{ $totals['strands'] }}</p>
-                    <p class="text-xs font-semibold tracking-widest uppercase text-gray-500 dark:text-gray-400 mt-1">Strands</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Dimensions per domain</p>
-                </div>
-                <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-                    <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800 flex items-center justify-center text-violet-600 dark:text-violet-400">
-                        <i class="fas fa-bullseye text-sm"></i>
-                    </div>
-                    <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-3 leading-none">{{ $totals['indicators'] }}</p>
-                    <p class="text-xs font-semibold tracking-widest uppercase text-gray-500 dark:text-gray-400 mt-1">Indicators</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Observable practices</p>
-                </div>
-                <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                            <i class="fas fa-toggle-on text-sm"></i>
-                        </div>
-                        <span class="text-xs font-bold px-2 py-1 rounded-full {{ $totals['active'] > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border' }}">{{ $totals['indicators'] > 0 ? round($totals['active'] / $totals['indicators'] * 100) : 0 }}%</span>
-                    </div>
-                    <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-3 leading-none">{{ $totals['active'] }} <span class="text-sm font-semibold text-gray-400">/ {{ $totals['indicators'] }}</span></p>
-                    <p class="text-xs font-semibold tracking-widest uppercase text-gray-500 dark:text-gray-400 mt-1">Active</p>
-                    <div class="mt-2 h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 rounded-full transition-all" :style="`width: {{ $totals['indicators'] > 0 ? round($totals['active'] / $totals['indicators'] * 100) : 0 }}%`"></div>
-                    </div>
-                </div>
-            </div>
+    <div class="mock-grid">
+    <div class="mock-kpis">
+        <div class="mock-kpi hot">
+            <label>Domains</label>
+            <div class="val">{{ $totals['domains'] }}</div>
+            <div class="delta mock-flat">Broad competency areas</div>
         </div>
-    </section>
+        <div class="mock-kpi">
+            <label>Strands</label>
+            <div class="val">{{ $totals['strands'] }}</div>
+            <div class="delta mock-flat">Dimensions per domain</div>
+        </div>
+        <div class="mock-kpi">
+            <label>Indicators</label>
+            <div class="val">{{ $totals['indicators'] }}</div>
+            <div class="delta mock-flat">Observable practices</div>
+        </div>
+        <div class="mock-kpi">
+            <label>Active</label>
+            <div class="val">{{ $totals['active'] }} <small>/ {{ $totals['indicators'] }}</small></div>
+            <div class="delta mock-flat">{{ $totals['indicators'] > 0 ? round($totals['active'] / $totals['indicators'] * 100) : 0 }}% ready for COT picks</div>
+        </div>
+    </div>
 
+    <div class="min-w-0">
     <!-- Controls -->
-    <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 p-4 lg:p-5 sticky top-[64px] z-20 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
-        <div class="flex flex-col lg:flex-row gap-4">
-            <!-- Search -->
-            <div class="flex-1 relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
-                <input type="text" x-model="search" @input="applyFilters()" placeholder="Search by code, strand or description — e.g. 1.1.2 or literacy" class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all">
-                <button x-show="search.length > 0" @click="search=''; applyFilters()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
+    <section class="mock-panel bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 p-2 lg:p-3 sticky top-[64px] z-20 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
+        <div class="flex flex-col lg:flex-row gap-2">
 
             <!-- Filters -->
             <div class="flex flex-wrap items-center gap-2">
+                 <div class="flex-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" x-model="search" @input="applyFilters()" placeholder="Search by code, strand or description — e.g. 1.1.2 or literacy" class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all">
+                <button x-show="search.length > 0" @click="search=''; applyFilters()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
                 <div class="relative">
                     <select x-model="domainFilter" @change="applyFilters()" class="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="all">All domains</option>
@@ -164,30 +90,24 @@
                     <svg class="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
 
-                <div class="relative">
+                <div class="hidden sm:flex items-center gap-1 ml-1 pl-1 border-l border-gray-200 dark:border-gray-700">
                     <select x-model="statusFilter" @change="applyFilters()" class="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="all">All status</option>
                         <option value="active">Active only</option>
                         <option value="inactive">Inactive only</option>
                     </select>
                     <svg class="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-
-                <div class="relative">
-                    <select x-model="usageFilter" @change="applyFilters()" class="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                     <select x-model="usageFilter" @change="applyFilters()" class="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="all">All usage</option>
                         <option value="used">Used in COT</option>
                         <option value="unused">Unused</option>
                     </select>
                     <svg class="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <button @click="expandAll()" class="px-3 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-colors">Expand all</button>
+                    <button @click="collapseAll()" class="px-3 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Collapse</button>
                 </div>
 
-                <div class="hidden sm:flex items-center gap-1 ml-1 pl-1 border-l border-gray-200 dark:border-gray-700">
-                    <button @click="expandAll()" class="px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-colors">Expand all</button>
-                    <button @click="collapseAll()" class="px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Collapse</button>
-                </div>
-
-                <button @click="clearFilters()" class="px-3 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">Clear</button>
+                <button @click="clearFilters()" class="px-3 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">Clear</button>
             </div>
         </div>
 
@@ -198,26 +118,10 @@
             </p>
             <p class="hidden sm:flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
                 <i class="fas fa-lightbulb text-amber-500"></i>
-                Tip: click a domain pill to jump, or search <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border">1.4.2</span>
+                Tip: pick an indicator in the panel on the right, or search <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border">1.4.2</span>
             </p>
         </div>
     </section>
-
-    <!-- Domain quick nav -->
-    @if($domains->isNotEmpty())
-    <div class="flex items-center gap-2 overflow-x-auto scrollbar-thin pb-1 -mx-1 px-1">
-        <span class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500 shrink-0 mr-1">Jump to:</span>
-        @foreach($domains as $domain => $strands)
-            @php $meta = $getMeta($domain); $c = $colorMap[$meta['color']] ?? $colorMap['indigo']; @endphp
-            <button @click="scrollToDomain('{{ Str::slug($domain) }}')" class="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors {{ $c['bg'] }} {{ $c['text'] }} {{ $c['border'] }} hover:shadow-sm">
-                <span class="w-5 h-5 rounded-full bg-white dark:bg-gray-900 border flex items-center justify-center text-[10px] font-bold {{ $c['text'] }}">{{ $meta['number'] }}</span>
-                <span class="hidden sm:inline">{{ Str::limit($domain, 26) }}</span>
-                <span class="sm:hidden">D{{ $meta['number'] }}</span>
-                <span class="px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-gray-900/40 text-[10px]">{{ $strands->flatten()->count() }}</span>
-            </button>
-        @endforeach
-    </div>
-    @endif
 
     <!-- No results (filtered) -->
     <div x-show="hasNoResults" x-cloak class="bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-8 text-center">
@@ -301,6 +205,7 @@
                                     $usageCount = count($usage);
                                 @endphp
                                 <div data-indicator-card
+                                     id="indicator-{{ Str::slug($standard->indicator_code) }}"
                                      data-code="{{ $standard->indicator_code }}"
                                      data-strand="{{ $standard->strand }}"
                                      data-domain="{{ $standard->domain }}"
@@ -373,15 +278,15 @@
                                     </div>
                                     <!-- Mobile actions -->
                                     <div class="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                        <a href="{{ route('admin.ppst-standards.edit', $standard) }}" class="flex-1 text-center px-3 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl">Edit</a>
+                                        <a href="{{ route('admin.ppst-standards.edit', $standard) }}" class="flex-1 text-center px-3 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl">Edit</a>
                                         <form method="POST" action="{{ route('admin.ppst-standards.toggle-active', $standard) }}" class="flex-1">
                                             @csrf
-                                            <button type="submit" class="w-full px-3 py-2 text-xs font-semibold {{ $standard->is_active ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100' }} border rounded-xl" onclick="return confirm('{{ $standard->is_active ? 'Deactivate' : 'Activate' }} {{ $standard->indicator_code }}?')">{{ $standard->is_active ? 'Deactivate' : 'Activate' }}</button>
+                                            <button type="submit" class="w-full px-3 py-2.5 text-xs font-semibold {{ $standard->is_active ? 'text-amber-700 bg-amber-50 border-amber-100' : 'text-emerald-700 bg-emerald-50 border-emerald-100' }} border rounded-xl" onclick="return confirm('{{ $standard->is_active ? 'Deactivate' : 'Activate' }} {{ $standard->indicator_code }}?')">{{ $standard->is_active ? 'Deactivate' : 'Activate' }}</button>
                                         </form>
                                         @if($usageCount === 0)
                                             <form method="POST" action="{{ route('admin.ppst-standards.destroy', $standard) }}">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="px-3 py-2 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-xl" onclick="return confirm('Delete {{ $standard->indicator_code }}?')">Delete</button>
+                                                <button type="submit" class="px-3 py-2.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-xl" onclick="return confirm('Delete {{ $standard->indicator_code }}?')">Delete</button>
                                             </form>
                                         @endif
                                     </div>
@@ -408,27 +313,64 @@
     </div>
 
     <!-- Help -->
-    <div class="grid lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-gradient-to-br from-blue-50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30">
-            <h3 class="text-sm font-bold text-blue-900 dark:text-blue-200 flex items-center gap-2"><span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs"><i class="fas fa-circle-info"></i></span> How PPST Standards Relate to COT</h3>
-            <ul class="mt-3 text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span><strong>PPST is the single library</strong> — Domain → Strand → Indicator. Not scoped by school year.</span></li>
-                <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span>COT Templates (per school year, ratee role & career stage) <strong>assemble a subset</strong> of these indicators into the rating sheet.</span></li>
-                <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span>Deactivating keeps the indicator in the library and in historical observations, but <strong>hides it from new COT picks</strong>.</span></li>
-            </ul>
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30">
+        <h3 class="text-sm font-bold text-blue-900 dark:text-blue-200 flex items-center gap-2"><span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs"><i class="fas fa-circle-info"></i></span> How PPST Standards Relate to COT</h3>
+        <ul class="mt-3 text-sm text-blue-800 dark:text-blue-300 space-y-2">
+            <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span><strong>PPST is the single library</strong> — Domain → Strand → Indicator. Not scoped by school year.</span></li>
+            <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span>COT Templates (per school year, ratee role & career stage) <strong>assemble a subset</strong> of these indicators into the rating sheet.</span></li>
+            <li class="flex gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0"></span><span>Deactivating keeps the indicator in the library and in historical observations, but <strong>hides it from new COT picks</strong>.</span></li>
+        </ul>
+    </div>
+    </div>
+
+    <aside class="mock-rail" aria-label="Quick navigation">
+        <div class="mock-mod">
+            <div class="mock-mod-head"><h3>Jump to indicator</h3><span class="tick"></span></div>
+            <div class="mock-mod-body">
+                <select @change="scrollToIndicator($event.target.value)" class="w-full mb-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Pick an indicator…</option>
+                    @foreach($domains as $domain => $strands)
+                        @php $meta = $getMeta($domain); @endphp
+                        <optgroup label="Domain {{ $meta['number'] }} — {{ Str::limit($domain, 32) }}">
+                            @foreach($strands as $strand => $indicators)
+                                @foreach($indicators as $standard)
+                                    <option value="{{ $standard->indicator_code }}">{{ $standard->indicator_code }} — {{ Str::limit($standard->description, 42) }}</option>
+                                @endforeach
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </select>
+                @foreach($domains as $domain => $strands)
+                    @php $meta = $getMeta($domain); @endphp
+                    <button type="button" @click="scrollToDomain('{{ Str::slug($domain) }}')" class="mock-act">
+                        <span class="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-[10px] font-bold shrink-0">{{ $meta['number'] }}</span>
+                        <span class="truncate">{{ Str::limit($domain, 30) }}</span>
+                        <span class="ml-auto text-[10px] font-semibold text-gray-400 dark:text-gray-500 shrink-0">{{ $strands->flatten()->count() }}</span>
+                    </button>
+                @endforeach
+            </div>
         </div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800">
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="fas fa-wand-magic-sparkles text-amber-500"></i> Tips</h3>
-            <ul class="mt-3 text-sm text-gray-600 dark:text-gray-400 space-y-2 list-disc list-inside">
-                <li>Use search to quickly find an indicator by code or keyword.</li>
-                <li>Filter by <strong>Unused</strong> to find candidates for cleanup.</li>
-                <li>Codes must be <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border text-xs">D.S.I</span> (e.g. 1.1.2).</li>
-                <li>Strand is auto-derived from the code — no need to set it manually.</li>
-            </ul>
+        <div class="mock-mod">
+            <div class="mock-mod-head"><h3>Tips</h3></div>
+            <div class="mock-mod-body">
+                <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 list-disc list-inside">
+                    <li>Use search to quickly find an indicator by code or keyword.</li>
+                    <li>Filter by <strong>Unused</strong> to find candidates for cleanup.</li>
+                    <li>Codes must be <span class="font-mono bg-gray-50 dark:bg-gray-800 px-1 py-0.5 rounded border text-xs">D.S.I</span> (e.g. 1.1.2).</li>
+                    <li>Strand is auto-derived from the code — no need to set it manually.</li>
+                </ul>
+            </div>
         </div>
+    </aside>
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .indicator-flash { outline: 2px solid #2563eb !important; outline-offset: 2px; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -529,6 +471,26 @@ function ppstStandardsPage() {
         scrollToDomain(slug) {
             const el = document.getElementById('domain-' + slug);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        scrollToIndicator(code) {
+            if (!code) return;
+            const slug = code.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            this.search = '';
+            this.domainFilter = 'all';
+            this.statusFilter = 'all';
+            this.usageFilter = 'all';
+            this.applyFilters();
+            document.querySelectorAll('[data-domain-section]').forEach(el => {
+                const alpine = Alpine.$data(el);
+                if (alpine && 'open' in alpine) alpine.open = true;
+            });
+            this.$nextTick(() => this.$nextTick(() => {
+                const el = document.getElementById('indicator-' + slug);
+                if (!el) return;
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('indicator-flash');
+                setTimeout(() => el.classList.remove('indicator-flash'), 2200);
+            }));
         }
     }
 }

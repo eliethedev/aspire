@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Form Template')
+@section('title', 'Edit Post-Conference Form')
 @include('partials.dashboard.mock-styles')
 
 @push('styles')
@@ -16,12 +16,12 @@
 
 @section('content')
 <div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
-<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Form Template</b></div></div>
-<div class="mock-title"><div><h1>Edit Form Template</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+<div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Edit Post-Conference Form</b></div></div>
+<div class="mock-title"><div><h1>Edit Post-Conference Form</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
-            <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Form Templates</a></li>
+            <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Post-Conference Forms</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
             <li class="text-gray-900 dark:text-gray-100 font-medium">{{ $formTemplate->name }}</li>
         </ol>
@@ -38,7 +38,8 @@
             <!-- Left: Template Info -->
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 sticky top-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Template Settings</h2>
+                    <a href="{{ route('admin.form-templates.index') }}" class="mock-btn">← Back to versions</a>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Form Settings</h2>
                     <div class="space-y-4">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
@@ -87,7 +88,7 @@
                     <div class="space-y-3">
                         <button type="submit"
                                 class="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">
-                            Save Template
+                            Save Form
                         </button>
                         <button type="button" @click="addSection()"
                                 class="w-full px-4 py-2.5 border-2 border-dashed border-gray-300 text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:border-indigo-400 hover:text-indigo-600 dark:text-indigo-400 rounded-lg font-medium text-sm transition-colors">
@@ -100,19 +101,18 @@
 
                     <!-- Duplicate Template -->
                     <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duplicate Template</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-3">Copy this template to a new school year.</p>
-                        <form method="POST" action="{{ route('admin.form-templates.duplicate', $formTemplate) }}" class="flex gap-2" onsubmit="return confirm('Duplicate this template?')">
-                            @csrf
-                            <select name="school_year" required
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duplicate Form</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-3">Copy this form to a new school year.</p>
+                        <div class="flex gap-2">
+                            <select id="duplicate_school_year"
                                     class="flex-1 px-2 py-1.5 rounded-lg border border-gray-300 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 @foreach($schoolYears as $value => $label)
-                                    <option value="{{ $value }}" {{ $value == $formTemplate->school_year ? '' : '' }}>{{ $label }}</option>
+                                    <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
                             </select>
-                            <button type="submit"
+                            <button type="button" onclick="duplicateTemplate()"
                                     class="px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:bg-indigo-900/30 rounded-lg transition-colors whitespace-nowrap">Duplicate</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -252,6 +252,19 @@
             </div>
         </div>
     </form></section>
+    <form id="duplicateTemplateForm" method="POST" action="{{ route('admin.form-templates.duplicate', $formTemplate) }}" class="hidden">
+        @csrf
+        <input type="hidden" name="school_year" value="">
+    </form>
+    <script>
+    function duplicateTemplate() {
+        if (!confirm('Duplicate this form?')) return;
+        var sel = document.getElementById('duplicate_school_year');
+        var f = document.getElementById('duplicateTemplateForm');
+        f.querySelector('input[name=school_year]').value = sel.value;
+        f.submit();
+    }
+    </script>
 </div>
 @endsection
 
@@ -298,7 +311,7 @@ function formBuilder() {
                     }));
                 }));
             } else {
-                this.addSection('pre_conference', 'Pre-Conference');
+                this.addSection('post_conference', 'Post-Conference');
             }
         },
         addSection(key, label) {

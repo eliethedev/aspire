@@ -241,7 +241,7 @@
                         <a data-mks="my observations all" href="{{ route('teacher.observations.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.index') && !request('status') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-observations ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-observations ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -254,7 +254,7 @@
                         <a data-mks="upcoming scheduled confirm" href="{{ route('teacher.observations.index', ['status' => 'scheduled']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.*') && request('status') === 'scheduled' ? 'sidebar-link-active icon-calendar' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-calendar relative ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-calendar relative ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -286,7 +286,7 @@
                         <a data-mks="feedback coaching comments" href="{{ route('teacher.feedback.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.feedback.index') ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-feedback ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-feedback ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                 </svg>
@@ -298,7 +298,7 @@
                         <a data-mks="improvement plan action" href="{{ route('teacher.coaching.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-coaching ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-coaching ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
@@ -324,7 +324,7 @@
                         <a data-mks="performance analytics" href="{{ route('teacher.analytics') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.analytics') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-analytics ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-analytics ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -407,7 +407,7 @@
                         <a data-mks="all observations list" href="{{ route('supervisor.observations.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && !request('status') && !request('stage') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-observations ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-observations ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -420,7 +420,7 @@
                         <a data-mks="schedule new observation create" href="{{ route('supervisor.observations.create') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-register  ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-register  ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                 </svg>
@@ -432,7 +432,7 @@
                         <a data-mks="completed done finished" href="{{ route('supervisor.observations.index', ['status' => 'completed']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('status') === 'completed' ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-coaching  ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-coaching  ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
@@ -458,7 +458,7 @@
                         <a data-mks="teachers faculty ratees" href="{{ route('supervisor.teachers.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-users ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-users ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                                 </svg>
@@ -470,7 +470,7 @@
                         <a data-mks="school heads principals" href="{{ route('supervisor.school-heads.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.school-heads.*') ? 'sidebar-link-active icon-schools' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-schools ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-schools ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
@@ -496,7 +496,7 @@
                         <a data-mks="conferences post conference" href="{{ route('supervisor.observations.index', ['stage' => 'post_conference']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.observations.index') && request('stage') === 'post_conference' ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-feedback ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-feedback ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                                 </svg>
@@ -508,7 +508,7 @@
                         <a data-mks="action plans coaching agreements" href="{{ route('supervisor.coaching.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.coaching.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-coaching ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-coaching ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
@@ -520,7 +520,7 @@
                         <a data-mks="career progression promotion" href="{{ route('supervisor.career.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.*') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-analytics ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-analytics ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
@@ -532,7 +532,7 @@
                         <a data-mks="career monitor tracking" href="{{ route('supervisor.career.monitor') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.career.monitor') ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-activity ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-activity ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
@@ -558,7 +558,7 @@
                         <a data-mks="observation reports" href="{{ route('supervisor.reports.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.*') && !request('view') ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-reports ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-reports ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -570,7 +570,7 @@
                         <a data-mks="analytics charts trends" href="{{ route('supervisor.reports.index', ['view' => 'analytics']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'analytics' ? 'sidebar-link-active icon-analytics' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-analytics ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-analytics ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
@@ -582,7 +582,7 @@
                         <a data-mks="teacher performance ratings" href="{{ route('supervisor.reports.index', ['view' => 'performance']) }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('supervisor.reports.index') && request('view') === 'performance' ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-reports ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-reports ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
@@ -718,7 +718,7 @@
                         <a data-mks="classroom observations all" href="{{ route('school-head.observations.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-observations relative ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-observations relative ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -737,7 +737,7 @@
                         <a data-mks="schedule new observation create" href="{{ route('school-head.observations.create') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.create') ? 'sidebar-link-active icon-register' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-register ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-register ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                 </svg>
@@ -749,7 +749,7 @@
                         <a data-mks="co-observations joint" href="{{ route('school-head.co-observations.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.co-observations.*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-observations ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-observations ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                                 </svg>
@@ -775,7 +775,7 @@
                         <a data-mks="teachers faculty roster" href="{{ route('school-head.teachers.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.teachers.*') ? 'sidebar-link-active icon-users' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-users ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-users ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                                 </svg>
@@ -787,7 +787,7 @@
                         <a data-mks="lesson plans dll dlp review" href="{{ route('school-head.lesson-plans.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.lesson-plans.*') ? 'sidebar-link-active icon-lesson' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-lesson ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-lesson ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
@@ -799,7 +799,7 @@
                         <a data-mks="career advancements promotion approval" href="{{ route('school-head.career.advancements.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.career.advancements.*') ? 'sidebar-link-active icon-coaching' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-coaching relative ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-coaching relative ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
@@ -860,7 +860,7 @@
                         <a data-mks="ai feedback coaching" href="{{ route('school-head.feedback.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.feedback.*') || request()->routeIs('school-head.coaching.*') ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-feedback ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-feedback ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                 </svg>
@@ -872,7 +872,7 @@
                         <a data-mks="analytics reports charts" href="{{ route('school-head.reports.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.reports.*') ? 'sidebar-link-active icon-reports' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-reports ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-reports ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V8a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 0012.586 3H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
@@ -884,7 +884,7 @@
                         <a data-mks="notifications alerts" href="{{ route('notifications.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('notifications.*') ? 'sidebar-link-active icon-announcements' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
-                            <span class="sidebar-icon-wrap icon-announcements relative ml-3" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                            <span class="sidebar-icon-wrap icon-announcements relative ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>

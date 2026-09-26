@@ -20,7 +20,7 @@
       <span class="mock-pill amber"><span class="pulse"></span>{{ $attention['total'] }} need review</span>
     @endif
     <div class="mock-actions">
-      <a class="mock-btn" href="{{ route('school-head.observations.create') }}">＋ Schedule observation</a>
+      <a class="mock-btn" href="{{ route('school-head.observations.create') }}">＋ Schedule a review</a>
       <a class="mock-btn primary" href="{{ route('school-head.reports.index') }}">View reports</a>
     </div>
   </div>
@@ -28,7 +28,7 @@
   <div class="mock-title">
     <div>
       <h1>{{ $greeting }}, {{ $firstName }}</h1>
-      <p>{{ $schoolName }} · {{ $cycleLabel }} · {{ $completion }}% cycle progress</p>
+      <p>{{ $schoolName }} · {{ $cycleLabel }} · {{ $completion }}% finished</p>
     </div>
     <time>{{ now()->format('l, F j, Y') }}</time>
   </div>
@@ -45,14 +45,14 @@
       <div class="delta mock-flat">{{ $quickStats['completed'] }} done · {{ $quickStats['in_progress'] }} active</div>
     </div>
     <div class="mock-kpi">
-      <label>Avg COT</label>
+      <label>Average teaching score</label>
       <div class="val">{{ number_format((float) ($quickStats['avg_score'] ?? 0), 1) }} <small>/ 7.0</small></div>
-      <div class="delta {{ ($quickStats['trend'] ?? 0) > 0 ? 'mock-up' : ((($quickStats['trend'] ?? 0) < 0) ? 'mock-down' : 'mock-flat') }}">{{ ($quickStats['trend'] ?? 0) > 0 ? '▲ +' : '' }}{{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} vs previous</div>
+      <div class="delta {{ ($quickStats['trend'] ?? 0) > 0 ? 'mock-up' : ((($quickStats['trend'] ?? 0) < 0) ? 'mock-down' : 'mock-flat') }}">{{ ($quickStats['trend'] ?? 0) > 0 ? '▲ +' : '' }}{{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} since last time</div>
     </div>
     <div class="mock-kpi">
-      <label>Attention queue</label>
+      <label>Waiting on you</label>
       <div class="val">{{ $attention['total'] ?? 0 }}</div>
-      <div class="delta mock-flat">Plans · confirms · signatures</div>
+      <div class="delta mock-flat">Plans to check · replies · signatures</div>
     </div>
   </div>
 
@@ -62,7 +62,7 @@
       <section class="mock-panel" aria-label="Needs your attention">
         <div class="mock-panel-head">
           <h2>Needs your attention</h2>
-          <span class="hint">{{ $attention['total'] }} waiting across plans, confirmations and signatures</span>
+          <span class="hint">{{ $attention['total'] }} waiting across plans, replies and signatures</span>
         </div>
         <div class="mock-steps">
           @foreach($attention['items'] as $i => $item)
@@ -79,9 +79,9 @@
       </section>
       @endif
 
-      <section class="mock-panel" aria-label="Observation groups">
+      <section class="mock-panel" aria-label="Teachers and reviews">
         <div class="mock-panel-head">
-          <h2>Observation groups</h2>
+          <h2>Teachers &amp; their reviews</h2>
           <span class="hint">{{ $schoolName }} · {{ $cycleLabel }}</span>
           <a class="link" href="{{ route('school-head.observations.index') }}">All observations →</a>
         </div>
@@ -95,11 +95,11 @@
               <details class="mock-folder" @if($i < 2) open @endif>
                 <summary>
                   <span class="caret">▸</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
                   <span>{{ $row->user?->name ?? 'Unassigned' }}</span>
                   <span class="spacer">
                     @if($latestScore !== null)<span class="mock-score {{ $tone }}">{{ number_format($latestScore, 1) }}</span>@endif
-                    <span class="mock-status todo">{{ $row->observations->count() }} files</span>
+                    <span class="mock-status todo">{{ $row->observations->count() }} reviews</span>
                   </span>
                 </summary>
                 <div>
@@ -111,7 +111,7 @@
                       <span class="mock-fright"><span class="mock-score {{ $ob->overall_score !== null ? ($ob->overall_score >= 4.5 ? 'hi' : ($ob->overall_score >= 3.5 ? 'mid' : 'lo')) : 'lo' }}">{{ $ob->overall_score !== null ? number_format((float) $ob->overall_score, 1) : '—' }}</span><span class="mock-status {{ $ob->status === 'completed' ? 'done' : ($ob->status === 'cancelled' ? 'todo' : 'now') }}">{{ ucwords(str_replace('_', ' ', $ob->status)) }}</span></span>
                     </a>
                   @empty
-                    <div class="mock-empty">No observation files yet for this teacher.</div>
+                    <div class="mock-empty">No reviews yet for this teacher.</div>
                   @endforelse
                 </div>
               </details>
@@ -126,22 +126,22 @@
       </section>
     </div>
 
-    <aside class="mock-rail" aria-label="Contextual utilities">
+    <aside class="mock-rail" aria-label="Helpful panels">
       <div class="mock-mod">
-        <div class="mock-mod-head"><h3>System insights</h3><span class="tick {{ ($attention['total'] ?? 0) > 0 ? 'warn' : '' }}"></span></div>
+        <div class="mock-mod-head"><h3>At a glance</h3><span class="tick {{ ($attention['total'] ?? 0) > 0 ? 'warn' : '' }}"></span></div>
         <div class="mock-mod-body">
-          <div class="mock-insight"><div><b>Completion</b><span>{{ $quickStats['completed'] }} of {{ $quickStats['total'] }} cycles done</span><div class="mock-bar"><i style="width:{{ $completion }}%"></i></div></div></div>
-          <div class="mock-insight"><div><b>Average score</b><span>{{ number_format((float) ($quickStats['avg_score'] ?? 0), 1) }} · trend {{ number_format((float) ($quickStats['trend'] ?? 0), 1) }}</span></div></div>
-          <div class="mock-insight"><div><b>Coaching load</b><span>{{ count($coaching['items'] ?? []) }} active agreements in view</span></div></div>
+          <div class="mock-insight"><div><b>Completion</b><span>{{ $quickStats['completed'] }} of {{ $quickStats['total'] }} reviews finished</span><div class="mock-bar"><i style="width:{{ $completion }}%"></i></div></div></div>
+          <div class="mock-insight"><div><b>Average score</b><span>{{ number_format((float) ($quickStats['avg_score'] ?? 0), 1) }} · {{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} since last time</span></div></div>
+          <div class="mock-insight"><div><b>Active coaching</b><span>{{ count($coaching['items'] ?? []) }} agreements to follow</span></div></div>
         </div>
       </div>
       <div class="mock-mod">
         <div class="mock-mod-head"><h3>Quick actions</h3></div>
         <div class="mock-mod-body">
-          <a class="mock-act solid" href="{{ route('school-head.observations.create') }}">＋ Schedule observation</a>
-          <a class="mock-act" href="{{ route('school-head.lesson-plans.index') }}">📖 Review lesson plans</a>
-          <a class="mock-act" href="{{ route('school-head.teachers.index') }}">👥 Teachers</a>
-          <a class="mock-act" href="{{ route('school-head.coaching.index') }}">🤝 Coaching</a>
+          <a class="mock-act solid" href="{{ route('school-head.observations.create') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Schedule a review</a>
+          <a class="mock-act" href="{{ route('school-head.lesson-plans.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>Review lesson plans</a>
+          <a class="mock-act" href="{{ route('school-head.teachers.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Teachers</a>
+          <a class="mock-act" href="{{ route('school-head.coaching.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>Coaching</a>
         </div>
       </div>
       <div class="mock-mod">
@@ -154,7 +154,7 @@
         </div>
       </div>
       <div class="mock-mod">
-        <div class="mock-mod-head"><h3>Coaching &amp; follow-up</h3><span class="tick"></span></div>
+        <div class="mock-mod-head"><h3>Coaching</h3><span class="tick"></span></div>
         <div class="mock-mod-body">
           @forelse($coaching['items'] ?? [] as $ag)
             <div class="mock-kv"><dt>{{ $ag['teacher'] }}</dt><dd>{{ ucfirst($ag['status']) }} · {{ $ag['signature_state'] === 'signed' ? 'Signed' : 'For signing' }}</dd></div>
@@ -165,7 +165,7 @@
         </div>
       </div>
       <div class="mock-mod">
-        <div class="mock-mod-head"><h3>School metadata</h3></div>
+        <div class="mock-mod-head"><h3>School details</h3></div>
         <div class="mock-mod-body">
           <dl>
             <div class="mock-kv"><dt>School</dt><dd>{{ $schoolName }}</dd></div>

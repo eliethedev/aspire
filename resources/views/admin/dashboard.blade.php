@@ -53,24 +53,24 @@
       <div class="delta mock-flat">{{ $stats['active_observations'] }} active · {{ $stats['pending_cots'] }} pending</div>
     </div>
     <div class="mock-kpi">
-      <label>Avg COT · Completion</label>
+      <label>Average score · Finished</label>
       <div class="val">{{ number_format($avgScore, 2) }} <small>/ {{ $scaleMax }}</small></div>
-      <div class="delta mock-flat">{{ $stats['completion_rate'] }}% done · trend: {{ $trend }}</div>
+      <div class="delta mock-flat">{{ $stats['completion_rate'] }}% finished · {{ $trend }}</div>
     </div>
   </div>
 
   <div class="mock-grid">
     <div class="min-w-0">
-      <section class="mock-panel" aria-label="System pipeline">
+      <section class="mock-panel" aria-label="How things flow">
         <div class="mock-panel-head">
-          <h2>System pipeline · onboarding to review</h2>
-          <span class="hint">{{ $reviewQueue }} items waiting in the review queue</span>
+          <h2>How things flow · sign-up to review</h2>
+          <span class="hint">{{ $reviewQueue }} items waiting for a check</span>
           <a class="link" href="{{ route('admin.reports.index') }}">Open reports →</a>
         </div>
         <div class="mock-steps">
           <div class="mock-step done">
             <div class="mock-step-num">✓</div>
-            <div><h3>1 · Registrations</h3><p>{{ $stats['total_users'] }} users on board · {{ $stats['pending_invitations'] }} invitations pending</p><div class="meta">managed via invitations &amp; user accounts</div></div>
+            <div><h3>1 · Sign-ups</h3><p>{{ $stats['total_users'] }} users on board · {{ $stats['pending_invitations'] }} invitations pending</p><div class="meta">see Invitations and Users</div></div>
             <span class="mock-status done">Done</span>
           </div>
           <div class="mock-step done">
@@ -80,21 +80,21 @@
           </div>
           <div class="mock-step {{ $stats['active_observations'] > 0 ? 'now' : '' }}">
             <div class="mock-step-num">3</div>
-            <div><h3>3 · Observations running</h3><p>{{ $stats['active_observations'] }} active cycles · {{ $stats['completed_total'] }} completed</p><div class="meta">in progress across schools</div></div>
+            <div><h3>3 · Reviews running</h3><p>{{ $stats['active_observations'] }} active reviews · {{ $stats['completed_total'] }} finished</p><div class="meta">in progress across schools</div></div>
             <span class="mock-status {{ $stats['active_observations'] > 0 ? 'now' : 'todo' }}">{{ $stats['active_observations'] > 0 ? 'In progress' : 'Queued' }}</span>
           </div>
           <div class="mock-step {{ $reviewQueue > 0 ? 'now' : 'done' }}">
             <div class="mock-step-num">{{ $reviewQueue > 0 ? 4 : '✓' }}</div>
-            <div><h3>4 · Review queue</h3><p>{{ $stats['pending_cots'] }} pending COTs · {{ $stats['open_support'] }} open tickets</p><div class="meta">needs admin review</div></div>
-            <span class="mock-status {{ $reviewQueue > 0 ? 'now' : 'done' }}">{{ $reviewQueue > 0 ? 'In progress' : 'Clear' }}</span>
+            <div><h3>4 · Waiting list</h3><p>{{ $stats['pending_cots'] }} reviews waiting · {{ $stats['open_support'] }} open tickets</p><div class="meta">needs your review</div></div>
+            <span class="mock-status {{ $reviewQueue > 0 ? 'now' : 'done' }}">{{ $reviewQueue > 0 ? 'In progress' : 'All done' }}</span>
           </div>
         </div>
       </section>
 
-      <section class="mock-panel" aria-label="Observation groups">
+      <section class="mock-panel" aria-label="Schools and reviews">
         <div class="mock-panel-head">
-          <h2>Observation groups</h2>
-          <span class="hint">schools with observation files</span>
+          <h2>Schools &amp; their reviews</h2>
+          <span class="hint">grouped by school</span>
           <a class="link" href="{{ route('admin.observations.index') }}">View all →</a>
         </div>
         @if(count($schoolFolders) > 0)
@@ -103,9 +103,9 @@
               <details class="mock-folder" @if($i < 2) open @endif>
                 <summary>
                   <span class="caret">▸</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
                   <span>{{ $g['school']->name }}</span>
-                  <span class="spacer"><span class="mock-status todo">{{ $g['observations']->count() }} files</span></span>
+                  <span class="spacer"><span class="mock-status todo">{{ $g['observations']->count() }} reviews</span></span>
                 </summary>
                 <div>
                   @forelse($g['observations'] as $ob)
@@ -120,7 +120,7 @@
                       <span class="mock-fright"><span class="mock-score {{ $tone }}">{{ $score !== null ? number_format($score, 1) : '—' }}</span><span class="mock-status {{ $ob->status === 'completed' ? 'done' : 'now' }}">{{ ucwords(str_replace('_', ' ', $ob->status ?? 'pending')) }}</span></span>
                     </a>
                   @empty
-                    <div class="mock-empty">No observation files yet for this school.</div>
+                    <div class="mock-empty">No reviews yet for this school.</div>
                   @endforelse
                 </div>
               </details>
@@ -140,7 +140,7 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:14px 16px">
           <div class="mock-mod"><div class="mock-mod-head"><h3>Observations / month</h3></div><div class="mock-mod-body"><div style="height:170px"><canvas id="adminMonthlyChart"></canvas></div></div></div>
           <div class="mock-mod"><div class="mock-mod-head"><h3>By status</h3></div><div class="mock-mod-body"><div style="height:170px"><canvas id="adminStatusChart"></canvas></div></div></div>
-          <div class="mock-mod"><div class="mock-mod-head"><h3>Avg COT trend</h3></div><div class="mock-mod-body"><div style="height:170px"><canvas id="adminScoreChart"></canvas></div></div></div>
+          <div class="mock-mod"><div class="mock-mod-head"><h3>Average score trend</h3></div><div class="mock-mod-body"><div style="height:170px"><canvas id="adminScoreChart"></canvas></div></div></div>
           <div class="mock-mod"><div class="mock-mod-head"><h3>Users by role</h3></div><div class="mock-mod-body"><div style="height:170px"><canvas id="adminRoleChart"></canvas></div></div></div>
         </div>
       </section>
@@ -166,11 +166,11 @@
       </section>
     </div>
 
-    <aside class="mock-rail" aria-label="Contextual utilities">
+    <aside class="mock-rail" aria-label="Helpful panels">
       <div class="mock-mod">
-        <div class="mock-mod-head"><h3>System insights</h3><span class="tick"></span></div>
+        <div class="mock-mod-head"><h3>At a glance</h3><span class="tick"></span></div>
         <div class="mock-mod-body">
-          <div class="mock-insight"><div><b>Completion</b><span>{{ $stats['completed_total'] }} of {{ $stats['total_observations'] }} cycles done</span><div class="mock-bar"><i style="width:{{ $stats['completion_rate'] }}%"></i></div></div></div>
+          <div class="mock-insight"><div><b>Completion</b><span>{{ $stats['completed_total'] }} of {{ $stats['total_observations'] }} reviews finished</span><div class="mock-bar"><i style="width:{{ $stats['completion_rate'] }}%"></i></div></div></div>
           <div class="mock-insight"><div><b>AI processing</b><span>{{ $systemStatus['ai_processing'] ?? '—' }}</span></div></div>
           <div class="mock-insight"><div><b>This month</b><span>{{ $performance['completed_observations_this_month'] }} completed · {{ $trend }}</span></div></div>
         </div>
@@ -178,18 +178,18 @@
       <div class="mock-mod">
         <div class="mock-mod-head"><h3>Quick actions</h3></div>
         <div class="mock-mod-body">
-          <a class="mock-act solid" href="{{ route('admin.users.index') }}">👥 Manage users · {{ $stats['total_users'] }}</a>
-          <a class="mock-act" href="{{ route('admin.schools.index') }}">🏫 Schools · {{ $stats['total_schools'] }}</a>
-          <a class="mock-act" href="{{ route('admin.observations.index') }}">📋 Observations · {{ $stats['pending_cots'] }} pending</a>
-          <a class="mock-act" href="{{ route('admin.announcements.index') }}">📢 Announcements · {{ $stats['total_announcements'] }}</a>
-          <a class="mock-act" href="{{ route('admin.support-messages.index') }}">🛟 Support · {{ $stats['open_support'] }} open</a>
-          <a class="mock-act" href="{{ route('admin.invitations.index') }}">✉️ Invitations · {{ $stats['pending_invitations'] }} pending</a>
+          <a class="mock-act solid" href="{{ route('admin.users.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Manage users · {{ $stats['total_users'] }}</a>
+          <a class="mock-act" href="{{ route('admin.schools.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>Schools · {{ $stats['total_schools'] }}</a>
+          <a class="mock-act" href="{{ route('admin.observations.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Observations · {{ $stats['pending_cots'] }} pending</a>
+          <a class="mock-act" href="{{ route('admin.announcements.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>Announcements · {{ $stats['total_announcements'] }}</a>
+          <a class="mock-act" href="{{ route('admin.support-messages.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Support · {{ $stats['open_support'] }} open</a>
+          <a class="mock-act" href="{{ route('admin.invitations.index') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Invitations · {{ $stats['pending_invitations'] }} pending</a>
         </div>
       </div>
       <div class="mock-mod">
         <div class="mock-mod-head"><h3>Needs attention</h3><span class="tick warn"></span></div>
         <div class="mock-mod-body">
-          <div class="mock-kv"><dt>Pending COTs</dt><dd>{{ $stats['pending_cots'] }}</dd></div>
+          <div class="mock-kv"><dt>Reviews waiting</dt><dd>{{ $stats['pending_cots'] }}</dd></div>
           <div class="mock-kv"><dt>Open tickets</dt><dd>{{ $stats['open_support'] }}</dd></div>
           <div class="mock-kv"><dt>Pending invites</dt><dd>{{ $stats['pending_invitations'] }}</dd></div>
         </div>

@@ -30,9 +30,6 @@ class FormTemplateController extends Controller
         $schoolYears = $this->getSchoolYearOptions();
         $observationTypes = $this->getObservationTypeOptions();
         $sectionKeys = [
-            'pre_observation_planning' => 'Pre-Observation Planning',
-            'pre_conference' => 'Pre-Conference',
-            'observation' => 'Observation (COT)',
             'post_conference' => 'Post-Conference',
         ];
         $fieldTypes = [
@@ -103,9 +100,6 @@ class FormTemplateController extends Controller
         $schoolYears = $this->getSchoolYearOptions();
         $observationTypes = $this->getObservationTypeOptions();
         $sectionKeys = [
-            'pre_observation_planning' => 'Pre-Observation Planning',
-            'pre_conference' => 'Pre-Conference',
-            'observation' => 'Observation (COT)',
             'post_conference' => 'Post-Conference',
         ];
         $fieldTypes = [

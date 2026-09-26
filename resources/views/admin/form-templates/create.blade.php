@@ -1,30 +1,30 @@
 @extends('layouts.admin')
 
-@section('title', 'Create Form Template')
+@section('title', 'Create Post-Conference Form')
 @include('partials.dashboard.mock-styles')
 
 @section('content')
 <div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
     <nav class="text-sm">
         <ol class="flex items-center gap-2 text-gray-500 dark:text-gray-400 dark:text-gray-500">
-            <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Form Templates</a></li>
+            <li><a href="{{ route('admin.form-templates.index') }}" class="hover:text-indigo-600 dark:text-indigo-400 transition-colors">Post-Conference Forms</a></li>
             <li><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"/></svg></li>
-            <li class="text-gray-900 dark:text-gray-100 font-medium">Create Template</li>
+            <li class="text-gray-900 dark:text-gray-100 font-medium">Create Form</li>
         </ol>
     </nav>
 
-    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create Form Template</b></div></div>
-<div class="mock-title"><div><h1>Create Form Template</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Create a new form template, then configure sections and fields.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Create Post-Conference Form</b></div></div>
+<div class="mock-title"><div><h1>Create Post-Conference Form</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">Create a new enhanced post-observation conference form, then configure its fields.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <section class="mock-panel"><form method="POST" action="{{ route('admin.form-templates.store') }}" class="space-y-6">
         @csrf
 
         <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 space-y-4">
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Template Name</label>
+                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Form Name</label>
                 <input type="text" name="name" id="name" value="{{ old('name') }}"
                        class="w-full px-3 py-2 rounded-lg border border-gray-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                       placeholder="e.g. COT Instrument SY 2025-2026" required>
+                       placeholder="e.g. Post-Conference Form SY 2025-2026" required>
                 @error('name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
             <div>
@@ -57,8 +57,8 @@
         </div></section>
 
         <section class="mock-panel">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Default Sections</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-4">You can add, remove, and configure sections and fields in the next step.</p>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Default Section</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-4">This form uses a single Post-Conference section — add its fields in the next step.</p>
             @foreach($sectionKeys as $key => $label)
                 <div class="flex items-center gap-3 mb-2">
                     <input type="checkbox" name="sections[{{ $loop->index }}][key]" value="{{ $key }}" checked class="text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 rounded" disabled>

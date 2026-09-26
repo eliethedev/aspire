@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AIController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CotIndicatorController;
+use App\Http\Controllers\Admin\EpocTemplateController;
 use App\Http\Controllers\Admin\FormTemplateController;
 use App\Http\Controllers\Admin\ObservationController;
 use App\Http\Controllers\Admin\PpstStandardController;
@@ -163,6 +164,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::delete('/{formTemplate}', [FormTemplateController::class, 'destroy'])->name('destroy');
         Route::post('/{formTemplate}/activate', [FormTemplateController::class, 'activate'])->name('activate');
         Route::post('/{formTemplate}/duplicate', [FormTemplateController::class, 'duplicate'])->name('duplicate');
+    });
+
+    // EPOC template management
+    Route::prefix('epoc-templates')->name('epoc-templates.')->group(function () {
+        Route::get('/', [EpocTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [EpocTemplateController::class, 'create'])->name('create');
+        Route::post('/', [EpocTemplateController::class, 'store'])->name('store');
+        Route::get('/{epocTemplate}/edit', [EpocTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{epocTemplate}', [EpocTemplateController::class, 'update'])->name('update');
+        Route::delete('/{epocTemplate}', [EpocTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{epocTemplate}/activate', [EpocTemplateController::class, 'activate'])->name('activate');
+        Route::post('/{epocTemplate}/duplicate', [EpocTemplateController::class, 'duplicate'])->name('duplicate');
     });
 
     // PPST standards management

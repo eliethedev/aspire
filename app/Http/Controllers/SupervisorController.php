@@ -92,14 +92,16 @@ class SupervisorController extends Controller
         ];
 
         $recentObservations = (clone $observationsQuery)
-            ->with('observee.user')
+            ->with(['observee.user', 'preObservationPlanning', 'preConference', 'postConference'])
+            ->withCount('cotRatings')
             ->latest()
             ->take(5)
             ->get();
 
         // Active observations awaiting the supervisor's next action.
         $todoObservations = (clone $observationsQuery)
-            ->with('observee.user')
+            ->with(['observee.user', 'preObservationPlanning', 'preConference', 'postConference'])
+            ->withCount('cotRatings')
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->latest('updated_at')
             ->take(5)
@@ -128,15 +130,45 @@ class SupervisorController extends Controller
         $trendLabel = ($trend > 0 ? '+' : '').number_format($trend, 1);
 
         // Teachers that need the supervisor's attention (dashboard card -> teachers list).
-        $attention = app(TeacherAttentionService::class)->forSchool($user->school_id);
+        $attention = $user->school_id
+            ? app(TeacherAttentionService::class)->forSchool($user->school_id)
+            : [];
         $needsAttention = collect($attention)
             ->filter(fn ($row) => $row['level'] !== 'ok')
             ->sortByDesc('level')
             ->values();
 
+        $user->loadMissing('school');
+        $schoolName = $user->school?->name ?? 'Your School';
+
+        // Observation groups: teachers in the supervisor's school with their observation files.
+        // Note: observations use the observee morph (observee_id/observee_type),
+        // so we attach them manually instead of relying on Teacher::observations().
+        $schoolGroups = collect();
+        if ($user->school_id) {
+            $teachers = Teacher::with('user')
+                ->whereHas('user', fn ($q) => $q->where('school_id', $user->school_id))
+                ->orderBy('id')
+                ->get();
+
+            $obsByTeacher = $teachers->isNotEmpty()
+                ? Observation::where('observee_type', Teacher::class)
+                    ->whereIn('observee_id', $teachers->pluck('id')->all())
+                    ->latest('observation_date')
+                    ->get()
+                    ->groupBy('observee_id')
+                : collect();
+
+            foreach ($teachers as $teacher) {
+                $teacher->setRelation('observations', $obsByTeacher->get($teacher->id, collect()));
+            }
+
+            $schoolGroups = $teachers;
+        }
+
         return view('supervisor.dashboard', compact(
             'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend', 'trendLabel',
-            'attention', 'needsAttention'
+            'attention', 'needsAttention', 'schoolName', 'schoolGroups'
         ));
     }
 
@@ -2092,7 +2124,11 @@ class SupervisorController extends Controller
         $epocEvaluation = $observation->epocEvaluation;
         $schoolHead = $observation->schoolHead;
 
-        return view('supervisor.observations.epoc', compact('observation', 'epocEvaluation', 'schoolHead'));
+        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y').'-'.(date('Y') + 1));
+        $epocTemplate = \App\Models\EpocTemplate::activeFor($schoolYear);
+        $epocDomains = $epocTemplate?->groupedDomains() ?? \App\Models\EpocTemplate::defaultDomains();
+
+        return view('supervisor.observations.epoc', compact('observation', 'epocEvaluation', 'schoolHead', 'epocTemplate', 'epocDomains'));
     }
 
     /**
@@ -2109,6 +2145,7 @@ class SupervisorController extends Controller
         $validated = $request->validate([
             'school_head_name' => ['nullable', 'string'],
             'observation_date' => ['nullable', 'date'],
+            'epoc_template_id' => ['nullable', 'integer', 'exists:epoc_templates,id'],
             'ratings' => ['required', 'array'],
             'ratings.*.domain' => ['required', 'string'],
             'ratings.*.indicator' => ['required', 'string'],
@@ -2123,6 +2160,7 @@ class SupervisorController extends Controller
 
         // Create EPOC evaluation
         $epocEvaluation = $observation->epocEvaluation()->create([
+            'epoc_template_id' => $validated['epoc_template_id'] ?? null,
             'school_head_name' => $validated['school_head_name'] ?? $observation->schoolHead?->name,
             'observation_date' => $validated['observation_date'] ?? $observation->observation_date,
             'narrative_observation' => $validated['narrative_observation'] ?? null,

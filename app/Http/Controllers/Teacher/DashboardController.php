@@ -97,10 +97,10 @@ class DashboardController extends Controller
         }
 
         $stageLabels = [
-            'pre_observation_planning' => 'Pre-Observation Planning',
-            'pre_conference' => 'Pre-Conference',
-            'observation' => 'Classroom Observation',
-            'post_conference' => 'Post-Conference',
+            'pre_observation_planning' => 'Lesson planning',
+            'pre_conference' => 'Chat before class',
+            'observation' => 'Classroom visit',
+            'post_conference' => 'Chat after class',
         ];
 
         $stageStatus = [];
