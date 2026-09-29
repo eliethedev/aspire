@@ -102,7 +102,7 @@ class TeacherProfileController extends Controller
             'strand_specialization' => $validated['strand_specialization'] ?? null,
             'has_advisory_class' => $validated['has_advisory_class'] ?? false,
             'advisory_section' => $validated['advisory_section'] ?? null,
-            'teacher_load' => $validated['teacher_load'] ?? null,
+            'teacher_load' => (int) ($validated['teacher_load'] ?? 0),
             'certification_training' => $validated['certification_training'] ?? null,
             'department' => $validated['department'] ?? null,
             'default_room' => $validated['default_room'] ?? null,

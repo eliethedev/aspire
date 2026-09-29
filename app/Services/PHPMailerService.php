@@ -92,7 +92,7 @@ class PHPMailerService
         }
     }
 
-    public function sendVerificationEmail($user, $verificationUrl): bool
+    public function sendVerificationEmail($user, $code): bool
     {
         if (!$this->shouldSend()) {
             return true;
@@ -100,9 +100,9 @@ class PHPMailerService
 
         try {
             $this->mailer->addAddress($user->email, $user->name);
-            $this->mailer->Subject = 'ASPIRE - Verify Your Email';
-            
-            $this->mailer->Body = $this->getVerificationEmailTemplate($user, $verificationUrl);
+            $this->mailer->Subject = 'ASPIRE - Your Email Verification Code';
+
+            $this->mailer->Body = $this->getVerificationEmailTemplate($user, $code);
             $this->mailer->AltBody = strip_tags($this->mailer->Body);
 
             return $this->mailer->send();
@@ -188,10 +188,10 @@ class PHPMailerService
     /**
      * Deferred variant of sendVerificationEmail.
      */
-    public function sendVerificationEmailLater($user, $verificationUrl): void
+    public function sendVerificationEmailLater($user, $code): void
     {
-        $subject = 'ASPIRE - Verify Your Email';
-        $body = $this->getVerificationEmailTemplate($user, $verificationUrl);
+        $subject = 'ASPIRE - Your Email Verification Code';
+        $body = $this->getVerificationEmailTemplate($user, $code);
         $this->spawnDeferred($user->email, $user->name, $subject, $body);
     }
 
@@ -277,7 +277,7 @@ class PHPMailerService
         }
     }
 
-    private function getVerificationEmailTemplate($user, $verificationUrl): string
+    private function getVerificationEmailTemplate($user, $code): string
     {
         return "
         <!DOCTYPE html>
@@ -290,7 +290,7 @@ class PHPMailerService
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: #1e40af; color: white; padding: 20px; text-align: center; }
                 .content { padding: 20px; background: #f9fafb; }
-                .button { display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+                .code { text-align: center; font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #1e40af; background: #ffffff; border: 2px dashed #1e40af; border-radius: 8px; padding: 16px 16px 16px 28px; margin: 20px 0; }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
             </style>
         </head>
@@ -303,13 +303,10 @@ class PHPMailerService
                 <div class='content'>
                     <h2>Welcome to ASPIRE, {$user->name}!</h2>
                     <p>Thank you for registering with the ASPIRE system for DepEd Philippines.</p>
-                    <p>Please click the button below to verify your email address and activate your account:</p>
-                    <div style='text-align: center;'>
-                        <a href='{$verificationUrl}' class='button text-white'>Verify Email Address</a>
-                    </div>
-                    <p>Or copy and paste this link into your browser:</p>
-                    <p style='word-break: break-all; color: #1e40af;'>{$verificationUrl}</p>
-                    <p><strong>Note:</strong> This verification link will expire in 24 hours.</p>
+                    <p>Enter this 6-digit verification code on the verification page to confirm your email address:</p>
+                    <div class='code'>{$code}</div>
+                    <p><strong>Note:</strong> This verification code will expire in 30 minutes. If it expires, simply request a new one.</p>
+                    <p>If you did not create an account, no further action is required.</p>
                 </div>
                 <div class='footer'>
                     <p>This is an automated message from the ASPIRE system. Please do not reply to this email.</p>

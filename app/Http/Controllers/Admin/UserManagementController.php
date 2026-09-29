@@ -90,6 +90,12 @@ class UserManagementController extends Controller
 
         event(new Registered($user));
 
+        // Issue the email verification code so the new account can be
+        // verified without having to request a resend first.
+        if (! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
         app(AuditLogService::class)->logCreate(
             'users', $user,
             "Created {$user->role} user: {$user->name}"

@@ -66,6 +66,12 @@ class SetPasswordController extends Controller
 
             app(AuditLogService::class)->logInvitationAccepted($invitation, $user);
 
+            // Issue the email verification code now so the user can verify
+            // without having to request a resend first.
+            if (! $user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+            }
+
             return redirect()
                 ->route('dashboard')
                 ->with('success', 'Your account has been set up successfully!');

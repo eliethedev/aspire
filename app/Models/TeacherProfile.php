@@ -30,6 +30,23 @@ class TeacherProfile extends Model
     ];
 
     /**
+     * These columns are NOT NULL with defaults, so never persist an
+     * explicit null (explicit NULL bypasses the DB default and violates
+     * the constraint on strict databases like MySQL).
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (TeacherProfile $profile) {
+            if ($profile->teacher_load === null) {
+                $profile->teacher_load = 0;
+            }
+            if ($profile->has_advisory_class === null) {
+                $profile->has_advisory_class = false;
+            }
+        });
+    }
+
+    /**
      * Get the user that owns the teacher profile.
      */
     public function user(): BelongsTo

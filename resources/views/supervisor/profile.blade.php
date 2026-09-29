@@ -7,9 +7,35 @@
 @php
     $user = Auth::user();
     $initials = strtoupper(substr($user->first_name ?? $user->name, 0, 1) . substr($user->last_name ?? '', 0, 1));
+    $profileFocusTab = session('profile_focus.0.tab', 'basic');
 @endphp
 
-<div class="mock-wrap max-w-5xl mx-auto px-1 py-1" x-data="{ activeTab: 'basic' }">
+<div class="mock-wrap max-w-5xl mx-auto px-1 py-1" x-data="{
+    activeTab: '{{ $profileFocusTab }}',
+    goToField(tab, inputId) {
+        this.activeTab = tab;
+        this.$nextTick(() => {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus({ preventScroll: true });
+            el.classList.add('profile-missing-flash');
+            setTimeout(() => el.classList.remove('profile-missing-flash'), 2400);
+        });
+    },
+    initProfileFocus(focus) {
+        if (!Array.isArray(focus) || !focus.length) return;
+        focus.forEach(f => {
+            const el = document.getElementById(f.input);
+            if (el) {
+                el.classList.add('profile-missing-field');
+                el.addEventListener('input', () => el.classList.remove('profile-missing-field'), { once: true });
+                el.addEventListener('change', () => el.classList.remove('profile-missing-field'), { once: true });
+            }
+        });
+        this.$nextTick(() => this.goToField(focus[0].tab, focus[0].input));
+    }
+}" x-init="initProfileFocus({!! Js::from(session('profile_focus', [])) !!})">
 
     <div class="mock-topbar">
         <div class="mock-crumbs">Supervisor <span>/</span> <b>My Profile</b></div>
@@ -26,28 +52,7 @@
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
 
-    @if (session('status') === 'profile-incomplete' || session('profile_incomplete'))
-        <div x-data="{ show: true }" x-show="show" x-transition
-             class="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 rounded-xl p-5 flex items-start gap-4">
-            <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-300">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-            </div>
-            <div class="flex-1">
-                <h3 class="text-sm font-bold">Complete your profile to continue</h3>
-                <p class="text-sm mt-1">A few essential details are required before you can use the platform. Please fill in the highlighted fields below.</p>
-                @if (session('profile_missing'))
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        @foreach (session('profile_missing') as $field)
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-                                {{ str_replace('_', ' ', ucfirst($field)) }}
-                            </span>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        </div>
-    @endif
+    @include('partials.profile-focus-banner')
 
     @if (session('status') === 'profile-updated')
         <div x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)"

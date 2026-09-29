@@ -18,6 +18,29 @@ class EnsureProfileComplete
     ];
 
     /**
+     * Map each required field to the exact profile tab + input it lives on,
+     * so the redirect can point the user at precisely what needs input.
+     */
+    protected array $targets = [
+        'teacher' => [
+            'mobile_number' => ['tab' => 'personal', 'input' => 'mobile_number', 'label' => 'Mobile number'],
+            'employment_status' => ['tab' => 'personal', 'input' => 'employment_status', 'label' => 'Employment status'],
+            'grade_level' => ['tab' => 'teaching', 'input' => 'grade_level', 'label' => 'Grade level'],
+            'default_room' => ['tab' => 'teaching', 'input' => 'default_room', 'label' => 'Default room'],
+        ],
+        'supervisor' => [
+            'mobile_number' => ['tab' => 'personal', 'input' => 'mobile_number', 'label' => 'Mobile number'],
+            'division_district_assigned' => ['tab' => 'supervisory', 'input' => 'division_district_assigned', 'label' => 'Division / district assigned'],
+            'area_of_specialization' => ['tab' => 'supervisory', 'input' => 'area_of_specialization', 'label' => 'Area of specialization'],
+            'supervisory_level' => ['tab' => 'supervisory', 'input' => 'supervisory_level', 'label' => 'Supervisory level'],
+        ],
+        'school_head' => [
+            'mobile_number' => ['tab' => 'personal', 'input' => 'mobile_number', 'label' => 'Mobile number'],
+            'school_type' => ['tab' => 'schoolhead', 'input' => 'school_type', 'label' => 'School type'],
+        ],
+    ];
+
+    /**
      * Role-specific fields that must be populated by the user before they can
      * use observation-related features. Fields that are set by an admin at
      * invitation time (career stage, position/designation, etc.) are excluded —
@@ -84,13 +107,17 @@ class EnsureProfileComplete
         $missing = $this->missingFields($user, $role);
 
         if ($missing !== []) {
+            $focus = $this->focusTargets($role, $missing);
+
             session()->flash('profile_incomplete', true);
             session()->flash('profile_missing', $missing);
+            session()->flash('profile_focus', $focus);
 
             if ($request->expectsJson() || $request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Please complete your profile before continuing.',
                     'missing_fields' => $missing,
+                    'focus' => $focus,
                     'redirect' => route($this->route[$role]),
                 ], 302);
             }
@@ -115,5 +142,27 @@ class EnsureProfileComplete
         }
 
         return $missing;
+    }
+
+    /**
+     * Expand missing field keys into precise {field, label, tab, input}
+     * targets the profile page can jump to, preserving required order.
+     */
+    protected function focusTargets(string $role, array $missing): array
+    {
+        $targets = [];
+
+        foreach ($missing as $field) {
+            $target = ($this->targets[$role] ?? [])[$field] ?? null;
+
+            $targets[] = [
+                'field' => $field,
+                'label' => $target['label'] ?? str_replace('_', ' ', ucfirst($field)),
+                'tab' => $target['tab'] ?? 'basic',
+                'input' => $target['input'] ?? $field,
+            ];
+        }
+
+        return $targets;
     }
 }

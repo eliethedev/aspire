@@ -57,7 +57,7 @@ class LoginRequest extends FormRequest
             Auth::logout();
             
             throw ValidationException::withMessages([
-                'email' => 'Please verify your email address first. Check your inbox for the verification link.',
+                'email' => 'Please verify your email address first. Check your inbox for the 6-digit verification code.',
             ]);
         }
 

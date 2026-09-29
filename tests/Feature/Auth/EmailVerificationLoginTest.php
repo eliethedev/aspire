@@ -30,7 +30,7 @@ class EmailVerificationLoginTest extends TestCase
         ]);
 
         $response->assertRedirect('/');
-        $response->assertSessionHasErrors('email', 'Please verify your email address first. Check your inbox for the verification link.');
+        $response->assertSessionHasErrors('email', 'Please verify your email address first. Check your inbox for the 6-digit verification code.');
         
         // Ensure user is not authenticated
         $this->assertGuest();

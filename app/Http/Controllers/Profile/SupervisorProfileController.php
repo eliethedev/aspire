@@ -68,8 +68,8 @@ class SupervisorProfileController extends Controller
             'division_district_assigned' => $validated['division_district_assigned'] ?? null,
             'area_of_specialization' => $validated['area_of_specialization'] ?? null,
             'supervisory_level' => $validated['supervisory_level'] ?? null,
-            'previous_teaching_experience_years' => $validated['previous_teaching_experience_years'] ?? null,
-            'administrative_experience_years' => $validated['administrative_experience_years'] ?? null,
+            'previous_teaching_experience_years' => (int) ($validated['previous_teaching_experience_years'] ?? 0),
+            'administrative_experience_years' => (int) ($validated['administrative_experience_years'] ?? 0),
             'key_responsibilities' => $validated['key_responsibilities'] ?? null,
             'position' => $validated['position'] ?? null,
         ];

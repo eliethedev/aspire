@@ -16,8 +16,7 @@ class PHPMailerChannel
 
             // For verification emails, use the dedicated method
             if ($notification instanceof \App\Notifications\VerifyEmailPHPMailer) {
-                $verificationUrl = $notification->verificationUrl($notifiable);
-                $mailerService->sendVerificationEmailLater($notifiable, $verificationUrl);
+                $mailerService->sendVerificationEmailLater($notifiable, $notification->getCode());
 
                 return true;
             }

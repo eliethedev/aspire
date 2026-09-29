@@ -42,8 +42,8 @@ Route::middleware('guest')->group(function () {
 Route::get('verify-email', EmailVerificationPromptController::class)
     ->name('verification.notice');
 
-Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-    ->middleware(['signed', 'throttle:verification'])
+Route::post('verify-email', VerifyEmailController::class)
+    ->middleware('throttle:verification')
     ->name('verification.verify');
 
 Route::middleware('auth')->group(function () {

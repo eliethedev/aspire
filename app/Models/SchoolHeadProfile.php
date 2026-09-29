@@ -31,6 +31,23 @@ class SchoolHeadProfile extends Model
     ];
 
     /**
+     * These columns are NOT NULL with defaults, so never persist an
+     * explicit null (explicit NULL bypasses the DB default and violates
+     * the constraint on strict databases like MySQL).
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (SchoolHeadProfile $profile) {
+            if ($profile->administrative_experience_years === null) {
+                $profile->administrative_experience_years = 0;
+            }
+            if ($profile->number_of_teachers_supervised === null) {
+                $profile->number_of_teachers_supervised = 0;
+            }
+        });
+    }
+
+    /**
      * Get the user that owns the school head profile.
      */
     public function user(): BelongsTo

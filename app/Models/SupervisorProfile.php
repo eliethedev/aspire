@@ -27,6 +27,23 @@ class SupervisorProfile extends Model
     ];
 
     /**
+     * These columns are NOT NULL with defaults, so never persist an
+     * explicit null (explicit NULL bypasses the DB default and violates
+     * the constraint on strict databases like MySQL).
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (SupervisorProfile $profile) {
+            if ($profile->previous_teaching_experience_years === null) {
+                $profile->previous_teaching_experience_years = 0;
+            }
+            if ($profile->administrative_experience_years === null) {
+                $profile->administrative_experience_years = 0;
+            }
+        });
+    }
+
+    /**
      * Get the user that owns the supervisor profile.
      */
     public function user(): BelongsTo

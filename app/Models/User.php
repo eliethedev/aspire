@@ -25,6 +25,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'email_verified_at',
+        'email_verification_code',
+        'email_verification_expires_at',
         'password',
         'role',
         'school_id',
@@ -53,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_expires_at' => 'datetime',
             'password' => 'hashed',
             'settings' => 'array',
         ];
@@ -202,7 +205,54 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new \App\Notifications\VerifyEmailPHPMailer());
+        $code = $this->generateEmailVerificationCode();
+
+        $this->notify(new \App\Notifications\VerifyEmailPHPMailer($code));
+    }
+
+    /**
+     * Generate a fresh 6-digit email verification code.
+     *
+     * The code is stored hashed with a 30-minute expiry. Returns the
+     * plain-text code so it can be included in the verification email.
+     */
+    public function generateEmailVerificationCode(int $validMinutes = 30): string
+    {
+        $code = (string) random_int(100000, 999999);
+
+        $this->forceFill([
+            'email_verification_code' => \Illuminate\Support\Facades\Hash::make($code),
+            'email_verification_expires_at' => now()->addMinutes($validMinutes),
+        ])->save();
+
+        return $code;
+    }
+
+    /**
+     * Check a submitted 6-digit code against the stored hash and expiry.
+     */
+    public function hasValidEmailVerificationCode(string $code): bool
+    {
+        if (empty($this->email_verification_code)) {
+            return false;
+        }
+
+        if ($this->email_verification_expires_at && $this->email_verification_expires_at->isPast()) {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\Hash::check($code, $this->email_verification_code);
+    }
+
+    /**
+     * Discard the verification code (e.g. after successful verification).
+     */
+    public function clearEmailVerificationCode(): void
+    {
+        $this->forceFill([
+            'email_verification_code' => null,
+            'email_verification_expires_at' => null,
+        ])->save();
     }
 
     /**
