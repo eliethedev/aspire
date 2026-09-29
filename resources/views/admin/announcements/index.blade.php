@@ -20,7 +20,7 @@
 <div class="mock-title"><div><h1>Announcements</h1><p class="text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-1">Create and send announcements to users.</p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <section class="mock-panel">
-        <section class="mock-panel"><form method="GET" action="{{ route('admin.announcements.index') }}" class="space-y-4">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.announcements.index') }}" class="space-y-4 p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>

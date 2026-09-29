@@ -22,7 +22,7 @@
 
     <!-- Search and Filter Form -->
     <section class="mock-panel">
-        <section class="mock-panel"><form method="GET" action="{{ route('admin.supervisors.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <section class="mock-panel  p-3"><form method="GET" action="{{ route('admin.supervisors.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="md:col-span-2">
                 <label for="search" class="block text-sm font-medium text-dark dark:text-gray-300 mb-1">Search</label>
                 <input type="text" id="search" name="search" value="{{ request('search') }}"
@@ -67,13 +67,13 @@
             <table class="w-full">
                 <thead class="bg-dark border-glass-card">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Full Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">School</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Position</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Employee ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Full Name</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Email</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">School</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Position</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Employee ID</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
@@ -95,14 +95,14 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm">{{ $supervisor->employee_id ?? 'N/A' }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     {{ $supervisor->status === 'active' ? 'bg-green-50 dark:bg-green-900/200 dark:text-dark' : 'bg-slate-500 text-dark' }}">
                                     {{ $supervisor->status }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <div class="flex items-center space-x-2">
+                            <td class="px-3 py-3 text-sm">
+                                <div class="flex items-center gap-2">
                                     <a href="{{ route('admin.supervisors.show', $supervisor) }}" 
                                        class="text-blue-400 hover:text-blue-300" title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

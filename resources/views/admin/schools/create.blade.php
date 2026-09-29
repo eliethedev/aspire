@@ -156,33 +156,6 @@
             </div>
         </section>
 
-        <!-- School Settings (JSON) -->
-        <section class="mock-panel"><div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-            <div class="flex items-center gap-2 mb-6">
-                <div class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 dark:text-gray-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    </svg>
-                </div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">School Settings</h2>
-            </div>
-
-            <div>
-                <label for="settings" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Settings (JSON)
-                    <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
-                </label>
-                <textarea id="settings" name="settings" rows="6" 
-                          class="w-full px-4 py-3 rounded-lg border text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-shadow font-mono
-                          {{ $errors->has('settings') ? 'border-red-400 ring-1 ring-red-100' : 'border-gray-300' }}"
-                          placeholder='{"theme": "light", "features": ["observations", "reports"]}'>{{ old('settings') }}</textarea>
-                @error('settings')
-                <p class="mt-1.5 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-                <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">JSON object with school-specific configuration settings.</p>
-            </div>
-        </div></section>
-
         <!-- Form Actions -->
         <div class="flex items-center justify-between">
             <a href="{{ route('admin.schools.index') }}"

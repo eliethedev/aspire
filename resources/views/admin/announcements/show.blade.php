@@ -32,7 +32,7 @@
                     </p></div><time>{{ now()->format('l, F j, Y') }}</time></div>
 
     <section class="mock-panel">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-6">
             <div>
                 <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</h3>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1

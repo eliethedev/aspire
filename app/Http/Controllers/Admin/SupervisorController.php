@@ -20,6 +20,23 @@ class SupervisorController extends Controller
      */
     public function index(Request $request)
     {
+        // Self-heal: supervisor Users created via invitations only get a
+        // `supervisor_profiles` row, while this listing reads `supervisors`.
+        // Backfill missing rows so existing accounts show up.
+        User::where('role', 'supervisor')
+            ->whereDoesntHave('supervisor')
+            ->with('supervisorProfile')
+            ->each(function (User $user) {
+                $user->supervisor()->firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'school_id' => $user->school_id,
+                        'position' => $user->supervisorProfile->position ?? 'Supervisor',
+                        'status' => 'active',
+                    ]
+                );
+            });
+
         $supervisors = Supervisor::query()
             ->with(['user', 'school'])
             ->when($request->search, function ($query, $search) {

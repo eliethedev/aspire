@@ -248,6 +248,9 @@
             @php
                 $mksSchools = \App\Models\School::where('is_active', true)->orderBy('name')->take(6)->get();
                 $mksSchObs = \App\Models\Observation::selectRaw('school_id, COUNT(*) as c')->whereIn('school_id', $mksSchools->pluck('id'))->groupBy('school_id')->pluck('c', 'school_id');
+                // Route-model binding returns a School model, not an id — resolve safely.
+                $mksRouteSchool = request()->route('school');
+                $mksActiveSchoolId = $mksRouteSchool instanceof \App\Models\School ? $mksRouteSchool->getKey() : (is_numeric($mksRouteSchool) ? (int) $mksRouteSchool : null);
             @endphp
             <!-- Schools / Folders tree (live data) -->
             <li class="mb-1 mks-hide-collapsed" data-mks-group="schools folders campuses files">
@@ -260,7 +263,7 @@
                 <div x-show="!$store.sidebar.isCollapsed() ? foldersOpen : true" class="mks-tree space-y-0.5 mt-0.5">
                     @forelse($mksSchools as $sch)
                     <a data-mks="school {{ strtolower($sch->name) }}" href="{{ route('admin.schools.show', $sch) }}"
-                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400 {{ request()->routeIs('admin.schools.show') && (int) request()->route('school') === $sch->id ? 'sidebar-link-active icon-schools' : '' }}">
+                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400 {{ request()->routeIs('admin.schools.show') && $mksActiveSchoolId === $sch->id ? 'sidebar-link-active icon-schools' : '' }}">
                         <span class="mks-file-dot" aria-hidden="true"></span>
                         <span class="font-medium truncate">{{ $sch->name }}</span>
                         @if(($mksSchObs[$sch->id] ?? 0) > 0)<span class="mks-count-pill ml-auto shrink-0">{{ $mksSchObs[$sch->id] }}</span>@endif

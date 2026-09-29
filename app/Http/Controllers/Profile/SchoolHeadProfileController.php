@@ -47,7 +47,7 @@ class SchoolHeadProfileController extends Controller
             'prc_license_number' => $validated['prc_license_number'] ?? null,
             'highest_educational_attainment' => $validated['highest_educational_attainment'] ?? null,
             'major_specialization' => $validated['major_specialization'] ?? null,
-            'years_of_teaching_experience' => $validated['years_of_teaching_experience'] ?? null,
+            'years_of_teaching_experience' => (int) ($validated['years_of_teaching_experience'] ?? 0),
             'date_of_entry_to_deped' => $validated['date_of_entry_to_deped'] ?? null,
             'employment_status' => $validated['employment_status'] ?? null,
         ];

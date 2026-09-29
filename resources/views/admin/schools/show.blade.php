@@ -84,7 +84,7 @@
     </div>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <!-- School Information -->
         <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -151,21 +151,6 @@
             </div>
         </div>
 
-        <!-- School Settings -->
-        <div class="mock-kpi hot">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-                <h2 class="text-sm font-semibold text-gray-900 dark:text-white">School Settings</h2>
-            </div>
-            <div class="p-6">
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    @if($school->settings)
-                        <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto"><code>{{ json_encode($school->settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
-                    @else
-                        <p class="text-sm text-gray-500 dark:text-gray-400">No custom settings configured</p>
-                    @endif
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- User Management -->

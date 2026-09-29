@@ -55,7 +55,6 @@ class SchoolController extends Controller
             'slug' => 'required|string|max:255|unique:schools,slug',
             'domain' => 'nullable|string|max:255|unique:schools,domain',
             'subdomain' => 'nullable|string|max:255|unique:schools,subdomain',
-            'settings' => 'nullable|array',
             'is_active' => 'boolean',
             'trial_ends_at' => 'nullable|date',
         ]);
@@ -117,7 +116,6 @@ class SchoolController extends Controller
             'slug' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('schools', 'slug')->ignore($school->id)],
             'domain' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('schools', 'domain')->ignore($school->id)],
             'subdomain' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('schools', 'subdomain')->ignore($school->id)],
-            'settings' => 'nullable|array',
             'is_active' => 'boolean',
             'trial_ends_at' => 'nullable|date',
         ]);

@@ -251,6 +251,15 @@ class InvitationService
                     'key_responsibilities' => $data['key_responsibilities'] ?? null,
                     'position' => $data['position'] ?? null,
                 ]);
+                // Admin listing reads `supervisors`, so keep a row in sync.
+                \App\Models\Supervisor::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'school_id' => $user->school_id,
+                        'position' => $data['position'] ?? 'Supervisor',
+                        'status' => 'active',
+                    ]
+                );
                 break;
             case 'school_head':
                 \App\Models\SchoolHeadProfile::create([

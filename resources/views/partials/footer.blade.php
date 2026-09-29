@@ -7,9 +7,14 @@
             </div>
             <div class="flex space-x-6 text-sm text-slate-500 dark:text-gray-400">
                 <a href="#" class="hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">Privacy Policy</a>
-                <a href="#" class="hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">Terms of Service</a>
+                <button type="button" onclick="if (typeof openTermsModal === 'function') openTermsModal()" class="hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">Terms of Service</button>
                 <a href="#" class="hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">Support</a>
             </div>
+        </div>
+    </div>
+</footer>
+
+@include('partials.terms-modal')
         </div>
     </div>
 </footer>

@@ -22,7 +22,7 @@
 
     <!-- Search and Filter Form -->
     <section class="mock-panel">
-        <section class="mock-panel"><form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4 p-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-sm font-medium text-dark  dark:text-white mb-1">Search</label>
@@ -67,38 +67,38 @@
             <table class="w-full">
                 <thead class="bg-dark border-glass-card">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">School</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Department</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Position</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Years of Service</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Actions</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Name</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Email</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">School</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Department</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Position</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Years of Service</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-dark  dark:text-white uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @forelse($teachers as $teacher)
                     <tr class="hover:bg-dark">
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-dark dark:text-gray-300">{{ $teacher->user->name }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <div class="text-sm text-dark dark:text-gray-300">{{ $teacher->user->email }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->user->school->name ?? 'N/A' }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->department ?? 'N/A' }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->position_label ?? 'N/A' }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-4 whitespace-nowrap">
                             <span class="text-sm text-dark dark:text-gray-300">{{ $teacher->years_of_service ?? 'N/A' }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <div class="flex items-center space-x-2">
+                        <td class="px-3 py-4 whitespace-nowrap text-sm">
+                            <div class= "flex items-center space-x-2">
                                 <a href="{{ route('admin.teachers.show', $teacher) }}" 
                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-gray-300" title="View">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

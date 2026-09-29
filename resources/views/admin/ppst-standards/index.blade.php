@@ -144,7 +144,7 @@
             $domainInactive = $standards->where('domain', $domain)->where('is_active', false)->count();
             $domainTotal = $strands->flatten()->count();
         @endphp
-        <section id="domain-{{ $domainSlug }}" data-domain-section data-domain="{{ $domain }}" class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden scroll-mt-28" x-data="{ open: true }">
+        <section id="domain-{{ $domainSlug }}" data-domain-section data-domain="{{ $domain }}" class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/60 dark:border-gray-800 overflow-hidden scroll-mt-28" x-data="{ open: true }" @ppst-toggle-all.window="open = $event.detail.open">
             <!-- Domain header -->
             <div class="relative">
                 <div class="absolute inset-x-0 top-0 h-1 {{ $colors['bar'] }}"></div>
@@ -457,16 +457,10 @@ function ppstStandardsPage() {
             this.applyFilters();
         },
         expandAll() {
-            document.querySelectorAll('[data-domain-section]').forEach(el => {
-                const alpine = Alpine.$data(el);
-                if (alpine && 'open' in alpine) alpine.open = true;
-            });
+            window.dispatchEvent(new CustomEvent('ppst-toggle-all', { detail: { open: true } }));
         },
         collapseAll() {
-            document.querySelectorAll('[data-domain-section]').forEach(el => {
-                const alpine = Alpine.$data(el);
-                if (alpine && 'open' in alpine) alpine.open = false;
-            });
+            window.dispatchEvent(new CustomEvent('ppst-toggle-all', { detail: { open: false } }));
         },
         scrollToDomain(slug) {
             const el = document.getElementById('domain-' + slug);
@@ -480,10 +474,7 @@ function ppstStandardsPage() {
             this.statusFilter = 'all';
             this.usageFilter = 'all';
             this.applyFilters();
-            document.querySelectorAll('[data-domain-section]').forEach(el => {
-                const alpine = Alpine.$data(el);
-                if (alpine && 'open' in alpine) alpine.open = true;
-            });
+            window.dispatchEvent(new CustomEvent('ppst-toggle-all', { detail: { open: true } }));
             this.$nextTick(() => this.$nextTick(() => {
                 const el = document.getElementById('indicator-' + slug);
                 if (!el) return;

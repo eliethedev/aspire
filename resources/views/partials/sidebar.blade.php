@@ -225,6 +225,9 @@
                         ->take(5)
                         ->get()
                     : collect();
+                // Route-model binding returns an Observation model, not an id — resolve safely.
+                $mksRouteObs = request()->route('observation');
+                $mksActiveObsId = $mksRouteObs instanceof \App\Models\Observation ? $mksRouteObs->getKey() : (is_numeric($mksRouteObs) ? (int) $mksRouteObs : null);
             @endphp
             <!-- Teacher: Observations folder -->
             <li class="mb-1" data-mks-group="observations my upcoming cycles">
@@ -346,7 +349,7 @@
                 <div x-show="!$store.sidebar.isCollapsed() ? foldersOpen : true" class="mks-tree space-y-0.5 mt-0.5">
                     @forelse($mksCycles as $cycle)
                     <a data-mks="cycle {{ strtolower($cycle->subject ?? '') }}" href="{{ route('teacher.observations.show', $cycle) }}"
-                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.show') && (request()->route('observation') === $cycle->id ?? request()->route('observation')) == $cycle->id ? 'sidebar-link-active icon-observations' : '' }}">
+                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400 {{ request()->routeIs('teacher.observations.show') && $mksActiveObsId === $cycle->id ? 'sidebar-link-active icon-observations' : '' }}">
                         <span class="mks-file-dot" aria-hidden="true"></span>
                         <span class="font-medium truncate">{{ $cycle->observation_date?->format('M d, Y') ?? 'Cycle #' . $cycle->id }} · {{ $cycle->subject ?? 'COT' }}</span>
                         @if($cycle->overall_score !== null)<span class="mks-count-pill ml-auto shrink-0">{{ number_format((float) $cycle->overall_score, 1) }}</span>@endif

@@ -36,6 +36,19 @@ class UserProfile extends Model
     ];
 
     /**
+     * The column is NOT NULL DEFAULT 0, so never persist an explicit null
+     * (explicit NULL bypasses the DB default and violates the constraint).
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (UserProfile $profile) {
+            if ($profile->years_of_teaching_experience === null) {
+                $profile->years_of_teaching_experience = 0;
+            }
+        });
+    }
+
+    /**
      * Get the user that owns the profile.
      */
     public function user(): BelongsTo
