@@ -40,6 +40,16 @@
         <time>{{ $teacher->school?->name ?? '' }}</time>
     </div>
 
+    @if(!($isOwnSchool ?? true))
+    <div class="rounded-2xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-3 flex items-start gap-3 text-sm">
+        <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0"><i class="fas fa-eye text-xs"></i></span>
+        <div class="min-w-0">
+            <p class="font-bold text-indigo-900 dark:text-indigo-200">Read-only view — {{ $teacher->school?->name ?? $teacher->user?->school?->name ?? 'another school' }}</p>
+            <p class="text-indigo-800/80 dark:text-indigo-300/80 text-xs mt-0.5">This teacher belongs to a different school. You can review their profile and observations, but assessments and recommendations stay with their own supervisor.</p>
+        </div>
+    </div>
+    @endif
+
     {{-- Hero --}}
     <div class="hero-card rounded-[20px] border border-slate-200 dark:border-gray-800 dark:bg-gray-900 shadow-sm overflow-hidden">
         <div class="p-6 lg:p-7">
@@ -234,7 +244,7 @@
             'careerReadiness' => $careerReadiness,
             'careerRoute' => $careerRoute,
             'canAssess' => $canAssess,
-            'canEditAssessment' => true,
+            'canEditAssessment' => $canEditAssessment ?? $canAssess,
         ])
     </div>
 </div>

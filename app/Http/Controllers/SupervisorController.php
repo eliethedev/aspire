@@ -14,6 +14,7 @@ use App\Models\CotIndicatorVersion;
 use App\Models\CotRating;
 use App\Models\FormTemplate;
 use App\Models\Observation;
+use App\Models\School;
 use App\Models\SchoolHeadProfile;
 use App\Models\Teacher;
 use App\Models\User;
@@ -179,29 +180,77 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
 
-        // Attention diagnostics for every teacher under the supervisor's school.
-        $attention = app(TeacherAttentionService::class)->forSchool($user->school_id);
+        // Schools available for browsing. Supervisors default to their own
+        // school but may browse teachers from any school via the filter.
+        $schools = School::orderBy('name')->get(['id', 'name']);
+        $schoolIds = $schools->pluck('id')->all();
+
+        $defaultSchoolId = $user->school_id ?? 'all';
+        $schoolParam = $request->input('school_id', $defaultSchoolId);
+
+        $selectedSchoolId = null; // null = all schools
+        if (is_numeric($schoolParam) && in_array((int) $schoolParam, $schoolIds, true)) {
+            $selectedSchoolId = (int) $schoolParam;
+        } elseif ($schoolParam === 'all' || $schoolParam === '' || $schoolParam === null) {
+            $selectedSchoolId = null;
+        } elseif ($defaultSchoolId !== 'all' && in_array((int) $defaultSchoolId, $schoolIds, true)) {
+            $selectedSchoolId = (int) $defaultSchoolId;
+        }
+
+        // Attention diagnostics across every browsable school, then narrowed
+        // to the selected scope so flags, counts and the "needs" filter agree.
+        $allAttention = app(TeacherAttentionService::class)->forSchools($schoolIds);
+        $attention = collect($allAttention)
+            ->filter(fn ($row) => $selectedSchoolId === null
+                || ($row['teacher']->user?->school_id) === $selectedSchoolId
+                || ($row['teacher']->school_id) === $selectedSchoolId)
+            ->all();
+
         $order = ['high' => 0, 'medium' => 1, 'low' => 2];
         $needsAttentionCount = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->count();
 
+        // Per-school totals for the school filter dropdown.
+        $schoolStats = [];
+        foreach ($schoolIds as $id) {
+            $schoolStats[$id] = ['total' => 0, 'needs' => 0];
+        }
+        foreach ($allAttention as $row) {
+            $sid = $row['teacher']->user?->school_id ?? $row['teacher']->school_id;
+            if ($sid === null || ! isset($schoolStats[$sid])) {
+                continue;
+            }
+            $schoolStats[$sid]['total']++;
+            if ($row['level'] !== 'ok') {
+                $schoolStats[$sid]['needs']++;
+            }
+        }
+
         $attentionFilter = $request->get('attention');
 
-        // Get teachers from the same school as the supervisor
-        $teachers = Teacher::query()
+        // Get teachers in the selected school scope (own school by default).
+        $baseQuery = Teacher::query()
             ->with(['user', 'school', 'subjects'])
             ->withCount('observations')
-            ->whereHas('user', function ($query) use ($user) {
-                $query->where('school_id', $user->school_id);
-            })
-            ->when($attentionFilter === 'needs', function ($query) use ($attention) {
-                $ids = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->keys();
-                $query->whereIn('id', $ids->isNotEmpty() ? $ids->all() : [0]);
+            ->when($selectedSchoolId !== null, function ($query) use ($selectedSchoolId) {
+                $query->where(function ($q) use ($selectedSchoolId) {
+                    $q->where('school_id', $selectedSchoolId)
+                        ->orWhereHas('user', fn ($uq) => $uq->where('school_id', $selectedSchoolId));
+                });
             })
             ->when($request->search, function ($query, $search) {
                 $query->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
+            });
+
+        // Scope total ignoring the attention filter (used by the "All" tab).
+        $totalCount = (clone $baseQuery)->count();
+
+        $teachers = (clone $baseQuery)
+            ->when($attentionFilter === 'needs', function ($query) use ($attention) {
+                $ids = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->keys();
+                $query->whereIn('id', $ids->isNotEmpty() ? $ids->all() : [0]);
             })
             ->paginate($request->per_page ?? 15);
 
@@ -228,7 +277,10 @@ class SupervisorController extends Controller
             ->values();
         $teachers->setCollection($sorted);
 
-        return view('supervisor.teachers.index', compact('teachers', 'needsAttentionCount', 'order'));
+        return view('supervisor.teachers.index', compact(
+            'teachers', 'needsAttentionCount', 'totalCount', 'order',
+            'schools', 'schoolStats', 'selectedSchoolId'
+        ));
     }
 
     /**
@@ -238,11 +290,12 @@ class SupervisorController extends Controller
     {
         $user = Auth::user();
 
-        if ($teacher->user->school_id !== $user->school_id) {
-            abort(403, 'This teacher does not belong to your school.');
-        }
-
         $teacher->load(['user', 'school', 'subjects']);
+
+        // Supervisors may browse (read-only) teachers from other schools via
+        // the school filter. Write actions stay limited to their own school.
+        $teacherSchoolId = $teacher->user?->school_id ?? $teacher->school_id;
+        $isOwnSchool = ! $user->school_id || $teacherSchoolId === $user->school_id;
 
         $observations = Observation::with(['preObservationPlanning', 'preConference', 'postConference', 'cotRatings', 'cotIndicatorVersion'])
             ->where('observee_id', $teacher->id)
@@ -276,16 +329,19 @@ class SupervisorController extends Controller
         $rateeProfile = app(RateeProfileService::class)->for($teacher);
         $careerContext = $careerService->contextFor($teacher);
 
-        $attention = app(\App\Services\TeacherAttentionService::class)->forSchool($user->school_id);
+        $attention = $teacherSchoolId
+            ? app(\App\Services\TeacherAttentionService::class)->forSchool($teacherSchoolId)
+            : [];
         $teacherAttention = $attention[$teacher->id] ?? ['flags' => [], 'level' => 'ok', 'summary' => 'On track'];
 
-        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile', 'teacherAttention'))
+        return view('supervisor.teachers.show', compact('teacher', 'observations', 'stats', 'rateeProfile', 'teacherAttention', 'isOwnSchool'))
             ->with('careerContext', $careerContext)
             ->with('careerNextStages', $careerService->nextStageOptions($careerContext['career_stage']))
             ->with('careerEvidence', $careerService->evidenceFor($teacher))
             ->with('careerReadiness', $careerService->readinessFor($teacher))
             ->with('careerRoute', route('supervisor.teachers.career-assessment', $teacher))
-            ->with('canAssess', true);
+            ->with('canAssess', $isOwnSchool)
+            ->with('canEditAssessment', $isOwnSchool);
     }
 
     /**

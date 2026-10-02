@@ -1,4 +1,4 @@
-@extends('layouts.supervisor')
+@extends($offlineLayout ?? 'layouts.supervisor')
 
 @section('title', 'Offline Capture')
 @include('partials.dashboard.mock-styles')
@@ -6,9 +6,9 @@
 @section('content')
 <div class="mock-wrap max-w-3xl mx-auto px-1 py-1">
     <div class="mock-topbar">
-        <div class="mock-crumbs">Supervisor <span>/</span> <b>Offline Capture</b></div>
+        <div class="mock-crumbs">{{ $offlineCrumbs ?? 'Supervisor' }} <span>/</span> <b>Offline Capture</b></div>
         <div class="mock-actions">
-            <a class="mock-btn" href="{{ route('supervisor.observations.index') }}">← Back to Evaluations</a>
+            <a class="mock-btn" href="{{ route($offlineBackRoute ?? 'supervisor.observations.index') }}">← Back to Evaluations</a>
         </div>
     </div>
 
@@ -766,7 +766,7 @@
     }
 
     function workspaceUrl(serverId) {
-        return (window.ASPIRE_BASE_URL || '') + '/supervisor/observations/' + serverId + '/offline-workspace';
+        return (window.ASPIRE_BASE_URL || '') + '/' + @json($offlineUrlPrefix ?? 'supervisor') + '/observations/' + serverId + '/offline-workspace';
     }
 
     function refresh() {

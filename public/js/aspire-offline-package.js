@@ -189,6 +189,14 @@
                     err.code = 'not_ready';
                     throw err;
                 }
+                // An offline visit requires the downloaded AI result: never
+                // cache a bundle whose suggestions the observer has not
+                // reviewed and approved (the server gates this too).
+                if (!opts.force && !pkg.ai_approved) {
+                    var err2 = new Error('Review and approve the AI suggestions on the observation page first, then download again.');
+                    err2.code = 'not_approved';
+                    throw err2;
+                }
                 var record = {
                     observation_server_id: pkg.server_id,
                     bundle: pkg,

@@ -18,6 +18,7 @@
         <span class="mock-pill"><span class="pulse"></span>{{ $stats['total'] }} observations</span>
         @if($hasFilters)<span class="mock-pill amber"><span class="pulse"></span>Filters active</span>@endif
         <div class="mock-actions">
+            <a class="mock-btn" href="{{ route('school-head.observations.offline') }}">Open offline capture</a>
             <a class="mock-btn primary" href="{{ route('school-head.observations.create') }}">＋ Schedule Observation</a>
         </div>
     </div>

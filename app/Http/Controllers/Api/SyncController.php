@@ -41,10 +41,17 @@ class SyncController extends Controller
     {
         $user = Auth::user();
         $bundle = $this->buildBundle($user);
+        $isSchoolHead = $user->isSchoolHead();
 
         return view('supervisor.observations.offline', [
             'bundle' => $bundle,
             'schoolName' => $user->school?->name,
+            // The capture page is shared between roles; these tune the
+            // layout, crumbs, back link and workspace URLs per role.
+            'offlineLayout' => $isSchoolHead ? 'layouts.teacher' : 'layouts.supervisor',
+            'offlineCrumbs' => $isSchoolHead ? 'School Head' : 'Supervisor',
+            'offlineBackRoute' => $isSchoolHead ? 'school-head.observations.index' : 'supervisor.observations.index',
+            'offlineUrlPrefix' => $isSchoolHead ? 'school-head' : 'supervisor',
         ]);
     }
 
@@ -563,6 +570,31 @@ class SyncController extends Controller
                 'status' => 'conflict',
                 'reason' => 'not_confirmed',
                 'message' => 'The teacher has not confirmed this observation yet.',
+            ];
+        }
+
+        // Offline-use gate: the tablet encodes from the downloaded bundle, so
+        // the push is only accepted when the observer downloaded the package
+        // AND the AI-suggested result inside it is approved. Regenerating the
+        // suggestions clears the approval, which surfaces here as a conflict
+        // until the observer re-approves and re-downloads.
+        if (! in_array($observation->status, ['downloaded_offline', 'synced'], true)) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'conflict',
+                'reason' => 'package_not_downloaded',
+                'message' => 'Download the approved AI suggestions package before encoding this observation offline.',
+            ];
+        }
+
+        if (! $observation->hasApprovedAiSuggestions()) {
+            return [
+                'client_id' => $clientId,
+                'server_id' => $observation->id,
+                'status' => 'conflict',
+                'reason' => 'suggestions_not_approved',
+                'message' => 'The AI suggestions are not approved for offline use. Review, approve and re-download the package first.',
             ];
         }
 

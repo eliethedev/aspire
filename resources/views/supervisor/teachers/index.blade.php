@@ -17,6 +17,9 @@
     $levelColor = ['high' => 'red', 'medium' => 'orange', 'low' => 'amber', 'ok' => 'slate'];
     $levelLabel = ['high' => 'High priority', 'medium' => 'Medium', 'low' => 'Watch', 'ok' => 'On track'];
     $todayStr = now()->format('l, F j, Y');
+    $selectedSchool = $selectedSchoolId ? $schools->firstWhere('id', $selectedSchoolId) : null;
+    $scopeLabel = $selectedSchool ? $selectedSchool->name : 'All schools';
+    $allSchoolsTotal = array_sum(array_column($schoolStats ?? [], 'total'));
 @endphp
 <div class="mock-wrap max-w-7xl mx-auto px-1 py-1"
      x-data="{
@@ -26,9 +29,9 @@
 
     <div class="mock-topbar">
         <div class="mock-crumbs">Supervisor <span>/</span> <b>Teachers</b></div>
+        <span class="mock-pill"><i class="fas fa-school"></i>{{ $scopeLabel }}</span>
         @if($attentionFilter)<span class="mock-pill amber"><span class="pulse"></span>Needs attention</span>@endif
         <div class="mock-actions">
-            <a class="mock-btn" href="{{ route('supervisor.teachers.index', ['attention'=>'needs']) }}">Needs attention · {{ $needsAttentionCount }}</a>
             <a class="mock-btn primary" href="{{ route('supervisor.observations.create') }}">＋ New Observation</a>
         </div>
     </div>
@@ -36,116 +39,129 @@
     <div class="mock-title">
         <div>
             <h1>Teachers</h1>
-            <p>Manage your faculty roster · {{ $teachers->total() }} total · {{ $needsAttentionCount }} need attention · {{ $todayStr }}</p>
+            <p>Manage your faculty roster · {{ $scopeLabel }} · {{ $totalCount }} total · {{ $needsAttentionCount }} need attention · {{ $todayStr }}</p>
         </div>
-        <time>{{ $teachers->total() }} teachers</time>
+        <time>{{ $totalCount }} teachers</time>
     </div>
 
     {{-- Summary moved to the mock shell above --}}
 
-    {{-- Attention summary banner --}}
+    {{-- Attention summary banner (status only — actions live in the filter bar below) --}}
     <div class="rounded-2xl overflow-hidden border shadow-sm {{ $needsAttentionCount > 0 ? 'bg-gradient-to-r from-amber-50 dark:from-amber-500/10 via-amber-50/60 dark:via-amber-500/5 to-white dark:to-gray-900 border-amber-200 dark:border-amber-500/20' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-800' }}">
-        <div class="flex flex-col sm:flex-row sm:items-center {{ $attentionFilter ? 'gap-3 px-4 py-3' : 'gap-4 px-5 py-4' }}">
-            <div class="{{ $attentionFilter ? 'w-9 h-9' : 'w-11 h-11' }} rounded-xl {{ $needsAttentionCount > 0 ? 'bg-amber-500 text-white shadow-sm' : 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400' }} flex items-center justify-center shrink-0">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4">
+            <div class="w-11 h-11 rounded-xl {{ $needsAttentionCount > 0 ? 'bg-amber-500 text-white shadow-sm' : 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400' }} flex items-center justify-center shrink-0">
                 <i class="fas {{ $needsAttentionCount > 0 ? 'fa-triangle-exclamation' : 'fa-circle-check' }}"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $needsAttentionCount > 0 ? "{$needsAttentionCount} teacher(s) need your attention" : 'All teachers are on track' }}</p>
+                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $needsAttentionCount > 0 ? "{$needsAttentionCount} teacher(s) need your attention" : 'All teachers are on track' }} <span class="font-medium text-slate-500 dark:text-gray-400">· {{ $scopeLabel }}</span></p>
                 <p class="text-xs text-slate-600 dark:text-gray-400 mt-0.5">
                     @if($needsAttentionCount > 0)
-                        Flags are based on average COT score, trend, and pending work. Use the filter below to focus only on them.
+                        Flags are based on average COT score, trend, and pending work. Use the All / Needs attention switch in the filter bar below to focus only on them.
                     @else
                         No flags right now. We’ll surface anyone who drops below Satisfactory, trends down, or waits on you.
                     @endif
                 </p>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('supervisor.teachers.index', $attentionFilter ? request()->except(['attention','page']) : array_merge(request()->except('page'), ['attention'=>'needs'])) }}"
-                   class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold {{ $attentionFilter ? 'bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700' : 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' }} transition-colors">
-                    <i class="fas {{ $attentionFilter ? 'fa-users' : 'fa-filter' }} text-xs"></i> {{ $attentionFilter ? 'Show all' : 'Focus on attention' }}
-                </a>
-                @if($needsAttentionCount>0 && !$attentionFilter)
-                <a href="{{ route('supervisor.teachers.index', array_merge(request()->except('page'), ['attention'=>'needs'])) }}" class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">View flagged <i class="fas fa-arrow-right text-[10px]"></i></a>
-                @endif
-            </div>
         </div>
     </div>
 
-    {{-- Filter tabs --}}
-    <div class="flex items-center gap-2 flex-wrap">
-        <a href="{{ route('supervisor.teachers.index', request()->except(['attention', 'page'])) }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors {{ !$attentionFilter ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-800' }}">
-            <i class="fas fa-users text-xs"></i> All
-            <span class="text-xs px-1.5 py-0.5 rounded-full {{ !$attentionFilter ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300' }}">{{ $teachers->total() }}</span>
-        </a>
-        <a href="{{ route('supervisor.teachers.index', array_merge(request()->except(['attention', 'page']), ['attention' => 'needs'])) }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors {{ $attentionFilter ? 'bg-amber-500 border-amber-500 text-white shadow-sm' : 'bg-white dark:bg-gray-900 border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 hover:bg-amber-50 dark:hover:bg-gray-800' }}">
-            <i class="fas fa-bell text-xs"></i> Needs attention
-            <span class="text-xs px-1.5 py-0.5 rounded-full {{ $attentionFilter ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">{{ $needsAttentionCount }}</span>
-        </a>
-        @if(request('search'))<span class="ml-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium"><i class="fas fa-magnifying-glass text-[11px]"></i> “{{ request('search') }}”</span>@endif
-    </div>
-
-    {{-- Search & Filters --}}
-    @php $hasTeacherFilters = request()->anyFilled(['search', 'per_page']) && request('search'); @endphp
-    <section class="mock-panel" x-data="{ open: @json($hasTeacherFilters || true) }" aria-label="Search and filters">
-        <button type="button" @click="open = !open"
-                class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
-                :aria-expanded="open.toString()">
-            <span class="flex items-center gap-3">
+    {{-- Browse & filter bar: school, search, status and page size in one place --}}
+    @php
+        $hasSearch = filled(request('search'));
+        $hasExplicitSchool = request()->filled('school_id');
+        $hasActiveFilters = $hasSearch || $attentionFilter || $hasExplicitSchool || request()->filled('per_page');
+        $clearSearchParams = array_filter(['school_id' => $selectedSchoolId, 'attention' => $attentionFilter ? 'needs' : null, 'per_page' => request('per_page')]);
+        $allSchoolsParams = array_filter(['search' => request('search'), 'attention' => $attentionFilter ? 'needs' : null, 'per_page' => request('per_page')] + ['school_id' => 'all']);
+    @endphp
+    <section class="mock-panel" aria-label="Browse and filter teachers">
+        <div class="flex flex-col xl:flex-row xl:items-center gap-3 px-4 py-3.5">
+            <span class="flex items-center gap-3 min-w-0 flex-1">
                 <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                     <i class="fas fa-sliders text-xs"></i>
                 </span>
-                <span>
-                    <span class="block text-sm font-bold text-slate-900 dark:text-white leading-none">Search & Filters</span>
-                    <span class="block text-xs font-medium text-slate-500 dark:text-gray-400 leading-none mt-1">Find teacher by name or email · adjust page size</span>
+                <span class="min-w-0">
+                    <span class="block text-sm font-bold text-slate-900 dark:text-white leading-none">Browse teachers</span>
+                    <span class="block text-xs font-medium text-slate-500 dark:text-gray-400 leading-none mt-1">Filter by school, search by name or email, then pick All or Needs attention</span>
                 </span>
-                @if(request('search'))<span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20">Active</span>@endif
+                @if($hasActiveFilters)<span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20 shrink-0">Active</span>@endif
             </span>
-            <span class="flex items-center gap-2 shrink-0">
-                <span class="hidden sm:inline text-xs font-semibold text-indigo-600 dark:text-indigo-400" x-text="open ? 'Hide' : 'Show'"></span>
-                <span class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 flex items-center justify-center">
-                    <i class="fas fa-chevron-down text-xs text-slate-600 dark:text-gray-300 transition-transform" :class="open ? 'rotate-180' : ''"></i>
-                </span>
-            </span>
-        </button>
-        <div x-show="open" x-transition>
-            <form method="GET" action="{{ route('supervisor.teachers.index') }}" class="px-4 py-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/20">
-                @if($attentionFilter)<input type="hidden" name="attention" value="needs">@endif
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div class="md:col-span-7">
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1">Search</label>
-                        <div class="relative">
-                            <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 text-xs"></i>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                   class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                   placeholder="Search by name or email...">
-                        </div>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1">Per page</label>
-                        <select name="per_page" onchange="this.form.submit()"
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per page</option>
-                            <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30 per page</option>
-                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per page</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-3 flex items-end gap-2">
-                        <button type="submit"
-                                class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-                            <i class="fas fa-filter text-xs"></i> Apply
-                        </button>
-                        @if(request('search') || $attentionFilter)
-                            <a href="{{ route('supervisor.teachers.index') }}"
-                               class="inline-flex items-center justify-center px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
-                                Clear
-                            </a>
-                        @endif
+            <div class="inline-flex rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 p-1 gap-1 shrink-0" role="group" aria-label="Attention filter">
+                <a href="{{ route('supervisor.teachers.index', request()->except(['attention', 'page'])) }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors {{ !$attentionFilter ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700' }}">
+                    <i class="fas fa-users text-xs"></i> All
+                    <span class="text-xs px-1.5 py-0.5 rounded-full {{ !$attentionFilter ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-gray-700 text-slate-600 dark:text-gray-300' }}">{{ $totalCount }}</span>
+                </a>
+                <a href="{{ route('supervisor.teachers.index', array_merge(request()->except(['attention', 'page']), ['attention' => 'needs'])) }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors {{ $attentionFilter ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700' }}">
+                    <i class="fas fa-bell text-xs"></i> Needs attention
+                    <span class="text-xs px-1.5 py-0.5 rounded-full {{ $attentionFilter ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">{{ $needsAttentionCount }}</span>
+                </a>
+            </div>
+        </div>
+        <form method="GET" action="{{ route('supervisor.teachers.index') }}" class="px-4 py-4 border-t border-slate-200 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/20">
+            @if($attentionFilter)<input type="hidden" name="attention" value="needs">@endif
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-5">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1" for="teacher-search">Search</label>
+                    <div class="relative">
+                        <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 text-xs"></i>
+                        <input id="teacher-search" type="text" name="search" value="{{ request('search') }}"
+                               class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                               placeholder="Search by name or email...">
                     </div>
                 </div>
-            </form>
-        </div>
+                <div class="md:col-span-4">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1" for="school-filter">School</label>
+                    <select id="school-filter" name="school_id" onchange="this.form.submit()"
+                            class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        <option value="all" {{ $selectedSchoolId === null ? 'selected' : '' }}>All schools ({{ $allSchoolsTotal }})</option>
+                        @foreach($schools as $school)
+                            <option value="{{ $school->id }}" {{ $selectedSchoolId === $school->id ? 'selected' : '' }}>{{ $school->name }} ({{ $schoolStats[$school->id]['total'] ?? 0 }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-gray-300 mb-1" for="per-page">Rows</label>
+                    <select id="per-page" name="per_page" onchange="this.form.submit()"
+                            class="w-full px-2 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-slate-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+                        <option value="30" {{ request('per_page') == 30 ? 'selected' : '' }}>30</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2 flex items-end gap-2">
+                    <button type="submit"
+                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                        <i class="fas fa-filter text-xs"></i> Apply
+                    </button>
+                    @if($hasSearch)
+                        <a href="{{ route('supervisor.teachers.index', $clearSearchParams) }}"
+                           class="inline-flex items-center justify-center px-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                           title="Clear search (keep school and status filters)">
+                            Clear
+                        </a>
+                    @endif
+                </div>
+            </div>
+            @if($hasSearch || ($hasExplicitSchool && $selectedSchoolId !== null))
+            <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-semibold text-slate-500 dark:text-gray-400">Active:</span>
+                @if($hasSearch)
+                    <a href="{{ route('supervisor.teachers.index', $clearSearchParams) }}" title="Remove search"
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20">
+                        <i class="fas fa-magnifying-glass text-[11px]"></i> “{{ request('search') }}” <i class="fas fa-xmark text-[11px]"></i>
+                    </a>
+                @endif
+                @if($hasExplicitSchool && $selectedSchoolId !== null)
+                    <a href="{{ route('supervisor.teachers.index', $allSchoolsParams) }}" title="Show all schools"
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium hover:bg-emerald-100 dark:hover:bg-emerald-500/20">
+                        <i class="fas fa-school text-[11px]"></i> {{ $selectedSchool?->name }} <i class="fas fa-xmark text-[11px]"></i>
+                    </a>
+                @endif
+                <a href="{{ route('supervisor.teachers.index') }}" class="text-xs font-semibold text-slate-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 underline underline-offset-2">Reset all</a>
+            </div>
+            @endif
+        </form>
     </section>
 
     {{-- Results Summary --}}
@@ -154,7 +170,8 @@
             Showing <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $teachers->firstItem() ?? 0 }}</span>
             to <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $teachers->lastItem() ?? 0 }}</span>
             of <span class="font-semibold text-slate-700 dark:text-gray-200">{{ $teachers->total() }}</span> teachers
-            @if($attentionFilter)<span class="ml-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold">filtered</span>@endif
+            <span class="text-slate-400 dark:text-gray-500">· {{ $scopeLabel }}</span>
+            @if($attentionFilter)<span class="ml-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold">needs attention only</span>@endif
         </p>
         <div class="flex items-center gap-2 shrink-0">
         <span class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-gray-400"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Flagged first</span>
@@ -175,7 +192,7 @@
 
     {{-- Teachers — List view --}}
     <section class="mock-panel" x-show="view === 'list'" aria-label="Teachers">
-        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $teachers->total() }} total · list view</span></div>
+        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $scopeLabel }} · {{ $teachers->total() }} shown · list view</span></div>
     @forelse($teachers as $teacher)
         @php
             $initial = strtoupper(substr($teacher->user->name, 0, 1));
@@ -269,17 +286,22 @@
             <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ $attentionFilter ? 'No teachers need attention' : 'No teachers found' }}</h3>
             <p class="text-sm text-slate-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
                 @if($attentionFilter)
-                    Every teacher under your supervision is currently on track. Nice work — check back after new evaluations.
+                    Every teacher {{ $selectedSchoolId ? 'at '.$selectedSchool?->name : 'across all schools' }} is currently on track. Nice work — check back after new evaluations.
                 @elseif(request('search'))
-                    No teachers match “{{ request('search') }}”. Try a different name or email.
+                    No teachers match “{{ request('search') }}”{{ $selectedSchoolId ? ' at '.$selectedSchool?->name : '' }}. Try a different name or email, or broaden the school filter.
+                @elseif($selectedSchoolId)
+                    There are no teachers at {{ $selectedSchool?->name }} yet. Try browsing all schools.
                 @else
                     There are no teachers assigned to your supervision yet.
                 @endif
             </p>
+            @php $scopeParams = $selectedSchoolId ? ['school_id' => $selectedSchoolId] : []; @endphp
             @if($attentionFilter)
-                <a href="{{ route('supervisor.teachers.index') }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">Show all teachers</a>
+                <a href="{{ route('supervisor.teachers.index', $scopeParams) }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">Show all teachers</a>
             @elseif(request('search'))
-                <a href="{{ route('supervisor.teachers.index', $attentionFilter?['attention'=>'needs']:[]) }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700">Clear search</a>
+                <a href="{{ route('supervisor.teachers.index', $attentionFilter ? array_merge($scopeParams, ['attention' => 'needs']) : $scopeParams) }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700">Clear search</a>
+            @elseif($selectedSchoolId)
+                <a href="{{ route('supervisor.teachers.index', $attentionFilter ? ['school_id' => 'all', 'attention' => 'needs'] : ['school_id' => 'all']) }}" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">Browse all schools</a>
             @endif
         </div>
     @endforelse
@@ -287,12 +309,13 @@
 
     {{-- Teachers — Table view --}}
     <section class="mock-panel" x-show="view === 'table'" aria-label="Teachers table">
-        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $teachers->total() }} total · table view</span></div>
+        <div class="mock-panel-head"><h2>Teachers</h2><span class="hint">{{ $scopeLabel }} · {{ $teachers->total() }} shown · table view</span></div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Ratee</th>
+                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">School</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Position</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Priority</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Obs</th>
@@ -326,6 +349,9 @@
                                 </div>
                             </div>
                         </td>
+                        <td class="px-3 py-2.5">
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-300 block max-w-[180px] truncate" title="{{ $teacher->school?->name ?? $teacher->user?->school?->name ?? '—' }}">{{ $teacher->school?->name ?? $teacher->user?->school?->name ?? '—' }}</span>
+                        </td>
                         <td class="px-3 py-2.5 whitespace-nowrap">
                             <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $teacher->position ? ($teacher->position_label ?? $teacher->position) : '—' }}</span>
                         </td>
@@ -344,9 +370,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-3 py-8 text-center">
+                        <td colspan="6" class="px-3 py-8 text-center">
                             <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $attentionFilter ? 'No teachers need attention' : 'No teachers found' }}</p>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">@if($attentionFilter) Every teacher under your supervision is currently on track. @elseif(request('search')) No teachers match “{{ request('search') }}”. @else There are no teachers assigned to your supervision yet. @endif</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">@if($attentionFilter) Every teacher {{ $selectedSchoolId ? 'at '.$selectedSchool?->name : 'across all schools' }} is currently on track. @elseif(request('search')) No teachers match “{{ request('search') }}”. @elseif($selectedSchoolId) There are no teachers at {{ $selectedSchool?->name }} yet. @else There are no teachers assigned to your supervision yet. @endif</p>
                         </td>
                     </tr>
                 @endforelse

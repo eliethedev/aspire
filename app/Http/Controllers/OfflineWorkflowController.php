@@ -110,7 +110,12 @@ class OfflineWorkflowController extends Controller
 
             $observer = $observation->observer;
             if ($observer instanceof User) {
-                $link = route('supervisor.observations.show', $observation);
+                // Point the observer at the show page they can actually open:
+                // school-head observers cannot hit supervisor URLs (role
+                // middleware would bounce them) and vice versa.
+                $link = $observer->isSchoolHead()
+                    ? route('school-head.observations.show', $observation)
+                    : route('supervisor.observations.show', $observation);
                 $this->notifications->notifyObservationConfirmed(
                     $observer, Auth::user()->name, $link
                 );
@@ -179,8 +184,49 @@ class OfflineWorkflowController extends Controller
     }
 
     /**
+     * Observer reviews and approves the AI-suggested result for offline use.
+     * POST .../approve-suggestions (mounted for supervisors AND school heads).
+     * Regenerating the suggestions clears the approval, so this always
+     * covers the exact version that will be downloaded.
+     */
+    public function approveSuggestions(Request $request, Observation $observation)
+    {
+        $this->authorizeObserver($observation);
+
+        if (! $observation->hasPreObservationPrompts()) {
+            return $this->respond($request, [
+                'message' => 'Generate the AI observation-assistant suggestions first, then review and approve them.',
+                'required' => 'ai_suggestions',
+                'status' => $observation->status,
+            ], 409);
+        }
+
+        $request->validate([
+            'suggestions_reviewed' => ['required', 'accepted'],
+        ], [
+            'suggestions_reviewed.required' => 'Please confirm you reviewed the AI suggestions first.',
+            'suggestions_reviewed.accepted' => 'Please confirm you reviewed the AI suggestions first.',
+        ]);
+
+        $observation->approveAiSuggestions(Auth::id());
+
+        $this->audit->log(
+            'approved_ai_suggestions', 'observations', (string) $observation->id,
+            "Observer approved the AI suggestions for offline use (observation #{$observation->id}).",
+            'success', [], $observation->fresh()->toArray()
+        );
+
+        return $this->respond($request, [
+            'status' => 'approved',
+            'observation_id' => $observation->id,
+            'approved_at' => $observation->fresh()->ai_suggestions_approved_at?->toIso8601String(),
+        ], 200);
+    }
+
+    /**
      * The offline bundle JSON the tablet caches in IndexedDB.
      * GET /supervisor/observations/{observation}/offline-package
+     * (also mounted for school-head observers)
      */
     public function offlinePackage(Request $request, Observation $observation)
     {
@@ -198,6 +244,22 @@ class OfflineWorkflowController extends Controller
             return $this->respond($request, [
                 'message' => 'Please review the lesson plan and confirm your review before downloading.',
                 'required' => 'lesson_plan_review',
+                'status' => $observation->status,
+            ], 409);
+        }
+
+        if (! $observation->hasPreObservationPrompts()) {
+            return $this->respond($request, [
+                'message' => 'Generate the AI observation-assistant suggestions first — an offline visit requires the downloaded AI result.',
+                'required' => 'ai_suggestions',
+                'status' => $observation->status,
+            ], 409);
+        }
+
+        if (! $observation->hasApprovedAiSuggestions()) {
+            return $this->respond($request, [
+                'message' => 'Review and approve the AI suggestions before downloading — only the approved result may be used offline.',
+                'required' => 'ai_suggestions_approval',
                 'status' => $observation->status,
             ], 409);
         }
@@ -226,6 +288,10 @@ class OfflineWorkflowController extends Controller
 
         if (! $observation->hasLessonPlanReview()) {
             return back()->with('error', 'Please review the lesson plan and confirm your review before offline use.');
+        }
+
+        if (! $observation->hasApprovedAiSuggestions()) {
+            return back()->with('error', 'Generate, review and approve the AI observation-assistant suggestions first — an offline visit requires the downloaded AI result.');
         }
 
         if ($observation->status === 'confirmed_ready_for_download') {

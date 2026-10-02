@@ -12,11 +12,18 @@ pending_teacher_confirmation ─┘  (identical via isPendingTeacherConfirmation
         │  teacher accepts + uploads DLL  →  POST confirm-package
         ▼
 confirmed_ready_for_download  (AI prompts queued/generated)
-        │  supervisor reads the DLL + ticks the required review box,
-        │  then prepares + downloads the bundle
+        │  the observer (supervisor or school head) reads the DLL + ticks
+        │  the review box, then prepares the bundle
         ▼
-downloaded_offline  (tablet encodes with zero connectivity)
-        │  POST /sync/push with server_id
+ai_suggestions_approved  (observer reviews + approves the AI-suggested
+        │  result via POST …/approve-suggestions; regenerating clears it)
+        │  only the approved version may be downloaded
+        ▼
+downloaded_offline  (tablet encodes with zero connectivity —
+        │  the bundle carries the approved AI result; the tablet refuses
+        │  to cache bundles that are not ai_ready + ai_approved)
+        │  POST /sync/push with server_id (rejected unless downloaded
+        │  AND approved: package_not_downloaded / suggestions_not_approved)
         ▼
 synced  (+ post-observation analytics queued) ──► finalized (existing flow)
 ```
@@ -78,6 +85,8 @@ IS the pending state (see `Observation::isPendingTeacherConfirmation()`).
 - Queue must run (`QUEUE_CONNECTION=database` + worker) for AI prompt jobs;
   `prepare-package` also works synchronously while online.
 - Cached shell: open each `offline-workspace` URL once online; SW version
-  `aspire-offline-v4` caches it runtime-first-visit.
+  `aspire-offline-v5` caches it runtime-first-visit. Both
+  `/supervisor/observations/offline` and `/school-head/observations/offline`
+  capture pages are precached.
 - Tests: `php artisan test --filter=OfflineWorkflowTest` (8 tests, AI-disabled
   fallback path exercised deterministically).

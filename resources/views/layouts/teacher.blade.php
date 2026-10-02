@@ -98,6 +98,9 @@
                 @endisset
 
                 <!-- Page Content -->
+                @if(auth()->user()?->isSchoolHead())
+                    @include('partials.offline-sync')
+                @endif
                 <main id="main-content" class="p-4 sm:p-6">
                     <div class="mx-auto">
                         @yield('content')

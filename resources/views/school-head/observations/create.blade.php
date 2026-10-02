@@ -45,14 +45,12 @@
         <span class="mock-pill"><span class="pulse"></span>New observation</span>
         <div class="mock-actions">
             <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Back to Observations</a>
+            <a class="mock-btn" href="{{ route('school-head.observations.offline') }}">Open offline capture</a>
         </div>
     </div>
 
     <div class="mock-title">
-        <div>
-            <h1>Schedule Teacher Observation</h1>
-            <p>Schedule a classroom observation for a teacher in your school</p>
-        </div>
+        
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
     <!-- Breadcrumb -->

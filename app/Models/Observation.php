@@ -62,6 +62,8 @@ class Observation extends Model
         'offline_downloaded_at',
         'lesson_plan_reviewed_at',
         'lesson_plan_reviewed_by',
+        'ai_suggestions_approved_at',
+        'ai_suggestions_approved_by',
         'school_head_id',
         'finalized_at',
         'finalized_by',
@@ -79,6 +81,7 @@ class Observation extends Model
         'pre_observation_ai_prompts' => 'array',
         'offline_downloaded_at' => 'datetime',
         'lesson_plan_reviewed_at' => 'datetime',
+        'ai_suggestions_approved_at' => 'datetime',
         'finalized_at' => 'datetime',
     ];
 
@@ -589,6 +592,60 @@ class Observation extends Model
         $prompts = $this->pre_observation_ai_prompts;
 
         return is_array($prompts) && ! empty($prompts);
+    }
+
+    /**
+     * Whether the observer reviewed and approved the AI-suggested result
+     * for offline use. The approval must cover the CURRENT prompts: any
+     * regeneration clears it, so a stale approval can never unlock a
+     * download.
+     */
+    public function hasApprovedAiSuggestions(): bool
+    {
+        if ($this->ai_suggestions_approved_at === null) {
+            return false;
+        }
+
+        if (! $this->hasPreObservationPrompts()) {
+            return false;
+        }
+
+        $generatedAt = $this->pre_observation_ai_prompts['generated_at'] ?? null;
+        if ($generatedAt === null) {
+            return true;
+        }
+
+        try {
+            return Carbon::parse($generatedAt)->lte($this->ai_suggestions_approved_at);
+        } catch (\Throwable) {
+            return true;
+        }
+    }
+
+    /** Observer who approved the AI suggestions for offline use. */
+    public function aiSuggestionsApprover(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'ai_suggestions_approved_by');
+    }
+
+    /**
+     * Record the observer's review + approval of the AI-suggested result
+     * (required before the offline package may be downloaded).
+     */
+    public function approveAiSuggestions(int $approverId): void
+    {
+        $fromStatus = $this->status;
+
+        $this->update([
+            'ai_suggestions_approved_at' => now(),
+            'ai_suggestions_approved_by' => $approverId,
+        ]);
+
+        $this->logChange([
+            'from_status' => $fromStatus,
+            'to_status' => $fromStatus,
+            'notes' => 'Observer reviewed and approved the AI suggestions for offline use.',
+        ]);
     }
 
     /**

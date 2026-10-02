@@ -210,14 +210,17 @@ class SupervisorRateeProfileTest extends TestCase
             ->assertSee('No observations recorded yet.');
     }
 
-    public function test_cross_school_teacher_is_forbidden(): void
+    public function test_cross_school_teacher_is_read_only(): void
     {
         $otherSchool = School::factory()->create();
         $otherSupervisor = User::factory()->create(['role' => 'supervisor', 'school_id' => $otherSchool->id]);
 
+        // Supervisors may browse teachers from other schools via the school
+        // filter, but the profile renders read-only for them.
         $this->actingAs($otherSupervisor)
             ->get(route('supervisor.teachers.show', $this->teacher))
-            ->assertForbidden();
+            ->assertOk()
+            ->assertSee('Read-only view');
     }
 
     public function test_cross_school_school_head_is_forbidden(): void

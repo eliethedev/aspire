@@ -28,8 +28,33 @@ class TeacherAttentionService
      */
     public function forSchool(int $schoolId): array
     {
+        return $this->forSchools([$schoolId]);
+    }
+
+    /**
+     * Compute attention diagnostics for every teacher across the given schools.
+     *
+     * Teachers are matched by either their linked user's school or the
+     * teacher record's own school so browsing across schools stays complete.
+     *
+     * @param  array<int>  $schoolIds
+     * @return array<string, array{teacher: Teacher, flags: array<int, array{key: string, label: string, description: string, icon: string, tone: string}>, summary: string, level: string}>
+     */
+    public function forSchools(array $schoolIds): array
+    {
+        $schoolIds = array_values(array_unique(array_map('intval', $schoolIds)));
+
+        if (empty($schoolIds)) {
+            return [];
+        }
+
         $teachers = Teacher::with(['user', 'school', 'subjects'])
-            ->whereHas('user', fn ($q) => $q->where('school_id', $schoolId))
+            ->when(! empty($schoolIds), function ($query) use ($schoolIds) {
+                $query->where(function ($q) use ($schoolIds) {
+                    $q->whereIn('school_id', $schoolIds)
+                        ->orWhereHas('user', fn ($uq) => $uq->whereIn('school_id', $schoolIds));
+                });
+            })
             ->get();
 
         $map = [];

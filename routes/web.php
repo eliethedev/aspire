@@ -279,6 +279,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     // Offline clinical-supervision workflow: prepare AI prompts, download the
     // JSON bundle, and open the cached offline workspace for zero-signal visits.
     Route::post('/observations/{observation}/prepare-package', [OfflineWorkflowController::class, 'preparePackage'])->middleware('ai.rate.limit')->name('observations.prepare-package');
+    Route::post('/observations/{observation}/approve-suggestions', [OfflineWorkflowController::class, 'approveSuggestions'])->name('observations.approve-suggestions');
     Route::get('/observations/{observation}/offline-package', [OfflineWorkflowController::class, 'offlinePackage'])->name('observations.offline-package');
     Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
     Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
@@ -377,11 +378,13 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
 
     // Observations (My Performance)
     Route::get('/observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'index'])->middleware('throttle:search')->name('observations.index');
+    Route::get('/observations/offline', [App\Http\Controllers\Api\SyncController::class, 'offlinePage'])->name('observations.offline');
     Route::get('/observations/create', [App\Http\Controllers\SchoolHead\ObservationController::class, 'createObservation'])->name('observations.create');
     Route::post('/observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservation'])->name('observations.store');
     Route::get('/observations/{observation}', [App\Http\Controllers\SchoolHead\ObservationController::class, 'show'])->name('observations.show');
     // Offline clinical-supervision workflow (school head as observer).
     Route::post('/observations/{observation}/prepare-package', [OfflineWorkflowController::class, 'preparePackage'])->middleware('ai.rate.limit')->name('observations.prepare-package');
+    Route::post('/observations/{observation}/approve-suggestions', [OfflineWorkflowController::class, 'approveSuggestions'])->name('observations.approve-suggestions');
     Route::get('/observations/{observation}/offline-package', [OfflineWorkflowController::class, 'offlinePackage'])->name('observations.offline-package');
     Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
     Route::get('/co-observations', [App\Http\Controllers\SchoolHead\ObservationController::class, 'coObservations'])->middleware('throttle:search')->name('co-observations.index');

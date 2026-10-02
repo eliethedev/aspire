@@ -22,7 +22,7 @@
 
     <!-- Search and Filter Form -->
     <section class="mock-panel">
-        <section class="mock-panel"><form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4 p-6">
+        <section class="mock-panel"><form method="GET" action="{{ route('admin.teachers.index') }}" class="space-y-4 p-6 ">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-sm font-medium text-dark  dark:text-white mb-1">Search</label>

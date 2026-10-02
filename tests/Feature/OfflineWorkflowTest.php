@@ -134,6 +134,8 @@ class OfflineWorkflowTest extends TestCase
             'lesson_plan_reviewed_by' => $this->supervisor->id,
             'lesson_plan_summary' => 'Objectives: fractions.',
             'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+            'ai_suggestions_approved_at' => now(),
+            'ai_suggestions_approved_by' => $this->supervisor->id,
         ]);
 
         $response = $this->actingAs($this->supervisor)
@@ -142,6 +144,7 @@ class OfflineWorkflowTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('server_id', $observation->id)
             ->assertJsonPath('ai_ready', true)
+            ->assertJsonPath('ai_approved', true)
             ->assertJsonStructure([
                 'observation' => ['id', 'subject', 'teacher'],
                 'rubric' => ['scale', 'scale_max', 'indicators'],
@@ -160,6 +163,9 @@ class OfflineWorkflowTest extends TestCase
             'teacher_confirmed_at' => now(),
             'lesson_plan_reviewed_at' => now(),
             'lesson_plan_reviewed_by' => $this->supervisor->id,
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+            'ai_suggestions_approved_at' => now(),
+            'ai_suggestions_approved_by' => $this->supervisor->id,
         ]);
 
         $clientId = (string) Str::uuid();
@@ -217,6 +223,9 @@ class OfflineWorkflowTest extends TestCase
             'status' => 'downloaded_offline',
             'confirmation_status' => 'confirmed',
             'teacher_confirmed_at' => now(),
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+            'ai_suggestions_approved_at' => now(),
+            'ai_suggestions_approved_by' => $this->supervisor->id,
         ]);
         $observation->cotRatings()->create([
             'indicator_code' => 'IND-1', 'domain' => 'CKP',
@@ -374,5 +383,210 @@ class OfflineWorkflowTest extends TestCase
             $this->assertStringContainsString($label, $html);
         }
         $this->assertStringContainsString('ai-insights-text', $html);
+    }
+
+    protected function makeApprovedObservation(array $overrides = []): Observation
+    {
+        return $this->makeObservation(array_merge([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'lesson_plan_reviewed_at' => now(),
+            'lesson_plan_reviewed_by' => $this->supervisor->id,
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+            'ai_suggestions_approved_at' => now(),
+            'ai_suggestions_approved_by' => $this->supervisor->id,
+        ], $overrides));
+    }
+
+    public function test_download_locked_until_ai_suggestions_generated(): void
+    {
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'lesson_plan_reviewed_at' => now(),
+            'lesson_plan_reviewed_by' => $this->supervisor->id,
+            // prompts intentionally absent
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->getJson(route('supervisor.observations.offline-package', $observation))
+            ->assertStatus(409)
+            ->assertJsonPath('required', 'ai_suggestions');
+    }
+
+    public function test_download_locked_until_ai_suggestions_approved(): void
+    {
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'lesson_plan_reviewed_at' => now(),
+            'lesson_plan_reviewed_by' => $this->supervisor->id,
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+            // approval intentionally absent
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->getJson(route('supervisor.observations.offline-package', $observation))
+            ->assertStatus(409)
+            ->assertJsonPath('required', 'ai_suggestions_approval');
+
+        $this->assertSame('confirmed_ready_for_download', $observation->fresh()->status);
+    }
+
+    public function test_approve_requires_generated_suggestions(): void
+    {
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->postJson(route('supervisor.observations.approve-suggestions', $observation), [
+                'suggestions_reviewed' => '1',
+            ])
+            ->assertStatus(409)
+            ->assertJsonPath('required', 'ai_suggestions');
+    }
+
+    public function test_approve_requires_review_checkbox(): void
+    {
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->postJson(route('supervisor.observations.approve-suggestions', $observation), [])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('suggestions_reviewed');
+
+        $this->assertNull($observation->fresh()->ai_suggestions_approved_at);
+    }
+
+    public function test_approve_records_approval_and_unlocks_download(): void
+    {
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'lesson_plan_reviewed_at' => now(),
+            'lesson_plan_reviewed_by' => $this->supervisor->id,
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+        ]);
+
+        $this->actingAs($this->supervisor)
+            ->postJson(route('supervisor.observations.approve-suggestions', $observation), [
+                'suggestions_reviewed' => '1',
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'approved');
+
+        $fresh = $observation->fresh();
+        $this->assertNotNull($fresh->ai_suggestions_approved_at);
+        $this->assertSame($this->supervisor->id, (int) $fresh->ai_suggestions_approved_by);
+        $this->assertTrue($fresh->hasApprovedAiSuggestions());
+
+        $this->actingAs($this->supervisor)
+            ->getJson(route('supervisor.observations.offline-package', $observation))
+            ->assertOk()
+            ->assertJsonPath('ai_approved', true);
+
+        $this->assertSame('downloaded_offline', $observation->fresh()->status);
+    }
+
+    public function test_approve_forbidden_for_non_observer(): void
+    {
+        $intruder = User::factory()->supervisor()->create(['school_id' => $this->school->id]);
+        UserProfile::create(['user_id' => $intruder->id, 'mobile_number' => '09170000009']);
+        SupervisorProfile::create([
+            'user_id' => $intruder->id,
+            'division_district_assigned' => 'District IV',
+            'area_of_specialization' => 'Science',
+            'supervisory_level' => 'district',
+        ]);
+        $observation = $this->makeObservation([
+            'status' => 'confirmed_ready_for_download',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+        ]);
+
+        $this->actingAs($intruder)
+            ->postJson(route('supervisor.observations.approve-suggestions', $observation), [
+                'suggestions_reviewed' => '1',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_regenerating_prompts_clears_approval(): void
+    {
+        Storage::fake('public');
+        $path = UploadedFile::fake()->create('dll.pdf', 100, 'application/pdf')
+            ->storeAs('lesson_plans', 'dll.pdf', 'public');
+        $observation = $this->makeApprovedObservation([
+            'lesson_plan_path' => $path,
+            'status' => 'downloaded_offline',
+        ]);
+
+        $this->assertTrue($observation->fresh()->hasApprovedAiSuggestions());
+
+        $this->actingAs($this->supervisor)
+            ->postJson(route('supervisor.observations.prepare-package', $observation), [])
+            ->assertOk();
+
+        $fresh = $observation->fresh();
+        $this->assertTrue($fresh->hasPreObservationPrompts());
+        $this->assertFalse($fresh->hasApprovedAiSuggestions());
+
+        // The stale bundle no longer unlocks a download.
+        $this->actingAs($this->supervisor)
+            ->getJson(route('supervisor.observations.offline-package', $observation))
+            ->assertStatus(409)
+            ->assertJsonPath('required', 'ai_suggestions_approval');
+    }
+
+    public function test_push_rejected_when_package_never_downloaded(): void
+    {
+        // Confirmed + reviewed + approved, but the bundle was never downloaded.
+        $observation = $this->makeApprovedObservation();
+
+        $response = $this->actingAs($this->supervisor)->postJson('/sync/push', [
+            'items' => [[
+                'client_id' => (string) Str::uuid(),
+                'server_id' => $observation->id,
+                'payload' => ['ratings' => [['indicator_code' => 'IND-1', 'rating' => 5]]],
+            ]],
+        ]);
+
+        $response->assertStatus(207);
+        $this->assertSame('package_not_downloaded', $response->json('conflicts.0.reason'));
+    }
+
+    public function test_push_rejected_when_suggestions_not_approved(): void
+    {
+        // Downloaded (status) with prompts, but no approval on record.
+        $observation = $this->makeObservation([
+            'status' => 'downloaded_offline',
+            'confirmation_status' => 'confirmed',
+            'teacher_confirmed_at' => now(),
+            'pre_observation_ai_prompts' => ['strategies' => ['Use manipulatives'], 'fallback' => true],
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->postJson('/sync/push', [
+            'items' => [[
+                'client_id' => (string) Str::uuid(),
+                'server_id' => $observation->id,
+                'payload' => ['ratings' => [['indicator_code' => 'IND-1', 'rating' => 5]]],
+            ]],
+        ]);
+
+        $response->assertStatus(207);
+        $this->assertSame('suggestions_not_approved', $response->json('conflicts.0.reason'));
     }
 }

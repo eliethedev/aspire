@@ -9,8 +9,13 @@
     $pkgReviewed = $observation->hasLessonPlanReview();
     $isSh = request()->routeIs('school-head.*');
     $prepRoute = $isSh ? 'school-head.observations.prepare-package' : 'supervisor.observations.prepare-package';
+    $approveRoute = $isSh ? 'school-head.observations.approve-suggestions' : 'supervisor.observations.approve-suggestions';
     $pkgRoute = $isSh ? 'school-head.observations.offline-package' : 'supervisor.observations.offline-package';
     $wsRoute = $isSh ? 'school-head.observations.offline-workspace' : 'supervisor.observations.offline-workspace';
+    $pkgPrompts = $observation->pre_observation_ai_prompts ?? [];
+    $pkgHasPrompts = $observation->hasPreObservationPrompts();
+    $pkgApproved = $observation->hasApprovedAiSuggestions();
+    $pkgFallback = (bool) ($pkgPrompts['fallback'] ?? false);
     $dllPath = $observation->lesson_plan_path ?? $observation->preObservationPlanning?->lesson_plan_file;
     $dllName = $dllPath ? basename($dllPath) : null;
     $dllSummary = $observation->lesson_plan_summary;
@@ -20,7 +25,9 @@
         <h2>Offline package</h2>
         <span class="hint">
             @if($pkgState === 'confirmed_ready_for_download' && ! $pkgReviewed) Review the lesson plan
-            @elseif($pkgState === 'confirmed_ready_for_download') Ready to prepare
+            @elseif($pkgReviewed && ! $pkgHasPrompts) Generate AI suggestions
+            @elseif($pkgHasPrompts && ! $pkgApproved) Approve AI suggestions
+            @elseif($pkgState === 'confirmed_ready_for_download') Ready to download
             @elseif($pkgState === 'downloaded_offline') Ready for offline visit
             @elseif($pkgState === 'synced') Synced back
             @elseif($pkgState === 'finalized' || $pkgState === 'completed') Finalized
@@ -56,16 +63,79 @@
             </div>
 
             @if($pkgReviewed)
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+                    <span class="mock-status done">✓ Lesson plan reviewed{{ $observation->lesson_plan_reviewed_at ? ' · ' . $observation->lesson_plan_reviewed_at->diffForHumans() : '' }}</span>
+                </div>
+
+                {{-- Step 2 · Make the AI-suggested presentation to use offline --}}
+                <div style="border:1px solid var(--m-line);border-radius:8px;padding:12px;margin-bottom:12px;background:var(--m-panel-2)">
+                    <p style="font-size:12.5px;font-weight:650;color:var(--m-text);margin-bottom:6px">
+                        <span class="mock-step-num" style="display:inline-flex;width:22px;height:22px;border-radius:50%;border:1px solid var(--m-line);align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:6px;{{ $pkgApproved ? 'background:rgba(63,185,80,.14);border-color:rgba(63,185,80,.5);color:var(--m-green)' : '' }}">{{ $pkgApproved ? '✓' : '2' }}</span>
+                        AI observation-assistant suggestions
+                        @if($pkgHasPrompts)
+                            <span style="font-size:11px;font-weight:600;color:var(--m-muted)">· {{ $pkgFallback ? 'rule-based fallback' : 'AI generated' }}{{ isset($pkgPrompts['generated_at']) ? ' · ' . \Carbon\Carbon::parse($pkgPrompts['generated_at'])->diffForHumans() : '' }}</span>
+                        @endif
+                    </p>
+                    @if(! $pkgHasPrompts)
+                        <p style="font-size:12.5px;color:var(--m-muted);margin-bottom:10px">Generate the AI-suggested strategies and evidence prompts first — an offline visit requires the downloaded AI result.</p>
+                        <form method="POST" action="{{ route($prepRoute, $observation) }}" style="display:inline">
+                            @csrf
+                            <button type="submit" class="mock-btn primary">⚙ Generate AI Suggestions</button>
+                        </form>
+                    @else
+                        @if(is_string($pkgPrompts['summary'] ?? null) && $pkgPrompts['summary'] !== '')
+                            <p style="font-size:12px;color:var(--m-muted);margin-bottom:8px">{{ Str::limit($pkgPrompts['summary'], 280) }}</p>
+                        @endif
+                        @foreach(['strategies' => 'Suggested strategies', 'evidence_prompts' => 'Evidence prompts', 'coaching_prompts' => 'Coaching prompts'] as $pkey => $plabel)
+                            @if(! empty($pkgPrompts[$pkey]))
+                                <p style="font-size:11px;font-weight:700;color:var(--m-muted);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px">{{ $plabel }}</p>
+                                <ul style="margin:0 0 4px 16px;display:grid;gap:3px;font-size:12.5px;color:var(--m-text)">
+                                    @foreach(array_slice((array) $pkgPrompts[$pkey], 0, 6) as $pitem)
+                                        <li>{{ is_string($pitem) ? $pitem : json_encode($pitem) }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        @endforeach
+                        @if($pkgApproved)
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px">
+                                <span class="mock-status done">✓ Approved for offline use{{ $observation->ai_suggestions_approved_at ? ' · ' . $observation->ai_suggestions_approved_at->diffForHumans() : '' }}</span>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route($approveRoute, $observation) }}" x-data="{ checked: false }" aria-label="Approve AI suggestions" style="margin-top:10px">
+                                @csrf
+                                <label style="display:flex;gap:10px;align-items:flex-start;border:1px dashed var(--m-accent-line);border-radius:8px;padding:12px;margin-bottom:10px;cursor:pointer;background:var(--m-accent-soft)">
+                                    <input type="checkbox" name="suggestions_reviewed" value="1" x-model="checked" style="width:18px;height:18px;margin-top:1px;accent-color:#1f6feb" required>
+                                    <span style="font-size:12.5px;color:var(--m-text)">
+                                        <strong>I reviewed these suggestions</strong> and approve this version for offline use.
+                                        <span style="display:block;font-weight:400;color:var(--m-muted);font-size:12px">Required before downloading. Regenerating the suggestions clears this approval.</span>
+                                    </span>
+                                </label>
+                                @if(isset($errors) && $errors->has('suggestions_reviewed'))
+                                    <p style="font-size:12px;color:var(--m-rose);margin-bottom:8px">{{ $errors->first('suggestions_reviewed') }}</p>
+                                @endif
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                                    <button type="submit" class="mock-btn primary" :disabled="!checked" :title="checked ? 'Approve this version for offline use' : 'Tick the review box first'">✓ Approve for offline use</button>
+                                    <span style="font-size:12px;color:var(--m-muted)" x-text="checked ? 'Ready — this unlocks Download.' : 'Tick the box to continue.'"></span>
+                                </div>
+                            </form>
+                        @endif
+                    @endif
+                </div>
+
+                {{-- Step 3 · Download (needs reviewed lesson plan + approved AI result) --}}
                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                    <span class="mock-status done">✓ Reviewed{{ $observation->lesson_plan_reviewed_at ? ' · ' . $observation->lesson_plan_reviewed_at->diffForHumans() : '' }}</span>
                     <form method="POST" action="{{ route($prepRoute, $observation) }}" style="display:inline">
                         @csrf
-                        <button type="submit" class="mock-btn">⚙ Prepare Offline Package @if($observation->hasPreObservationPrompts())(refresh AI)@endif</button>
+                        <button type="submit" class="mock-btn">⚙ Prepare Offline Package @if($pkgHasPrompts)(refresh AI)@endif</button>
                     </form>
-                    <button type="button" class="mock-btn primary" data-pkg-download="{{ $observation->id }}" data-pkg-url="{{ route($pkgRoute, $observation) }}">
-                        ⬇ Download for Offline Use
-                    </button>
-                    <a class="mock-btn" href="{{ route($wsRoute, $observation) }}">Open offline workspace</a>
+                    @if($pkgApproved)
+                        <button type="button" class="mock-btn primary" data-pkg-download="{{ $observation->id }}" data-pkg-url="{{ route($pkgRoute, $observation) }}">
+                            ⬇ Download for Offline Use
+                        </button>
+                        <a class="mock-btn" href="{{ route($wsRoute, $observation) }}">Open offline workspace</a>
+                    @else
+                        <span style="font-size:12px;color:var(--m-muted)">Download unlocks once the AI suggestions above are approved.</span>
+                    @endif
                 </div>
             @else
                 {{-- Step 2 · Confirm the review (required, one click) --}}
@@ -92,8 +162,8 @@
                 @if($pkgState === 'downloaded_offline')
                     <span style="font-size:12px;color:var(--m-muted)">Downloaded {{ $observation->offline_downloaded_at?->diffForHumans() }} · opens with zero connectivity.</span>
                 @endif
-                @if($observation->hasPreObservationPrompts())
-                    <span style="font-size:12px;color:var(--m-muted)">AI prompts ready{{ ($observation->pre_observation_ai_prompts['fallback'] ?? false) ? ' (rule-based fallback)' : '' }}.</span>
+                @if($pkgHasPrompts)
+                    <span style="font-size:12px;color:var(--m-muted)">AI prompts ready{{ $pkgFallback ? ' (rule-based fallback)' : '' }}{{ $pkgApproved ? ' · approved for offline use' : ' · awaiting your approval' }}.</span>
                 @endif
             </div>
         @endif

@@ -63,6 +63,10 @@ class OfflinePackageService
         $observation->update([
             'lesson_plan_summary' => is_string($summary) ? $summary : json_encode($summary),
             'pre_observation_ai_prompts' => $payload,
+            // A fresh result invalidates any earlier review: the observer
+            // must approve THIS version before it can go offline.
+            'ai_suggestions_approved_at' => null,
+            'ai_suggestions_approved_by' => null,
         ]);
 
         return $payload;
@@ -95,6 +99,8 @@ class OfflinePackageService
             'server_id' => $observation->id,
             'generated_at' => now()->toIso8601String(),
             'ai_ready' => $observation->hasPreObservationPrompts(),
+            'ai_approved' => $observation->hasApprovedAiSuggestions(),
+            'ai_approved_at' => $observation->ai_suggestions_approved_at?->toIso8601String(),
             'observation' => [
                 'id' => $observation->id,
                 'subject' => $observation->subject,

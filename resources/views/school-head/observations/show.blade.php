@@ -27,6 +27,7 @@
         <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
         <span class="mock-pill"><span class="pulse"></span>{{ ucwords(str_replace('_', ' ', $observation->status)) }}</span>
         <div class="mock-actions">
+            <span class="my-px inline-flex flex-wrap items-center gap-2">@include('partials.offline-encode', ['observation' => $observation])</span>
             <a class="mock-btn" href="{{ route('school-head.observations.index') }}">Back to List</a>
         </div>
     </div>
