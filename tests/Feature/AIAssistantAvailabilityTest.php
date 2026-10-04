@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Observation;
 use App\Models\School;
+use App\Models\SupervisorProfile;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
@@ -20,6 +22,16 @@ class AIAssistantAvailabilityTest extends TestCase
         $teacherUser = User::factory()->create(['role' => 'teacher']);
         $teacher = Teacher::factory()->create(['user_id' => $teacherUser->id]);
         $observer = User::factory()->create(['role' => 'supervisor']);
+
+        // Complete the supervisor profile so the profile.complete middleware
+        // lets the requests through to the AI endpoints themselves.
+        UserProfile::create(['user_id' => $observer->id, 'mobile_number' => '09170000031']);
+        SupervisorProfile::create([
+            'user_id' => $observer->id,
+            'division_district_assigned' => 'District 1',
+            'area_of_specialization' => 'Mathematics',
+            'supervisory_level' => 'district',
+        ]);
 
         $observation = Observation::factory()
             ->forObserver($observer)

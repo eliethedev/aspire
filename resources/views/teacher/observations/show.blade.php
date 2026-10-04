@@ -50,7 +50,7 @@
         <div>
             <h1>Observation Details</h1>
             <p>{{ $observation->observer?->name ?? 'Unknown Supervisor' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
-             @if($observation->subject)
+            @if($observation->subject)
                 <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- {{ $observation->grade_level_label }} @endif</p>
             @endif
         </div>

@@ -6,7 +6,9 @@ use App\Models\CotRating;
 use App\Models\Observation;
 use App\Models\School;
 use App\Models\Teacher;
+use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,8 +34,18 @@ class TeacherAnalyticsTest extends TestCase
         $this->teacher = Teacher::factory()->forSchool($school->id)->create([
             'position' => 'Teacher II',
             'career_stage' => 'teacher_i_iii',
+            'grade_level' => '7',
             'user_id' => $this->teacherUser->id,
         ]);
+
+        // Complete profiles so the profile.complete middleware lets the
+        // requests through to the analytics itself.
+        UserProfile::create([
+            'user_id' => $this->teacherUser->id,
+            'mobile_number' => '09170000021',
+            'employment_status' => 'permanent',
+        ]);
+        TeacherProfile::create(['user_id' => $this->teacherUser->id, 'default_room' => 'Room 101']);
     }
 
     private function scoredObservation(string $date, float $score): Observation

@@ -185,7 +185,10 @@ class InvitationService
             \App\Models\UserProfile::where('user_id', $user->id)->delete();
 
             // Delete the associated user
-            $user->delete();
+            // NOTE: forceDelete (not soft delete) so the database-level
+            // cascades fire and remove the invitation, teacher and profile
+            // rows with it. A cancelled invitation must vanish entirely.
+            $user->forceDelete();
         });
     }
 

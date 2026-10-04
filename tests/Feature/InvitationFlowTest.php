@@ -86,6 +86,7 @@ class InvitationFlowTest extends TestCase
             'token' => $invitation->token,
             'password' => 'Str0ng!Pass',
             'password_confirmation' => 'Str0ng!Pass',
+            'terms' => true,
         ]);
 
         $response->assertRedirect(route('dashboard'));
@@ -113,6 +114,7 @@ class InvitationFlowTest extends TestCase
             'token' => $invitation->token,
             'password' => 'weak',
             'password_confirmation' => 'weak',
+            'terms' => true,
         ])->assertSessionHasErrors('password');
 
         $this->assertSame('invited', $user->fresh()->status);
@@ -135,6 +137,7 @@ class InvitationFlowTest extends TestCase
             'token' => $invitation->token,
             'password' => 'Str0ng!Pass',
             'password_confirmation' => 'Str0ng!Pass',
+            'terms' => true,
         ])->assertSessionHasErrors('token');
 
         $this->assertSame('invited', $user->fresh()->status);

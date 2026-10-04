@@ -22,14 +22,14 @@
     'school-head' => [
       'console' => 'School Head Console', 'crumb' => 'School Head', 'user' => 'J. Aquino', 'userSub' => 'School Head · San Isidro ES',
       'greet' => 'Good morning, Ma’am Aquino', 'sub' => '18 teachers · 6 lesson plans for checking · 2 confirmations',
-      'kpis' => [['Teachers','18','2 need support',0],['Observations','24','▲ 5 this term',1],['Avg COT','5.0 / 7.0','▲ 0.3 vs last term',1],['For checking','6','lesson plans waiting',0]],
+      'kpis' => [['Teachers','18','2 need support',0],['Observations','24','▲ 5 this term',1],['Avg COT','5.0 / 6.0','▲ 0.3 vs last term',1],['For checking','6','lesson plans waiting',0]],
       'panel' => 'Attention queue · lesson plans & confirmations', 'panelHint' => 'DLL review · scheduled observations',
       'rows' => [['R. Dela Cruz','Teacher III · Science','Sep 24','5.4','Rating'],['M. Santos','Teacher II · English','Sep 22','5.8','Finalized'],['J. Ramos','Teacher I · Math','Sep 19','4.1','Finalized'],['L. Torres','Teacher I · Filipino','Sep 17','—','Scheduled']],
     ],
     'teacher' => [
       'console' => 'Teacher Portfolio', 'crumb' => 'Teacher', 'user' => 'R. Dela Cruz', 'userSub' => 'Teacher III · Science 7',
       'greet' => 'Good morning, R. Dela Cruz — keep growing', 'sub' => '3 completed · 1 scheduled · avg 5.4',
-      'kpis' => [['Total cycles','4','3 done · 1 active',0],['Avg COT','5.4 / 7.0','▲ 0.4 growth',1],['Completed','3 / 4','75% portfolio',0],['Scheduled','1','1 needs confirmation',0]],
+      'kpis' => [['Total cycles','4','3 done · 1 active',0],['Avg COT','5.4 / 6.0','▲ 0.4 growth',1],['Completed','3 / 4','75% portfolio',0],['Scheduled','1','1 needs confirmation',0]],
       'panel' => 'My cycle · Sep 26 observation', 'panelHint' => 'Science 7 · observer M. Santiago',
       'rows' => [['My COT 04','COT-RPMS · Science','Sep 24','5.4','Rating'],['My COT 03','COT-RPMS · Science','Aug 28','5.1','Finalized'],['My COT 02','COT-RPMS · Science','Jun 12','4.9','Finalized'],['My COT 01','COT-RPMS · Science','Mar 03','4.6','Finalized']],
     ],
