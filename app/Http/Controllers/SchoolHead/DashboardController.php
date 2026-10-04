@@ -111,10 +111,16 @@ class DashboardController extends Controller
             'trend' => $trend,
         ];
 
+        // Rating scale ceiling for this school's teachers.
+        // Teacher I-III => 6.00, Teacher IV-VII => 7.00, Master Teacher => 8.00.
+        // Derived from the school's scored observations (most common instrument
+        // ceiling), falling back to the teachers' career stages. Defaults to 6.
+        $scaleMax = $this->schoolScaleMax($schoolId, $teachers);
+
         return view('school-head.dashboard', compact(
             'user', 'schoolHead', 'attention', 'teacherRows', 'rubricScoring',
             'cotTrend', 'cotLabels', 'coaching', 'dll', 'quickStats',
-            'quarter', 'schoolYear', 'teacherFolders'
+            'quarter', 'schoolYear', 'teacherFolders', 'scaleMax'
         ));
     }
 
@@ -392,5 +398,51 @@ class DashboardController extends Controller
             in_array($month, [12, 1, 2], true) => 3,
             default => 4,
         };
+    }
+
+    /**
+     * Rating scale ceiling for the school's teachers (6/7/8).
+     * Prefers the most common instrument ceiling among the school's scored
+     * observations, then the most common career-stage mapping. Defaults to 6
+     * (Teacher I-III) so the dashboard never shows 7.0 for a 6-point school.
+     */
+    protected function schoolScaleMax(?int $schoolId, $teachers): int
+    {
+        if ($schoolId) {
+            $maxes = Observation::query()
+                ->whereHasMorph('observee', [Teacher::class], fn ($q) => $q->where('school_id', $schoolId))
+                ->whereNotNull('overall_score')
+                ->with('cotIndicatorVersion')
+                ->take(200)
+                ->get()
+                ->map(fn ($o) => (int) $o->ratingScaleMax())
+                ->filter(fn ($v) => $v >= 5 && $v <= 8);
+
+            if ($maxes->isNotEmpty()) {
+                $counts = array_count_values($maxes->all());
+                arsort($counts);
+
+                return (int) array_key_first($counts);
+            }
+        }
+
+        $stages = collect($teachers ?? [])
+            ->pluck('career_stage')
+            ->filter()
+            ->values();
+
+        if ($stages->isNotEmpty()) {
+            $counts = array_count_values($stages->all());
+            arsort($counts);
+            $top = (string) array_key_first($counts);
+
+            return match ($top) {
+                'teacher_iv_vii' => 7,
+                'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                default => 6,
+            };
+        }
+
+        return 6;
     }
 }

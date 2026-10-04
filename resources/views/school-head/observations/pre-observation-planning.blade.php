@@ -268,8 +268,10 @@
                 </div>
 
                 <div id="modify-ai-container" class="hidden mt-3 space-y-3">
-                    <textarea id="modify-ai-textarea" rows="6"
-                              class="w-full px-3 py-2 rounded-lg border border-amber-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">{{ $planning?->insightsText() }}</textarea>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Edit each section separately, then apply to refresh the organized preview.</p>
+                    <div id="modify-editors-slot" class="space-y-3">
+                        @include('partials.ai-insights-editors', ['sections' => $planning ? $planning->insightsSections() : []])
+                    </div>
                     <div class="flex gap-2">
                         <button type="button" onclick="applyModifiedInsights()"
                                 class="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors">Apply Modified</button>
@@ -469,6 +471,7 @@
 @push('scripts')
 @include('partials.ai-notice')
 @include('partials.ai-loading-state')
+@include('partials.ai-insights-sections-js')
 <script>
 function requestLessonPlan(btn) {
     btn.disabled = true;
@@ -511,12 +514,19 @@ function renderInsightsCard(text) {
         container.appendChild(existing);
     }
     existing.className = 'bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-xl p-5 border border-purple-100 dark:border-purple-900/40';
-    existing.innerHTML = '<div class="flex items-center gap-2 mb-3"><div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div><span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Suggestions Ready</span></div><div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed" id="ai-insights-text"></div>';
-    existing.querySelector('#ai-insights-text').textContent = text;
+    existing.innerHTML = '<div class="flex items-center gap-2 mb-3"><div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div><span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Suggestions Ready</span></div><div id="ai-insights-text"></div>';
+    var preview = existing.querySelector('#ai-insights-text');
+    if (window.AiInsightsSections) {
+        var split = window.AiInsightsSections.split(text);
+        preview.innerHTML = window.AiInsightsSections.renderPreview(split.sections);
+        var slot = document.getElementById('modify-editors-slot');
+        if (slot) slot.innerHTML = window.AiInsightsSections.renderEditors(split.sections);
+    } else {
+        preview.className = 'text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed';
+        preview.textContent = text;
+    }
     document.getElementById('clear-ai-insights-btn')?.classList.remove('hidden');
     document.getElementById('ai-action-buttons')?.classList.remove('hidden');
-    var ta = document.getElementById('modify-ai-textarea');
-    if (ta) ta.value = text;
 }
 
 function restoreBtn() {
@@ -639,22 +649,24 @@ function hideAiActionButtons() {
 }
 
 function modifyAiInsights() {
-    var textEl = document.getElementById('ai-insights-text');
-    var ta = document.getElementById('modify-ai-textarea');
-    if (ta && textEl) ta.value = (textEl.textContent || textEl.innerText || '').trim();
     document.getElementById('ai-action-buttons')?.classList.add('hidden');
     document.getElementById('modify-ai-container')?.classList.remove('hidden');
-    ta?.focus();
+    var first = document.querySelector('#modify-ai-container textarea');
+    if (first) {
+        document.getElementById('modify-ai-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.focus();
+    }
 }
 
 function applyModifiedInsights() {
-    var modified = document.getElementById('modify-ai-textarea').value;
-    var textEl = document.getElementById('ai-insights-text');
-    if (textEl) {
-        textEl.className = 'text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed';
-        textEl.textContent = modified;
+    var container = document.getElementById('modify-ai-container');
+    var sections = window.AiInsightsSections ? window.AiInsightsSections.collectFrom(container) : {};
+    var markdown = window.AiInsightsSections ? window.AiInsightsSections.toMarkdown(sections) : '';
+    var preview = document.getElementById('ai-insights-text');
+    if (preview && window.AiInsightsSections) {
+        preview.innerHTML = window.AiInsightsSections.renderPreview(sections);
     }
-    document.getElementById('ai_insights_input').value = modified;
+    document.getElementById('ai_insights_input').value = markdown;
     showAiActionButtons();
     showToast('Modified insights will be applied to this lesson plan.');
 }

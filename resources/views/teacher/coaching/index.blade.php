@@ -27,7 +27,6 @@
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
     <!-- Header -->
-    <x-page-header title="Improvement Plan" subtitle="Coaching agreements and action plans from your observations." />
 
     @if($agreements->isEmpty())
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">

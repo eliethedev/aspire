@@ -97,7 +97,7 @@
                             </td>
                             <td class="px-3 py-3">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $supervisor->status === 'active' ? 'bg-green-50 dark:bg-green-900/200 dark:text-dark' : 'bg-slate-500 text-dark' }}">
+                                    {{ $supervisor->status === 'active' ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 ring-1 ring-green-200 dark:ring-green-500/20' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-gray-700' }}">
                                     {{ $supervisor->status }}
                                 </span>
                             </td>

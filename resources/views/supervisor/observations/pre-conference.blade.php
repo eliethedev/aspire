@@ -132,9 +132,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @if($planning->lesson_plan_file)
                             <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                                <span class="text-xs text-gray-500 dark:text-dark uppercase tracking-wider font-medium">Lesson Plan</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">Lesson Plan</span>
                                 <div class="mt-1 flex items-center justify-between">
-                                    <span class="text-sm text-gray-700 dark:text-dark truncate min-w-0">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</span>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300 truncate min-w-0">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</span>
                                     <a href="{{ asset('storage/' . $planning->lesson_plan_file) }}" target="_blank" class="text-sm text-blue-600 hover:text-blue-700 font-medium shrink-0 ml-2">View</a>
                                 </div>
                             </div>
@@ -476,6 +476,7 @@
 @push('scripts')
 @include('partials.ai-notice')
 @include('partials.ai-loading-state')
+@include('partials.ai-insights-sections-js')
 <script>
 // ===================== AI Insights Actions =====================
 
@@ -498,11 +499,13 @@ function modifyAiInsights() {
 }
 
 function applyModifiedInsights() {
-    var modified = document.getElementById('modify-ai-textarea').value;
-    var textEl = document.getElementById('ai-insights-text');
-    if (textEl) textEl.textContent = modified;
+    var container = document.getElementById('modify-ai-container');
+    var sections = window.AiInsightsSections ? window.AiInsightsSections.collectFrom(container) : {};
+    var markdown = window.AiInsightsSections ? window.AiInsightsSections.toMarkdown(sections) : '';
+    var preview = document.getElementById('ai-insights-text');
+    if (preview && window.AiInsightsSections) preview.innerHTML = window.AiInsightsSections.renderPreview(sections);
     var ts = document.getElementById('teaching_strategies');
-    if (ts) ts.value = modified;
+    if (ts) ts.value = markdown;
     document.getElementById('ai_insights_reviewed_input').value = '1';
     document.getElementById('modify-ai-container').classList.add('hidden');
     document.getElementById('ai-action-buttons').classList.remove('hidden');

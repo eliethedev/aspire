@@ -72,7 +72,7 @@
       </div>
       <div class="mock-kpi">
         <label>Average teaching score</label>
-        <div class="val">{{ number_format((float) $stats['average_score'], 1) }} <small>/ 7.0</small></div>
+        <div class="val">{{ number_format((float) $stats['average_score'], 2) }} <small>/ {{ number_format((float) ($scaleMax ?? 6), 2) }}</small></div>
         <div class="delta {{ $trend > 0 ? 'mock-up' : ($trend < 0 ? 'mock-down' : 'mock-flat') }}">{{ $trend > 0 ? '▲' : ($trend < 0 ? '▼' : '●') }} {{ $trendLabel }} since last time</div>
       </div>
       <div class="mock-kpi">
@@ -108,7 +108,7 @@
                     ? 'Done · ' . $preRecord->conference_date->format('M d, Y')
                     : ($preRecord ? 'Notes saved · ' . ($preRecord->updated_at?->format('M d · H:i') ?? '') : ($state === 'done' ? 'Done · ' . ($focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after lesson planning'))),
                   'observation' => $ratingCount > 0
-                    ? $ratingCount . ' indicators scored' . ($focus->overall_score !== null ? ' · score ' . number_format((float) $focus->overall_score, 1) : '')
+                    ? $ratingCount . ' indicators scored' . ($focus->overall_score !== null ? ' · score ' . number_format((float) $focus->overall_score, 2) . ' / ' . number_format((float) ($focus?->ratingScaleMax() ?? ($scaleMax ?? 6)), 2) : '')
                     : ($state === 'now' ? 'In progress · ' . ($plannedOn ?? 'no date set') . ' · ' . ($focus->subject ?? '—') : ($state === 'done' ? 'Done · ' . ($plannedOn ?? $focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after the short chat'))),
                   'post_conference' => $postRecord?->conference_date
                     ? 'Done · ' . $postRecord->conference_date->format('M d, Y')
@@ -234,7 +234,7 @@
             <div class="mock-kv"><dt>Step</dt><dd>{{ $focus ? ucwords(str_replace('_', ' ', $focus->stage ?? '')) : '—' }}</dd></div>
             <div class="mock-kv"><dt>Date</dt><dd>{{ $focus?->observation_date?->format('M d, Y') ?? '—' }}</dd></div>
             <div class="mock-kv"><dt>Status</dt><dd>{{ $focus ? ucwords(str_replace('_', ' ', $focus->status)) : '—' }}</dd></div>
-            <div class="mock-kv"><dt>Score</dt><dd>{{ $focus?->overall_score !== null ? number_format((float) $focus->overall_score, 1) . ' / 7.0' . ($ratingCount > 0 ? ' · ' . $ratingCount . ' scored' : '') : 'Not scored yet' }}</dd></div>
+            <div class="mock-kv"><dt>Score</dt><dd>{{ $focus?->overall_score !== null ? number_format((float) $focus->overall_score, 2) . ' / ' . number_format((float) ($focus?->ratingScaleMax() ?? ($scaleMax ?? 6)), 2) . ((($ratingCount ?? 0) > 0) ? ' · ' . ($ratingCount ?? 0) . ' scored' : '') : 'Not scored yet' }}</dd></div>
             <div class="mock-kv"><dt>Teacher</dt><dd>{{ $focusName }}</dd></div>
           </dl>
         </div>

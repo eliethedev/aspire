@@ -56,6 +56,11 @@ class PreObservationPlanning extends Model
      * Parse the AI insights markdown into organized sections.
      * Returns ['lesson_focus' => string, 'key_things_to_watch' => [...], ...] etc.
      * Falls back to a single 'raw' entry when it can't be parsed.
+     *
+     * Tolerant of real-world output shapes: `##` headings, **bold** headings,
+     * numbered headings ("1. Lesson Focus"), trailing colons, inline
+     * "**Heading:** content" lines, and the offline-fallback heading set
+     * ("Key Focus Areas", "Teaching Strategies to Observe", ...).
      */
     public function insightsSections(): array
     {
@@ -74,10 +79,21 @@ class PreObservationPlanning extends Model
 
         $headingKeys = [
             'lesson focus' => 'lesson_focus',
+            'lesson plan goals & focus' => 'lesson_focus',
+            'lesson plan goals and focus' => 'lesson_focus',
             'key things to watch' => 'key_things_to_watch',
+            'key focus areas' => 'key_things_to_watch',
+            'teaching strategies to observe' => 'key_things_to_watch',
+            'teaching strategies' => 'key_things_to_watch',
+            'materials & resources' => 'key_things_to_watch',
+            'materials and resources' => 'key_things_to_watch',
+            'assessment methods' => 'key_things_to_watch',
             'conference talking points' => 'conference_talking_points',
             'pre conference talking points' => 'conference_talking_points',
+            'pre conference discussion points' => 'conference_talking_points',
             'potential challenges' => 'potential_challenges',
+            'lesson plan completeness' => 'potential_challenges',
+            'lesson plan note' => 'potential_challenges',
         ];
 
         $lines = preg_split('/\R/u', $text);
@@ -85,16 +101,21 @@ class PreObservationPlanning extends Model
 
         foreach ($lines as $line) {
             $line = trim($line);
-            if ($line === '') {
+            if ($line === '' || $line === '---' || $line === '***') {
                 continue;
             }
 
-            $heading = strtolower(preg_replace('/^#{1,6}\s*/', '', $line));
-            $heading = rtrim($heading, ':');
-            $heading = str_replace(['_', '-'], ' ', $heading);
+            // Skip the fallback title line ("Pre-Observation Insights for <name>").
+            if (preg_match('/^(\*\*|__)?pre[\s\-_]*observation insights for\b/i', $line)) {
+                continue;
+            }
 
-            if (isset($headingKeys[$heading])) {
-                $current = $headingKeys[$heading];
+            [$isHeading, $key, $inline] = $this->matchInsightHeading($line, $headingKeys);
+            if ($isHeading) {
+                $current = $key;
+                if ($inline !== '') {
+                    $sections[$current][] = $inline;
+                }
                 continue;
             }
 
@@ -114,11 +135,20 @@ class PreObservationPlanning extends Model
             }
 
             if ($key === 'lesson_focus') {
-                $result[$key] = $this->stripInlineMarkdown(implode(' ', $content));
-            } else {
-                $result[$key] = $this->reduceToItems($content);
+                $cleaned = array_map(
+                    fn ($line) => $this->stripInlineMarkdown(trim((string) preg_replace('/^(\d+[.)]\s*|[-*•]\s*)+/u', '', trim($line)))),
+                    $content
+                );
+                $cleaned = array_values(array_filter($cleaned, fn ($line) => $line !== ''));
+                if ($cleaned !== []) {
+                    $result[$key] = implode(' ', $cleaned);
+                    $parsed = true;
+                    continue;
+                }
+                continue;
             }
-            $parsed = true;
+                $result[$key] = $this->reduceToItems($content);
+                $parsed = true;
         }
 
         if (! $parsed) {
@@ -128,11 +158,65 @@ class PreObservationPlanning extends Model
         return $result;
     }
 
+    /**
+     * Check whether a line is a section heading.
+     * Returns [isHeading, sectionKey, inlineContent].
+     */
+    protected function matchInsightHeading(string $line, array $headingKeys): array
+    {
+        $candidate = $line;
+
+        // Split "**Heading:** inline content" — only when the head part is a
+        // known section so body sentences containing colons are left alone.
+        if (str_contains($candidate, ':')) {
+            [$maybeHead, $rest] = explode(':', $candidate, 2);
+            $normHead = $this->normalizeInsightHeading($maybeHead);
+            if (isset($headingKeys[$normHead])) {
+                $rest = trim($rest, "*`_ \t\n\r\0\x0B");
+                $rest = trim((string) preg_replace('/^(\d+[.)]\s*|[-*•]\s*)+/u', '', $rest));
+                if ($rest !== '') {
+                    $rest = $this->stripInlineMarkdown($rest);
+                }
+
+                return [true, $headingKeys[$normHead], $rest];
+            }
+        }
+
+        $norm = $this->normalizeInsightHeading($candidate);
+        if (isset($headingKeys[$norm])) {
+            return [true, $headingKeys[$norm], ''];
+        }
+
+        return [false, null, ''];
+    }
+
+    /**
+     * Normalize a heading for lookup: drop markdown/number/bullet markers,
+     * trailing colons, and punctuation quirks.
+     */
+    protected function normalizeInsightHeading(string $text): string
+    {
+        $text = trim($text);
+        $text = (string) preg_replace('/^#{1,6}\s*/u', '', $text);
+        $text = (string) preg_replace('/^(\d+[.)]\s*|[-*•]\s*)+/u', '', $text);
+        // Strip surrounding emphasis markers (**bold**, __bold__, `code`).
+        // trim() removes them one char at a time from each end, so both
+        // "**Heading**" and the "**Heading*" fragment left by a colon-split
+        // (from "**Heading:** content") normalize cleanly.
+        $text = trim($text, "*`_ \t\n\r\0\x0B");
+        $text = rtrim($text, ':');
+        $text = trim($text, "*`_ \t\n\r\0\x0B");
+        $text = str_replace(['_', '-', '—', '–'], ' ', $text);
+        $text = (string) preg_replace('/\s+/', ' ', $text);
+
+        return strtolower($text);
+    }
+
     protected function reduceToItems(array $lines): array
     {
         $items = [];
         foreach ($lines as $line) {
-            $line = trim(preg_replace('/^[-*•]\s*/', '', $line));
+            $line = trim((string) preg_replace('/^(\d+[.)]\s*|[-*•]\s*)/u', '', trim($line)));
             if ($line !== '') {
                 $items[] = $this->stripInlineMarkdown($line);
             }

@@ -1402,6 +1402,49 @@ class ObservationController extends Controller
     }
 
     /**
+     * Per-field AI suggestions for the "Things to Think About" boxes.
+     * Advisory only: the school head reviews and applies each suggestion.
+     * Mirrors the supervisor endpoint so both roles share the same UI.
+     */
+    public function generateThingsSuggestions(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $validated = $request->validate([
+            'field' => ['required', 'in:teaching_strategies,instructional_materials,assessment_activity'],
+        ]);
+
+        try {
+            $data = $this->aiFeedback->generateThingsToThinkAbout($observation, $validated['field'], templateFallback: true);
+        } catch (\App\AI\Exceptions\AIRateLimitException $e) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation', $e), 429);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        if ($data === null || empty($data['suggestions'])) {
+            return response()->json(\App\AI\Support\AIStatus::unavailable('pre_observation'), 503);
+        }
+
+        app(AuditLogService::class)->logAi(
+            'things_suggestions_generated',
+            "Things-to-think-about AI suggestions ({$validated['field']}) generated for observation #{$observation->id}",
+            (string) $observation->id,
+            'success',
+            ['type' => 'pre_conference', 'field' => $validated['field'], 'observation_id' => $observation->id],
+        );
+
+        return response()->json([
+            'field' => $validated['field'],
+            'suggestions' => array_values($data['suggestions']),
+            'analysis' => $data['analysis'] ?? '',
+            'fallback' => (bool) ($data['fallback'] ?? false),
+        ]);
+    }
+
+    /**
      * Download Post-Observation Report.
      */
     public function downloadReport(Observation $observation)

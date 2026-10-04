@@ -10,6 +10,29 @@
         <div class="mock-crumbs">School Head <span>/</span> <b>Coaching</b></div>
         <span class="mock-pill"><span class="pulse"></span>{{ ucfirst($agreement->status) }}</span>
         <div class="mock-actions">
+            @php $isOwner = (int) $agreement->supervisor_id === (int) auth()->id(); @endphp
+            @if($isOwner && $agreement->isDraft())
+                <a class="mock-btn" href="{{ route('school-head.coaching.edit', $agreement) }}">Edit</a>
+                <form method="POST" action="{{ route('school-head.coaching.destroy', $agreement) }}" class="inline" onsubmit="return confirm('Delete this agreement?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="mock-btn">Delete</button>
+                </form>
+            @endif
+            @if($isOwner && $agreement->canComplete())
+                <form method="POST" action="{{ route('school-head.coaching.complete', $agreement) }}" class="inline" onsubmit="return confirm('Mark this improvement plan as completed?')">
+                    @csrf
+                    <button type="submit" class="mock-btn primary">Mark Completed</button>
+                </form>
+            @endif
+            @if($isOwner && $agreement->isCompleted())
+                <form method="POST" action="{{ route('school-head.coaching.reopen', $agreement) }}" class="inline">
+                    @csrf
+                    <button type="submit" class="mock-btn">Reopen</button>
+                </form>
+            @endif
+            @if($isOwner)
+                <a class="mock-btn" href="{{ route('school-head.coaching.export', $agreement) }}">Export</a>
+            @endif
             <a class="mock-btn" href="{{ route('school-head.coaching.index') }}">Back to Coaching Agreements</a>
         </div>
     </div>
@@ -138,6 +161,34 @@
                 Signed by Supervisor on {{ \Carbon\Carbon::parse($agreement->supervisor_signed_at)->format('M d, Y') }}
             </div>
             @endif
+        </div>
+        @endif
+
+        @if($isOwner && !$agreement->supervisor_signed_at && !$agreement->isCompleted())
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6" x-data="{ showForm: false }">
+            <button @click="showForm = !showForm" type="button"
+                    class="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                Sign as School Head
+            </button>
+            <form method="POST" action="{{ route('school-head.coaching.sign', $agreement) }}" x-show="showForm" x-cloak class="mt-4 space-y-4"
+                  x-data="{ signing: false }" x-on:submit="signing = true">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Type your full name to sign</label>
+                    <input type="text" name="signature"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                           placeholder="Type your name as signature" required>
+                    @error('signature')
+                        <p class="text-xs text-red-500 dark:text-red-400 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <button type="submit" :disabled="signing"
+                        :class="signing ? 'opacity-60 cursor-not-allowed' : ''"
+                        class="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                    <span x-show="!signing">Confirm Signature</span>
+                    <span x-show="signing">Signing...</span>
+                </button>
+            </form>
         </div>
         @endif
     </div>

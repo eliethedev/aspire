@@ -70,6 +70,30 @@ class CoachingAgreement extends Model
         return $this->teacher_signed_at !== null && $this->supervisor_signed_at !== null;
     }
 
+    /**
+     * Whether the plan can be marked completed (active implies fully signed).
+     */
+    public function canComplete(): bool
+    {
+        return $this->status === 'active' && $this->isFullySigned();
+    }
+
+    /**
+     * Mark the plan completed. Only call after canComplete().
+     */
+    public function complete(): void
+    {
+        $this->update(['status' => 'completed']);
+    }
+
+    /**
+     * Reopen a completed plan back to active for further follow-up.
+     */
+    public function reopen(): void
+    {
+        $this->update(['status' => 'active']);
+    }
+
     public function statusBadgeClass(): string
     {
         return match ($this->status) {

@@ -18,8 +18,6 @@
         </div>
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
-    <x-page-header title="Career Advancement Approvals" subtitle="Review and approve supervisor recommendations for teacher career advancements." />
-
     <!-- Tabs -->
     <div class="flex items-center gap-2 mb-5">
         <a href="{{ route('school-head.career.advancements.index', ['tab' => 'pending']) }}"

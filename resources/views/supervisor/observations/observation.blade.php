@@ -209,6 +209,12 @@
                                         <div class="flex items-start gap-2 max-md:items-center">
                                             <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5 max-md:mt-0">{{ $indicator['code'] }}</span>
                                             <span class="text-gray-800 dark:text-gray-200 text-sm leading-relaxed max-md:text-[15px] max-md:flex-1 max-md:min-w-0">{{ $indicator['description'] }}</span>
+                                            <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
+                                                    class="comment-toggle shrink-0 mt-0.5 max-md:hidden inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                                    title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                                <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
+                                            </button>
                                         </div>
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator_code]" value="{{ $indicator['code'] }}">
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][domain]" value="{{ $indicator['domain'] }}">
@@ -238,7 +244,7 @@
                                             N/A
                                         </button>
                                     </td>
-                                    <td class="hidden md:table-cell max-md:block max-md:basis-full max-md:order-4 max-md:p-0 max-md:min-w-0">
+                                    <td class="md:hidden max-md:block max-md:basis-full max-md:order-4 max-md:p-0 max-md:min-w-0">
                                         <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
                                                 class="comment-toggle flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 px-1 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
                                                 title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">

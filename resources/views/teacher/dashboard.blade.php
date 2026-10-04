@@ -10,9 +10,10 @@
   $firstName = explode(' ', trim($user->name ?? ''))[0] ?? 'Teacher';
   $focus = $focusObservation ?? $nextObservation ?? $recentObservation;
   $trendLabel = ($trend > 0 ? '+' : '') . number_format((float) $trend, 1);
-  $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-  $stageTitles = ['Lesson planning', 'Chat before class', 'Classroom visit', 'Chat after class'];
-  $focusStageIdx = $focus ? array_search($focus->stage, $stageKeys) : false;
+  $stageKeys = ['pre_observation', 'observation', 'post_observation'];
+  $stageTitles = ['Pre-Observation', 'Observation', 'Post Observation'];
+  $stageGroupMap = ['pre_observation_planning' => 0, 'pre_conference' => 0, 'observation' => 1, 'post_conference' => 2];
+  $focusStageIdx = ($focus && isset($stageGroupMap[$focus->stage])) ? $stageGroupMap[$focus->stage] : false;
   $focusStepTitle = ($focusStageIdx !== false && $focusStageIdx !== null) ? $stageTitles[$focusStageIdx] : null;
   $activeObs = $observations->whereIn('status', ['scheduled', 'in_progress'])->values();
   $doneObs = $observations->where('status', 'completed')->values();
@@ -47,7 +48,7 @@
     </div>
     <div class="mock-kpi">
       <label>My average score</label>
-      <div class="val">{{ number_format((float) $stats['average_cot_score'], 1) }} <small>/ 7.0</small></div>
+      <div class="val">{{ number_format((float) $stats['average_cot_score'], 2) }} <small>/ {{ number_format((float) ($scaleMax ?? 6), 2) }}</small></div>
       <div class="delta {{ $trend > 0 ? 'mock-up' : ($trend < 0 ? 'mock-down' : 'mock-flat') }}">{{ $trend != 0 ? ($trend > 0 ? '▲ ' : '▼ ') . $trendLabel . ' since last time' : '● No trend yet' }}</div>
     </div>
     <div class="mock-kpi">
@@ -184,7 +185,7 @@
         <div class="mock-mod-head"><h3>At a glance</h3><span class="tick {{ $stats['pending_confirmation'] > 0 ? 'warn' : '' }}"></span></div>
         <div class="mock-mod-body">
           <div class="mock-insight"><div><b>Portfolio progress</b><span>{{ $stats['completed'] }} of {{ $stats['total'] }} reviews finished</span><div class="mock-bar"><i style="width:{{ $completion }}%"></i></div></div></div>
-          <div class="mock-insight"><div><b>Average rating</b><span>{{ number_format((float) $stats['average_cot_score'], 1) }} / 7.0 · {{ $trendLabel }} since last time</span></div></div>
+          <div class="mock-insight"><div><b>Average rating</b><span>{{ number_format((float) $stats['average_cot_score'], 2) }} / {{ number_format((float) ($scaleMax ?? 6), 2) }} · {{ $trendLabel }} since last time</span></div></div>
           <div class="mock-insight"><div><b>Confirmations</b><span>{{ $stats['pending_confirmation'] }} scheduled reviews need your reply</span></div></div>
         </div>
       </div>
@@ -230,6 +231,6 @@
 </div>
 @if(count($cotScores) > 0)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>(function(){const el=document.getElementById('growthChart');if(!el)return;const dark=document.documentElement.classList.contains('dark');new Chart(el.getContext('2d'),{type:'line',data:{labels:{!! json_encode($cotLabels) !!},datasets:[{data:{!! json_encode($cotScores) !!},borderColor:'#2f81f7',backgroundColor:'rgba(47,129,247,.10)',fill:true,tension:.38,pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:7,ticks:{stepSize:1,color:dark?'#8b949e':'#64748b'}},x:{grid:{display:false},ticks:{color:dark?'#8b949e':'#64748b'}}}}});})();</script>
+<script>(function(){const el=document.getElementById('growthChart');if(!el)return;const dark=document.documentElement.classList.contains('dark');new Chart(el.getContext('2d'),{type:'line',data:{labels:{!! json_encode($cotLabels) !!},datasets:[{data:{!! json_encode($cotScores) !!},borderColor:'#2f81f7',backgroundColor:'rgba(47,129,247,.10)',fill:true,tension:.38,pointRadius:4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:{{ (int) ($scaleMax ?? 6) }},ticks:{stepSize:1,color:dark?'#8b949e':'#64748b'}},x:{grid:{display:false},ticks:{color:dark?'#8b949e':'#64748b'}}}}});})();</script>
 @endif
 @endsection

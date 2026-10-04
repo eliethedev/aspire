@@ -199,6 +199,22 @@ class Observation extends Model
     }
 
     /**
+     * Observation has many Coaching Agreements (improvement plans)
+     */
+    public function coachingAgreements(): HasMany
+    {
+        return $this->hasMany(CoachingAgreement::class);
+    }
+
+    /**
+     * The most recent Coaching Agreement for the observation, if any.
+     */
+    public function latestCoachingAgreement()
+    {
+        return $this->hasOne(CoachingAgreement::class)->latestOfMany();
+    }
+
+    /**
      * Observation has many logs
      */
     public function logs()

@@ -20,6 +20,10 @@
     .indicator-row.selected { background-color: #eef2ff; }
     .indicator-row.no-selected { background-color: #f9fafb; }
     .indicator-row.na-selected { background-color: #fffbeb; }
+    .dark .indicator-row:hover { background-color: rgba(55, 65, 81, 0.45); }
+    .dark .indicator-row.selected { background-color: rgba(67, 56, 202, 0.28); }
+    .dark .indicator-row.no-selected { background-color: rgba(55, 65, 81, 0.35); }
+    .dark .indicator-row.na-selected { background-color: rgba(146, 64, 14, 0.28); }
     .cot-table th { font-size: 0.7rem; letter-spacing: 0.05em; }
     .cot-table td, .cot-table th { vertical-align: middle; }
     .comment-toggle { transition: all 0.15s ease; cursor: pointer; }
@@ -119,7 +123,7 @@
 
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             @if($observation->isSchoolHeadObservation())
-                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
+                <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
@@ -130,7 +134,7 @@
 
                 @include('supervisor.observations.partials.epoc-form', compact('observation', 'epocEvaluation', 'schoolHead'))
             @else
-            <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white">
+           <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>
@@ -188,12 +192,12 @@
                                     <td class="px-4 py-2.5">
                                         <div class="flex items-start gap-2">
                                             <span class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded whitespace-nowrap mt-0.5">{{ $indicator['code'] }}</span>
-                                            <span class="text-gray-800 text-sm leading-relaxed">{{ $indicator['description'] }}</span>
+                                            <span class="text-gray-800 dark:text-white text-sm leading-relaxed">{{ $indicator['description'] }}</span>
                                             <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
-                                                    class="comment-toggle shrink-0 mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
-                                                    title="Add comment for this indicator">
+                                                    class="comment-toggle shrink-0 mt-0.5 max-md:hidden inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-400 border border-gray-200 hover:border-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                                    title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                                                {{ $savedComment ? 'View Comment' : 'Add Comment' }}
+                                                <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
                                             </button>
                                         </div>
                                         <input type="hidden" name="ratings[{{ $indicatorIndex }}][indicator_code]" value="{{ $indicator['code'] }}">
@@ -222,6 +226,16 @@
                                                 title="Not Applicable: indicator will not be recorded"
                                                 class="rating-btn-na w-10 h-10 rounded-lg text-[10px] font-bold border-2 {{ $savedNa ? 'active bg-amber-400 text-white border-amber-400' : 'bg-white dark:bg-gray-900 text-amber-500 dark:text-amber-400 border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20' }}">
                                             N/A
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="md:hidden">
+                                    <td colspan="{{ $ratingColspan }}" class="px-4 pb-3">
+                                        <button type="button" data-action="toggle-comment" data-index="{{ $indicatorIndex }}"
+                                                class="comment-toggle flex w-full min-h-[44px] items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 px-1 py-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300 {{ $savedComment ? 'has-comment' : '' }}"
+                                                title="Add comment for this indicator" aria-label="Add comment for indicator {{ $indicatorIndex + 1 }}">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                                            <span data-comment-label>{{ $savedComment ? 'View Comment' : 'Add Comment' }}</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -517,16 +531,15 @@
         var row = document.getElementById('comment-row-' + index);
         if (!row) return;
         var textarea = row.querySelector('textarea');
-        var btn = document.querySelector('.comment-toggle[data-index="' + index + '"]');
-        if (!textarea || !btn) return;
+        var btns = document.querySelectorAll('.comment-toggle[data-index="' + index + '"]');
+        if (!textarea || !btns.length) return;
         var hasText = textarea.value.trim().length > 0;
-        if (hasText) {
-            btn.classList.add('has-comment');
-            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> View Comment';
-        } else {
-            btn.classList.remove('has-comment');
-            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg> Add Comment';
-        }
+        btns.forEach(function (btn) {
+            btn.classList.toggle('has-comment', hasText);
+            var label = btn.querySelector('[data-comment-label]');
+            if (label) label.textContent = hasText ? 'View Comment' : 'Add Comment';
+            btn.setAttribute('aria-label', (hasText ? 'View comment for indicator ' : 'Add comment for indicator ') + (index + 1));
+        });
     }
 
     document.addEventListener('input', function(e) {

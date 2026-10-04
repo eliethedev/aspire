@@ -27,8 +27,6 @@
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
     <!-- Header -->
-    <x-page-header title="Feedback & Coaching" subtitle="View published feedback from your observations." />
-
     @if($feedbacks->isEmpty())
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
             <div class="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">

@@ -46,7 +46,7 @@
     </div>
     <div class="mock-kpi">
       <label>Average teaching score</label>
-      <div class="val">{{ number_format((float) ($quickStats['avg_score'] ?? 0), 1) }} <small>/ 7.0</small></div>
+      <div class="val">{{ number_format((float) ($quickStats['avg_score'] ?? 0), 2) }} <small>/ {{ number_format((float) ($scaleMax ?? 6), 2) }}</small></div>
       <div class="delta {{ ($quickStats['trend'] ?? 0) > 0 ? 'mock-up' : ((($quickStats['trend'] ?? 0) < 0) ? 'mock-down' : 'mock-flat') }}">{{ ($quickStats['trend'] ?? 0) > 0 ? '▲ +' : '' }}{{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} since last time</div>
     </div>
     <div class="mock-kpi">
@@ -131,7 +131,7 @@
         <div class="mock-mod-head"><h3>At a glance</h3><span class="tick {{ ($attention['total'] ?? 0) > 0 ? 'warn' : '' }}"></span></div>
         <div class="mock-mod-body">
           <div class="mock-insight"><div><b>Completion</b><span>{{ $quickStats['completed'] }} of {{ $quickStats['total'] }} reviews finished</span><div class="mock-bar"><i style="width:{{ $completion }}%"></i></div></div></div>
-          <div class="mock-insight"><div><b>Average score</b><span>{{ number_format((float) ($quickStats['avg_score'] ?? 0), 1) }} · {{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} since last time</span></div></div>
+          <div class="mock-insight"><div><b>Average score</b><span>{{ number_format((float) ($quickStats['avg_score'] ?? 0), 2) }} / {{ number_format((float) ($scaleMax ?? 6), 2) }} · {{ number_format((float) ($quickStats['trend'] ?? 0), 1) }} since last time</span></div></div>
           <div class="mock-insight"><div><b>Active coaching</b><span>{{ count($coaching['items'] ?? []) }} agreements to follow</span></div></div>
         </div>
       </div>
@@ -180,6 +180,6 @@
 </div>
 @if(count($cotTrend) > 0)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>(function(){const el=document.getElementById('cotScoreChart');if(!el)return;const dark=document.documentElement.classList.contains('dark');new Chart(el.getContext('2d'),{type:'line',data:{labels:@json($cotLabels),datasets:[{data:@json($cotTrend),borderColor:'#2f81f7',backgroundColor:'rgba(47,129,247,.10)',borderWidth:2,tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#2f81f7'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:7,ticks:{stepSize:1,color:dark?'#8b949e':'#64748b'}},x:{ticks:{color:dark?'#8b949e':'#64748b'},grid:{display:false}}}}});})();</script>
+<script>(function(){const el=document.getElementById('cotScoreChart');if(!el)return;const dark=document.documentElement.classList.contains('dark');new Chart(el.getContext('2d'),{type:'line',data:{labels:@json($cotLabels),datasets:[{data:@json($cotTrend),borderColor:'#2f81f7',backgroundColor:'rgba(47,129,247,.10)',borderWidth:2,tension:.35,fill:true,pointRadius:4,pointBackgroundColor:'#2f81f7'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:1,max:{{ (int) ($scaleMax ?? 6) }},ticks:{stepSize:1,color:dark?'#8b949e':'#64748b'}},x:{ticks:{color:dark?'#8b949e':'#64748b'},grid:{display:false}}}}});})();</script>
 @endif
 @endsection

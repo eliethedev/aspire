@@ -10,6 +10,7 @@ use App\Models\PreObservationPlanning;
 use App\Models\PreConference;
 use App\Models\PostConference;
 use App\Models\AiFeedback;
+use App\Services\CotIndicatorService;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -96,31 +97,37 @@ class DashboardController extends Controller
             $focusObservation->loadCount('cotRatings');
         }
 
+        // "My review" workflow: 3 teacher-facing phases — Pre-Observation
+        // (lesson planning + pre-conference chat), Observation (classroom
+        // visit), Post Observation (feedback + next steps). Completion is
+        // based on the focus observation only.
+        $hasPlanning = $focusObservation && (bool) $focusObservation->preObservationPlanning;
+        $hasPreConference = $focusObservation && (bool) $focusObservation->preConference;
+        $hasRatings = $focusObservation && ($focusObservation->cot_ratings_count ?? 0) > 0;
+        $hasPostConference = $focusObservation && (bool) $focusObservation->postConference;
+
         $stageLabels = [
-            'pre_observation_planning' => 'Lesson planning',
-            'pre_conference' => 'Chat before class',
-            'observation' => 'Classroom visit',
-            'post_conference' => 'Chat after class',
+            'pre_observation' => 'Pre-Observation',
+            'observation' => 'Observation',
+            'post_observation' => 'Post Observation',
+        ];
+
+        $stageIcons = [
+            'pre_observation' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            'observation' => 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+            'post_observation' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+        ];
+
+        $stageDone = [
+            'pre_observation' => $hasPlanning && $hasPreConference,
+            'observation' => $hasRatings,
+            'post_observation' => $hasPostConference,
         ];
 
         $stageStatus = [];
-        $stageIcons = [
-            'pre_observation_planning' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-            'pre_conference' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
-            'observation' => 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
-            'post_conference' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-        ];
-
         foreach ($stageLabels as $key => $label) {
-            // Stage completion is based on the focus observation only.
-            $done = match ($key) {
-                'pre_observation_planning' => $focusObservation && (bool) $focusObservation->preObservationPlanning,
-                'pre_conference' => $focusObservation && (bool) $focusObservation->preConference,
-                'post_conference' => $focusObservation && (bool) $focusObservation->postConference,
-                default => $focusObservation && ($focusObservation->cot_ratings_count ?? 0) > 0,
-            };
             $stageStatus[$key] = [
-                'done' => $done,
+                'done' => $stageDone[$key],
                 'label' => $label,
                 'icon' => $stageIcons[$key],
             ];
@@ -129,9 +136,36 @@ class DashboardController extends Controller
         // Observation groups: the teacher's own observation files, newest first.
         $observations = $obs->sortByDesc(fn ($o) => $o->observation_date?->timestamp ?? 0)->values();
 
+        // Rating scale ceiling for this teacher's instrument.
+        // Teacher I-III => 6.00, Teacher IV-VII => 7.00, Master Teacher => 8.00.
+        // Resolved from the teacher's pinned COT version so the dashboard
+        // denominator never shows 7.0 for a 6-point teacher.
+        $scaleMax = 6;
+        $scaleMin = 2;
+        try {
+            $version = app(CotIndicatorService::class)->getVersionForObservee($teacher);
+            $keys = array_keys($version['rating_scale'] ?? []);
+            if ($keys !== []) {
+                $scaleMax = (int) max($keys);
+                $scaleMin = (int) min($keys);
+            } else {
+                $scaleMax = match ($teacher->career_stage) {
+                    'teacher_iv_vii' => 7,
+                    'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                    default => 6,
+                };
+            }
+        } catch (\Throwable) {
+            $scaleMax = match ($teacher->career_stage) {
+                'teacher_iv_vii' => 7,
+                'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                default => 6,
+            };
+        }
+
         return view('teacher.dashboard', compact(
             'stats', 'recentObservation', 'nextObservation', 'focusObservation', 'cotScores', 'cotLabels',
-            'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus', 'observations'
+            'recentFeedback', 'latestFeedbacks', 'trend', 'stageStatus', 'observations', 'scaleMax', 'scaleMin'
         ));
     }
 
@@ -236,9 +270,33 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
+        $scaleMax = 6;
+        $scaleMin = 2;
+        try {
+            $version = app(CotIndicatorService::class)->getVersionForObservee($teacher);
+            $keys = array_keys($version['rating_scale'] ?? []);
+            if ($keys !== []) {
+                $scaleMax = (int) max($keys);
+                $scaleMin = (int) min($keys);
+            } else {
+                $scaleMax = match ($teacher->career_stage) {
+                    'teacher_iv_vii' => 7,
+                    'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                    default => 6,
+                };
+            }
+        } catch (\Throwable) {
+            $scaleMax = match ($teacher->career_stage) {
+                'teacher_iv_vii' => 7,
+                'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                default => 6,
+            };
+        }
+
         return view('teacher.analytics', compact(
             'stats', 'monthlyLabels', 'monthlyCounts', 'monthlyAverages',
-            'distribution', 'domainAverages', 'strengths', 'weaknesses', 'statusCounts'
+            'distribution', 'domainAverages', 'strengths', 'weaknesses', 'statusCounts',
+            'scaleMax', 'scaleMin'
         ));
     }
 }

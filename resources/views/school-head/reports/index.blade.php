@@ -18,8 +18,6 @@
         </div>
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
-    <x-page-header title="Analytics & Reports" subtitle="School-wide performance data and insights." />
-
     <div class="mock-kpis grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="mock-kpi bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div class="flex items-center gap-3">

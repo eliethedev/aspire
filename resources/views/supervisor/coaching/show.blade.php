@@ -16,6 +16,18 @@
                     <button type="submit" class="mock-btn">Delete</button>
                 </form>
             @endif
+            @if($agreement->canComplete())
+                <form method="POST" action="{{ route('supervisor.coaching.complete', $agreement) }}" class="inline" onsubmit="return confirm('Mark this improvement plan as completed?')">
+                    @csrf
+                    <button type="submit" class="mock-btn primary">Mark Completed</button>
+                </form>
+            @endif
+            @if($agreement->isCompleted())
+                <form method="POST" action="{{ route('supervisor.coaching.reopen', $agreement) }}" class="inline">
+                    @csrf
+                    <button type="submit" class="mock-btn">Reopen</button>
+                </form>
+            @endif
             <a class="mock-btn" href="{{ route('supervisor.coaching.export', $agreement) }}">Export</a>
             <a class="mock-btn" href="{{ route('supervisor.coaching.index') }}">Back</a>
         </div>

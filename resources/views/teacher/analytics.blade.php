@@ -65,7 +65,7 @@
                 <div>
                     <p class="text-[11px] tracking-widest uppercase font-semibold text-gray-500 dark:text-gray-400">Average COT</p>
                     <p class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ number_format($stats['average_score'], 2) }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Out of 6.00</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Out of {{ number_format((float) ($scaleMax ?? 6), 2) }}</p>
                 </div>
                 <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"><i class="fas fa-chart-column"></i></div>
             </div>
@@ -91,7 +91,7 @@
         </div>
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
             <h2 class="text-xs font-bold tracking-widest uppercase flex items-center gap-2 mb-1"><span class="w-1.5 h-5 bg-blue-600 rounded-full"></span> Average Score per Month</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">COT overall score, 2&ndash;6 scale</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 ml-3">COT overall score, {{ (int) ($scaleMin ?? 2) }}&ndash;{{ (int) ($scaleMax ?? 6) }} scale</p>
             <canvas id="scoreTrendChart" height="210"></canvas>
         </div>
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-2xl border p-6">
@@ -108,7 +108,7 @@
                         <div>
                             <div class="flex items-center justify-between gap-3 mb-1">
                                 <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ $domain['domain'] }}</p>
-                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 shrink-0">{{ number_format($domain['average'], 2) }}/6</span>
+                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 shrink-0">{{ number_format($domain['average'], 2) }}/{{ (int) ($scaleMax ?? 6) }}</span>
                             </div>
                             <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                 @php $width = max(4, min(100, round((($domain['average'] - 1) / 5) * 100))); @endphp
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
             options: {
                 responsive: true,
                 plugins: { legend: { display: false } },
-                scales: { y: { min: 0, max: 6, ticks: { stepSize: 1 } } }
+                scales: { y: { min: 0, max: {{ (int) ($scaleMax ?? 6) }}, ticks: { stepSize: 1 } } }
             }
         });
     }

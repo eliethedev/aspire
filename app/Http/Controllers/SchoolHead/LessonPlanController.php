@@ -16,7 +16,7 @@ class LessonPlanController extends Controller
         $user = Auth::user();
 
         $lessonPlans = PreObservationPlanning::with([
-                'observation.observee',
+                'observation.observee.user',
                 'observation.observer',
             ])
             ->whereHas('observation', function ($q) use ($user) {
@@ -27,8 +27,14 @@ class LessonPlanController extends Controller
             })
             ->whereNotNull('lesson_plan_file')
             ->when($request->search, function ($query, $search) {
-                $query->whereHas('observation', function ($q) use ($search) {
-                    $q->where('subject', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('observation', function ($qq) use ($search) {
+                        $qq->where('subject', 'like', "%{$search}%");
+                    })->orWhereIn('observation_id', Observation::where('observee_type', Teacher::class)
+                        ->whereHasMorph('observee', [Teacher::class], function ($qq) use ($search) {
+                            $qq->whereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%"));
+                        })
+                        ->select('id'));
                 });
             })
             ->latest()

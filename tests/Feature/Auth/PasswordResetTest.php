@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use App\Notifications\UserInvitation;
+use App\Notifications\PasswordResetEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -29,7 +29,7 @@ class PasswordResetTest extends TestCase
         $response = $this->post('/forgot-password', ['email' => $user->email]);
 
         $response->assertSessionHas('status');
-        Notification::assertSentTo($user, UserInvitation::class);
+        Notification::assertSentTo($user, PasswordResetEmail::class);
 
         $this->assertDatabaseHas('invitations', [
             'user_id' => $user->id,

@@ -131,7 +131,7 @@
             </div>
             <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Forgot Password?</h1>
             <p class="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-2">
-                Enter your registered email address and we'll send you a new invitation to reset your password.
+                Enter your registered email address and we'll send you a password reset link.
             </p>
         </div>
 
@@ -207,7 +207,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
                 <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                    For security reasons, we'll send a new invitation link to your email if it's registered in our system. This link will expire in 7 days.
+                    For security reasons, we'll send a password reset link to your email if it's registered in our system. This link will expire in 7 days.
                 </p>
             </div>
         </div>

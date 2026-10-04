@@ -819,35 +819,6 @@
                 </ul>
             </li>
 
-            <!-- School Head: School / Folders tree (live data) -->
-            <li class="mb-1 mks-hide-collapsed" data-mks-group="school folders teachers files">
-                <button x-show="!$store.sidebar.isCollapsed()" @click="foldersOpen = !foldersOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors" :aria-expanded="foldersOpen.toString()">
-                    <span>School / Folders</span>
-                    <svg class="w-3.5 h-3.5 mks-caret transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': foldersOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                <div x-show="!$store.sidebar.isCollapsed() ? foldersOpen : true" class="mks-tree space-y-0.5 mt-0.5">
-                    <div class="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
-                        <span class="truncate">{{ $mksShSchool }}</span>
-                    </div>
-                    @forelse($mksShTeachers as $ft)
-                    <a data-mks="teacher {{ strtolower($ft->user->name ?? '') }}" href="{{ route('school-head.teachers.show', $ft) }}"
-                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400">
-                        <span class="mks-file-dot" aria-hidden="true"></span>
-                        <span class="font-medium truncate">{{ $ft->user->name ?? 'Unassigned' }}</span>
-                        @if(($ft->observations_count ?? 0) > 0)<span class="mks-count-pill ml-auto shrink-0">{{ $ft->observations_count }}</span>@endif
-                    </a>
-                    @empty
-                    <p class="px-2.5 py-1.5 text-xs text-gray-400 dark:text-gray-500">No teachers assigned yet.</p>
-                    @endforelse
-                    <a data-mks="view all teachers roster" href="{{ route('school-head.teachers.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                        View all →
-                    </a>
-                </div>
-            </li>
-
             <!-- School Head: Insights & Reports folder -->
             <li class="mb-1" data-mks-group="insights ai feedback coaching analytics reports notifications">
                 <button x-show="!$store.sidebar.isCollapsed()" @click="insightsOpen = !insightsOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors mks-fbtn" :aria-expanded="insightsOpen.toString()">
@@ -860,7 +831,7 @@
 
                 <ul x-show="!$store.sidebar.isCollapsed() ? insightsOpen : true" class="space-y-0.5 mt-0.5">
                     <li>
-                        <a data-mks="ai feedback coaching" href="{{ route('school-head.feedback.index') }}"
+                        <a data-mks="ai feedback coaching" href="{{ route('school-head.feedback.list') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.feedback.*') || request()->routeIs('school-head.coaching.*') ? 'sidebar-link-active icon-feedback' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-feedback ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
@@ -902,6 +873,34 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+            <!-- School Head: School / Folders tree (live data) -->
+            <li class="mb-1 mks-hide-collapsed" data-mks-group="school folders teachers files">
+                <button x-show="!$store.sidebar.isCollapsed()" @click="foldersOpen = !foldersOpen" class="sidebar-section-header w-full px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 transition-colors" :aria-expanded="foldersOpen.toString()">
+                    <span>School / Folders</span>
+                    <svg class="w-3.5 h-3.5 mks-caret transition-transform duration-300 ease-sidebar" :class="{ 'rotate-180': foldersOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="!$store.sidebar.isCollapsed() ? foldersOpen : true" class="mks-tree space-y-0.5 mt-0.5">
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+                        <span class="truncate">{{ $mksShSchool }}</span>
+                    </div>
+                    @forelse($mksShTeachers as $ft)
+                    <a data-mks="teacher {{ strtolower($ft->user->name ?? '') }}" href="{{ route('school-head.teachers.show', $ft) }}"
+                       class="sidebar-link-hover flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-400">
+                        <span class="mks-file-dot" aria-hidden="true"></span>
+                        <span class="font-medium truncate">{{ $ft->user->name ?? 'Unassigned' }}</span>
+                        @if(($ft->observations_count ?? 0) > 0)<span class="mks-count-pill ml-auto shrink-0">{{ $ft->observations_count }}</span>@endif
+                    </a>
+                    @empty
+                    <p class="px-2.5 py-1.5 text-xs text-gray-400 dark:text-gray-500">No teachers assigned yet.</p>
+                    @endforelse
+                    <a data-mks="view all teachers roster" href="{{ route('school-head.teachers.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                        View all →
+                    </a>
+                </div>
             </li>
 
             <!-- School Head: System -->

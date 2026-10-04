@@ -6,12 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\CoachingAgreement;
 use App\Models\CotRating;
 use App\Models\Observation;
+use App\Enums\NotificationType;
 use App\Services\CoachingFocusSuggestionService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CoachingAgreementController extends Controller
 {
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -96,9 +105,9 @@ class CoachingAgreementController extends Controller
         $data = $request->validate([
             'observation_id' => 'required|exists:observations,id',
             'focus_areas' => 'nullable|array',
-            'focus_areas.*' => 'string|max:500',
+            'focus_areas.*' => 'nullable|string|max:500',
             'action_steps' => 'nullable|array',
-            'action_steps.*' => 'string|max:500',
+            'action_steps.*' => 'nullable|string|max:500',
             'resources_needed' => 'nullable|string|max:2000',
             'success_indicators' => 'nullable|string|max:2000',
             'timeline' => 'nullable|string|max:500',
@@ -110,8 +119,24 @@ class CoachingAgreementController extends Controller
         $data['teacher_id'] = $observation->observee_id;
         $data['supervisor_id'] = Auth::id();
         $data['status'] = 'draft';
+        // Drop blank dynamic rows (the form always submits at least one
+        // empty row, which the empty-string middleware turns into null).
+        $data['focus_areas'] = $this->cleanListInput($data['focus_areas'] ?? null);
+        $data['action_steps'] = $this->cleanListInput($data['action_steps'] ?? null);
 
         $agreement = CoachingAgreement::create($data);
+
+        $teacherUser = $observation->observee?->user;
+        if ($teacherUser) {
+            $this->notificationService->notify(
+                $teacherUser,
+                NotificationType::PROFESSIONAL_DEVELOPMENT,
+                'New improvement plan needs your review',
+                'Your supervisor created an improvement plan for your ' . ($observation->subject ?? 'recent') . ' observation. Please review and sign it.',
+                null,
+                route('teacher.coaching.show', $agreement),
+            );
+        }
 
         return redirect()->route('supervisor.coaching.show', $agreement)
             ->with('success', 'Coaching agreement created successfully.');
@@ -161,14 +186,17 @@ class CoachingAgreementController extends Controller
 
         $data = $request->validate([
             'focus_areas' => 'nullable|array',
-            'focus_areas.*' => 'string|max:500',
+            'focus_areas.*' => 'nullable|string|max:500',
             'action_steps' => 'nullable|array',
-            'action_steps.*' => 'string|max:500',
+            'action_steps.*' => 'nullable|string|max:500',
             'resources_needed' => 'nullable|string|max:2000',
             'success_indicators' => 'nullable|string|max:2000',
             'timeline' => 'nullable|string|max:500',
             'supervisor_notes' => 'nullable|string|max:2000',
         ]);
+
+        $data['focus_areas'] = $this->cleanListInput($data['focus_areas'] ?? $agreement->focus_areas);
+        $data['action_steps'] = $this->cleanListInput($data['action_steps'] ?? $agreement->action_steps);
 
         $agreement->update($data);
 
@@ -203,8 +231,80 @@ class CoachingAgreementController extends Controller
             $agreement->update(['status' => 'active']);
         }
 
+        $teacherUser = $agreement->teacher?->user;
+        if ($teacherUser) {
+            $this->notificationService->notify(
+                $teacherUser,
+                NotificationType::PROFESSIONAL_DEVELOPMENT,
+                'Supervisor signed your improvement plan',
+                'Your supervisor signed the improvement plan for your ' . ($agreement->observation->subject ?? 'recent') . ' observation.' . ($agreement->isFullySigned() ? ' The plan is now active.' : ''),
+                null,
+                route('teacher.coaching.show', $agreement),
+            );
+        }
+
         return redirect()->route('supervisor.coaching.show', $agreement)
             ->with('success', 'Agreement signed successfully.');
+    }
+
+    public function complete(CoachingAgreement $agreement)
+    {
+        $user = Auth::user();
+
+        if ($agreement->supervisor_id !== $user->id) {
+            abort(403);
+        }
+
+        if (! $agreement->canComplete()) {
+            return back()->with('error', 'Only an active, fully signed plan can be marked completed.');
+        }
+
+        $agreement->complete();
+
+        $teacherUser = $agreement->teacher?->user;
+        if ($teacherUser) {
+            $this->notificationService->notify(
+                $teacherUser,
+                NotificationType::PROFESSIONAL_DEVELOPMENT,
+                'Your improvement plan is completed',
+                'Your improvement plan for the ' . ($agreement->observation->subject ?? 'recent') . ' observation has been marked completed.',
+                null,
+                route('teacher.coaching.show', $agreement),
+            );
+        }
+
+        return redirect()->route('supervisor.coaching.show', $agreement)
+            ->with('success', 'Improvement plan marked as completed.');
+    }
+
+    public function reopen(CoachingAgreement $agreement)
+    {
+        $user = Auth::user();
+
+        if ($agreement->supervisor_id !== $user->id) {
+            abort(403);
+        }
+
+        if (! $agreement->isCompleted()) {
+            return back()->with('error', 'Only a completed plan can be reopened.');
+        }
+
+        $agreement->reopen();
+
+        $teacherUser = $agreement->teacher?->user;
+        if ($teacherUser) {
+            $this->notificationService->notify(
+                $teacherUser,
+                NotificationType::PROFESSIONAL_DEVELOPMENT,
+                'Your improvement plan was reopened',
+                'Your improvement plan for the ' . ($agreement->observation->subject ?? 'recent') . ' observation was reopened for further follow-up.',
+                null,
+                route('teacher.coaching.show', $agreement),
+            );
+        }
+
+        return redirect()->route('supervisor.coaching.show', $agreement)
+            ->with('success', 'Improvement plan reopened.');
     }
 
     public function export(CoachingAgreement $agreement)
@@ -289,6 +389,22 @@ class CoachingAgreementController extends Controller
 
         return redirect()->route('supervisor.coaching.index')
             ->with('success', 'Coaching agreement deleted.');
+    }
+
+    /**
+     * Strip blank dynamic rows (null/empty/whitespace) and reindex.
+     */
+    protected function cleanListInput($values): array
+    {
+        if (! is_array($values)) {
+            return [];
+        }
+
+        return collect($values)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
     }
 
     private function authorizeObservation(Observation $observation): void

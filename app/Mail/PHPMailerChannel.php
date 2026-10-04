@@ -34,6 +34,12 @@ class PHPMailerChannel
                 return $this->sendInvitationEmail($notifiable, $message, $notification);
             }
 
+            // For password reset emails (forgot-password flow), use the
+            // dedicated reset template — never the invitation copy.
+            if ($notification instanceof \App\Notifications\PasswordResetEmail) {
+                return $this->sendPasswordResetEmail($notifiable, $message, $notification);
+            }
+
             // For other emails, use a generic method
             return $this->sendGenericEmail($notifiable, $message);
 
@@ -64,6 +70,52 @@ class PHPMailerChannel
             \Log::error('Failed to send invitation email: ' . $e->getMessage());
             return false;
         }
+    }
+
+    private function sendPasswordResetEmail($notifiable, $message, $notification): bool
+    {
+        try {
+            $mailerService = app(PHPMailerService::class);
+            $invitation = $notification->getInvitation();
+
+            $body = $this->buildPasswordResetEmail($message, $invitation);
+
+            $mailerService->sendGenericEmailLater(
+                $invitation->email,
+                $invitation->user->name,
+                $message->subject,
+                $body
+            );
+
+            return true;
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send password reset email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function buildPasswordResetEmail($message, $invitation): string
+    {
+        $resetUrl = url('/auth/set-password/' . $invitation->token);
+        $expiresAt = $invitation->expires_at->format('F j, Y \a\t g:i A');
+
+        $content = "
+            <p>Hello {$invitation->user->name},</p>
+            <p>We received a request to reset the password for your ASPIRE account.</p>
+            <p>Click the button below to set a new password. This link expires on {$expiresAt}.</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{$resetUrl}' style='display: inline-block; padding: 14px 28px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>
+                    Reset Password
+                </a>
+            </div>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style='word-break: break-all; color: #dc2626;'>{$resetUrl}</p>
+            <p>If you did not request a password reset, you can safely ignore this email &mdash; your current password will keep working.</p>
+            <p>Best regards,<br>The ASPIRE Team</p>
+        ";
+
+        return $this->wrapEmailTemplate($content, $message->subject, '#dc2626');
     }
 
     private function buildInvitationEmail($message, $invitation): string
@@ -136,7 +188,7 @@ class PHPMailerChannel
         return $this->wrapEmailTemplate($content, $message->subject);
     }
 
-    private function wrapEmailTemplate($content, $subject): string
+    private function wrapEmailTemplate($content, $subject, $headerColor = '#1e40af'): string
     {
         return "
         <!DOCTYPE html>
@@ -147,7 +199,7 @@ class PHPMailerChannel
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: #1e40af; color: white; padding: 20px; text-align: center; }
+                .header { background: {$headerColor}; color: white; padding: 20px; text-align: center; }
                 .content { padding: 20px; background: #f9fafb; }
                 .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
             </style>

@@ -142,6 +142,31 @@ class SupervisorController extends Controller
         $user->loadMissing('school');
         $schoolName = $user->school?->name ?? 'Your School';
 
+        // Rating scale ceiling for the supervisor's teachers (6/7/8).
+        // Prefers the most common instrument ceiling among the supervisor's
+        // scored observations, then the most common career stage in the
+        // supervisor's school. Defaults to 6 (Teacher I-III).
+        $scaleMax = 6;
+        $scoredMaxes = $obsScored->map(fn ($o) => (int) $o->ratingScaleMax())->filter(fn ($v) => $v >= 5 && $v <= 8);
+        if ($scoredMaxes->isNotEmpty()) {
+            $counts = array_count_values($scoredMaxes->all());
+            arsort($counts);
+            $scaleMax = (int) array_key_first($counts);
+        } elseif ($user->school_id) {
+            $topStage = Teacher::whereHas('user', fn ($q) => $q->where('school_id', $user->school_id))
+                ->pluck('career_stage')
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->keys()
+                ->first();
+            $scaleMax = match ($topStage) {
+                'teacher_iv_vii' => 7,
+                'master_teacher_i_ii', 'master_teacher_iii_v' => 8,
+                default => 6,
+            };
+        }
+
         // Observation groups: teachers in the supervisor's school with their observation files.
         // Note: observations use the observee morph (observee_id/observee_type),
         // so we attach them manually instead of relying on Teacher::observations().
@@ -169,7 +194,7 @@ class SupervisorController extends Controller
 
         return view('supervisor.dashboard', compact(
             'stats', 'recentObservations', 'todoObservations', 'cotScores', 'cotLabels', 'trend', 'trendLabel',
-            'attention', 'needsAttention', 'schoolName', 'schoolGroups'
+            'attention', 'needsAttention', 'schoolName', 'schoolGroups', 'scaleMax'
         ));
     }
 

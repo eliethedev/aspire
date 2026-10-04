@@ -130,14 +130,14 @@
                                 </svg>
                             </div>
                             <div class="min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-dark break-words">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">{{ preg_replace('/^\d+_/', '', basename($planning->lesson_plan_file)) }}</p>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         Uploaded
                                     </span>
                                     <span class="text-gray-300">&middot;</span>
-                                    <span class="text-xs text-gray-500 dark:text-dark">Ready for review</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Ready for review</span>
                                 </div>
                             </div>
                         </div>
@@ -273,6 +273,24 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         Clear
                     </button>
+                    <button type="button" id="modify-ai-insights-btn" onclick="modifyAiInsights()"
+                            class="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2.5 text-sm font-semibold text-amber-700 dark:text-amber-300 hover:text-white bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-600 border border-amber-200 hover:border-amber-600 rounded-xl transition-all items-center gap-1.5 {{ $planning?->ai_insights ? 'inline-flex' : 'hidden' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        Modify
+                    </button>
+                </div>
+
+                <div id="modify-ai-container" class="hidden mt-4 space-y-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 p-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Edit each section separately, then apply to refresh the organized preview.</p>
+                    <div id="modify-editors-slot" class="space-y-3">
+                        @include('partials.ai-insights-editors', ['sections' => $planning ? $planning->insightsSections() : []])
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button type="button" onclick="applyModifiedInsights()"
+                                class="w-full sm:w-auto justify-center px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors">Apply Modified</button>
+                        <button type="button" onclick="cancelModify()"
+                                class="w-full sm:w-auto justify-center px-4 py-2 min-h-[44px] text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors">Cancel</button>
+                    </div>
                 </div>
             </div>
             @endif
@@ -469,6 +487,7 @@
 @push('scripts')
 @include('partials.ai-notice')
 @include('partials.ai-loading-state')
+@include('partials.ai-insights-sections-js')
 <script>
 function showLessonPlanToast(ok, text) {
     var root = document.getElementById('lesson-plan-toast-root');
@@ -577,10 +596,49 @@ function renderInsightsCard(text, badgeText, badgeClass) {
                 '<div class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>' +
                 '<span class="text-xs font-semibold uppercase tracking-wider ' + badgeClass + '">' + escapeHtml(badgeText) + '</span>' +
             '</div>' +
-            '<div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed" id="ai-insights-text"></div>' +
+            '<div id="ai-insights-text"></div>' +
         '</div>';
-    existing.querySelector('#ai-insights-text').textContent = text;
+    if (window.AiInsightsSections) {
+        var split = window.AiInsightsSections.split(text);
+        existing.querySelector('#ai-insights-text').innerHTML = window.AiInsightsSections.renderPreview(split.sections);
+        var slot = document.getElementById('modify-editors-slot');
+        if (slot) slot.innerHTML = window.AiInsightsSections.renderEditors(split.sections);
+    } else {
+        var fallback = existing.querySelector('#ai-insights-text');
+        fallback.className = 'text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed';
+        fallback.textContent = text;
+    }
     document.getElementById('clear-ai-insights-btn')?.classList.remove('hidden');
+    document.getElementById('modify-ai-insights-btn')?.classList.remove('hidden');
+}
+
+function modifyAiInsights() {
+    closeManualInsights();
+    document.getElementById('modify-ai-container')?.classList.remove('hidden');
+    document.getElementById('modify-ai-insights-btn')?.classList.add('hidden');
+    var first = document.querySelector('#modify-ai-container textarea');
+    if (first) {
+        document.getElementById('modify-ai-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.focus();
+    }
+}
+
+function applyModifiedInsights() {
+    var container = document.getElementById('modify-ai-container');
+    var sections = window.AiInsightsSections ? window.AiInsightsSections.collectFrom(container) : {};
+    var markdown = window.AiInsightsSections ? window.AiInsightsSections.toMarkdown(sections) : '';
+    document.getElementById('ai_insights_input').value = markdown;
+    var preview = document.getElementById('ai-insights-text');
+    if (preview && window.AiInsightsSections) preview.innerHTML = window.AiInsightsSections.renderPreview(sections);
+    document.getElementById('modify-ai-container')?.classList.add('hidden');
+    document.getElementById('modify-ai-insights-btn')?.classList.remove('hidden');
+    const flash = document.getElementById('manual-saved-flash');
+    if (flash) { flash.textContent = 'Modified ✓'; flash.classList.remove('hidden'); setTimeout(() => flash.classList.add('hidden'), 2500); }
+}
+
+function cancelModify() {
+    document.getElementById('modify-ai-container')?.classList.add('hidden');
+    document.getElementById('modify-ai-insights-btn')?.classList.remove('hidden');
 }
 
 function openManualInsights() {
@@ -744,6 +802,8 @@ document.getElementById('clear-ai-insights-btn')?.addEventListener('click', func
                 container.appendChild(div);
             }
             this.classList.add('hidden');
+            document.getElementById('modify-ai-insights-btn')?.classList.add('hidden');
+            document.getElementById('modify-ai-container')?.classList.add('hidden');
         }
     })
     .catch(err => {

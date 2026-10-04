@@ -36,16 +36,6 @@
         </ol>
     </nav>
 
-    <!-- Header -->
-    <x-page-header title="{{ $feedback->feedbackTypeLabel() }}" subtitle="{{ $feedback->observation->observation_date->format('M d, Y') }} · {{ $feedback->observation->observer?->name ?? 'Supervisor' }}">
-        <x-slot name="actions">
-            <a href="{{ route('teacher.feedback.index') }}"
-               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
-                Back to List
-            </a>
-        </x-slot>
-    </x-page-header>
-
     <!-- Feedback Content -->
     <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <!-- Analysis -->

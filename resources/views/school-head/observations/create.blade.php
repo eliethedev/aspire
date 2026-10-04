@@ -50,7 +50,10 @@
     </div>
 
     <div class="mock-title">
-        
+        <div>
+            <h1>Schedule Teacher Observation</h1>
+            <p>Schedule a classroom observation for a teacher in your school</p>
+        </div>
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
     <!-- Breadcrumb -->
@@ -61,8 +64,6 @@
             <li class="text-gray-900 dark:text-gray-100 font-medium">Schedule Observation</li>
         </ol>
     </nav>
-
-    <x-page-header title="Schedule Teacher Observation" subtitle="Schedule a classroom observation for a teacher in your school." />
 
     <form method="POST" action="{{ route('school-head.observations.store') }}" @submit="submitting = true">
         @csrf

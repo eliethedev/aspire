@@ -8,7 +8,6 @@
 @php
     $tmpPlanning = new \App\Models\PreObservationPlanning(['ai_insights' => $insights ?? null]);
     $insightSections = $tmpPlanning->insightsSections();
-    $insightsTextValue = is_array($insights) ? (json_encode($insights) ?: '') : (string) ($insights ?? '');
 @endphp
 @if(! empty($insightSections))
 <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 insight-card" x-data="{ aiResultOpen: true }">
@@ -56,8 +55,8 @@
 </div>
 
 <div id="modify-ai-container" class="hidden space-y-3">
-    <textarea id="modify-ai-textarea" rows="6"
-              class="w-full px-3 py-2 rounded-lg border border-amber-300 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">{{ $insightsTextValue }}</textarea>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Edit each section separately, then apply to refresh the organized preview.</p>
+    @include('partials.ai-insights-editors', ['sections' => $insightSections])
     <div class="flex flex-col sm:flex-row gap-2">
         <button type="button" onclick="applyModifiedInsights()"
                 class="px-4 py-2 min-h-[44px] justify-center text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors">Apply Modified Insights</button>

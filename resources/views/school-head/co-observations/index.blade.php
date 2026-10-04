@@ -35,16 +35,6 @@
         </div>
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
-    <!-- Header -->
-    <x-page-header title="Co-Observations" subtitle="Teacher observations you are assigned to as co-observer / co-evaluator.">
-        <x-slot name="actions">
-            <a href="{{ route('school-head.observations.index') }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium text-sm transition-colors shadow-sm">
-                Classroom Observations
-            </a>
-        </x-slot>
-    </x-page-header>
-
     <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3">

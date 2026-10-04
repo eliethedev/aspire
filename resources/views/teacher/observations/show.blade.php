@@ -50,36 +50,11 @@
         <div>
             <h1>Observation Details</h1>
             <p>{{ $observation->observer?->name ?? 'Unknown Supervisor' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
-        </div>
-        <time>{{ now()->format('l, F j, Y') }}</time>
-    </div>
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Observation Details</h1>
-                @if($observation->status === 'cancelled')
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                        Cancelled
-                    </span>
-                @endif
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $observation->observer?->name ?? 'Unknown Supervisor' }} - {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}
-                @if($observation->start_time_label)
-                    @ {{ $observation->start_time_label }}@if($observation->end_time_label) - {{ $observation->end_time_label }}@endif
-                @endif
-                @if($observation->location)
-                    &middot; {{ $observation->location }}
-                @endif
-            </p>
-            @if($observation->subject)
+             @if($observation->subject)
                 <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">{{ $observation->subject }} @if($observation->grade_level)- {{ $observation->grade_level_label }} @endif</p>
             @endif
         </div>
-        <a href="{{ route('teacher.observations.index') }}" 
-           class="px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm">
-            Back to List
-        </a>
+        <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
 
     <!-- Details Filter -->

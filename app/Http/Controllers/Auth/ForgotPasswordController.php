@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
 use App\Models\User;
-use App\Notifications\UserInvitation;
+use App\Notifications\PasswordResetEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -64,9 +64,9 @@ class ForgotPasswordController extends Controller
                     'user_agent' => request()->userAgent(),
                 ]);
 
-            // Send invitation email
+            // Send the dedicated password reset email (never the invitation copy)
             try {
-                $user->notify(new UserInvitation($invitation));
+                $user->notify(new PasswordResetEmail($user, $invitation));
 
                 // Notify admins about password reset request
                 $this->notifyAdmins($user, $invitation);
@@ -83,7 +83,7 @@ class ForgotPasswordController extends Controller
 
         // Always return success message to prevent timing attacks
         return back()
-            ->with('status', 'If your email is registered, we have sent a new invitation link to your inbox. Please check your email (and spam/junk folder) to reset your password.');
+            ->with('status', 'If your email is registered, we have sent a password reset link to your inbox. Please check your email (and spam/junk folder) to reset your password.');
     }
 
     /**

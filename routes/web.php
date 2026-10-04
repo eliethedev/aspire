@@ -363,6 +363,8 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/coaching/{agreement}/edit', [CoachingAgreementController::class, 'edit'])->name('coaching.edit');
     Route::patch('/coaching/{agreement}', [CoachingAgreementController::class, 'update'])->name('coaching.update');
     Route::post('/coaching/{agreement}/sign', [CoachingAgreementController::class, 'sign'])->name('coaching.sign');
+    Route::post('/coaching/{agreement}/complete', [CoachingAgreementController::class, 'complete'])->name('coaching.complete');
+    Route::post('/coaching/{agreement}/reopen', [CoachingAgreementController::class, 'reopen'])->name('coaching.reopen');
     Route::get('/coaching/{agreement}/export', [CoachingAgreementController::class, 'export'])->middleware('throttle:exports')->name('coaching.export');
     Route::delete('/coaching/{agreement}', [CoachingAgreementController::class, 'destroy'])->name('coaching.destroy');
 });
@@ -410,6 +412,7 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     Route::delete('/observations/{observation}/clear-ai-insights', [App\Http\Controllers\SchoolHead\ObservationController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
     Route::post('/observations/{observation}/generate-ai-comparison', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
     Route::post('/observations/{observation}/generate-ai-suggestions', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
+    Route::post('/observations/{observation}/generate-things-suggestions', [App\Http\Controllers\SchoolHead\ObservationController::class, 'generateThingsSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-things-suggestions');
 
     // Cancellation (school head as observer)
     Route::get('/observations/{observation}/cancel', [App\Http\Controllers\SchoolHead\ObservationController::class, 'showCancelForm'])->name('observations.cancel-form');
@@ -439,12 +442,36 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     Route::get('/lesson-plans', [LessonPlanController::class, 'index'])->name('lesson-plans.index');
     Route::get('/lesson-plans/{plan}', [LessonPlanController::class, 'show'])->name('lesson-plans.show');
 
-    // AI Feedback
-    Route::get('/feedback', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'index'])->name('feedback.index');
+    // AI Feedback (read-only list)
+    Route::get('/feedback/list', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'index'])->name('feedback.list');
+    Route::get('/feedback/list/{feedback}', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'show'])->name('feedback.show');
+
+    // Feedback Management
+    Route::get('/feedback/center', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'center'])->name('feedback.center');
+    Route::prefix('observations/{observation}/feedback')->name('feedback.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'manage'])->name('index');
+        Route::get('/create', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'create'])->name('create');
+        Route::post('/generate', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'generate'])->middleware('ai.rate.limit')->name('generate');
+        Route::post('/generate-ai', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'generateAi'])->middleware('ai.rate.limit')->name('generate-ai');
+        Route::get('/{feedback}/edit', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'edit'])->name('edit');
+        Route::patch('/{feedback}', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'update'])->name('update');
+        Route::post('/{feedback}/publish', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'publish'])->name('publish');
+        Route::get('/{feedback}/export', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'export'])->middleware('throttle:exports')->name('export');
+        Route::delete('/{feedback}', [App\Http\Controllers\SchoolHead\FeedbackController::class, 'destroy'])->name('destroy');
+    });
 
     // Coaching
     Route::get('/coaching', [App\Http\Controllers\SchoolHead\CoachingController::class, 'index'])->name('coaching.index');
     Route::get('/coaching/{agreement}', [App\Http\Controllers\SchoolHead\CoachingController::class, 'show'])->name('coaching.show');
+    Route::get('/observations/{observation}/coaching/create', [App\Http\Controllers\SchoolHead\CoachingController::class, 'create'])->name('coaching.create');
+    Route::post('/coaching', [App\Http\Controllers\SchoolHead\CoachingController::class, 'store'])->name('coaching.store');
+    Route::get('/coaching/{agreement}/edit', [App\Http\Controllers\SchoolHead\CoachingController::class, 'edit'])->name('coaching.edit');
+    Route::patch('/coaching/{agreement}', [App\Http\Controllers\SchoolHead\CoachingController::class, 'update'])->name('coaching.update');
+    Route::post('/coaching/{agreement}/sign', [App\Http\Controllers\SchoolHead\CoachingController::class, 'sign'])->name('coaching.sign');
+    Route::post('/coaching/{agreement}/complete', [App\Http\Controllers\SchoolHead\CoachingController::class, 'complete'])->name('coaching.complete');
+    Route::post('/coaching/{agreement}/reopen', [App\Http\Controllers\SchoolHead\CoachingController::class, 'reopen'])->name('coaching.reopen');
+    Route::get('/coaching/{agreement}/export', [App\Http\Controllers\SchoolHead\CoachingController::class, 'export'])->middleware('throttle:exports')->name('coaching.export');
+    Route::delete('/coaching/{agreement}', [App\Http\Controllers\SchoolHead\CoachingController::class, 'destroy'])->name('coaching.destroy');
 
     // Analytics & Reports
     Route::get('/reports', [App\Http\Controllers\SchoolHead\ReportController::class, 'index'])->name('reports.index');

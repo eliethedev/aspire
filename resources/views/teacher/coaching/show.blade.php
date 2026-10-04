@@ -30,19 +30,6 @@
         </ol>
     </nav>
 
-    <!-- Header -->
-    <x-page-header title="Coaching Agreement" subtitle="{{ $agreement->observation->observation_date->format('M d, Y') }} · {{ $agreement->supervisor?->name ?? 'Supervisor' }}">
-        <x-slot name="actions">
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $agreement->statusBadgeClass() }}">
-                {{ ucfirst($agreement->status) }}
-            </span>
-            <a href="{{ route('teacher.coaching.index') }}"
-               class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
-                Back to List
-            </a>
-        </x-slot>
-    </x-page-header>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">

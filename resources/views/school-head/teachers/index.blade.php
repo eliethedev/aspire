@@ -12,9 +12,12 @@
     </div>
 
     <div class="mock-title">
+        <div>
+            <h1>Teachers</h1>
+            <p>View all teachers in your school</p>
+        </div>
         <time>{{ now()->format('l, F j, Y') }}</time>
     </div>
-    <x-page-header title="Teachers" subtitle="View all teachers in your school." />
 
     <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 mb-6">
         <form method="GET" action="{{ route('school-head.teachers.index') }}">
