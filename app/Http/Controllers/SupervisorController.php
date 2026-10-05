@@ -38,6 +38,7 @@ use App\Services\RateeProfileService;
 use App\Services\TeacherAttentionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
@@ -111,21 +112,24 @@ class SupervisorController extends Controller
         $cotScores = (clone $observationsQuery)
             ->whereNotNull('overall_score')
             ->orderBy('observation_date')
+            ->orderBy('id')
             ->pluck('overall_score')
+            ->map(fn ($s) => (float) $s)
             ->toArray();
 
         $cotLabels = (clone $observationsQuery)
             ->whereNotNull('overall_score')
             ->orderBy('observation_date')
+            ->orderBy('id')
             ->get()
             ->map(fn ($o, $i) => 'Obs '.($i + 1))
             ->toArray();
 
-        $prevAvg = (clone $observationsQuery)
-            ->whereNotNull('overall_score')
-            ->orderBy('observation_date')
-            ->take(max(count($cotScores) - 1, 1))
-            ->avg('overall_score');
+        // Trend = overall average vs average of all but the latest scored
+        // observation (both share the same deterministic ordering above).
+        $prevAvg = count($cotScores) > 1
+            ? round(array_sum(array_slice($cotScores, 0, -1)) / (count($cotScores) - 1), 2)
+            : null;
 
         $trend = $prevAvg ? ($stats['average_score'] - round($prevAvg, 2)) : 0;
         $trendLabel = ($trend > 0 ? '+' : '').number_format($trend, 1);
@@ -272,15 +276,48 @@ class SupervisorController extends Controller
         // Scope total ignoring the attention filter (used by the "All" tab).
         $totalCount = (clone $baseQuery)->count();
 
-        $teachers = (clone $baseQuery)
+        $filteredBase = (clone $baseQuery)
             ->when($attentionFilter === 'needs', function ($query) use ($attention) {
                 $ids = collect($attention)->filter(fn ($row) => $row['level'] !== 'ok')->keys();
-                $query->whereIn('id', $ids->isNotEmpty() ? $ids->all() : [0]);
-            })
-            ->paginate($request->per_page ?? 15);
+                $query->whereIn('teachers.id', $ids->isNotEmpty() ? $ids->all() : [0]);
+            });
 
-        // Enrich each paginated teacher with its attention flags and summary.
-        $teachers->getCollection()->transform(function (Teacher $teacher) use ($attention, $order) {
+        // Attention severity lives in PHP (TeacherAttentionService), so order
+        // IDs in memory BEFORE paginating. Paginating first would only sort
+        // the current page and break global ordering.
+        $perPage = (int) ($request->per_page ?? 15) ?: 15;
+        $page = max((int) $request->input('page', 1), 1);
+
+        $orderedIds = $filteredBase->with(['user'])
+            ->get(['teachers.*'])
+            ->map(function (Teacher $teacher) use ($attention, $order) {
+                $row = $attention[$teacher->id] ?? ['level' => 'ok'];
+
+                return [
+                    'id' => $teacher->id,
+                    'order' => $order[$row['level']] ?? 3,
+                    'name' => strtolower($teacher->user?->name ?? ''),
+                ];
+            })
+            ->sort(fn ($a, $b) => [$a['order'], $a['name']] <=> [$b['order'], $b['name']])
+            ->pluck('id')
+            ->values();
+
+        $total = $orderedIds->count();
+        $pageIds = $orderedIds->forPage($page, $perPage)->values();
+
+        $pageModels = $pageIds->isNotEmpty()
+            ? Teacher::query()
+                ->with(['user', 'school', 'subjects'])
+                ->withCount('observations')
+                ->whereIn('id', $pageIds->all())
+                ->get()
+                ->sortBy(fn (Teacher $t) => array_search($t->id, $pageIds->all()))
+                ->values()
+            : collect();
+
+        // Enrich each teacher with its attention flags and summary.
+        $pageModels->transform(function (Teacher $teacher) use ($attention, $order) {
             $row = $attention[$teacher->id] ?? [
                 'teacher' => $teacher,
                 'flags' => [],
@@ -296,11 +333,13 @@ class SupervisorController extends Controller
             return $teacher;
         });
 
-        // Order the current page: attention severity first (high -> medium -> low -> ok), then name.
-        $sorted = $teachers->getCollection()
-            ->sortBy(fn ($t) => $t->attention_level_order)
-            ->values();
-        $teachers->setCollection($sorted);
+        $teachers = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pageModels,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('supervisor.teachers.index', compact(
             'teachers', 'needsAttentionCount', 'totalCount', 'order',
@@ -954,7 +993,7 @@ class SupervisorController extends Controller
     {
         $validated = $request->validate([
             'observation_type' => ['required', 'in:teacher_observation,school_head_observation'],
-            'observee_id' => ['required'],
+            'observee_id' => ['required', 'integer', 'min:1'],
             'school_year' => ['nullable', 'string', 'max:20'],
             'quarter' => ['nullable', 'integer', 'min:1', 'max:3'],
         ]);
@@ -965,12 +1004,15 @@ class SupervisorController extends Controller
         $schoolYear = $validated['school_year'] ?: $this->getCurrentSchoolYear();
         $quarter = $validated['quarter'] ?? null;
 
-        $observeeName = null;
-        if ($observeeType === Teacher::class) {
-            $observeeName = Teacher::with('user')->find($validated['observee_id'])?->user?->name;
-        } else {
-            $observeeName = SchoolHeadProfile::with('user')->find($validated['observee_id'])?->user?->name;
+        $observee = $observeeType === Teacher::class
+            ? Teacher::with('user')->find($validated['observee_id'])
+            : SchoolHeadProfile::with('user')->find($validated['observee_id']);
+
+        if (! $observee) {
+            return response()->json(['message' => 'Ratee not found.'], 404);
         }
+
+        $observeeName = $observee->user?->name;
 
         $inYear = Observation::where('observee_id', $validated['observee_id'])
             ->where('observee_type', $observeeType)
@@ -979,7 +1021,7 @@ class SupervisorController extends Controller
             ->orderByDesc('observation_date')
             ->get();
 
-        $termLabels = [1 => '1st Term', 2 => '2nd Term', 3 => '3rd Term', 4 => '4th Term'];
+        $termLabels = [1 => '1st Term', 2 => '2nd Term', 3 => '3rd Term'];
 
         $inTerm = $quarter
             ? $inYear->where('quarter', (int) $quarter)->values()
@@ -1322,13 +1364,19 @@ class SupervisorController extends Controller
             return back()->with('error', 'This action is only available for teacher observations.');
         }
 
-        if ($observation->isLinkedObservation()) {
+        if ($observation->isLinkedObservation() || Observation::where('related_observation_id', $observation->id)->exists()) {
             return back()->with('error', 'A linked PPSSH observation already exists for this observation.');
         }
 
-        // Use the same school head that was assigned to the teacher observation
+        // Use the same school head that was assigned to the teacher observation.
+        // observations.school_head_id stores users.id, while school head
+        // observations use SchoolHeadProfile id as observee_id.
         $schoolHeadId = $observation->school_head_id;
-        $schoolHead = $schoolHeadId ? User::find($schoolHeadId) : null;
+        $schoolHeadProfile = $schoolHeadId ? SchoolHeadProfile::where('user_id', $schoolHeadId)->first() : null;
+
+        if (! $schoolHeadProfile) {
+            return back()->with('error', 'No school head profile found for the assigned school head.');
+        }
 
         // Determine the active PPSSH template for the current school year
         $schoolYear = $observation->school_year ?? $this->getCurrentSchoolYear();
@@ -1338,12 +1386,13 @@ class SupervisorController extends Controller
         // Resolve a published PPSSH version for the school year
         $cotIndicatorVersion = CotIndicatorVersion::where('school_year', $schoolYear)
             ->published()
-            ->where('rateeRole', 'school_head')
-            ->inRandomOrder() // Pick first available; could be made configurable
+            ->where('ratee_role', 'school_head')
+            ->orderByDesc('is_default')
+            ->orderBy('id')
             ->first();
 
         $observeeType = SchoolHeadProfile::class;
-        $observeeId = $schoolHead?->id ?? null;
+        $observeeId = $schoolHeadProfile->id;
 
         // Create the linked PPSSH observation
         $linkedObservation = Observation::create([
@@ -1357,7 +1406,7 @@ class SupervisorController extends Controller
             'end_time' => $observation->end_time ?? null,
             'location' => $observation->location ?? null,
             'stage' => 'pre_observation_planning',
-            'notes' => 'Linked PPSSH observation for ' . $observation->subject,
+            'notes' => 'Linked PPSSH observation for '.($observation->subject ?? 'observation #'.$observation->id),
             'status' => 'in_progress',
             'school_year' => $schoolYear,
             'quarter' => $observation->quarter ?? $this->getCurrentTerm(),
@@ -1459,6 +1508,16 @@ class SupervisorController extends Controller
             if ($now->between($start, $end)) {
                 return $term;
             }
+        }
+
+        // Break gaps map to the upcoming term: year-end break (Dec 19-Jan 3)
+        // belongs to Term 3, pre-school-year break (Apr 9-Jun 7) to Term 1.
+        if ($now->month === 12 && $now->day >= 19) {
+            return 3;
+        }
+
+        if ($now->month === 1 && $now->day < 4) {
+            return 3;
         }
 
         return 1;
@@ -1938,23 +1997,29 @@ class SupervisorController extends Controller
             ]);
         }
 
-        // Delete only this user's existing ratings (preserve school head EPOC ratings)
-        $observation->cotRatings()->delete();
+        // Replace ratings atomically: upsert by indicator_code so unchanged
+        // rows keep their IDs (and AI feedback), delete only stale codes.
+        $createdRatings = DB::transaction(function () use ($observation, $validated) {
+            $incomingCodes = collect($validated['ratings'])->pluck('indicator_code')->all();
+            $observation->cotRatings()->whereNotIn('indicator_code', $incomingCodes)->delete();
 
-        // Create new ratings
-        $createdRatings = [];
-        foreach ($validated['ratings'] as $item) {
-            $createdRatings[] = CotRating::create([
-                'observation_id' => $observation->id,
-                'indicator_code' => $item['indicator_code'],
-                'domain' => $item['domain'],
-                'indicator' => $item['indicator'],
-                'rating' => (! empty($item['not_observed']) || ! empty($item['not_applicable'])) ? null : ($item['rating'] ?? null),
-                'not_observed' => ! empty($item['not_observed']),
-                'not_applicable' => ! empty($item['not_applicable']),
-                'comments' => $item['comments'] ?? null,
-            ]);
-        }
+            $rows = [];
+            foreach ($validated['ratings'] as $item) {
+                $rows[] = CotRating::updateOrCreate(
+                    ['observation_id' => $observation->id, 'indicator_code' => $item['indicator_code']],
+                    [
+                        'domain' => $item['domain'],
+                        'indicator' => $item['indicator'],
+                        'rating' => (! empty($item['not_observed']) || ! empty($item['not_applicable'])) ? null : ($item['rating'] ?? null),
+                        'not_observed' => ! empty($item['not_observed']),
+                        'not_applicable' => ! empty($item['not_applicable']),
+                        'comments' => $item['comments'] ?? null,
+                    ]
+                );
+            }
+
+            return $rows;
+        });
 
         // Generate AI feedback for each rating (dispatched to queue to avoid rate limits).
         // Not Applicable indicators are intentionally excluded — they have no score to analyze.
@@ -2701,7 +2766,12 @@ class SupervisorController extends Controller
     }
 
     /**
-     * Authorize that the user can access the observation
+     * Authorize that the user can access the observation.
+     *
+     * Intentionally strict: supervisor routes are role:supervisor only and
+     * each observation is owned by its creator (observer_id). Cross-supervisor
+     * visibility is provided via read-only aggregates (teachers list,
+     * termCheck, reports), not by opening individual observation workflows.
      */
     private function authorizeObservation(Observation $observation)
     {
@@ -2725,15 +2795,8 @@ class SupervisorController extends Controller
             ])
             ->where('observer_id', $user->id);
 
-        // Search
+        // Search (kept inside a single where-group so observer_id scope is preserved)
         if ($search = $request->search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('subject', 'like', "%{$search}%")
-                    ->orWhere('grade_level', 'like', "%{$search}%")
-                    ->orWhere('school_year', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
-            });
-
             // Search by observee name (morphTo workaround)
             $teacherIds = Teacher::whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
@@ -2743,19 +2806,26 @@ class SupervisorController extends Controller
                 $q->where('name', 'like', "%{$search}%");
             })->pluck('id');
 
-            if ($teacherIds->isNotEmpty()) {
-                $query->orWhere(function ($q) use ($teacherIds) {
-                    $q->where('observee_type', Teacher::class)
-                        ->whereIn('observee_id', $teacherIds);
-                });
-            }
+            $query->where(function ($outer) use ($search, $teacherIds, $schoolHeadIds) {
+                $outer->where('subject', 'like', "%{$search}%")
+                    ->orWhere('grade_level', 'like', "%{$search}%")
+                    ->orWhere('school_year', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
 
-            if ($schoolHeadIds->isNotEmpty()) {
-                $query->orWhere(function ($q) use ($schoolHeadIds) {
-                    $q->where('observee_type', SchoolHeadProfile::class)
-                        ->whereIn('observee_id', $schoolHeadIds);
-                });
-            }
+                if ($teacherIds->isNotEmpty()) {
+                    $outer->orWhere(function ($q) use ($teacherIds) {
+                        $q->where('observee_type', Teacher::class)
+                            ->whereIn('observee_id', $teacherIds);
+                    });
+                }
+
+                if ($schoolHeadIds->isNotEmpty()) {
+                    $outer->orWhere(function ($q) use ($schoolHeadIds) {
+                        $q->where('observee_type', SchoolHeadProfile::class)
+                            ->whereIn('observee_id', $schoolHeadIds);
+                    });
+                }
+            });
         }
 
         $observations = $query

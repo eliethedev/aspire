@@ -284,6 +284,7 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
     Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
     Route::post('/observations/{observation}/cancel', [SupervisorController::class, 'cancel'])->name('observations.cancel');
+    Route::post('/observations/{observation}/linked-ppssh', [SupervisorController::class, 'createLinkedPpsshObservation'])->name('observations.linked-ppssh');
 
     // Stage-specific routes
     Route::get('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');

@@ -1729,6 +1729,16 @@ class ObservationController extends Controller
             }
         }
 
+        // Break gaps map to the upcoming term: year-end break (Dec 19-Jan 3)
+        // belongs to Term 3, pre-school-year break (Apr 9-Jun 7) to Term 1.
+        if ($now->month === 12 && $now->day >= 19) {
+            return 3;
+        }
+
+        if ($now->month === 1 && $now->day < 4) {
+            return 3;
+        }
+
         return 1;
     }
 
