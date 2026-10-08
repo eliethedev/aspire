@@ -19,9 +19,7 @@
                 if (localStorage.getItem('theme') === 'dark') {
                     document.documentElement.classList.add('dark');
                 }
-                if (localStorage.getItem('app_text_large') === '1') {
-                    document.documentElement.classList.add('text-large');
-                }
+
             })();
             function toggleTheme() {
                 var root = document.documentElement;
@@ -32,7 +30,8 @@
         @inertiaHead
         
         <!-- Alpine.js for notification dropdown -->
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        {{-- Vendored locally (public/js/vendor); the old unpinned alpinejs@3.x.x CDN tag could shift versions and needs internet. --}}
+        <script defer src="{{ asset('js/vendor/alpine.min.js') }}"></script>
     </head>
     <body class="font-sans antialiased dark:bg-gray-950">
         <div class="fixed top-4 right-6 z-50">

@@ -9,8 +9,10 @@ use App\Http\Controllers\Admin\FormTemplateController;
 use App\Http\Controllers\Admin\ObservationController;
 use App\Http\Controllers\Admin\PpstStandardController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ContactInquiryController as AdminContactInquiryController;
 use App\Http\Controllers\Admin\SupportMessageController as AdminSupportMessageController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfflineWorkflowController;
@@ -23,7 +25,14 @@ use App\Http\Controllers\SchoolHead\LessonPlanController;
 use App\Http\Controllers\SetPasswordController;
 use App\Http\Controllers\SupportMessageController;
 use App\Http\Controllers\Supervisor\CoachingAgreementController;
-use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\Supervisor\CareerController;
+use App\Http\Controllers\Supervisor\DashboardController as SupervisorDashboardController;
+use App\Http\Controllers\Supervisor\ObservationAiController;
+use App\Http\Controllers\Supervisor\ObservationReportController;
+use App\Http\Controllers\Supervisor\ObservationSchedulingController;
+use App\Http\Controllers\Supervisor\ObservationStageController;
+use App\Http\Controllers\Supervisor\SchoolHeadBrowsingController;
+use App\Http\Controllers\Supervisor\TeacherController as SupervisorTeacherController;
 use App\Http\Controllers\Teacher\CoachingController;
 use App\Http\Controllers\Teacher\FeedbackController;
 use App\Http\Controllers\UserController;
@@ -34,6 +43,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Public contact form for prospective users (teachers, school heads,
+// supervisors) — no login required. Admins manage inquiries from the inbox.
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:10,1')->name('contact.store');
+Route::get('/contact/thanks', [ContactController::class, 'thanks'])->name('contact.thanks');
 
 // Design mockups (preview only, no auth). Registered before the {school}
 // wildcard group so `mockups/dashboard` is not swallowed by `{school}/dashboard`.
@@ -216,6 +231,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'show'])->name('support-messages.show');
     Route::patch('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'update'])->name('support-messages.update');
     Route::delete('/support-messages/{supportMessage}', [AdminSupportMessageController::class, 'destroy'])->name('support-messages.destroy');
+
+    // Contact inquiries from prospective users (public contact form)
+    Route::get('/contact-inquiries', [AdminContactInquiryController::class, 'index'])->name('contact-inquiries.index');
+    Route::get('/contact-inquiries/{contactInquiry}', [AdminContactInquiryController::class, 'show'])->name('contact-inquiries.show');
+    Route::patch('/contact-inquiries/{contactInquiry}', [AdminContactInquiryController::class, 'update'])->name('contact-inquiries.update');
+    Route::delete('/contact-inquiries/{contactInquiry}', [AdminContactInquiryController::class, 'destroy'])->name('contact-inquiries.destroy');
 });
 
 // Teacher routes
@@ -249,7 +270,7 @@ Route::middleware(['auth', 'role:teacher', 'profile.complete'])->prefix('teacher
 
 // Supervisor routes
 Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supervisor')->name('supervisor.')->group(function () {
-    Route::get('/dashboard', [SupervisorController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [SupervisorDashboardController::class, 'dashboard'])->name('dashboard');
 
     // Profile
     Route::get('/profile', [SupervisorProfileController::class, 'edit'])->name('profile.edit');
@@ -258,66 +279,66 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/observations', [CalendarController::class, 'getObservationsByDate'])->name('calendar.observations');
 
-    Route::get('/teachers', [SupervisorController::class, 'teachers'])->name('teachers.index');
-    Route::get('/teachers/{teacher}', [SupervisorController::class, 'teacherProfile'])->name('teachers.show');
-        Route::post('/teachers/{teacher}/career-assessment', [SupervisorController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
-        Route::put('/teachers/{teacher}/career-assessment/{assessment}', [SupervisorController::class, 'updateCareerAssessment'])->name('teachers.career-assessment.update');
-    Route::get('/career-progression', [SupervisorController::class, 'careerProgression'])->name('career.index');
-    Route::get('/career-monitor', [SupervisorController::class, 'careerMonitor'])->name('career.monitor');
-    Route::post('/teachers/{teacher}/career-stage/allow', [SupervisorController::class, 'allowCareerStage'])->name('career.allow');
-    Route::post('/teachers/{teacher}/career-stage/announce', [SupervisorController::class, 'announceCareerStage'])->name('career.announce');
-    Route::post('/career-advancements/{advancement}/cancel', [SupervisorController::class, 'cancelCareerAdvancement'])->name('career.cancel');
-    Route::get('/school-heads', [SupervisorController::class, 'schoolHeads'])->name('school-heads.index');
-    Route::get('/school-heads/{schoolHead}', [SupervisorController::class, 'schoolHeadProfile'])->name('school-heads.show');
-    Route::get('/school-heads/{schoolHead}/observations', [SupervisorController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
-    Route::get('/observations', [SupervisorController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
+    Route::get('/teachers', [SupervisorTeacherController::class, 'teachers'])->name('teachers.index');
+    Route::get('/teachers/{teacher}', [SupervisorTeacherController::class, 'teacherProfile'])->name('teachers.show');
+        Route::post('/teachers/{teacher}/career-assessment', [CareerController::class, 'storeCareerAssessment'])->name('teachers.career-assessment');
+        Route::put('/teachers/{teacher}/career-assessment/{assessment}', [CareerController::class, 'updateCareerAssessment'])->name('teachers.career-assessment.update');
+    Route::get('/career-progression', [CareerController::class, 'careerProgression'])->name('career.index');
+    Route::get('/career-monitor', [CareerController::class, 'careerMonitor'])->name('career.monitor');
+    Route::post('/teachers/{teacher}/career-stage/allow', [CareerController::class, 'allowCareerStage'])->name('career.allow');
+    Route::post('/teachers/{teacher}/career-stage/announce', [CareerController::class, 'announceCareerStage'])->name('career.announce');
+    Route::post('/career-advancements/{advancement}/cancel', [CareerController::class, 'cancelCareerAdvancement'])->name('career.cancel');
+    Route::get('/school-heads', [SchoolHeadBrowsingController::class, 'schoolHeads'])->name('school-heads.index');
+    Route::get('/school-heads/{schoolHead}', [SchoolHeadBrowsingController::class, 'schoolHeadProfile'])->name('school-heads.show');
+    Route::get('/school-heads/{schoolHead}/observations', [SchoolHeadBrowsingController::class, 'schoolHeadObservationHistory'])->name('school-heads.observations');
+    Route::get('/observations', [ObservationSchedulingController::class, 'observations'])->middleware('throttle:search')->name('observations.index');
     Route::get('/observations/offline', [App\Http\Controllers\Api\SyncController::class, 'offlinePage'])->name('observations.offline');
-    Route::get('/observations/create', [SupervisorController::class, 'createObservation'])->name('observations.create');
-    Route::post('/observations', [SupervisorController::class, 'storeObservation'])->name('observations.store');
-    Route::get('/observations/term-check', [SupervisorController::class, 'termCheck'])->name('observations.term-check');
-    Route::get('/observations/{observation}', [SupervisorController::class, 'showObservation'])->name('observations.show');
+    Route::get('/observations/create', [ObservationSchedulingController::class, 'createObservation'])->name('observations.create');
+    Route::post('/observations', [ObservationSchedulingController::class, 'storeObservation'])->name('observations.store');
+    Route::get('/observations/term-check', [ObservationSchedulingController::class, 'termCheck'])->name('observations.term-check');
+    Route::get('/observations/{observation}', [ObservationSchedulingController::class, 'showObservation'])->name('observations.show');
     // Offline clinical-supervision workflow: prepare AI prompts, download the
     // JSON bundle, and open the cached offline workspace for zero-signal visits.
     Route::post('/observations/{observation}/prepare-package', [OfflineWorkflowController::class, 'preparePackage'])->middleware('ai.rate.limit')->name('observations.prepare-package');
     Route::post('/observations/{observation}/approve-suggestions', [OfflineWorkflowController::class, 'approveSuggestions'])->name('observations.approve-suggestions');
     Route::get('/observations/{observation}/offline-package', [OfflineWorkflowController::class, 'offlinePackage'])->name('observations.offline-package');
     Route::get('/observations/{observation}/offline-workspace', [OfflineWorkflowController::class, 'offlineWorkspace'])->name('observations.offline-workspace');
-    Route::get('/observations/{observation}/cancel', [SupervisorController::class, 'showCancelForm'])->name('observations.cancel-form');
-    Route::post('/observations/{observation}/cancel', [SupervisorController::class, 'cancel'])->name('observations.cancel');
-    Route::post('/observations/{observation}/linked-ppssh', [SupervisorController::class, 'createLinkedPpsshObservation'])->name('observations.linked-ppssh');
+    Route::get('/observations/{observation}/cancel', [ObservationSchedulingController::class, 'showCancelForm'])->name('observations.cancel-form');
+    Route::post('/observations/{observation}/cancel', [ObservationSchedulingController::class, 'cancel'])->name('observations.cancel');
+    Route::post('/observations/{observation}/linked-ppssh', [ObservationSchedulingController::class, 'createLinkedPpsshObservation'])->name('observations.linked-ppssh');
 
     // Stage-specific routes
-    Route::get('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
-    Route::post('/observations/{observation}/pre-observation-planning', [SupervisorController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
-    Route::post('/observations/{observation}/request-lesson-plan', [SupervisorController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
-    Route::get('/observations/{observation}/pre-conference', [SupervisorController::class, 'preConference'])->name('observations.preConference');
-    Route::post('/observations/{observation}/pre-conference', [SupervisorController::class, 'storePreConference'])->name('observations.storePreConference');
-    Route::post('/observations/{observation}/agenda-checklist', [SupervisorController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
-    Route::get('/observations/{observation}/observation', [SupervisorController::class, 'observation'])->name('observations.observation');
-    Route::post('/observations/{observation}/observation', [SupervisorController::class, 'storeObservationData'])->name('observations.storeObservationData');
-    Route::post('/observations/{observation}/autosave', [SupervisorController::class, 'autosave'])->name('observations.autosave');
-    Route::get('/observations/{observation}/post-conference', [SupervisorController::class, 'postConference'])->name('observations.postConference');
-    Route::post('/observations/{observation}/post-conference', [SupervisorController::class, 'storePostConference'])->name('observations.storePostConference');
-    Route::post('/observations/{observation}/finalize', [SupervisorController::class, 'finalize'])->name('observations.finalize');
-    Route::get('/observations/{observation}/epoc', [SupervisorController::class, 'epocEvaluation'])->name('observations.epoc');
-    Route::post('/observations/{observation}/epoc', [SupervisorController::class, 'storeEPOC'])->name('observations.storeEPOC');
-    Route::get('/observations/{observation}/epoc/download', [SupervisorController::class, 'downloadEpoc'])->name('observations.epoc.download');
+    Route::get('/observations/{observation}/pre-observation-planning', [ObservationStageController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
+    Route::post('/observations/{observation}/pre-observation-planning', [ObservationStageController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
+    Route::post('/observations/{observation}/request-lesson-plan', [ObservationStageController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
+    Route::get('/observations/{observation}/pre-conference', [ObservationStageController::class, 'preConference'])->name('observations.preConference');
+    Route::post('/observations/{observation}/pre-conference', [ObservationStageController::class, 'storePreConference'])->name('observations.storePreConference');
+    Route::post('/observations/{observation}/agenda-checklist', [ObservationStageController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
+    Route::get('/observations/{observation}/observation', [ObservationStageController::class, 'observation'])->name('observations.observation');
+    Route::post('/observations/{observation}/observation', [ObservationStageController::class, 'storeObservationData'])->name('observations.storeObservationData');
+    Route::post('/observations/{observation}/autosave', [ObservationStageController::class, 'autosave'])->name('observations.autosave');
+    Route::get('/observations/{observation}/post-conference', [ObservationStageController::class, 'postConference'])->name('observations.postConference');
+    Route::post('/observations/{observation}/post-conference', [ObservationStageController::class, 'storePostConference'])->name('observations.storePostConference');
+    Route::post('/observations/{observation}/finalize', [ObservationStageController::class, 'finalize'])->name('observations.finalize');
+    Route::get('/observations/{observation}/epoc', [ObservationStageController::class, 'epocEvaluation'])->name('observations.epoc');
+    Route::post('/observations/{observation}/epoc', [ObservationStageController::class, 'storeEPOC'])->name('observations.storeEPOC');
+    Route::get('/observations/{observation}/epoc/download', [ObservationStageController::class, 'downloadEpoc'])->name('observations.epoc.download');
 
-    Route::get('/reports', [SupervisorController::class, 'reports'])->name('reports.index');
-    Route::get('/reports/export', [SupervisorController::class, 'exportReports'])->middleware('throttle:exports')->name('reports.export');
+    Route::get('/reports', [ObservationReportController::class, 'reports'])->name('reports.index');
+    Route::get('/reports/export', [ObservationReportController::class, 'exportReports'])->middleware('throttle:exports')->name('reports.export');
 
     // Teacher observation history
-    Route::get('/teachers/{observeeId}/observations', [SupervisorController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
+    Route::get('/teachers/{observeeId}/observations', [SupervisorTeacherController::class, 'teacherObservationHistory'])->name('observations.teacher-history');
 
     // AI-powered insights
-    Route::post('/observations/{observation}/generate-ai-insights', [SupervisorController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
-    Route::get('/observations/{observation}/ai-insights-status', [SupervisorController::class, 'aiInsightsStatus'])->name('observations.ai-insights-status');
-    Route::post('/observations/{observation}/generate-ai-suggestions', [SupervisorController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
-    Route::post('/observations/{observation}/generate-things-suggestions', [SupervisorController::class, 'generateThingsSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-things-suggestions');
-    Route::delete('/observations/{observation}/clear-ai-insights', [SupervisorController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
-    Route::post('/observations/{observation}/retry-ai', [SupervisorController::class, 'retryAi'])->middleware('ai.rate.limit')->name('observations.retry-ai');
-    Route::post('/observations/{observation}/generate-ai-comparison', [SupervisorController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
-    Route::post('/observations/{observation}/generate-observation-suggestions', [SupervisorController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
+    Route::post('/observations/{observation}/generate-ai-insights', [ObservationAiController::class, 'generateAiInsights'])->middleware('ai.rate.limit')->name('observations.generate-ai-insights');
+    Route::get('/observations/{observation}/ai-insights-status', [ObservationAiController::class, 'aiInsightsStatus'])->name('observations.ai-insights-status');
+    Route::post('/observations/{observation}/generate-ai-suggestions', [ObservationAiController::class, 'generateAiSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-ai-suggestions');
+    Route::post('/observations/{observation}/generate-things-suggestions', [ObservationAiController::class, 'generateThingsSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-things-suggestions');
+    Route::delete('/observations/{observation}/clear-ai-insights', [ObservationAiController::class, 'clearAiInsights'])->name('observations.clear-ai-insights');
+    Route::post('/observations/{observation}/retry-ai', [ObservationAiController::class, 'retryAi'])->middleware('ai.rate.limit')->name('observations.retry-ai');
+    Route::post('/observations/{observation}/generate-ai-comparison', [ObservationAiController::class, 'generateAiComparison'])->middleware('ai.rate.limit')->name('observations.generate-ai-comparison');
+    Route::post('/observations/{observation}/generate-observation-suggestions', [ObservationAiController::class, 'generateObservationSuggestions'])->middleware('ai.rate.limit')->name('observations.generate-observation-suggestions');
 
     // Goal-specific AI tasks (dynamic routing + fallback + per-task limits)
     Route::prefix('observations/{observation}/ai-tasks')->name('ai-tasks.')->middleware('ai.rate.limit')->group(function () {
@@ -328,19 +349,19 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     });
 
     // Post-Observation Report
-    Route::get('/observations/{observation}/report', [SupervisorController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
-    Route::get('/observations/{observation}/report/pdf', [SupervisorController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
+    Route::get('/observations/{observation}/report', [ObservationReportController::class, 'downloadReport'])->middleware('throttle:exports')->name('observations.report');
+    Route::get('/observations/{observation}/report/pdf', [ObservationReportController::class, 'downloadReportPDF'])->middleware('throttle:exports')->name('observations.report-pdf');
 
     // Completed COT Document
-    Route::post('/observations/{observation}/cot-document/generate', [SupervisorController::class, 'generateCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.generate');
-    Route::get('/observations/{observation}/cot-document/preview', [SupervisorController::class, 'previewCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.preview');
-    Route::get('/observations/{observation}/cot-document/download', [SupervisorController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.download');
-    Route::get('/observations/{observation}/cot-document/pdf', [SupervisorController::class, 'downloadCotPdf'])->middleware('throttle:exports')->name('observations.cot-document.pdf');
+    Route::post('/observations/{observation}/cot-document/generate', [ObservationReportController::class, 'generateCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.generate');
+    Route::get('/observations/{observation}/cot-document/preview', [ObservationReportController::class, 'previewCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.preview');
+    Route::get('/observations/{observation}/cot-document/download', [ObservationReportController::class, 'downloadCotDocument'])->middleware('throttle:exports')->name('observations.cot-document.download');
+    Route::get('/observations/{observation}/cot-document/pdf', [ObservationReportController::class, 'downloadCotPdf'])->middleware('throttle:exports')->name('observations.cot-document.pdf');
 
     // Indicator Trends & Progress Comparison
-    Route::get('/observations/{observation}/indicator-trends', [SupervisorController::class, 'indicatorTrends'])->name('observations.indicator-trends');
-    Route::get('/observations/{observation}/progress-comparison', [SupervisorController::class, 'progressComparison'])->name('observations.progress-comparison');
-    Route::get('/observations/{observation}/pd-recommendations', [SupervisorController::class, 'pdRecommendations'])->name('observations.pd-recommendations');
+    Route::get('/observations/{observation}/indicator-trends', [ObservationReportController::class, 'indicatorTrends'])->name('observations.indicator-trends');
+    Route::get('/observations/{observation}/progress-comparison', [ObservationReportController::class, 'progressComparison'])->name('observations.progress-comparison');
+    Route::get('/observations/{observation}/pd-recommendations', [ObservationReportController::class, 'pdRecommendations'])->name('observations.pd-recommendations');
 
     // Feedback Management
     Route::get('/feedback', [App\Http\Controllers\Supervisor\FeedbackController::class, 'center'])->name('feedback.center');
@@ -404,6 +425,7 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     Route::post('/observations/{observation}/agenda-checklist', [App\Http\Controllers\SchoolHead\ObservationController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
     Route::get('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservationData'])->name('observations.storeObservationData');
+    Route::post('/observations/{observation}/autosave', [App\Http\Controllers\SchoolHead\ObservationController::class, 'autosave'])->name('observations.autosave');
     Route::get('/observations/{observation}/post-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'postConference'])->name('observations.postConference');
     Route::post('/observations/{observation}/post-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storePostConference'])->name('observations.storePostConference');
 

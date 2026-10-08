@@ -277,12 +277,16 @@ class LessonPlanModelRouter
     /**
      * Plain, jargon-free style directive for the AI output.
      *
-     * The same directive is used for every mode: the mode still selects
-     * which provider/model runs, but the language stays general and
-     * user-friendly regardless of subject.
+     * Specialized modes (reasoning, expressive, structured) get the shared
+     * plain-language directive. Balanced is the neutral baseline and gets
+     * no extra directive.
      */
     public static function directivesFor(string $mode): string
     {
+        if ($mode === self::MODE_BALANCED) {
+            return '';
+        }
+
         return self::PLAIN_DIRECTIVE;
     }
 }

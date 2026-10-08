@@ -230,20 +230,48 @@
             return '<ul class="pkg-list">' + items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
         }
 
-        var scaleOpts = Object.keys(scale).map(function (v) {
-            return '<option value="' + esc(v) + '">' + esc(v) + ' — ' + esc(scale[v]) + '</option>';
-        }).join('');
+        // Ascending numeric order, like the online sheet (stored scales are descending).
+        var scaleVals = Object.keys(scale).map(Number).filter(function (n) { return !isNaN(n); })
+            .sort(function (a, b) { return a - b; }).map(String);
 
-        var rows = indicators.map(function (ind, i) {
-            return '<fieldset class="pkg-ind" data-indicator="' + esc(ind.code) + '">'
+        // Group indicators by domain (same order as the online rating sheet).
+        var domains = [];
+        var byDomain = {};
+        indicators.forEach(function (ind, i) {
+            var d = ind.domain || 'General';
+            if (!byDomain[d]) { byDomain[d] = []; domains.push(d); }
+            byDomain[d].push({ ind: ind, idx: i });
+        });
+
+        function rateButtons(i) {
+            return scaleVals.map(function (v) {
+                return '<button type="button" class="pkg-rate" data-rate-btn data-idx="' + i + '" data-value="' + esc(v) + '"'
+                    + ' title="' + esc(scale[v] || ('Score ' + v)) + '" aria-label="Rate ' + esc(v) + '">'
+                    + esc(v) + '</button>';
+            }).join('')
+            + '<button type="button" class="pkg-rate pkg-no" data-rate-no data-idx="' + i + '" title="Not observed">NO</button>'
+            + '<button type="button" class="pkg-rate pkg-na" data-rate-na data-idx="' + i + '" title="Not applicable — excluded from scoring">N/A</button>';
+        }
+
+        var rows = domains.map(function (d) {
+            return '<div class="pkg-domain">' + esc(d) + '</div>'
+            + byDomain[d].map(function (entry) {
+                var ind = entry.ind, i = entry.idx;
+                return '<fieldset class="pkg-ind" data-indicator="' + esc(ind.code) + '" data-idx="' + i + '">'
                 + '<legend><strong>' + esc(ind.code) + '</strong> <span class="pkg-muted">' + esc(ind.domain || '') + '</span></legend>'
                 + '<p class="pkg-muted">' + esc(ind.description || '') + '</p>'
-                + '<div class="pkg-row"><label>Score <select data-field="rating" data-idx="' + i + '">'
-                + '<option value="">—</option>' + scaleOpts
-                + '</select></label>'
-                + '<label class="pkg-check"><input type="checkbox" data-field="not_observed" data-idx="' + i + '"> Not observed</label></div>'
+                + '<div class="pkg-rates" role="group" aria-label="Rating for ' + esc(ind.code) + '">'
+                + rateButtons(i)
+                + '<button type="button" class="pkg-cbtn" data-rate-comment data-idx="' + i + '">Comment</button>'
+                + '</div>'
+                + '<input type="hidden" data-field="rating" data-idx="' + i + '" value="">'
+                + '<input type="checkbox" data-field="not_observed" data-idx="' + i + '" hidden>'
+                + '<input type="checkbox" data-field="not_applicable" data-idx="' + i + '" hidden>'
+                + '<div class="pkg-comment" data-comment-row="' + i + '" hidden>'
                 + '<textarea data-field="comments" data-idx="' + i + '" rows="2" placeholder="Evidence / comments for ' + esc(ind.code) + '"></textarea>'
+                + '</div>'
                 + '</fieldset>';
+            }).join('');
         }).join('');
 
         root.innerHTML =
@@ -258,9 +286,12 @@
             + '<h3>Coaching prompts</h3>' + list(ai.coaching_prompts)
             + '</section>'
             + '<section class="pkg-col" aria-label="Offline encoding form">'
-            + '<h3>Encode COT scores (offline)</h3>'
+            + '<h3>Observation Rating Sheet (offline)</h3>'
             + '<p class="pkg-muted">' + esc(obs.teacher ? obs.teacher.name : '') + ' · ' + esc(obs.subject || '') + ' · ' + esc(obs.observation_date || '') + '</p>'
+            + '<div class="pkg-progress"><span data-role="rated-label">0 of ' + indicators.length + ' rated</span>'
+            + '<div class="pkg-progress-track"><div data-role="rated-bar"></div></div></div>'
             + '<div class="pkg-live" aria-live="polite">Live summary: <strong data-role="live-avg">—</strong> · <strong data-role="live-desc">No Score Yet</strong></div>'
+            + '<div class="pkg-actions" style="margin-top:0;margin-bottom:8px"><button type="button" class="pkg-btn" data-mark-all-no>Mark All as NO</button></div>'
             + rows
             + '<label>General notes<textarea data-field="notes" rows="3" placeholder="Overall notes"></textarea></label>'
             + '<label>STAR notes (Situation · Task · Action · Result)<textarea data-field="star_notes" rows="3" placeholder="STAR qualitative notes"></textarea></label>'
@@ -268,22 +299,126 @@
             + '<span class="pkg-muted" data-role="save-state"></span></div>'
             + '</section></div>';
 
-        // Live deterministic summary as the supervisor types.
+        // Live deterministic summary as the supervisor picks scores (same
+        // rule as online: numeric ratings excluding NO/N/A).
+        function rowState(i) {
+            var hid = root.querySelector('input[data-field="rating"][data-idx="' + i + '"]');
+            var noBox = root.querySelector('input[data-field="not_observed"][data-idx="' + i + '"]');
+            var naBox = root.querySelector('input[data-field="not_applicable"][data-idx="' + i + '"]');
+            return {
+                rating: hid && hid.value !== '' ? parseInt(hid.value, 10) : null,
+                no: !!(noBox && noBox.checked),
+                na: !!(naBox && naBox.checked),
+            };
+        }
         function recompute() {
             var vals = [];
-            root.querySelectorAll('select[data-field="rating"]').forEach(function (sel) {
-                var box = sel.closest('fieldset').querySelector('input[data-field="not_observed"]');
-                if (box && box.checked) return;
-                if (sel.value !== '') vals.push(parseInt(sel.value, 10));
-            });
+            var rated = 0;
+            for (var k = 0; k < indicators.length; k++) {
+                var st = rowState(k);
+                if (st.rating != null || st.no || st.na) rated++;
+                if (st.no || st.na) continue;
+                if (st.rating != null) vals.push(st.rating);
+            }
             var avg = vals.length ? vals.reduce(function (a, b) { return a + b; }, 0) / vals.length : null;
             var avgEl = root.querySelector('[data-role="live-avg"]');
             var descEl = root.querySelector('[data-role="live-desc"]');
             if (avgEl) avgEl.textContent = avg == null ? '—' : avg.toFixed(2);
             if (descEl) descEl.textContent = descriptive(avg, scaleMax);
+            var pct = indicators.length ? Math.round((rated / indicators.length) * 100) : 0;
+            var lab = root.querySelector('[data-role="rated-label"]');
+            var bar = root.querySelector('[data-role="rated-bar"]');
+            if (lab) lab.textContent = rated + ' of ' + indicators.length + ' rated';
+            if (bar) bar.style.width = pct + '%';
         }
         root.addEventListener('change', recompute);
         root.addEventListener('input', recompute);
+
+        // Rating buttons mirror the online sheet: one selection per row.
+        function paintRow(i) {
+            var fs = root.querySelector('fieldset.pkg-ind[data-idx="' + i + '"]');
+            if (!fs) return;
+            var st = rowState(i);
+            fs.querySelectorAll('[data-rate-btn]').forEach(function (b) {
+                var on = st.rating != null && !st.no && !st.na && String(st.rating) === b.getAttribute('data-value');
+                b.classList.toggle('active', on);
+            });
+            var noB = fs.querySelector('[data-rate-no]');
+            if (noB) noB.classList.toggle('active', st.no);
+            var naB = fs.querySelector('[data-rate-na]');
+            if (naB) naB.classList.toggle('active', st.na);
+            fs.classList.toggle('rated', st.rating != null || st.no || st.na);
+        }
+        function pickRating(i, v) {
+            var hid = root.querySelector('input[data-field="rating"][data-idx="' + i + '"]');
+            var noBox = root.querySelector('input[data-field="not_observed"][data-idx="' + i + '"]');
+            var naBox = root.querySelector('input[data-field="not_applicable"][data-idx="' + i + '"]');
+            if (!hid) return;
+            hid.value = v;
+            if (noBox) noBox.checked = false;
+            if (naBox) naBox.checked = false;
+            paintRow(i); recompute();
+        }
+        function pickNo(i) {
+            var hid = root.querySelector('input[data-field="rating"][data-idx="' + i + '"]');
+            var noBox = root.querySelector('input[data-field="not_observed"][data-idx="' + i + '"]');
+            var naBox = root.querySelector('input[data-field="not_applicable"][data-idx="' + i + '"]');
+            if (!noBox) return;
+            if (hid) hid.value = '';
+            noBox.checked = true;
+            if (naBox) naBox.checked = false;
+            paintRow(i); recompute();
+        }
+        function pickNa(i) {
+            var hid = root.querySelector('input[data-field="rating"][data-idx="' + i + '"]');
+            var noBox = root.querySelector('input[data-field="not_observed"][data-idx="' + i + '"]');
+            var naBox = root.querySelector('input[data-field="not_applicable"][data-idx="' + i + '"]');
+            if (!naBox) return;
+            if (hid) hid.value = '';
+            if (noBox) noBox.checked = false;
+            naBox.checked = true;
+            paintRow(i); recompute();
+        }
+        if (!root.dataset.pkgRatesWired) {
+            root.dataset.pkgRatesWired = '1';
+            root.addEventListener('click', function (e) {
+                var t = e.target.closest('[data-rate-btn],[data-rate-no],[data-rate-na],[data-rate-comment],[data-mark-all-no]');
+                if (!t || !root.contains(t)) return;
+                if (t.hasAttribute('data-mark-all-no')) {
+                    if (!confirm('Mark all indicators as Not Observed (NO)?')) return;
+                    for (var k = 0; k < indicators.length; k++) pickNo(k);
+                    return;
+                }
+                var idx = parseInt(t.getAttribute('data-idx'), 10);
+                if (isNaN(idx)) return;
+                if (t.hasAttribute('data-rate-btn')) pickRating(idx, t.getAttribute('data-value'));
+                else if (t.hasAttribute('data-rate-no')) pickNo(idx);
+                else if (t.hasAttribute('data-rate-na')) pickNa(idx);
+                else if (t.hasAttribute('data-rate-comment')) {
+                    var row = root.querySelector('[data-comment-row="' + idx + '"]');
+                    if (row) {
+                        row.hidden = !row.hidden;
+                        t.classList.toggle('has-comment', !row.hidden);
+                        if (!row.hidden) {
+                            var ta = row.querySelector('textarea');
+                            if (ta) ta.focus();
+                        }
+                    }
+                }
+            });
+            // Comment presence styling on the toggle button.
+            root.addEventListener('input', function (e) {
+                var ta = e.target.closest ? e.target.closest('textarea[data-field="comments"]') : null;
+                if (!ta) return;
+                var btn = root.querySelector('[data-rate-comment][data-idx="' + ta.getAttribute('data-idx') + '"]');
+                if (btn) {
+                    var has = ta.value.trim().length > 0;
+                    btn.classList.toggle('has-comment', has);
+                    btn.textContent = has ? 'View Comment' : 'Comment';
+                }
+            });
+        }
+        recompute();
 
         var saveBtn = root.querySelector('[data-action="save-offline"]');
         if (saveBtn) saveBtn.addEventListener('click', function () {
@@ -302,25 +437,28 @@
         var ratings = [];
         var valid = true;
         indicators.forEach(function (ind, i) {
-            var sel = root.querySelector('select[data-field="rating"][data-idx="' + i + '"]');
+            var hid = root.querySelector('input[data-field="rating"][data-idx="' + i + '"]');
             var box = root.querySelector('input[data-field="not_observed"][data-idx="' + i + '"]');
+            var naBox = root.querySelector('input[data-field="not_applicable"][data-idx="' + i + '"]');
             var com = root.querySelector('textarea[data-field="comments"][data-idx="' + i + '"]');
             var notObs = !!(box && box.checked);
-            var val = sel && sel.value !== '' ? parseInt(sel.value, 10) : null;
-            if (!notObs && val == null) return; // unrated + not flagged: skip silently
+            var notNa = !!(naBox && naBox.checked);
+            var val = hid && hid.value !== '' ? parseInt(hid.value, 10) : null;
+            if (!notObs && !notNa && val == null) return; // untouched row: skip silently
             ratings.push({
                 client_id: uuid(),
                 indicator_code: ind.code,
                 domain: ind.domain,
                 indicator: ind.description,
-                rating: val,
+                rating: (notObs || notNa) ? null : val,
                 not_observed: notObs,
+                not_applicable: notNa,
                 comments: com ? com.value : null,
             });
         });
         if (!ratings.length) valid = false;
         return Promise.resolve().then(function () {
-            if (!valid) throw new Error('Rate at least one indicator (or mark Not observed) before saving.');
+            if (!valid) throw new Error('Rate at least one indicator (or mark NO / N/A) before saving.');
             var notes = root.querySelector('textarea[data-field="notes"]');
             var star = root.querySelector('textarea[data-field="star_notes"]');
             return {

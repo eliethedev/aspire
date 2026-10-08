@@ -2,16 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\AI\Services\LessonPlanSuggestionService;
+use App\AI\Services\LessonPlanSummaryService;
 use App\Models\Observation;
 use App\Models\School;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class AITaskRateLimitTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // These tests target AI guard/rate-limit logic, not profile
+        // completeness (same precedent as OfflineSyncTest/NotificationLinksTest).
+        $this->withoutMiddleware(\App\Http\Middleware\EnsureProfileComplete::class);
+    }
 
     public function test_guest_cannot_access_goal_specific_ai_tasks(): void
     {
@@ -63,6 +75,21 @@ class AITaskRateLimitTest extends TestCase
             'ai.rate_limits.per_minute' => 2,
             'ai.rate_limits.per_hour' => 200,
         ]);
+
+        // Stub the AI services so requests complete instantly. Real provider
+        // calls take ~100s each (timeouts), which would outlast the 60s rate
+        // window and make the third request pass instead of 429.
+        $this->mock(LessonPlanSuggestionService::class, function ($mock) {
+            $mock->shouldReceive('suggest')->andReturn(['suggestions' => ['Keep it up']]);
+            $mock->shouldReceive('getLastRouting')->andReturn(null);
+        });
+        $this->mock(LessonPlanSummaryService::class, function ($mock) {
+            $mock->shouldReceive('summarize')->andReturn(['summary' => 'Good plan']);
+            $mock->shouldReceive('getLastRouting')->andReturn(null);
+        });
+
+        RateLimiter::clear("ai:global:{$observer->id}");
+        RateLimiter::clear("ai:global-hourly:{$observer->id}");
 
         foreach ([1, 2] as $i) {
             $response = $this->actingAs($observer)->postJson(

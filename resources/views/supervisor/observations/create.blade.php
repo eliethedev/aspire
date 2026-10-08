@@ -583,22 +583,52 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Term</label>
                             <select name="quarter" x-model="form.quarter" @change="checkTermAlignment()"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    :class="termTaken() ? 'border-amber-400 dark:border-amber-500 bg-amber-50/60 dark:bg-amber-900/10 ring-1 ring-amber-300 dark:ring-amber-700' : 'border-gray-300 dark:border-gray-600'">
                                 <option value="">Select term</option>
                                 <option value="1">1st Term</option>
                                 <option value="2">2nd Term</option>
                                 <option value="3">3rd Term</option>
                             </select>
+                            <template x-if="termChips().length">
+                                <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                    <template x-for="chip in termChips()" :key="chip.quarter">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                                              :class="chip.count > 0 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'"
+                                              :title="chip.count > 0 ? chip.count + ' past observation(s)' : 'No past observations'">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="chip.count > 0 ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                                            <span x-text="chip.label + ' ×' + chip.count"></span>
+                                        </span>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="termTaken()">
+                                <p class="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">Already observed in this term — see past records below.</p>
+                            </template>
                         </div>
 
                         <!-- Observation Number -->
                         <div>
                             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Number</label>
                             <select name="observation_number" x-model="form.observation_number"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    class="w-full px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    :class="obsNumberTaken() ? 'border-amber-400 dark:border-amber-500 bg-amber-50/60 dark:bg-amber-900/10 ring-1 ring-amber-300 dark:ring-amber-700' : 'border-gray-300 dark:border-gray-600'">
                                 <option value="1">1st Observation</option>
                                 <option value="2">2nd Observation</option>
                             </select>
+                            <template x-if="usedNumbers().length">
+                                <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                    <span class="text-[10px] text-gray-400">Used in this term:</span>
+                                    <template x-for="n in usedNumbers()" :key="n">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                                              :class="String(form.observation_number) === String(n) ? 'bg-amber-500 border-amber-500 text-white' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'"
+                                              x-text="n === 1 ? '1st' : (n === 2 ? '2nd' : n + 'th')"></span>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="obsNumberTaken()">
+                                <p class="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">This number is already used in the chosen term.</p>
+                            </template>
                         </div>
 
                         <!-- Subject (auto-filled) -->
@@ -665,7 +695,7 @@
                                         <ul class="mt-1.5 space-y-1">
                                             <template x-for="item in termCheck.result.in_term" :key="item.id">
                                                 <li>
-                                                    <a :href="item.url" target="_blank" class="text-[11px] text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline" x-text="item.date + ' · ' + item.stage + ' · ' + item.status + (item.subject ? ' · ' + item.subject : '')"></a>
+                                                     <a :href="item.url" target="_blank" class="text-[11px] text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline" x-text="item.date + (item.observation_number ? ' · #' + item.observation_number : '') + ' · ' + item.stage + ' · ' + item.status + (item.subject ? ' · ' + item.subject : '')"></a>
                                                 </li>
                                             </template>
                                         </ul>
@@ -1628,6 +1658,32 @@
                     .map(t => `${t.label} (${t.count})`);
                 if (!parts.length) return '';
                 return `Also observed in ${parts.join(', ')} — SY ${r.school_year}.`;
+            },
+
+            // Past-data highlights for the Term + Observation Number pickers.
+            termTaken() {
+                const r = this.termCheck.result;
+                return !!(r && r.quarter && (r.in_term_count || 0) > 0);
+            },
+
+            termChips() {
+                const r = this.termCheck.result;
+                if (!r || !r.terms_summary || !r.terms_summary.length) return [];
+                return r.terms_summary
+                    .filter(t => Number(t.quarter) >= 1 && Number(t.quarter) <= 3)
+                    .map(t => ({ quarter: Number(t.quarter), label: t.label, count: Number(t.count) || 0 }));
+            },
+
+            usedNumbers() {
+                const r = this.termCheck.result;
+                if (!r || !r.quarter || !Array.isArray(r.used_numbers)) return [];
+                return r.used_numbers.map(Number).filter(n => n >= 1);
+            },
+
+            obsNumberTaken() {
+                const used = this.usedNumbers();
+                if (!used.length || !this.form.observation_number) return false;
+                return used.includes(Number(this.form.observation_number));
             },
 
             toggleSchoolHead() {

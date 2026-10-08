@@ -341,6 +341,25 @@
                     </li>
 
                     @php($openSupportCount = \App\Models\SupportMessage::query()->open()->count())
+                    @php($newInquiryCount = \App\Models\ContactInquiry::query()->byStatus(\App\Models\ContactInquiry::STATUS_NEW)->count())
+                    <li>
+                        <a data-mks="contact inquiries prospective inbox" href="{{ route('admin.contact-inquiries.index') }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('admin.contact-inquiries.*') ? 'sidebar-link-active icon-support' : '' }}"
+                           :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
+                            <span class="sidebar-icon-wrap icon-support ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                                </svg>
+                            </span>
+                            <span x-show="!$store.sidebar.isCollapsed()" class="font-medium">Contact Inquiries</span>
+                            @if($newInquiryCount > 0)
+                                <span x-show="!$store.sidebar.isCollapsed()"
+                                      class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-semibold">
+                                    {{ $newInquiryCount }}
+                                </span>
+                            @endif
+                        </a>
+                    </li>
                     <li>
                         <a data-mks="support messages inbox tickets help" href="{{ route('admin.support-messages.index') }}"
                            class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('admin.support-messages.*') ? 'sidebar-link-active icon-support' : '' }}"

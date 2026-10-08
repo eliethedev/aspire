@@ -32,14 +32,6 @@
         </div>
     </div>
 
-    <div class="mock-title">
-        <div>
-            <h1>{{ $rateeProfile['name'] }}</h1>
-            <p>{{ $teacher->user->email }} · {{ $rateeProfile['position'] }} · {{ $levelLabel }}</p>
-        </div>
-        <time>{{ $teacher->school?->name ?? '' }}</time>
-    </div>
-
     @if(!($isOwnSchool ?? true))
     <div class="rounded-2xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-3 flex items-start gap-3 text-sm">
         <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0"><i class="fas fa-eye text-xs"></i></span>
@@ -84,17 +76,6 @@
                         </div>
                         @endif
                     </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 lg:justify-end shrink-0">
-                    <a href="{{ route('supervisor.teachers.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-arrow-left text-xs"></i> Back to list
-                    </a>
-                    <a href="{{ route('supervisor.observations.teacher-history', ['observeeId' => $teacher->id, 'type' => 'App\\Models\\Teacher']) }}" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-clock-rotate-left text-xs"></i> History
-                    </a>
-                    <a href="{{ route('supervisor.observations.create') }}?teacher_id={{ $teacher->id }}" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl {{ $needsAttention && $attentionLevel==='high' ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700' }} text-white text-sm font-semibold shadow-sm transition-colors">
-                        <i class="fas fa-plus text-xs"></i> New Observation
-                    </a>
                 </div>
             </div>
 

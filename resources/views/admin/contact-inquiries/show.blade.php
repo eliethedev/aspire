@@ -1,0 +1,88 @@
+@extends('layouts.admin')
+
+@section('title', $contactInquiry->subject)
+@include('partials.dashboard.mock-styles')
+
+@section('content')
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1">
+    <div class="mock-topbar"><div class="mock-crumbs">Admin <span>/</span> <b>Contact Inquiry</b></div><div class="mock-actions"><a href="{{ route('admin.contact-inquiries.index') }}" class="mock-btn">&larr; Back to Contact Inquiries</a></div></div>
+<div class="mock-title"><div><h1>{{ $contactInquiry->subject }}</h1></div><time>{{ now()->format('l, F j, Y') }}</time></div>
+
+    <section class="mock-panel">
+        <div class="flex flex-wrap items-center gap-2 mb-5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-sm font-bold shrink-0">
+                    {{ strtoupper(substr($contactInquiry->name ?? 'U', 0, 1)) }}
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $contactInquiry->name }}</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                        <a href="mailto:{{ $contactInquiry->email }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">{{ $contactInquiry->email }}</a>
+                        &middot; {{ $contactInquiry->roleLabel() }}@if($contactInquiry->school_name) &middot; {{ $contactInquiry->school_name }}@endif
+                    </p>
+                </div>
+            </div>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                {{ $contactInquiry->topicLabel() }}
+            </span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $contactInquiry->status === 'resolved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : ($contactInquiry->status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400') }}">
+                {{ $contactInquiry->statusLabel() }}
+            </span>
+            <span class="text-xs text-gray-400 dark:text-gray-500 ml-auto">{{ $contactInquiry->created_at->format('M d, Y h:i A') }}</span>
+        </div>
+
+        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ $contactInquiry->message }}</p>
+
+        @if($contactInquiry->resolver || $contactInquiry->resolved_at)
+            <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+                Handled by {{ $contactInquiry->resolver?->name ?? '—' }}
+                @if($contactInquiry->resolved_at) &middot; {{ $contactInquiry->resolved_at->format('M d, Y h:i A') }}@endif
+            </p>
+        @endif
+    </section>
+
+    <section class="mock-panel"><form method="POST" action="{{ route('admin.contact-inquiries.update', $contactInquiry) }}"
+          class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
+        @csrf
+        @method('PATCH')
+
+        <div>
+            <x-input-label for="status" :value="__('Status')" />
+            <select id="status" name="status" required
+                    class="mt-1 block w-full sm:w-64 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                <option value="new" {{ old('status', $contactInquiry->status) === 'new' ? 'selected' : '' }}>New</option>
+                <option value="in_progress" {{ old('status', $contactInquiry->status) === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                <option value="resolved" {{ old('status', $contactInquiry->status) === 'resolved' ? 'selected' : '' }}>Resolved</option>
+            </select>
+            <x-input-error :messages="$errors->get('status')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="admin_note" :value="__('Admin Note (internal — reply via email)')" />
+            <textarea id="admin_note" name="admin_note" rows="4" maxlength="5000"
+                      class="mt-1 block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      placeholder="Internal note, e.g. replied by email on…">{{ old('admin_note', $contactInquiry->admin_note) }}</textarea>
+            <x-input-error :messages="$errors->get('admin_note')" class="mt-2" />
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+            <button type="submit"
+                    class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                Update Inquiry
+            </button>
+        </div>
+    </form></section>
+
+    <div class="mt-4 flex items-center justify-end">
+        <form method="POST" action="{{ route('admin.contact-inquiries.destroy', $contactInquiry) }}"
+              onsubmit="return confirm('Delete this inquiry? This cannot be undone.');">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                Delete Inquiry
+            </button>
+        </form>
+    </div>
+</div>
+@endsection

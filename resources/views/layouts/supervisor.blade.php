@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }} - @yield('title', 'Supervisor')</title>
+        <title>{{ config('app.name', 'ASPIRE') }} - @yield('title', 'Supervisor')</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -14,17 +14,16 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+        {{-- Vendored locally (public/js/vendor) so pages keep working offline — same pinned 3.13.3 builds as the former CDN tags. --}}
+        <script defer src="{{ asset('js/vendor/alpine-persist.min.js') }}"></script>
+        <script defer src="{{ asset('js/vendor/alpine.min.js') }}"></script>
         <script>
             (function() {
                 const theme = localStorage.getItem('theme');
                 if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
                 }
-                if (localStorage.getItem('app_text_large') === '1') {
-                    document.documentElement.classList.add('text-large');
-                }
+
             })();
         </script>
         <script>
@@ -54,19 +53,7 @@
                         localStorage.setItem('theme', this.dark ? 'dark' : 'light');
                     }
                 });
-                Alpine.store('accessibility', {
-                    large: localStorage.getItem('app_text_large') === '1',
-                    toggle() {
-                        this.large = !this.large;
-                        document.documentElement.classList.toggle('text-large', this.large);
-                        localStorage.setItem('app_text_large', this.large ? '1' : '0');
-                    },
-                    setLarge(v) {
-                        this.large = v;
-                        document.documentElement.classList.toggle('text-large', v);
-                        localStorage.setItem('app_text_large', v ? '1' : '0');
-                    }
-                });
+
                 @include('partials.rating-tip-store')
             });
         </script>

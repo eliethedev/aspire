@@ -378,8 +378,8 @@
 
         </div>
 
-        <!-- Right Column - Sidebar (stacks below main content on mobile, sticky on md+) -->
-        <aside class="min-w-0 space-y-4 sm:space-y-6 md:sticky md:top-6 md:self-start">
+        <!-- Right Column - Sidebar (stacks below main content on mobile, sticky + independently scrollable on md+) -->
+        <aside class="min-w-0 space-y-4 sm:space-y-6 md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:pr-1">
 
                 <!-- Observation Preparation -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">

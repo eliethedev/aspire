@@ -85,8 +85,10 @@ IS the pending state (see `Observation::isPendingTeacherConfirmation()`).
 - Queue must run (`QUEUE_CONNECTION=database` + worker) for AI prompt jobs;
   `prepare-package` also works synchronously while online.
 - Cached shell: open each `offline-workspace` URL once online; SW version
-  `aspire-offline-v5` caches it runtime-first-visit. Both
+  `aspire-offline-v10` caches it runtime-first-visit. Both
   `/supervisor/observations/offline` and `/school-head/observations/offline`
-  capture pages are precached.
+  capture pages are precached, along with the vendored Alpine runtime
+  (`/js/vendor/alpine.min.js`, `/js/vendor/alpine-persist.min.js`) so layout
+  interactivity works with zero connectivity (no CDN).
 - Tests: `php artisan test --filter=OfflineWorkflowTest` (8 tests, AI-disabled
   fallback path exercised deterministically).

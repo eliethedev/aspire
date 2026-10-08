@@ -13,7 +13,7 @@ try {
     Auth::login($user);
     echo 'Logged in as: ' . $user->name . ' (ID: ' . $user->id . ')' . PHP_EOL;
 
-    $controller = $app->make('App\Http\Controllers\SupervisorController');
+    $controller = $app->make('App\Http\Controllers\Supervisor\ObservationSchedulingController');
     $request = Illuminate\Http\Request::create('/supervisor/observations/create', 'GET');
     $result = $controller->createObservation();
     echo 'Result type: ' . get_class($result) . PHP_EOL;

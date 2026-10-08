@@ -308,7 +308,6 @@
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Schedule</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Confirmation</th>
-                        <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">EPOC</th>
                         <th scope="col" class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 hidden lg:table-cell">Stage</th>
                         <th scope="col" class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Action</th>
                     </tr>
@@ -346,12 +345,6 @@
                         };
                         $hideConfirm = $observation->confirmation_status === 'pending'
                             && in_array($observation->status, ['completed', 'cancelled'], true);
-                        $epoc = $observation->isSchoolHeadObservation() ? $observation->epocEvaluation : null;
-                        $epocPending = $observation->isSchoolHeadObservation()
-                            && $observation->schoolHead
-                            && !$epoc
-                            && $observation->status !== 'cancelled'
-                            && !$observation->isFinalized();
             $stages = ['pre_observation_planning' => 'Prepare','pre_conference' => 'Pre-Observation Conversation','observation' => 'Classroom Observation','post_conference' => 'Post-Observation Conference'];
                         $stageKeys = array_keys($stages);
                         $currentIdx = array_search($observation->stage, $stageKeys);
@@ -392,26 +385,14 @@
                                 <span class="text-xs text-gray-400">—</span>
                             @endif
                         </td>
-                        <td class="px-3 py-2.5 whitespace-nowrap">
-                            @if($epoc)
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200" title="EPOC completed">
-                                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    {{ number_format((float) $epoc->overall_score, 2) }} / 5
-                                </span>
-                            @elseif($epocPending)
-                                <a href="{{ route('supervisor.observations.epoc', $observation) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline">
-                                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3l7 4v5c0 5-3.5 7.5-7 8-3.5-.5-7-3-7-8V7l7-4z"/></svg>
-                                    Pending
-                                </a>
-                            @else
-                                <span class="text-xs text-gray-400">—</span>
-                            @endif
-                        </td>
                         <td class="px-3 py-2.5 whitespace-nowrap hidden lg:table-cell">
                             <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $stages[$observation->stage] ?? '—' }}</span>
                             <span class="text-[11px] text-gray-400 ml-1">{{ $stepNum }}/4</span>
                         </td>
                         <td class="px-3 py-2.5 text-right whitespace-nowrap">
+                            @if($observation->isReadyForDownload() && $observation->status !== 'cancelled')
+                                <a href="{{ route('supervisor.observations.offline-workspace', $observation) }}" title="Open the offline workspace — caches the page shell and downloads the observation bundle for zero-connectivity use" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-gray-800 border border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-md text-xs font-semibold transition-colors mr-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Offline Package</a>
+                            @endif
                             @if($continueRoute && $observation->status!=='cancelled' && $observation->status!=='completed')
                                 <a href="{{ route($continueRoute, $observation) }}" class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-semibold transition-colors">Continue<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></a>
                             @else

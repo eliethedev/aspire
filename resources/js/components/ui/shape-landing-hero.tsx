@@ -99,7 +99,7 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#EFF6FF] via-white to-white dark:from-slate-950 dark:via-[#0A1633] dark:to-slate-950">
+        <div className="relative w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#EFF6FF] via-white to-white py-20 md:py-28 dark:from-slate-950 dark:via-[#0A1633] dark:to-slate-950">
             {/* DepEd tricolor top ribbon */}
             <div className="absolute inset-x-0 top-0 z-20 flex h-1.5" aria-hidden="true">
                 <div className="flex-1 bg-[#0B3D91]" />
@@ -177,12 +177,12 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
+                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-4 md:mb-5 tracking-tight">
                             <span className="bg-clip-text text-transparent bg-gradient-to-b from-[#0A2A6B] to-[#1d4ed8] dark:from-white dark:to-blue-200">
                                 {title1}
                             </span>
                         </h1>
-                        <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 md:mb-8 tracking-tight">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-5 md:mb-6 tracking-tight text-balance">
                             <span
                                 className={cn(
                                     "bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-blue-700 to-blue-900 dark:from-blue-200 dark:via-white dark:to-blue-200"
@@ -199,7 +199,7 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed font-normal tracking-wide max-w-xl mx-auto px-4 text-balance">
                             {description}
                         </p>
                         {actions ? <div className="px-4">{actions}</div> : null}

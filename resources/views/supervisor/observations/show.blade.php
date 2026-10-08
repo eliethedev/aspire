@@ -22,10 +22,10 @@
 @section('content')
 @php
     $stageConfig = [
-        'pre_observation_planning' => ['label'=>'Lesson planning','desc'=>'Lesson plan and goals','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>','accent'=>'blue'],
-        'pre_conference' => ['label'=>'Chat before class','desc'=>'Short chat before the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>','accent'=>'amber'],
-        'observation' => ['label'=>'Classroom visit','desc'=>'Notes and scores from the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>','accent'=>'indigo'],
-        'post_conference' => ['label'=>'Chat after class','desc'=>'Feedback and next steps','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','accent'=>'green'],
+        'pre_observation_planning' => ['label'=>'Pre-Observation','desc'=>'Lesson plan and goals','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>','accent'=>'blue'],
+        'pre_conference' => ['label'=>'Pre-Conference','desc'=>'Short chat before the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>','accent'=>'amber'],
+        'observation' => ['label'=>'Observation','desc'=>'Notes and scores from the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>','accent'=>'indigo'],
+        'post_conference' => ['label'=>'Post-Observation','desc'=>'Feedback and next steps','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','accent'=>'green'],
     ];
     $currentStage = $observation->stage;
     $cfg = $stageConfig[$currentStage] ?? null;
@@ -39,10 +39,10 @@
         'epoc' => 'supervisor.observations.observation',
     ];
     $stageLabels = [
-        'pre_observation_planning' => 'Lesson planning',
-        'pre_conference' => 'Chat before class',
-        'observation' => 'Classroom visit',
-        'post_conference' => 'Chat after class',
+        'pre_observation_planning' => 'Pre-Observation',
+        'pre_conference' => 'Pre-Conference',
+        'observation' => 'Observation',
+        'post_conference' => 'Post-Observation',
         'epoc' => 'School head review',
     ];
     $stageCompleted = [

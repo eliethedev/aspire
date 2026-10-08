@@ -123,7 +123,7 @@
 
         <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             @if($observation->isSchoolHeadObservation())
-                <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
+                <div class="p-4 sm:p-5 border-b bzorder-gray-100 dark:border-gray-800 bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/40 dark:to-gray-900">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Observation Rating Sheet</h2>

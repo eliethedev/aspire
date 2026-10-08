@@ -29,6 +29,11 @@
         'observation' => $observation->cotRatings && $observation->cotRatings->count() > 0,
     ];
     $stageKeys = ['pre_observation_planning', 'pre_conference', 'observation'];
+    $shortStageLabels = [
+        'pre_observation_planning' => 'Prepare',
+        'pre_conference' => 'Pre-Conf.',
+        'observation' => 'Observe',
+    ];
     $currentIdx = array_search($observation->stage, $stageKeys);
     // Teachers may upload (or replace) the lesson plan while the observation
     // is still being prepared — same rule as the upload endpoint.
@@ -98,18 +103,18 @@
                 @endphp
 
                 @if($i > 0)
-                    <div class="flex-1 mx-4 h-1 {{ $stageCompleted[$stageKeys[$i - 1]] ? 'bg-green-400' : 'bg-gray-200 dark:bg-gray-700' }}"></div>
+                    <div class="flex-1 shrink-0 min-w-[8px] mx-1 sm:mx-4 h-1 {{ $stageCompleted[$stageKeys[$i - 1]] ? 'bg-green-400' : 'bg-gray-200 dark:bg-gray-700' }}"></div>
                 @endif
 
-                <div class="flex items-center">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200 dark:ring-indigo-800' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400') }} font-semibold text-sm">
+                <div class="flex items-center min-w-0">
+                    <div class="flex shrink-0 items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full {{ $done ? 'bg-green-600 text-white' : ($active ? 'bg-indigo-600 text-white ring-2 ring-indigo-200 dark:ring-indigo-800' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400') }} font-semibold text-xs sm:text-sm">
                         @if($done)
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         @else
                             {{ $i + 1 }}
                         @endif
                     </div>
-                    <span class="ml-2 {{ $done ? 'text-gray-700 dark:text-gray-300 font-medium' : ($active ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500') }} text-sm">{{ $stageLabels[$key] }}</span>
+                    <span class="ml-1.5 sm:ml-2 min-w-0 truncate {{ $done ? 'text-gray-700 dark:text-gray-300 font-medium' : ($active ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500') }} text-[11px] sm:text-sm"><span class="sm:hidden">{{ $shortStageLabels[$key] }}</span><span class="hidden sm:inline">{{ $stageLabels[$key] }}</span></span>
                 </div>
             @endforeach
         </div>

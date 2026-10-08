@@ -20,9 +20,7 @@
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
             }
-            if (localStorage.getItem('app_text_large') === '1') {
-                document.documentElement.classList.add('text-large');
-            }
+
         })();
         function toggleTheme() {
             var root = document.documentElement;

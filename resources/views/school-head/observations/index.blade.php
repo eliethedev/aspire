@@ -190,6 +190,14 @@
                     </div>
                 @endif
         </a>
+                @if(($isObserver || $isCoObserver) && $observation->isReadyForDownload() && $observation->status !== 'cancelled')
+                    <div class="px-4 pb-3">
+                        <a href="{{ route('school-head.observations.offline-workspace', $observation) }}" title="Open the offline workspace — caches the page shell and downloads the observation bundle for zero-connectivity use" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 text-xs font-semibold transition-colors">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download Offline Package
+                        </a>
+                    </div>
+                @endif
             @empty
                 <x-empty-state title="No observations found"
                                hint="Schedule your first teacher observation to get started."

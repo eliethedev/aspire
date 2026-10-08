@@ -21,6 +21,10 @@ class ObservationAutosaveTest extends TestCase
     {
         parent::setUp();
 
+        // These tests target autosave logic, not profile completeness
+        // (same precedent as OfflineSyncTest/NotificationLinksTest).
+        $this->withoutMiddleware(\App\Http\Middleware\EnsureProfileComplete::class);
+
         $this->supervisor = User::factory()->create(['role' => 'supervisor']);
         $this->teacher = Teacher::factory()->create();
     }
@@ -132,5 +136,55 @@ class ObservationAutosaveTest extends TestCase
         $this->actingAs($this->supervisor)
             ->postJson(route('supervisor.observations.autosave', $observation), ['stage' => 'not_a_stage'])
             ->assertStatus(422);
+    }
+
+    public function test_school_head_can_autosave_observation_ratings(): void
+    {
+        $schoolHead = User::factory()->schoolHead()->create();
+
+        $observation = Observation::factory()
+            ->forObserver($schoolHead)
+            ->forObservee($this->teacher)
+            ->create(['status' => 'in_progress', 'stage' => 'observation']);
+
+        $response = $this->actingAs($schoolHead)->postJson(
+            route('school-head.observations.autosave', $observation),
+            [
+                'ratings' => [
+                    [
+                        'indicator_code' => '2.1.1',
+                        'domain' => 'Learning Environment',
+                        'indicator' => 'Maintains a safe classroom',
+                        'rating' => 4,
+                        'not_observed' => false,
+                    ],
+                ],
+            ]
+        );
+
+        $response->assertOk()->assertJson(['ok' => true]);
+
+        $this->assertDatabaseHas('cot_ratings', [
+            'observation_id' => $observation->id,
+            'indicator_code' => '2.1.1',
+            'rating' => 4,
+        ]);
+
+        // Draft only: stage never advances on autosave.
+        $this->assertSame('observation', $observation->fresh()->stage);
+    }
+
+    public function test_school_head_cannot_autosave_unrelated_observation(): void
+    {
+        $schoolHead = User::factory()->schoolHead()->create();
+        $otherSupervisor = User::factory()->create(['role' => 'supervisor']);
+        $observation = Observation::factory()
+            ->forObserver($otherSupervisor)
+            ->forObservee($this->teacher)
+            ->create();
+
+        $this->actingAs($schoolHead)
+            ->postJson(route('school-head.observations.autosave', $observation), ['ratings' => []])
+            ->assertForbidden();
     }
 }

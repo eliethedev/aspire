@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Jobs\GeneratePostObservationFeedback;
 use App\Models\CotIndicatorVersion;
 use App\Models\CotRating;
+use App\Models\EpocEvaluation;
+use App\Models\EpocTemplate;
 use App\Models\Observation;
 use App\Models\SchoolHeadProfile;
 use App\Models\Teacher;
@@ -152,8 +154,29 @@ class SyncController extends Controller
             ->get(['observation_id', 'indicator_code', 'domain', 'rating', 'not_observed', 'not_applicable', 'comments'])
             ->groupBy('observation_id');
 
-        $history = $historyRows->map(function ($o) use ($histTeacherNames, $histHeadNames, $historyRatings) {
+        // EPOC evaluations for finished school-head observations, mapped to
+        // the same row shape as COT ratings so the tablet history view
+        // renders past EPOC numbers (E1…En) without special-casing.
+        $historyEpoc = EpocEvaluation::with(['ratings' => fn ($q) => $q->orderBy('id')])
+            ->whereIn('observation_id', $historyObsIds)
+            ->get()
+            ->keyBy('observation_id');
+
+        $history = $historyRows->map(function ($o) use ($histTeacherNames, $histHeadNames, $historyRatings, $historyEpoc) {
             $isHead = $o->observee_type === SchoolHeadProfile::class;
+
+            if ($isHead && isset($historyEpoc[$o->id])) {
+                $epocRows = $historyEpoc[$o->id]->ratings->values()->map(fn ($r, $i) => [
+                    'indicator_code' => 'E'.($i + 1),
+                    'domain' => $r->domain,
+                    'rating' => $r->rating,
+                    'not_observed' => false,
+                    'not_applicable' => false,
+                    'comments' => $r->comments,
+                ])->values();
+            } else {
+                $epocRows = null;
+            }
 
             return [
                 'server_id' => $o->id,
@@ -168,7 +191,7 @@ class SyncController extends Controller
                 'overall_score' => $o->overall_score !== null ? (float) $o->overall_score : null,
                 'stage' => $o->stage,
                 'status' => $o->status,
-                'ratings' => ($historyRatings[$o->id] ?? collect())->map(fn ($r) => [
+                'ratings' => $epocRows ?? ($historyRatings[$o->id] ?? collect())->map(fn ($r) => [
                     'indicator_code' => $r->indicator_code,
                     'domain' => $r->domain,
                     'rating' => $r->rating,
@@ -199,12 +222,49 @@ class SyncController extends Controller
             ])
             ->values();
 
+        // EPOC instrument for school-head observations (6 domains, 23
+        // indicators, 1–5 scale). Falls back to the built-in DepEd CID
+        // domains when no active template exists for the school year, so the
+        // offline sheet never renders empty.
+        $epocTemplate = EpocTemplate::activeFor($schoolYear);
+        if ($epocTemplate) {
+            $epocIndicators = $epocTemplate->indicators
+                ->where('is_active', true)
+                ->sortBy('order')
+                ->values()
+                ->map(fn ($i, $idx) => [
+                    'domain' => $i->domain,
+                    'indicator' => $i->indicator,
+                    'order' => $i->order ?? $idx,
+                ])
+                ->values();
+            $epocBundle = [
+                'id' => $epocTemplate->id,
+                'name' => $epocTemplate->name,
+                'indicators' => $epocIndicators,
+            ];
+        } else {
+            $order = 0;
+            $fallback = [];
+            foreach (EpocTemplate::defaultDomains() as $domain => $items) {
+                foreach ($items as $item) {
+                    $fallback[] = ['domain' => $domain, 'indicator' => $item, 'order' => $order++];
+                }
+            }
+            $epocBundle = [
+                'id' => null,
+                'name' => 'DepEd CID EPOC (built-in)',
+                'indicators' => $fallback,
+            ];
+        }
+
         return [
             'school_year' => $schoolYear,
             'server_time' => now()->toIso8601String(),
             'teachers' => $teachers,
             'school_heads' => $schoolHeads,
             'cot_templates' => $cotTemplates,
+            'epoc_template' => $epocBundle,
             'scheduled' => $scheduled,
             'history' => $history,
         ];
@@ -355,6 +415,7 @@ class SyncController extends Controller
             'subject' => ['nullable', 'string', 'max:255'],
             'grade_level' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'star_notes' => ['nullable', 'string', 'max:10000'],
             'school_year' => ['nullable', 'string', 'max:20'],
             'quarter' => ['nullable', 'integer', 'min:1', 'max:3'],
             'cot_indicator_version_id' => ['nullable', 'integer', 'exists:cot_indicator_versions,id'],
@@ -362,10 +423,21 @@ class SyncController extends Controller
             'ratings.*.indicator_code' => ['required_with:ratings', 'string', 'max:50'],
             'ratings.*.rating' => ['nullable', 'integer', 'min:2', 'max:8'],
             'ratings.*.not_observed' => ['nullable', 'boolean'],
+            'ratings.*.not_applicable' => ['nullable', 'boolean'],
             'ratings.*.comments' => ['nullable', 'string', 'max:2000'],
             'ratings.*.client_id' => ['nullable', 'uuid'],
             'ratings.*.domain' => ['nullable', 'string', 'max:100'],
             'ratings.*.indicator' => ['nullable', 'string', 'max:1000'],
+            // EPOC instrument for school-head observations (1–5 scale, no
+            // NO/N/A flags — mirrors ObservationStageController::storeEpocObservationData).
+            'epoc_template_id' => ['nullable', 'integer', 'exists:epoc_templates,id'],
+            'epoc_ratings' => ['nullable', 'array', 'max:30'],
+            'epoc_ratings.*.domain' => ['required_with:epoc_ratings', 'string', 'max:255'],
+            'epoc_ratings.*.indicator' => ['required_with:epoc_ratings', 'string', 'max:2000'],
+            'epoc_ratings.*.rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'epoc_ratings.*.comments' => ['nullable', 'string', 'max:2000'],
+            'epoc_narrative_observation' => ['nullable', 'string', 'max:10000'],
+            'epoc_agreement' => ['nullable', 'string', 'max:10000'],
         ])->validate();
 
         $isSchoolHead = $data['observation_type'] === 'school_head_observation';
@@ -427,11 +499,15 @@ class SyncController extends Controller
             ];
         }
 
-        // School-head observations use the EPOC instrument on the server, so
-        // any COT ratings accidentally queued with them are dropped.
+        // School-head observations use the EPOC instrument, so any COT
+        // ratings accidentally queued with them are dropped.
         $ratings = $isSchoolHead ? [] : ($data['ratings'] ?? []);
+        $epocRatings = $isSchoolHead ? ($data['epoc_ratings'] ?? []) : [];
+        $epocNarrative = $isSchoolHead ? ($data['epoc_narrative_observation'] ?? null) : null;
+        $epocAgreement = $isSchoolHead ? ($data['epoc_agreement'] ?? null) : null;
+        $hasEpocData = $isSchoolHead && ($epocRatings !== [] || $epocNarrative || $epocAgreement);
 
-        return DB::transaction(function () use ($user, $observee, $observeeClass, $data, $isSchoolHead, $ratings, $clientId, $deviceUpdatedAt, $deviceId) {
+        return DB::transaction(function () use ($user, $observee, $observeeClass, $data, $isSchoolHead, $ratings, $epocRatings, $epocNarrative, $epocAgreement, $hasEpocData, $clientId, $deviceUpdatedAt, $deviceId) {
             $schoolYear = $data['school_year'] ?? $this->currentSchoolYear();
 
             $observation = Observation::create([
@@ -482,7 +558,7 @@ class SyncController extends Controller
                     'indicator' => $r['indicator'] ?? $r['indicator_code'],
                     'rating' => $r['rating'] ?? null,
                     'not_observed' => (bool) ($r['not_observed'] ?? false),
-                    'not_applicable' => false,
+                    'not_applicable' => (bool) ($r['not_applicable'] ?? false),
                     'comments' => $r['comments'] ?? null,
                 ]);
                 $ratingIds[] = $rating->id;
@@ -498,12 +574,47 @@ class SyncController extends Controller
                 }
             }
 
+            // STAR notes ride the post-conference record like the online flow.
+            if (! empty($data['star_notes'])) {
+                $observation->postConference()->updateOrCreate(
+                    ['observation_id' => $observation->id],
+                    ['star_notes' => $data['star_notes']]
+                );
+            }
+
+            // EPOC evaluation for school-head observations captured offline:
+            // same math as ObservationStageController::storeEpocObservationData
+            // (average of non-null ratings), no AI dispatch for EPOC rows.
+            $epocScore = null;
+            if ($hasEpocData) {
+                $evaluation = $observation->epocEvaluation()->create([
+                    'epoc_template_id' => $data['epoc_template_id'] ?? null,
+                    'school_head_name' => $observee->user?->name,
+                    'observation_date' => $data['observation_date'],
+                    'narrative_observation' => $epocNarrative,
+                    'agreement' => $epocAgreement,
+                ]);
+                foreach ($epocRatings as $item) {
+                    $evaluation->ratings()->create([
+                        'domain' => $item['domain'],
+                        'indicator' => $item['indicator'],
+                        'rating' => $item['rating'] ?? null,
+                        'comments' => $item['comments'] ?? null,
+                    ]);
+                }
+                $rated = $evaluation->ratings()->whereNotNull('rating');
+                $epocScore = $rated->exists() ? round($rated->avg('rating'), 2) : null;
+                $evaluation->update(['overall_score' => $epocScore]);
+                $observation->update(['overall_score' => $epocScore]);
+            }
+
             return [
                 'client_id' => $clientId,
                 'server_id' => $observation->id,
                 'rating_ids' => $ratingIds,
                 'status' => 'synced',
                 'ai_status' => $observation->ai_status,
+                'epoc_score' => $epocScore,
             ];
         });
     }

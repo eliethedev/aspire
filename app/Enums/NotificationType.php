@@ -25,6 +25,7 @@ enum NotificationType: string
     case SYSTEM = 'system';
     case ANNOUNCEMENT = 'announcement';
     case SUPPORT_MESSAGE = 'support_message';
+    case CONTACT_INQUIRY = 'contact_inquiry';
 
     /**
      * Human-readable label shown to users.
@@ -47,6 +48,7 @@ enum NotificationType: string
             self::SYSTEM => 'System',
             self::ANNOUNCEMENT => 'Announcement',
             self::SUPPORT_MESSAGE => 'Support Message',
+            self::CONTACT_INQUIRY => 'Contact Inquiry',
         };
     }
 
@@ -75,7 +77,8 @@ enum NotificationType: string
             self::REMINDER,
             self::PROFESSIONAL_DEVELOPMENT,
             self::ANNOUNCEMENT,
-            self::SUPPORT_MESSAGE => NotificationPriority::MEDIUM,
+            self::SUPPORT_MESSAGE,
+            self::CONTACT_INQUIRY => NotificationPriority::MEDIUM,
         };
     }
 }

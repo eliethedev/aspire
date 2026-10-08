@@ -25,6 +25,10 @@ class CareerProgressionReadinessTest extends TestCase
     {
         parent::setUp();
 
+        // These tests target career readiness logic, not profile
+        // completeness (same precedent as OfflineSyncTest/NotificationLinksTest).
+        $this->withoutMiddleware(\App\Http\Middleware\EnsureProfileComplete::class);
+
         $this->school = School::factory()->create();
 
         $this->supervisor = User::factory()->create([

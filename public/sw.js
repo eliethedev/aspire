@@ -9,11 +9,14 @@
  * URL works later with zero connectivity. The JSON bundle itself lives in
  * IndexedDB (see public/js/aspire-offline-package.js), not the HTTP cache.
  */
-const CACHE = 'aspire-offline-v5';
+const CACHE = 'aspire-offline-v10';
 const PRECACHE = [
     '/js/aspire-offline.js',
     '/js/offline-encode.js',
     '/js/aspire-offline-package.js',
+    // Vendored Alpine runtime (was CDN — offline pages go blank without it).
+    '/js/vendor/alpine.min.js',
+    '/js/vendor/alpine-persist.min.js',
     '/supervisor/observations/offline',
     '/school-head/observations/offline',
 ];

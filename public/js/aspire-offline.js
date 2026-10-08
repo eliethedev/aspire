@@ -457,6 +457,10 @@
     };
 
     window.AspireOffline = api;
+    // Startup marker read by the offline hub page: distinguishes "engine
+    // script never ran" (stale page / blocker) from "engine ran" (server
+    // or data issue) in the failure notice.
+    window.__aspireLibInlineOk = true;
 
     // Auto-sync when signal returns (full flow: JSON + files).
     window.addEventListener('online', function () {

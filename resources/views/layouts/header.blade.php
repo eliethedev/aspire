@@ -104,17 +104,7 @@
               {{ __('Report a Bug / Feedback') }}
             </div>
           </x-dropdown-link>
-          <!-- System-wide display setting (also available in header) -->
-          <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
-            <p class="text-xs font-bold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-2">Display • Text size</p>
-            <div class="flex items-center gap-2">
-              <button type="button" @click="$store.accessibility.setLarge(false)" :class="!$store.accessibility.large ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300'"
-                      class="flex-1 py-2 rounded-lg text-xs font-bold border transition-colors" aria-label="Standard size">A Standard</button>
-              <button type="button" @click="$store.accessibility.setLarge(true)" :class="$store.accessibility.large ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300'"
-                      class="flex-1 py-2 rounded-lg text-sm font-extrabold border transition-colors" aria-label="Large size">A+ Large</button>
-            </div>
-            <p class="mt-1.5 text-[11px] leading-snug text-gray-500 dark:text-gray-400">Large makes text easier to read. Saved for all pages.</p>
-          </div>
+
           <form method="POST" action="{{ route('logout') }}">
             @csrf
             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">

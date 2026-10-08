@@ -3,6 +3,38 @@
 @section('title', 'Offline Capture')
 @include('partials.dashboard.mock-styles')
 
+@push('styles')
+<style>
+    /* Hub quick-capture rating sheet — self-contained (no build dependency)
+       so the offline page works even if compiled CSS is stale. */
+    .hub-dom{margin:10px 0 2px;font-size:11px;font-weight:700;color:#4f46e5;letter-spacing:.02em}
+    .dark .hub-dom{color:#a5b4fc}
+    .hub-row{border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;margin-bottom:8px;background:#fff}
+    .dark .hub-row{background:#1f2937;border-color:#374151}
+    .hub-row.rated{border-color:#10b981}
+    .hub-code{display:inline-block;font-size:11px;font-weight:700;font-family:ui-monospace,monospace;color:#4f46e5;background:#eef2ff;border-radius:4px;padding:1px 6px;margin-right:6px}
+    .dark .hub-code{color:#a5b4fc;background:rgba(99,102,241,.15)}
+    .hub-desc{font-size:13px;color:#374151}
+    .dark .hub-desc{color:#d1d5db}
+    .hub-rates{display:grid;grid-template-columns:repeat(auto-fill,40px);gap:6px;margin-top:8px;align-items:center;justify-content:start}
+    .hub-rate{width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:2px solid #d1d5db;background:#fff;color:#4b5563;font-weight:700;font-size:11px;cursor:pointer}
+    .dark .hub-rate{background:#111827;color:#9ca3af;border-color:#4b5563}
+    .hub-rate:hover{border-color:#10b981}
+    .hub-rate.active{background:#16a34a;border-color:#16a34a;color:#fff}
+    .hub-rate.hub-no{border-radius:8px}
+    .hub-rate.hub-no.active{background:#6b7280;border-color:#6b7280;color:#fff}
+    .hub-rate.hub-na{border-radius:8px}
+    .hub-rate.hub-na.active{background:#d97706;border-color:#d97706;color:#fff}
+    .hub-cbtn{grid-column:1/-1;justify-self:start;margin-left:0;font-size:11px;font-weight:600;color:#6b7280;background:transparent;border:1px solid #d1d5db;border-radius:8px;padding:6px 10px;cursor:pointer}
+    .dark .hub-cbtn{color:#9ca3af;border-color:#4b5563}
+    .hub-cbtn.has-comment{color:#4f46e5;border-color:#4f46e5}
+    .dark .hub-cbtn.has-comment{color:#a5b4fc;border-color:#6366f1}
+    .hub-comment{margin-top:6px}
+    .hub-comment textarea{width:100%;font-size:12px;padding:6px 8px;border:1px solid #c7d2fe;border-radius:8px;resize:vertical;min-height:44px}
+    .dark .hub-comment textarea{background:#111827;border-color:#4b5563;color:#e5e7eb}
+</style>
+@endpush
+
 @section('content')
 <div class="mock-wrap max-w-3xl mx-auto px-1 py-1">
     <div class="mock-topbar">
@@ -137,7 +169,7 @@
         <div id="of-ratings-wrap">
             <div id="of-ratings" class="space-y-2"></div>
         </div>
-        <p id="of-epoc-note" class="hidden text-xs text-gray-500 dark:text-gray-400 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 p-2">School-head observations use the EPOC instrument — you'll complete it on the server after sync. Notes above are saved with the observation.</p>
+        <p id="of-epoc-note" class="hidden text-xs text-gray-500 dark:text-gray-400 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 p-2">EPOC instrument not cached yet — tap “Cache data” while online, then pick the school head again.</p>
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="of-files">Evidence files <span class="font-normal text-gray-400">(optional — photos, video, PDF, Word · max 5 files, 5 MB each)</span></label>
             <input id="of-files" type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx" class="mt-1 w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:px-3 file:py-2 file:rounded-md file:border-0 file:bg-indigo-50 dark:file:bg-indigo-900/40 file:text-indigo-700 dark:file:text-indigo-200 file:text-sm file:font-semibold hover:file:bg-indigo-100">
@@ -164,6 +196,18 @@
 </div>
 
 @push('scripts')
+{{-- Engine libraries FIRST: the page script below checks window.AspireOffline
+    at parse time, and classic scripts execute in document order. The core
+    engine is inlined (no separate download that can 404 or go stale). --}}
+<script>window.ASPIRE_BASE_URL = window.ASPIRE_BASE_URL || @json(request()->getBaseUrl());</script>
+@php($offlineEngine = @file_get_contents(public_path('js/aspire-offline.js')))
+@if($offlineEngine)
+<script>/* ASPIRE offline engine (inlined for zero-dependency offline boot) */{!! $offlineEngine !!}</script>
+@else
+<script src="{{ request()->getBaseUrl() }}/js/aspire-offline.js"></script>
+@endif
+<script src="{{ request()->getBaseUrl() }}/js/offline-encode.js"></script>
+<script src="{{ request()->getBaseUrl() }}/js/aspire-offline-package.js"></script>
 <script>
 (function () {
     var teacherSel = document.getElementById('of-teacher');
@@ -279,8 +323,9 @@
             ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-200'
             : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400');
         observeeLabel.textContent = isHead ? 'School head' : 'Teacher';
-        ratingsWrap.classList.toggle('hidden', isHead);
-        epocNote.classList.toggle('hidden', !isHead);
+        // Both rating sheets live side by side; only the matching instrument
+        // is shown (COT for teachers, EPOC 1–5 for school heads).
+        applySheetVisibility();
         gradeWrap.classList.toggle('hidden', isHead);
         fillObserveeSelect();
     }
@@ -411,8 +456,178 @@
     }
     historySearch.addEventListener('input', renderHistory);
 
-    function renderBundle(json) {
-        bundle = json;
+    /* Hub quick-capture rating sheet — mirrors the online observation sheet:
+       one selection per indicator (score / NO / N/A), comment toggle,
+       progress header. State lives in hidden inputs so a refresh-safe
+       re-render never invents ratings. */
+    // withFlags=false renders a plain 1–5 sheet (EPOC has no NO / N/A).
+    // Hidden flag inputs are always rendered so hubRowState/hubSet/hubPaint
+    // keep working unchanged.
+    function hubRatingRow(ind, scaleKeys, scaleLabels, withFlags) {
+        var row = document.createElement('div');
+        row.className = 'hub-row';
+        row.setAttribute('data-hub-row', '');
+        row.setAttribute('data-code', ind.code);
+        row.setAttribute('data-domain', ind.domain || 'General');
+        row.setAttribute('data-desc', ind.description || ind.code);
+        var head = document.createElement('div');
+        var code = document.createElement('span');
+        code.className = 'hub-code';
+        code.textContent = ind.code;
+        var desc = document.createElement('span');
+        desc.className = 'hub-desc';
+        desc.textContent = ind.description || ind.code;
+        head.appendChild(code);
+        head.appendChild(desc);
+        row.appendChild(head);
+        var rates = document.createElement('div');
+        rates.className = 'hub-rates';
+        rates.setAttribute('role', 'group');
+        rates.setAttribute('aria-label', 'Rating for ' + ind.code);
+        scaleKeys.forEach(function (v) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'hub-rate';
+            b.setAttribute('data-hub-btn', '');
+            b.setAttribute('data-v', String(v));
+            b.title = (scaleLabels && scaleLabels[v]) ? (v + ' — ' + scaleLabels[v]) : ('Score ' + v);
+            b.setAttribute('aria-label', 'Rate ' + v + ((scaleLabels && scaleLabels[v]) ? ' (' + scaleLabels[v] + ')' : ''));
+            b.textContent = v;
+            rates.appendChild(b);
+        });
+        if (withFlags === undefined) withFlags = true;
+        if (withFlags) {
+            var noB = document.createElement('button');
+            noB.type = 'button'; noB.className = 'hub-rate hub-no';
+            noB.setAttribute('data-hub-no', ''); noB.title = 'Not observed'; noB.textContent = 'NO';
+            var naB = document.createElement('button');
+            naB.type = 'button'; naB.className = 'hub-rate hub-na';
+            naB.setAttribute('data-hub-na', ''); naB.title = 'Not applicable — excluded from scoring'; naB.textContent = 'N/A';
+            rates.appendChild(noB); rates.appendChild(naB);
+        }
+        var cB = document.createElement('button');
+        cB.type = 'button'; cB.className = 'hub-cbtn';
+        cB.setAttribute('data-hub-cbtn', ''); cB.textContent = 'Comment';
+        rates.appendChild(cB);
+        row.appendChild(rates);
+        var hid = document.createElement('input');
+        hid.type = 'hidden'; hid.setAttribute('data-hub-rating', '');
+        var noH = document.createElement('input');
+        noH.type = 'checkbox'; noH.hidden = true; noH.setAttribute('data-hub-noflag', '');
+        var naH = document.createElement('input');
+        naH.type = 'checkbox'; naH.hidden = true; naH.setAttribute('data-hub-naflag', '');
+        row.appendChild(hid); row.appendChild(noH); row.appendChild(naH);
+        var cWrap = document.createElement('div');
+        cWrap.className = 'hub-comment'; cWrap.hidden = true;
+        cWrap.setAttribute('data-hub-cwrap', '');
+        var cTa = document.createElement('textarea');
+        cTa.rows = 2; cTa.placeholder = 'Evidence / comments for ' + ind.code;
+        cTa.setAttribute('data-hub-comment', '');
+        cWrap.appendChild(cTa);
+        row.appendChild(cWrap);
+        return row;
+    }
+
+    function hubRowState(row) {
+        var hid = row.querySelector('[data-hub-rating]');
+        var noH = row.querySelector('[data-hub-noflag]');
+        var naH = row.querySelector('[data-hub-naflag]');
+        return {
+            rating: hid && hid.value !== '' ? parseInt(hid.value, 10) : null,
+            no: !!(noH && noH.checked),
+            na: !!(naH && naH.checked),
+        };
+    }
+
+    function hubPaint(row) {
+        var st = hubRowState(row);
+        row.querySelectorAll('[data-hub-btn]').forEach(function (b) {
+            b.classList.toggle('active', st.rating != null && !st.no && !st.na && String(st.rating) === b.getAttribute('data-v'));
+        });
+        var noB = row.querySelector('[data-hub-no]');
+        if (noB) noB.classList.toggle('active', st.no);
+        var naB = row.querySelector('[data-hub-na]');
+        if (naB) naB.classList.toggle('active', st.na);
+        row.classList.toggle('rated', st.rating != null || st.no || st.na);
+    }
+
+    function hubSet(row, kind, value) {
+        var hid = row.querySelector('[data-hub-rating]');
+        var noH = row.querySelector('[data-hub-noflag]');
+        var naH = row.querySelector('[data-hub-naflag]');
+        if (kind === 'rating') { hid.value = value; noH.checked = false; naH.checked = false; }
+        if (kind === 'no') { hid.value = ''; noH.checked = true; naH.checked = false; }
+        if (kind === 'na') { hid.value = ''; noH.checked = false; naH.checked = true; }
+        hubPaint(row);
+        hubRecompute();
+    }
+
+    // Progress is tracked per sheet (COT + EPOC live side by side; only one
+    // is visible at a time) so toggling observee type never loses counts.
+    function hubRecompute() {
+        ratingsBox.querySelectorAll('[data-hub-sheet]').forEach(function (sheet) {
+            var rows = sheet.querySelectorAll('[data-hub-row]');
+            var rated = 0;
+            rows.forEach(function (row) {
+                var st = hubRowState(row);
+                if (st.rating != null || st.no || st.na) rated++;
+            });
+            var lab = sheet.querySelector('[data-hub-label]');
+            var bar = sheet.querySelector('[data-hub-bar]');
+            if (lab) lab.textContent = rated + ' of ' + rows.length + ' rated';
+            if (bar) bar.style.width = (rows.length ? Math.round((rated / rows.length) * 100) : 0) + '%';
+        });
+    }
+
+    function hubResetRatings() {
+        ratingsBox.querySelectorAll('[data-hub-row]').forEach(function (row) {
+            row.querySelector('[data-hub-rating]').value = '';
+            row.querySelector('[data-hub-noflag]').checked = false;
+            row.querySelector('[data-hub-naflag]').checked = false;
+            var ta = row.querySelector('[data-hub-comment]');
+            if (ta) ta.value = '';
+            var cw = row.querySelector('[data-hub-cwrap]');
+            if (cw) cw.hidden = true;
+            var cb = row.querySelector('[data-hub-cbtn]');
+            if (cb) { cb.classList.remove('has-comment'); cb.textContent = 'Comment'; }
+            hubPaint(row);
+        });
+        hubRecompute();
+    }
+
+    if (!ratingsBox.dataset.hubWired) {
+        ratingsBox.dataset.hubWired = '1';
+        ratingsBox.addEventListener('click', function (e) {
+            var b = e.target.closest ? e.target.closest('[data-hub-btn],[data-hub-no],[data-hub-na],[data-hub-cbtn]') : null;
+            if (!b || !ratingsBox.contains(b)) return;
+            var row = b.closest('[data-hub-row]');
+            if (!row) return;
+            if (b.hasAttribute('data-hub-btn')) hubSet(row, 'rating', b.getAttribute('data-v'));
+            else if (b.hasAttribute('data-hub-no')) hubSet(row, 'no');
+            else if (b.hasAttribute('data-hub-na')) hubSet(row, 'na');
+            else if (b.hasAttribute('data-hub-cbtn')) {
+                var cw = row.querySelector('[data-hub-cwrap]');
+                if (cw) {
+                    cw.hidden = !cw.hidden;
+                    b.classList.toggle('has-comment', !cw.hidden);
+                    if (!cw.hidden) { var ta = cw.querySelector('textarea'); if (ta) ta.focus(); }
+                }
+            }
+        });
+        ratingsBox.addEventListener('input', function (e) {
+            var ta = e.target.closest ? e.target.closest('[data-hub-comment]') : null;
+            if (!ta) return;
+            var row = ta.closest('[data-hub-row]');
+            var btn = row ? row.querySelector('[data-hub-cbtn]') : null;
+            if (btn) {
+                var has = ta.value.trim().length > 0;
+                btn.classList.toggle('has-comment', has);
+                btn.textContent = has ? 'View Comment' : 'Comment';
+            }
+        });
+    }
+
+    function renderBundle(json) {        bundle = json;
         teachersById = {};
         headsById = {};
         scheduledList = json.scheduled || [];
@@ -428,41 +643,193 @@
         // Rebuild the visible dropdown for the currently selected type —
         // without this the list keeps showing the "nothing cached" placeholder.
         fillObserveeSelect();
+        // Preserve anything already picked: background refreshes re-render the
+        // sheets, and toggling observee type must not wipe entered ratings.
+        var kept = captureSheetState();
         ratingsBox.innerHTML = '';
+        buildCotSheet(json, kept);
+        buildEpocSheet(json, kept);
+        applySheetVisibility();
+        hubRecompute();
+    }
+
+    function hubSheetHead(title, sub) {
+        var h = document.createElement('div');
+        h.innerHTML = '<p class="text-sm font-medium text-gray-700 dark:text-gray-300">' + title + '</p>'
+            + '<p class="text-xs text-gray-400 mt-0.5">' + sub + '</p>'
+            + '<div class="mt-1.5 mb-1 flex items-center justify-between gap-2 text-xs">'
+            + '<span data-hub-label class="font-medium text-gray-600 dark:text-gray-300">0 rated</span>'
+            + '<span class="flex-1 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"><span data-hub-bar class="block h-full bg-indigo-600 rounded-full transition-all" style="width:0%"></span></span></div>';
+        return h;
+    }
+
+    function captureSheetState() {
+        var rows = {};
+        ratingsBox.querySelectorAll('[data-hub-row]').forEach(function (row) {
+            var st = hubRowState(row);
+            var com = row.querySelector('[data-hub-comment]');
+            rows[row.getAttribute('data-code')] = {
+                rating: st.rating, no: st.no, na: st.na,
+                comment: com ? com.value : '',
+            };
+        });
+        function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+        return { rows: rows, star: val('of-star'), narrative: val('of-epoc-narrative'), agreement: val('of-epoc-agreement') };
+    }
+
+    function restoreSheetState(sheet, kept) {
+        if (!kept) return;
+        sheet.querySelectorAll('[data-hub-row]').forEach(function (row) {
+            var s = kept.rows[row.getAttribute('data-code')];
+            if (!s) return;
+            if (s.rating != null) hubSet(row, 'rating', String(s.rating));
+            else if (s.no) hubSet(row, 'no');
+            else if (s.na) hubSet(row, 'na');
+            if (s.comment) {
+                var ta = row.querySelector('[data-hub-comment]');
+                var cw = row.querySelector('[data-hub-cwrap]');
+                var cb = row.querySelector('[data-hub-cbtn]');
+                if (ta) ta.value = s.comment;
+                if (cw) cw.hidden = false;
+                if (cb) { cb.classList.add('has-comment'); cb.textContent = 'View Comment'; }
+            }
+        });
+    }
+
+    function buildCotSheet(json, kept) {
         var tpl = (json.cot_templates || [])[0];
-        if (tpl) {
-            var h = document.createElement('p');
-            h.className = 'text-sm font-medium text-gray-700 dark:text-gray-300';
-            h.textContent = 'COT ratings · ' + tpl.label + ' — fill what you observed, leave the rest blank';
-            ratingsBox.appendChild(h);
-            (tpl.indicators || []).forEach(function (ind) {
-                var row = document.createElement('div');
-                row.className = 'flex flex-col sm:flex-row sm:items-center gap-1.5 rounded-md border border-gray-100 dark:border-gray-700 p-2';
-                var label = document.createElement('span');
-                label.className = 'flex-1 text-sm text-gray-700 dark:text-gray-300';
-                var num = document.createElement('input');
-                num.type = 'number'; num.min = '2'; num.max = '8'; num.placeholder = '2–8';
-                num.className = 'w-full sm:w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100';
-                num.setAttribute('data-code', ind.code);
-                num.setAttribute('data-domain', ind.domain || 'General');
-                num.setAttribute('data-desc', ind.description || ind.code);
-                var comment = document.createElement('input');
-                comment.type = 'text'; comment.placeholder = 'Comment (optional)';
-                comment.className = 'flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100';
-                comment.setAttribute('data-comment', '');
-                comment.setAttribute('data-code', ind.code);
-                row.appendChild(label);
-                row.appendChild(num);
-                row.appendChild(comment);
-                label.textContent = ind.code + ' — ' + (ind.description || '').slice(0, 100);
-                ratingsBox.appendChild(row);
-            });
-        } else {
+        var sheet = document.createElement('div');
+        sheet.setAttribute('data-hub-sheet', 'cot');
+        if (!tpl) {
             var p = document.createElement('p');
             p.className = 'text-sm text-gray-400';
             p.textContent = 'No COT template cached yet — ratings will be added after sync.';
-            ratingsBox.appendChild(p);
+            sheet.appendChild(p);
+            ratingsBox.appendChild(sheet);
+            return;
         }
+        // Ascending numeric order, like the online sheet (stored scales are descending).
+        var scaleKeys = (tpl.rating_scale ? Object.keys(tpl.rating_scale) : ['2', '3', '4', '5', '6'])
+            .map(Number).filter(function (n) { return !isNaN(n); }).sort(function (a, b) { return a - b; })
+            .map(String);
+        sheet.appendChild(hubSheetHead('COT ratings · ' + tpl.label, 'Fill what you observed, leave the rest blank.'));
+        var markAll = document.createElement('button');
+        markAll.type = 'button';
+        markAll.className = 'mb-2 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5';
+        markAll.textContent = 'Mark All as NO';
+        markAll.addEventListener('click', function () {
+            if (!confirm('Mark all indicators as Not Observed (NO)?')) return;
+            sheet.querySelectorAll('[data-hub-row]').forEach(function (row) { hubSet(row, 'no'); });
+            hubRecompute();
+        });
+        sheet.appendChild(markAll);
+        // Group indicators by domain, same order as the online sheet.
+        var hubDomains = [];
+        var hubByDomain = {};
+        (tpl.indicators || []).forEach(function (ind) {
+            var d = ind.domain || 'General';
+            if (!hubByDomain[d]) { hubByDomain[d] = []; hubDomains.push(d); }
+            hubByDomain[d].push(ind);
+        });
+        hubDomains.forEach(function (d) {
+            var dh = document.createElement('p');
+            dh.className = 'mt-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300';
+            dh.textContent = d;
+            sheet.appendChild(dh);
+            hubByDomain[d].forEach(function (ind) {
+                sheet.appendChild(hubRatingRow(ind, scaleKeys, tpl.rating_scale || {}, true));
+            });
+        });
+        var starWrap = document.createElement('div');
+        starWrap.className = 'mt-2';
+        starWrap.innerHTML = '<label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="of-star">STAR notes <span class="font-normal text-gray-400">(Situation · Task · Action · Result)</span></label>'
+            + '<textarea id="of-star" rows="3" class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="What went well and why…"></textarea>';
+        sheet.appendChild(starWrap);
+        if (kept && kept.star) { var starEl = starWrap.querySelector('#of-star'); if (starEl) starEl.value = kept.star; }
+        restoreSheetState(sheet, kept);
+        ratingsBox.appendChild(sheet);
+    }
+
+    // EPOC sheet for school-head observations: plain 1–5 scale (same labels
+    // as the online EPOC form), no NO / N/A flags, plus the narrative and
+    // agreement fields the EPOC evaluation stores.
+    var EPOC_LABELS = { 1: 'Never', 2: 'Seldom', 3: 'Sometimes', 4: 'Often', 5: 'Always' };
+
+    function buildEpocSheet(json, kept) {
+        var sheet = document.createElement('div');
+        sheet.setAttribute('data-hub-sheet', 'epoc');
+        var indicators = ((json.epoc_template || {}).indicators) || [];
+        if (!indicators.length) {
+            epocNote.classList.remove('hidden');
+            ratingsBox.appendChild(sheet);
+            return;
+        }
+        epocNote.classList.add('hidden');
+        var tplName = (json.epoc_template && json.epoc_template.name) || 'EPOC';
+        sheet.appendChild(hubSheetHead('EPOC ratings · ' + tplName, '1 = Never · 2 = Seldom · 3 = Sometimes · 4 = Often · 5 = Always. Fill what you observed, leave the rest blank.'));
+        var clearAll = document.createElement('button');
+        clearAll.type = 'button';
+        clearAll.className = 'mb-2 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-lg transition-colors inline-flex items-center gap-1.5';
+        clearAll.textContent = 'Clear EPOC ratings';
+        clearAll.addEventListener('click', function () {
+            if (!confirm('Clear all EPOC ratings and comments?')) return;
+            sheet.querySelectorAll('[data-hub-row]').forEach(function (row) {
+                row.querySelector('[data-hub-rating]').value = '';
+                row.querySelector('[data-hub-noflag]').checked = false;
+                row.querySelector('[data-hub-naflag]').checked = false;
+                var ta = row.querySelector('[data-hub-comment]');
+                if (ta) ta.value = '';
+                var cw = row.querySelector('[data-hub-cwrap]');
+                if (cw) cw.hidden = true;
+                var cb = row.querySelector('[data-hub-cbtn]');
+                if (cb) { cb.classList.remove('has-comment'); cb.textContent = 'Comment'; }
+                hubPaint(row);
+            });
+            hubRecompute();
+        });
+        sheet.appendChild(clearAll);
+        var domains = [];
+        var byDomain = {};
+        indicators.forEach(function (ind) {
+            var d = ind.domain || 'General';
+            if (!byDomain[d]) { byDomain[d] = []; domains.push(d); }
+            byDomain[d].push(ind);
+        });
+        var n = 0;
+        domains.forEach(function (d) {
+            var dh = document.createElement('p');
+            dh.className = 'mt-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300';
+            dh.textContent = d;
+            sheet.appendChild(dh);
+            byDomain[d].forEach(function (ind) {
+                n++;
+                sheet.appendChild(hubRatingRow(
+                    { code: 'E' + n, domain: ind.domain || 'General', description: ind.indicator },
+                    ['1', '2', '3', '4', '5'], EPOC_LABELS, false
+                ));
+            });
+        });
+        var extra = document.createElement('div');
+        extra.className = 'mt-2 grid gap-2';
+        extra.innerHTML = '<div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="of-epoc-narrative">Narrative observation <span class="font-normal text-gray-400">(optional)</span></label>'
+            + '<textarea id="of-epoc-narrative" rows="3" class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="Overall flow and key moments of the post-observation conference…"></textarea></div>'
+            + '<div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="of-epoc-agreement">Agreement / next steps <span class="font-normal text-gray-400">(optional)</span></label>'
+            + '<textarea id="of-epoc-agreement" rows="2" class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="Agreements and next steps decided upon…"></textarea></div>';
+        sheet.appendChild(extra);
+        if (kept) {
+            if (kept.narrative) { var nar = extra.querySelector('#of-epoc-narrative'); if (nar) nar.value = kept.narrative; }
+            if (kept.agreement) { var agr = extra.querySelector('#of-epoc-agreement'); if (agr) agr.value = kept.agreement; }
+        }
+        restoreSheetState(sheet, kept);
+        ratingsBox.appendChild(sheet);
+    }
+
+    function applySheetVisibility() {
+        var isHead = observeeType === 'school_head_observation';
+        var cot = ratingsBox.querySelector('[data-hub-sheet="cot"]');
+        var epoc = ratingsBox.querySelector('[data-hub-sheet="epoc"]');
+        if (cot) cot.classList.toggle('hidden', isHead);
+        if (epoc) epoc.classList.toggle('hidden', !isHead);
     }
 
     function filterTeachers() {
@@ -599,6 +966,7 @@
                 var isHead = i.payload.observation_type === 'school_head_observation';
                 var known = isHead ? headsById[i.payload.observee_id] : teachersById[i.payload.observee_id];
                 var rated = (i.payload.ratings || []).filter(function (r) { return r.rating; }).length;
+                var eRated = (i.payload.epoc_ratings || []).filter(function (r) { return r.rating; }).length;
                 var li = document.createElement('li');
                 li.className = 'flex items-start gap-2 rounded-md border border-gray-100 dark:border-gray-700 p-2';
                 var body = document.createElement('div');
@@ -612,7 +980,7 @@
                 var itemFiles = filesByObservation[i.client_id] || [];
                 var errFiles = itemFiles.filter(function (f) { return f.status === 'error'; }).length;
                 var fileNote = itemFiles.length === 0 ? '' : ' · ' + itemFiles.length + ' file(s)' + (errFiles > 0 ? ' (' + errFiles + ' rejected — tap Sync to review)' : '');
-                sub.textContent = kind + ' · ' + (i.payload.subject || 'No subject') + (isHead ? '' : ' · ' + rated + ' rating(s)') + fileNote + ' · saved ' + AspireOffline.timeAgo(i.device_updated_at);
+                sub.textContent = kind + ' · ' + (i.payload.subject || 'No subject') + (isHead ? ' · ' + eRated + ' EPOC rating(s)' : ' · ' + rated + ' rating(s)') + fileNote + ' · saved ' + AspireOffline.timeAgo(i.device_updated_at);
                 body.appendChild(title);
                 body.appendChild(sub);
                 var del = document.createElement('button');
@@ -645,15 +1013,24 @@
         if (!bundle) { notify('warning', 'Cache data first (step 1) so the teacher list is available.'); return; }
         var isHead = observeeType === 'school_head_observation';
         var ratings = [];
-        if (!isHead) {
-            ratingsBox.querySelectorAll('[data-code][type="number"]').forEach(function (input) {
-                var code = input.getAttribute('data-code');
-                var comment = ratingsBox.querySelector('[data-comment][data-code="' + code + '"]');
-                if (input.value) {
-                    ratings.push({ indicator_code: code, domain: input.getAttribute('data-domain') || 'General', indicator: input.getAttribute('data-desc') || code, rating: parseInt(input.value, 10), comments: comment ? comment.value : null, client_id: AspireOffline.uuid() });
+        var epocRatings = [];
+        var sheet = ratingsBox.querySelector(isHead ? '[data-hub-sheet="epoc"]' : '[data-hub-sheet="cot"]');
+        if (sheet) {
+            sheet.querySelectorAll('[data-hub-row]').forEach(function (row) {
+                var st = hubRowState(row);
+                if (st.rating == null && !st.no && !st.na) return; // untouched: skip
+                var com = row.querySelector('[data-hub-comment]');
+                if (isHead) {
+                    epocRatings.push({ domain: row.getAttribute('data-domain') || 'General', indicator: row.getAttribute('data-desc') || row.getAttribute('data-code'), rating: st.rating, comments: com ? (com.value || null) : null });
+                } else {
+                    ratings.push({ indicator_code: row.getAttribute('data-code'), domain: row.getAttribute('data-domain') || 'General', indicator: row.getAttribute('data-desc') || row.getAttribute('data-code'), rating: (st.no || st.na) ? null : st.rating, not_observed: st.no, not_applicable: st.na, comments: com ? (com.value || null) : null, client_id: AspireOffline.uuid() });
                 }
             });
         }
+        var starEl = document.getElementById('of-star');
+        var narEl = document.getElementById('of-epoc-narrative');
+        var agrEl = document.getElementById('of-epoc-agreement');
+        var epocTpl = bundle && bundle.epoc_template ? bundle.epoc_template : null;
         var payload = {
             observation_type: observeeType,
             observee_id: parseInt(teacherSel.value, 10),
@@ -661,7 +1038,12 @@
             subject: document.getElementById('of-subject').value || null,
             grade_level: isHead ? null : (document.getElementById('of-grade').value || null),
             notes: document.getElementById('of-notes').value || null,
+            star_notes: (!isHead && starEl && starEl.value.trim()) ? starEl.value.trim() : null,
             ratings: ratings,
+            epoc_ratings: epocRatings,
+            epoc_template_id: (isHead && epocTpl && epocTpl.id) ? epocTpl.id : null,
+            epoc_narrative_observation: (isHead && narEl && narEl.value.trim()) ? narEl.value.trim() : null,
+            epoc_agreement: (isHead && agrEl && agrEl.value.trim()) ? agrEl.value.trim() : null,
         };
         if (!payload.observee_id || !payload.observation_date) { notify('warning', isHead ? 'Pick a school head and an observation date first.' : 'Pick a teacher and an observation date first.'); return; }
         var dup = scheduledList.find(function (s) {
@@ -680,16 +1062,24 @@
             if (window.OfflineEncode && window.__encodeDraftId) {
                 OfflineEncode.clearOutbox([window.__encodeDraftId]).catch(function () {});
             }
+            var savedCount = isHead ? epocRatings.length : ratings.length;
+            var savedUnit = isHead ? ' EPOC rating(s)' : ' rating(s)';
             var afterSave = function (fileNote) {
                 notify('success', navigator.onLine
                     ? 'Saved on this device' + fileNote + '. Tap Sync now (step 3) to send it.'
-                    : 'Saved on this device ✓' + fileNote + '. It will sync when you have signal' + (isHead ? '.' : ' (' + ratings.length + ' rating(s)).'));
+                    : 'Saved on this device ✓' + fileNote + '. It will sync when you have signal (' + savedCount + savedUnit + ').');
                 document.getElementById('of-subject').value = '';
                 document.getElementById('of-grade').value = '';
                 document.getElementById('of-notes').value = '';
+                var starAfter = document.getElementById('of-star');
+                if (starAfter) starAfter.value = '';
+                var narAfter = document.getElementById('of-epoc-narrative');
+                if (narAfter) narAfter.value = '';
+                var agrAfter = document.getElementById('of-epoc-agreement');
+                if (agrAfter) agrAfter.value = '';
                 fileInput.value = '';
                 filePreview.innerHTML = '';
-                ratingsBox.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+                hubResetRatings();
                 refreshAll();
             };
             if (!check.valid.length) { afterSave(''); return; }
@@ -744,9 +1134,6 @@
 </script>
 @endpush
 @push('scripts')
-<script>window.ASPIRE_BASE_URL = window.ASPIRE_BASE_URL || @json(request()->getBaseUrl());</script>
-<script src="{{ request()->getBaseUrl() }}/js/offline-encode.js"></script>
-<script src="{{ request()->getBaseUrl() }}/js/aspire-offline-package.js"></script>
 <script>
 /* Offline visit packages hub: lists IndexedDB-cached observation bundles and
  * drives the package outbox. Read-only when the engine is missing. */
@@ -864,21 +1251,45 @@
     function snapshot() {
         var typeBtn = document.getElementById('of-type-head');
         var isHead = typeBtn && typeBtn.getAttribute('aria-pressed') === 'true';
-        var ratings = [];
-        if (!isHead) {
-            var box = document.getElementById('of-ratings');
-            if (box) box.querySelectorAll('[data-code][type="number"]').forEach(function (input) {
-                if (!input.value) return;
-                var code = input.getAttribute('data-code');
-                var comment = box.querySelector('[data-comment][data-code="' + code + '"]');
-                ratings.push({
-                    indicator_code: code,
-                    domain: input.getAttribute('data-domain') || 'General',
-                    rating: parseInt(input.value, 10),
-                    comments: comment ? comment.value : null,
-                });
-            });
+        // NOTE: hubRowState lives in the main page script scope, not here —
+        // read the hidden inputs directly so snapshots never throw.
+        function readRow(row) {
+            var hid = row.querySelector('[data-hub-rating]');
+            var noH = row.querySelector('[data-hub-noflag]');
+            var naH = row.querySelector('[data-hub-naflag]');
+            return {
+                rating: (hid && hid.value !== '') ? parseInt(hid.value, 10) : null,
+                no: !!(noH && noH.checked),
+                na: !!(naH && naH.checked),
+            };
         }
+        var ratings = [];
+        var epocRatings = [];
+        var box = document.getElementById('of-ratings');
+        var activeSheet = box ? box.querySelector(isHead ? '[data-hub-sheet="epoc"]' : '[data-hub-sheet="cot"]') : null;
+        if (activeSheet) activeSheet.querySelectorAll('[data-hub-row]').forEach(function (row) {
+            var st = readRow(row);
+            if (st.rating == null && !st.no && !st.na) return;
+            var com = row.querySelector('[data-hub-comment]');
+            if (isHead) {
+                epocRatings.push({
+                    domain: row.getAttribute('data-domain') || 'General',
+                    indicator: row.getAttribute('data-desc') || row.getAttribute('data-code'),
+                    rating: st.rating,
+                    comments: com ? (com.value || null) : null,
+                });
+            } else {
+                ratings.push({
+                    indicator_code: row.getAttribute('data-code'),
+                    domain: row.getAttribute('data-domain') || 'General',
+                    rating: (st.no || st.na) ? null : st.rating,
+                    not_observed: st.no,
+                    not_applicable: st.na,
+                    comments: com ? (com.value || null) : null,
+                });
+            }
+        });
+        function tval(id) { var el = document.getElementById(id); return (el && el.value.trim()) ? el.value.trim() : null; }
         var sel = document.getElementById('of-teacher');
         return {
             observation_type: isHead ? 'school_head_observation' : 'teacher_observation',
@@ -887,26 +1298,30 @@
             subject: (document.getElementById('of-subject') || {}).value || null,
             grade_level: isHead ? null : ((document.getElementById('of-grade') || {}).value || null),
             notes: (document.getElementById('of-notes') || {}).value || null,
+            star_notes: !isHead ? tval('of-star') : null,
             ratings: ratings,
+            epoc_ratings: epocRatings,
+            epoc_narrative_observation: isHead ? tval('of-epoc-narrative') : null,
+            epoc_agreement: isHead ? tval('of-epoc-agreement') : null,
         };
     }
 
     var timer = null;
-    form.addEventListener('input', function () {
+    function queueDraftSnapshot() {
         clearTimeout(timer);
         timer = setTimeout(function () {
             var data = snapshot();
-            if (!data.observee_id && !data.notes && !(data.ratings || []).length) return;
+            if (!data.observee_id && !data.notes && !(data.ratings || []).length && !(data.epoc_ratings || []).length) return;
             OfflineEncode.saveDraft({ client_id: draftId, payload: data }).then(refreshBadge).catch(function () {});
         }, 500);
-    });
-    form.addEventListener('change', function () {
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-            var data = snapshot();
-            if (!data.observee_id && !data.notes && !(data.ratings || []).length) return;
-            OfflineEncode.saveDraft({ client_id: draftId, payload: data }).then(refreshBadge).catch(function () {});
-        }, 500);
+    }
+    form.addEventListener('input', queueDraftSnapshot);
+    form.addEventListener('change', queueDraftSnapshot);
+    // Rating picks are button clicks (no input/change events) — snapshot those too.
+    form.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-hub-btn],[data-hub-no],[data-hub-na]') : null;
+        if (!b) return;
+        queueDraftSnapshot();
     });
 
     function refreshBadge() {

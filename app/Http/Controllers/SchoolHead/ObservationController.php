@@ -1041,6 +1041,112 @@ class ObservationController extends Controller
     }
 
     /**
+     * Lightweight JSON autosave endpoint for the observation rating stage.
+     * Mirrors storeObservationData/storeEpocObservationData but persists a
+     * draft only: per-indicator upserts (untouched rows preserved), never
+     * advances the stage and never triggers AI or notifications. Refresh-safe:
+     * every selected score is stored server-side as it is picked.
+     */
+    public function autosave(Request $request, Observation $observation)
+    {
+        $this->authorizeObservation($observation);
+
+        $savedFields = [];
+
+        // School Head observations use the EPOC instrument.
+        if ($observation->isSchoolHeadObservation()) {
+            if ($request->has('epoc_ratings') && is_array($request->input('epoc_ratings'))) {
+                $epoc = $observation->epocEvaluation ?? new \App\Models\EpocEvaluation();
+                if (! $epoc->exists) {
+                    $epoc = $observation->epocEvaluation()->create([
+                        'school_head_name' => $observation->schoolHead?->name,
+                        'observation_date' => $observation->observation_date,
+                    ]);
+                }
+                foreach ($request->input('epoc_ratings') as $item) {
+                    $hasRating = array_key_exists('rating', $item) && $item['rating'] !== null && $item['rating'] !== '';
+                    // Untouched rows carry no rating value; preserve previously
+                    // saved ratings rather than overwriting them with null.
+                    if (! $hasRating) {
+                        continue;
+                    }
+                    \App\Models\EpocRating::updateOrCreate(
+                        ['epoc_evaluation_id' => $epoc->id, 'indicator' => $item['indicator']],
+                        [
+                            'domain' => $item['domain'] ?? null,
+                            'rating' => $item['rating'],
+                            'comments' => $item['comments'] ?? null,
+                        ]
+                    );
+                }
+                if ($request->has('epoc_narrative_observation')) {
+                    $epoc->narrative_observation = $request->input('epoc_narrative_observation');
+                }
+                if ($request->has('epoc_agreement')) {
+                    $epoc->agreement = $request->input('epoc_agreement');
+                }
+                $epoc->save();
+                $savedFields[] = 'epoc_ratings';
+            }
+        } elseif ($request->has('ratings') && is_array($request->input('ratings'))) {
+            foreach ($request->input('ratings') as $item) {
+                if (empty($item['indicator_code'])) {
+                    continue;
+                }
+
+                // Untouched rows carry no rating, not_observed or not_applicable
+                // value; do not overwrite previously saved data with null.
+                $hasRating = array_key_exists('rating', $item) && $item['rating'] !== null && $item['rating'] !== '';
+                $hasNo = ! empty($item['not_observed']);
+                $hasNa = ! empty($item['not_applicable']);
+                if (! $hasRating && ! $hasNo && ! $hasNa) {
+                    continue;
+                }
+
+                CotRating::updateOrCreate(
+                    ['observation_id' => $observation->id, 'indicator_code' => $item['indicator_code']],
+                    [
+                        'domain' => $item['domain'] ?? null,
+                        'indicator' => $item['indicator'] ?? null,
+                        'rating' => ($hasNo || $hasNa) ? null : $item['rating'],
+                        'not_observed' => $hasNo,
+                        'not_applicable' => $hasNa,
+                        'comments' => $item['comments'] ?? null,
+                    ]
+                );
+            }
+            $savedFields[] = 'ratings';
+        }
+
+        if ($request->has('other_comments')) {
+            $observation->notes = $request->input('other_comments');
+            $savedFields[] = 'other_comments';
+        }
+
+        $starNotes = $request->input('star_notes');
+        $supervisorNotes = $request->input('supervisor_notes');
+        if ($request->has('star_notes') || $request->has('supervisor_notes')) {
+            $observation->postConference()->updateOrCreate(
+                ['observation_id' => $observation->id],
+                [
+                    'star_notes' => $starNotes ?: null,
+                    'supervisor_notes' => $supervisorNotes ?: null,
+                ]
+            );
+            $savedFields = array_merge($savedFields, ['star_notes', 'supervisor_notes']);
+        }
+
+        $observation->save();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Draft saved.',
+            'saved_fields' => array_values(array_unique($savedFields)),
+            'saved_at' => now()->format('g:i:s A'),
+        ]);
+    }
+
+    /**
      * Show Post-Conference form.
      */
     public function postConference(Observation $observation)
