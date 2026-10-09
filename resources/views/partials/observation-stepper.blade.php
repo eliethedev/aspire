@@ -1,5 +1,8 @@
 {{--
     Observation workflow stepper — compact, space-efficient version.
+    Three-stage cycle: Prepare → Observe → Post-Obs. Talk.
+    The EPOC instrument is captured inside the observation stage for school
+    head observations, so it is not a separate step.
     Expects: $observation, $currentStage ($observation->stage).
     Optional: $routeBase ('supervisor' | 'school-head').
 --}}
@@ -10,34 +13,26 @@
     $isSchoolHeadObs = $observation->isSchoolHeadObservation();
     $friendlyStages = [
         'pre_observation_planning' => 'Prepare',
-        'pre_conference' => 'Pre-Observation Conversation',
         'observation' => $isSchoolHeadObs ? 'School Head Observation' : 'Classroom Observation',
         'post_conference' => 'Post-Observation Conference',
-        'epoc' => 'Enhanced Post Observation Conference',
         'completed' => 'Completed',
     ];
     $shortStages = [
         'pre_observation_planning' => 'Prepare',
-        'pre_conference' => 'Pre-Obs. Talk',
         'observation' => 'Observe',
         'post_conference' => 'Post-Obs. Talk',
-        'epoc' => 'EPOC',
         'completed' => 'Done',
     ];
-    $stageKeys = $isSchoolHeadObs
-        ? ['pre_observation_planning', 'observation', 'epoc', 'post_conference']
-        : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageKeys = ['pre_observation_planning', 'observation', 'post_conference'];
     $stageRoutes = [
         'pre_observation_planning' => $routePrefix . '.observations.preObservationPlanning',
-        'pre_conference' => $routePrefix . '.observations.preConference',
         'observation' => $routePrefix . '.observations.observation',
         'post_conference' => $routePrefix . '.observations.postConference',
-        'epoc' => $routePrefix . '.observations.observation',
     ];
     $currentStage = $currentStage ?? ($observation->stage ?? null);
     $currentIdx = array_search($currentStage, $stageKeys);
     if ($currentIdx === false) {
-        $currentIdx = in_array($currentStage, ['completed', 'epoc'], true) ? count($stageKeys) : 0;
+        $currentIdx = $currentStage === 'completed' ? count($stageKeys) : 0;
     }
     $totalSteps = count($stageKeys);
     $progressPct = $totalSteps > 1 ? round(($currentIdx / ($totalSteps - 1)) * 100) : 100;

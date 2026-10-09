@@ -12,7 +12,7 @@
   $trendLabel = ($trend > 0 ? '+' : '') . number_format((float) $trend, 1);
   $stageKeys = ['pre_observation', 'observation', 'post_observation'];
   $stageTitles = ['Pre-Observation', 'Observation', 'Post Observation'];
-  $stageGroupMap = ['pre_observation_planning' => 0, 'pre_conference' => 0, 'observation' => 1, 'post_conference' => 2];
+  $stageGroupMap = ['pre_observation_planning' => 0, 'observation' => 1, 'post_conference' => 2];
   $focusStageIdx = ($focus && isset($stageGroupMap[$focus->stage])) ? $stageGroupMap[$focus->stage] : false;
   $focusStepTitle = ($focusStageIdx !== false && $focusStageIdx !== null) ? $stageTitles[$focusStageIdx] : null;
   $activeObs = $observations->whereIn('status', ['scheduled', 'in_progress'])->values();

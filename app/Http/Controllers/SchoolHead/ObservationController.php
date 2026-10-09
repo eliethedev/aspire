@@ -279,7 +279,7 @@ class ObservationController extends Controller
 
             $totalObs = $recentObs->get($teacher->id, collect())->count();
             $completedObs = $recentObs->get($teacher->id, collect())->where('stage', 'post_conference')->count();
-            $inProgressObs = $recentObs->get($teacher->id, collect())->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count();
+            $inProgressObs = $recentObs->get($teacher->id, collect())->whereIn('stage', ['pre_observation_planning', 'observation'])->count();
 
             return [
                 'id' => $teacher->id,
@@ -453,7 +453,7 @@ class ObservationController extends Controller
     {
         $this->authorizeObservation($observation);
 
-        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
+        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning']);
         $planning = $observation->preObservationPlanning;
 
         $previousObservations = Observation::with(['cotRatings', 'observee'])
@@ -477,12 +477,10 @@ class ObservationController extends Controller
             $prevWeaknesses = $prevRatings->filter(fn($r) => $r->avg_rating < 3)->values();
         }
 
-        $preConference = $observation->preConference;
-
         $observerRole = 'school_head';
 
         return view('school-head.observations.pre-observation-planning', compact(
-            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'preConference', 'observerRole'
+            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'observerRole'
         ));
     }
 
@@ -534,40 +532,38 @@ class ObservationController extends Controller
             $data
         );
 
-        if ($request->input('continue') === 'pre_conference') {
-            // School head observations skip the pre-conference step and
-            // proceed directly to the observation (which uses the EPOC sheet).
-            if ($observation->isSchoolHeadObservation()) {
-                $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
-                $currentIdx = array_search($observation->stage, $stageOrder);
-                $targetIdx = array_search('observation', $stageOrder);
-
-                if ($targetIdx === $currentIdx + 1) {
-                    $observation->logChange([
-                        'to_stage' => 'observation',
-                        'notes' => 'Pre-Observation Planning completed',
-                    ]);
-                    $observation->update(['stage' => 'observation']);
-                }
-
-                return redirect()->route('school-head.observations.observation', $observation->id)
-                    ->with('success', 'Pre-Observation Planning has been saved. Proceed to the School Head Observation.');
+        // Three-stage cycle: pre_observation_planning -> observation -> post_conference.
+        // The pre-conference step has been phased out; continuing goes
+        // straight to the observation. Legacy 'pre_conference' values from
+        // older forms are treated the same as 'observation'.
+        if (in_array($request->input('continue'), ['pre_conference', 'observation'], true)) {
+            // Hard gate: the schedule must be confirmed by the teacher and,
+            // when one is assigned, the school head before leaving planning.
+            // Planning notes above are still saved; only the advance is held.
+            $missing = $observation->missingConfirmations();
+            if (! empty($missing)) {
+                return redirect()->route('school-head.observations.preObservationPlanning', $observation->id)
+                    ->with('error', 'Cannot proceed to the Observation yet — waiting for confirmation from: '.implode(', ', $missing).'.');
             }
 
-            $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+            $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
             $currentIdx = array_search($observation->stage, $stageOrder);
-            $targetIdx = array_search('pre_conference', $stageOrder);
+            $targetIdx = array_search('observation', $stageOrder);
 
             if ($targetIdx === $currentIdx + 1) {
                 $observation->logChange([
-                    'to_stage' => 'pre_conference',
+                    'to_stage' => 'observation',
                     'notes' => 'Pre-Observation Planning completed',
                 ]);
-                $observation->update(['stage' => 'pre_conference']);
+                $observation->update(['stage' => 'observation']);
             }
 
-            return redirect()->route('school-head.observations.preConference', $observation->id)
-                ->with('success', 'Pre-Observation Planning has been saved. Proceed to Pre-Conference.');
+            $success = $observation->isSchoolHeadObservation()
+                ? 'Pre-Observation Planning has been saved. Proceed to the School Head Observation.'
+                : 'Pre-Observation Planning has been saved. Proceed to the Observation.';
+
+            return redirect()->route('school-head.observations.observation', $observation->id)
+                ->with('success', $success);
         }
 
         return redirect()->route('school-head.observations.preObservationPlanning', $observation->id)
@@ -606,159 +602,6 @@ class ObservationController extends Controller
     }
 
     /**
-     * Show Pre-Conference form.
-     */
-    public function preConference(Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        // School head observations skip the pre-conference step entirely.
-        if ($observation->isSchoolHeadObservation()) {
-            return redirect()->route('school-head.observations.observation', $observation->id)
-                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
-        }
-
-        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
-        $preConference = $observation->preConference;
-        $planning = $observation->preObservationPlanning;
-
-        $previousObservations = Observation::with(['cotRatings'])
-            ->where('observee_id', $observation->observee_id)
-            ->where('observee_type', $observation->observee_type)
-            ->where('id', '!=', $observation->id)
-            ->whereNotNull('overall_score')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $prevStrengths = collect();
-        $prevWeaknesses = collect();
-        if ($previousObservations->isNotEmpty()) {
-            $prevRatings = CotRating::whereIn('observation_id', $previousObservations->pluck('id'))
-                ->selectRaw('domain, AVG(rating) as avg_rating, COUNT(*) as total')
-                ->groupBy('domain')
-                ->get();
-
-            $prevStrengths = $prevRatings->filter(fn($r) => $r->avg_rating >= 4)->values();
-            $prevWeaknesses = $prevRatings->filter(fn($r) => $r->avg_rating < 3)->values();
-        }
-
-        return view('school-head.observations.pre-conference', compact(
-            'observation', 'preConference', 'planning', 'prevStrengths', 'prevWeaknesses'
-        ));
-    }
-
-    /**
-     * Store Pre-Conference data.
-     */
-    public function storePreConference(Request $request, Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        // School head observations skip the pre-conference step entirely.
-        if ($observation->isSchoolHeadObservation()) {
-            return redirect()->route('school-head.observations.observation', $observation->id)
-                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
-        }
-
-        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y') . '-' . (date('Y') + 1));
-        $obsType = $observation->observation_type;
-        $templateRules = $this->formTemplateService->getValidationRules($schoolYear, 'pre_conference', $obsType);
-
-        $validated = $request->validate(array_merge([
-            'discussion_notes' => ['nullable', 'string'],
-            'finalized_focus' => ['nullable', 'string'],
-            'conference_date' => ['nullable', 'date'],
-            'teacher_reflection' => ['nullable', 'string'],
-            'lesson_plan_review' => ['nullable', 'string'],
-            'instructional_materials' => ['nullable', 'string'],
-            'topic' => ['nullable', 'string'],
-            'learning_objectives' => ['nullable', 'string'],
-            'teaching_strategies' => ['nullable', 'string'],
-            'assessment_activity' => ['nullable', 'string'],
-            'expected_challenges' => ['nullable', 'string'],
-            'feedback_areas' => ['nullable', 'string'],
-            'ai_insights_reviewed' => ['nullable', 'boolean'],
-        ], $templateRules));
-
-        $data = [
-            'discussion_notes' => $validated['discussion_notes'] ?? null,
-            'finalized_focus' => $validated['finalized_focus'] ?? null,
-            'conference_date' => $validated['conference_date'] ?? now(),
-            'teacher_reflection' => $validated['teacher_reflection'] ?? null,
-            'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
-            'instructional_materials' => $validated['instructional_materials'] ?? null,
-            'topic' => $validated['topic'] ?? null,
-            'learning_objectives' => $validated['learning_objectives'] ?? null,
-            'teaching_strategies' => $validated['teaching_strategies'] ?? null,
-            'assessment_activity' => $validated['assessment_activity'] ?? null,
-            'expected_challenges' => $validated['expected_challenges'] ?? null,
-            'feedback_areas' => $validated['feedback_areas'] ?? null,
-        ];
-
-        $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_conference', $request->all(), $obsType);
-        $data = array_merge($data, $formData);
-
-        $observation->preConference()->updateOrCreate(
-            ['observation_id' => $observation->id],
-            $data
-        );
-
-        if ($request->has('ai_insights_reviewed')) {
-            $observation->preObservationPlanning()->updateOrCreate(
-                ['observation_id' => $observation->id],
-                ['ai_insights_reviewed' => true]
-            );
-        }
-
-        if ($request->has('save_draft')) {
-            return redirect()->route('school-head.observations.preConference', $observation->id)
-                ->with('success', 'Pre-Conference draft saved.');
-        }
-
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-        $currentIdx = array_search($observation->stage, $stageOrder);
-        $targetIdx = array_search('observation', $stageOrder);
-
-        if ($targetIdx === $currentIdx + 1) {
-            $observation->logChange([
-                'to_stage' => 'observation',
-                'notes' => 'Pre-Conference completed',
-            ]);
-            $observation->update(['stage' => 'observation']);
-        }
-
-        return redirect()->route('school-head.observations.observation', $observation->id)
-            ->with('success', 'Pre-Conference has been saved.');
-    }
-
-    /**
-     * Save the pre-conference agenda checklist state.
-     */
-    public function saveAgendaChecklist(Request $request, Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        $validated = $request->validate([
-            'checked' => 'required|array',
-            'checked.*' => 'integer|min:0',
-        ]);
-
-        $existing = $observation->preConference;
-        $merged = array_merge(
-            $existing?->form_responses ?? [],
-            ['agenda_checklist' => $validated['checked']]
-        );
-
-        $observation->preConference()->updateOrCreate(
-            ['observation_id' => $observation->id],
-            ['form_responses' => $merged]
-        );
-
-        return response()->json(['ok' => true]);
-    }
-
-    /**
      * Show Observation form (Digital COT).
      */
     public function observation(Observation $observation)
@@ -766,7 +609,6 @@ class ObservationController extends Controller
         $this->authorizeObservation($observation);
 
         $cotRatings = $observation->cotRatings()->get();
-        $preConference = $observation->preConference;
         $observation->loadMissing(['preObservationPlanning', 'observee', 'schoolHead']);
 
         $schoolYear = $observation->school_year ?? config('cot.default_version', '2025-2026');
@@ -787,7 +629,7 @@ class ObservationController extends Controller
         }
 
         return view('school-head.observations.observation', compact(
-            'observation', 'cotRatings', 'preConference',
+            'observation', 'cotRatings',
             'cotIndicators', 'ratingScale', 'ratingScaleCss',
             'existingSuggestions', 'schoolYear',
             'epocEvaluation', 'schoolHead'
@@ -888,7 +730,7 @@ class ObservationController extends Controller
             $pinned = $observation->cotIndicatorVersion;
             $requiresPostConference = $pinned ? $pinned->requiresPostConference() : ($cotVersion['requires_post_conference'] ?? true);
         }
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
@@ -1003,7 +845,7 @@ class ObservationController extends Controller
         }
 
         // Advance the workflow.
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
@@ -1156,10 +998,9 @@ class ObservationController extends Controller
         $postConference = $observation->postConference;
         $cotRatings = $observation->cotRatings()->get();
         $planning = $observation->preObservationPlanning;
-        $preConference = $observation->preConference;
         $epocEvaluation = $observation->epocEvaluation()->with('ratings')->get()->first();
 
-        return view('school-head.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference', 'epocEvaluation'));
+        return view('school-head.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'epocEvaluation'));
     }
 
     /**
@@ -1192,11 +1033,14 @@ class ObservationController extends Controller
             'ai_comparison' => $request->has('ai_comparison') ? ($validated['ai_comparison'] ?? null) : ($existingPostConference?->ai_comparison ?? null),
             'feedback' => $request->has('feedback') ? ($validated['feedback'] ?? null) : ($existingPostConference?->feedback ?? null),
             'conference_date' => $validated['conference_date'] ?? now(),
-            'star_notes' => $validated['star_notes'] ?? null,
-            'areas_for_improvement' => $validated['areas_for_improvement'] ?? null,
-            'challenges_facing_teacher' => $validated['challenges_facing_teacher'] ?? null,
-            'ideas_for_addressing_challenges' => $validated['ideas_for_addressing_challenges'] ?? null,
-            'prioritized_next_steps' => $validated['prioritized_next_steps'] ?? null,
+            // CID guide fields are school-head-observee only and are no longer
+            // collected on the teacher post-conference form. Keep any
+            // previously saved values instead of wiping them with null.
+            'star_notes' => $request->has('star_notes') ? ($validated['star_notes'] ?? null) : ($existingPostConference?->star_notes ?? null),
+            'areas_for_improvement' => $request->has('areas_for_improvement') ? ($validated['areas_for_improvement'] ?? null) : ($existingPostConference?->areas_for_improvement ?? null),
+            'challenges_facing_teacher' => $request->has('challenges_facing_teacher') ? ($validated['challenges_facing_teacher'] ?? null) : ($existingPostConference?->challenges_facing_teacher ?? null),
+            'ideas_for_addressing_challenges' => $request->has('ideas_for_addressing_challenges') ? ($validated['ideas_for_addressing_challenges'] ?? null) : ($existingPostConference?->ideas_for_addressing_challenges ?? null),
+            'prioritized_next_steps' => $request->has('prioritized_next_steps') ? ($validated['prioritized_next_steps'] ?? null) : ($existingPostConference?->prioritized_next_steps ?? null),
             'teacher_reflection' => $validated['teacher_reflection'] ?? null,
             'supervisor_notes' => $validated['supervisor_notes'] ?? null,
         ];
@@ -1656,66 +1500,118 @@ class ObservationController extends Controller
     }
 
     /**
-     * Confirm an observation (as observee).
+     * Confirm an observation schedule: either as the observee (own
+     * observation) or as the assigned co-observer of a teacher observation.
      */
     public function confirm(Observation $observation)
     {
-        $schoolHead = Auth::user()->schoolHeadProfile;
+        $user = Auth::user();
+        $schoolHead = $user->schoolHeadProfile;
 
-        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
-            abort(403);
+        if ($observation->observee_id === $schoolHead?->id && $observation->observee_type === SchoolHeadProfile::class) {
+            if (!$observation->canConfirm()) {
+                return back()->with('error', 'This observation cannot be confirmed at this time.');
+            }
+
+            $observation->confirm();
+
+            app(AuditLogService::class)->log(
+                'confirmed', 'observations', (string) $observation->getKey(),
+                "School head confirmed observation #{$observation->getKey()}",
+                'success', [], $observation->toArray()
+            );
+
+            $observer = $observation->observer;
+            if ($observer) {
+                $link = route('school-head.observations.show', $observation);
+                $this->notificationService->notifyObservationConfirmed($observer, Auth::user()->name, $link);
+            }
+
+            return back()->with('success', 'You have confirmed the observation schedule.');
         }
 
-        if (!$observation->canConfirm()) {
-            return back()->with('error', 'This observation cannot be confirmed at this time.');
+        // Co-observer: assigned via observations.school_head_id to be present
+        // during a teacher observation.
+        if ((int) $observation->school_head_id === (int) $user->id) {
+            if (!$observation->canConfirmBySchoolHead()) {
+                return back()->with('error', 'This co-observation cannot be confirmed at this time.');
+            }
+
+            $observation->confirmBySchoolHead();
+
+            app(AuditLogService::class)->log(
+                'confirmed', 'observations', (string) $observation->getKey(),
+                "School head confirmed co-observation #{$observation->getKey()}",
+                'success', [], $observation->toArray()
+            );
+
+            $observer = $observation->observer;
+            if ($observer instanceof User) {
+                $link = route('supervisor.observations.show', $observation);
+                $this->notificationService->notifyObservationConfirmed($observer, Auth::user()->name.' (co-observer)', $link);
+            }
+
+            return back()->with('success', 'You have confirmed your attendance at this observation.');
         }
 
-        $observation->confirm();
-
-        app(AuditLogService::class)->log(
-            'confirmed', 'observations', (string) $observation->getKey(),
-            "School head confirmed observation #{$observation->getKey()}",
-            'success', [], $observation->toArray()
-        );
-
-        $observer = $observation->observer;
-        if ($observer) {
-            $link = route('school-head.observations.show', $observation);
-            $this->notificationService->notifyObservationConfirmed($observer, Auth::user()->name, $link);
-        }
-
-        return back()->with('success', 'You have confirmed the observation schedule.');
+        abort(403);
     }
 
     /**
-     * Reject an observation (as observee).
+     * Reject an observation schedule: either as the observee (own
+     * observation) or as the assigned co-observer of a teacher observation.
      */
     public function reject(Request $request, Observation $observation)
     {
-        $schoolHead = Auth::user()->schoolHeadProfile;
-
-        if ($observation->observee_id !== $schoolHead?->id || $observation->observee_type !== SchoolHeadProfile::class) {
-            abort(403);
-        }
-
-        if (!$observation->canConfirm()) {
-            return back()->with('error', 'This observation cannot be rejected at this time.');
-        }
+        $user = Auth::user();
+        $schoolHead = $user->schoolHeadProfile;
 
         $validated = $request->validate([
             'rejection_reason' => ['required', 'string', 'in:scheduling_conflict,health_concern,insufficient_preparation,other'],
             'rejection_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $observation->reject($validated['rejection_reason'], $validated['rejection_notes'] ?? null);
+        if ($observation->observee_id === $schoolHead?->id && $observation->observee_type === SchoolHeadProfile::class) {
+            if (!$observation->canConfirm()) {
+                return back()->with('error', 'This observation cannot be rejected at this time.');
+            }
 
-        app(AuditLogService::class)->log(
-            'rejected', 'observations', (string) $observation->getKey(),
-            "School head rejected observation #{$observation->getKey()}: {$validated['rejection_reason']}",
-            'success', [], $observation->toArray()
-        );
+            $observation->reject($validated['rejection_reason'], $validated['rejection_notes'] ?? null);
 
-        return back()->with('success', 'You have rejected the observation schedule.');
+            app(AuditLogService::class)->log(
+                'rejected', 'observations', (string) $observation->getKey(),
+                "School head rejected observation #{$observation->getKey()}: {$validated['rejection_reason']}",
+                'success', [], $observation->toArray()
+            );
+
+            return back()->with('success', 'You have rejected the observation schedule.');
+        }
+
+        // Co-observer: assigned via observations.school_head_id to be present
+        // during a teacher observation.
+        if ((int) $observation->school_head_id === (int) $user->id) {
+            if (!$observation->canConfirmBySchoolHead()) {
+                return back()->with('error', 'This co-observation cannot be rejected at this time.');
+            }
+
+            $observation->rejectBySchoolHead($validated['rejection_reason'], $validated['rejection_notes'] ?? null);
+
+            app(AuditLogService::class)->log(
+                'rejected', 'observations', (string) $observation->getKey(),
+                "School head rejected co-observation #{$observation->getKey()}: {$validated['rejection_reason']}",
+                'success', [], $observation->toArray()
+            );
+
+            $observer = $observation->observer;
+            if ($observer instanceof User) {
+                $link = route('supervisor.observations.show', $observation);
+                $this->notificationService->notifyObservationRejected($observer, Auth::user()->name.' (co-observer)', $validated['rejection_reason'], $link);
+            }
+
+            return back()->with('success', 'You have declined this co-observation assignment.');
+        }
+
+        abort(403);
     }
 
     /**

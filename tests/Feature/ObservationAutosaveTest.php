@@ -96,10 +96,12 @@ class ObservationAutosaveTest extends TestCase
             ->value('rating'));
     }
 
-    public function test_supervisor_can_autosave_pre_conference_fields(): void
+    public function test_supervisor_autosave_rejects_unknown_pre_conference_stage(): void
     {
-        $observation = $this->observation(['stage' => 'pre_conference']);
+        $observation = $this->observation(['stage' => 'pre_observation_planning']);
 
+        // The pre-conference step has been phased out of the three-stage
+        // cycle, so the autosave endpoint must reject it as unknown.
         $this->actingAs($this->supervisor)->postJson(
             route('supervisor.observations.autosave', $observation),
             [
@@ -107,12 +109,11 @@ class ObservationAutosaveTest extends TestCase
                 'discussion_notes' => 'Draft of the discussion.',
                 'finalized_focus' => 'Higher-order thinking skills',
             ]
-        )->assertOk()->assertJson(['ok' => true]);
+        )->assertStatus(422)->assertJson(['ok' => false]);
 
-        $this->assertDatabaseHas('pre_conferences', [
+        $this->assertDatabaseMissing('pre_conferences', [
             'observation_id' => $observation->id,
             'discussion_notes' => 'Draft of the discussion.',
-            'finalized_focus' => 'Higher-order thinking skills',
         ]);
     }
 

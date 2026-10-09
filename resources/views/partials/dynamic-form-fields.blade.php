@@ -6,8 +6,7 @@
 
     // Determine which model to use for existing values
     $dataModel = null;
-    if ($sectionKey === 'pre_conference' && isset($preConference)) $dataModel = $preConference;
-    elseif ($sectionKey === 'post_conference' && isset($postConference)) $dataModel = $postConference;
+    if ($sectionKey === 'post_conference' && isset($postConference)) $dataModel = $postConference;
     elseif ($sectionKey === 'pre_observation_planning' && isset($planning)) $dataModel = $planning;
 @endphp
 

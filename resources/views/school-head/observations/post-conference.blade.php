@@ -16,18 +16,14 @@
 
 @php
     $isSchoolHeadObs = $observation->isSchoolHeadObservation();
-    $stageKeys = $isSchoolHeadObs
-        ? ['pre_observation_planning', 'observation', 'post_conference']
-        : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageKeys = ['pre_observation_planning', 'observation', 'post_conference'];
     $stageLabels = [
         'pre_observation_planning' => 'Pre-Observation Planning',
-        'pre_conference' => 'Pre-Conference',
         'observation' => $isSchoolHeadObs ? 'School Head Observation' : 'Observation',
         'post_conference' => 'Post-Conference',
     ];
     $stageRoutes = [
         'pre_observation_planning' => 'school-head.observations.preObservationPlanning',
-        'pre_conference' => 'school-head.observations.preConference',
         'observation' => 'school-head.observations.observation',
         'post_conference' => 'school-head.observations.postConference',
     ];
@@ -262,91 +258,6 @@
                   x-data="{ submitting: false }" x-on:submit="submitting = true">
                 @csrf
 
-                <!-- Enhanced Post Observation Conference Guide -->
-                @if(!$isSchoolHeadObs)
-                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Conference Guide</h2>
-                        <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-1 rounded-full font-medium">DepEd CID Format</span>
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Follow this structured guide for a productive post-observation conference.</p>
-
-                    <!-- Step 1: Warm and Clear Opening -->
-                    <div class="border-l-4 border-blue-400 bg-blue-50 rounded-r-lg p-4 mb-4">
-                        <h3 class="text-sm font-semibold text-blue-800">Step 1: Warm and Clear Opening</h3>
-                        <p class="text-xs text-blue-600 mt-1">Establish rapport and set the purpose of the conference.</p>
-                    </div>
-
-                    <!-- Step 2: What's Going Well -->
-                    <div class="border border-green-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 2: What's Going Well</h3>
-                            <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full">Strengths</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Document specific observations of effective teaching practices observed.</p>
-                        <textarea name="star_notes" rows="4"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                                  placeholder="Describe what went well during the observation. Be specific and cite examples...">{{ old('star_notes', $postConference?->star_notes) }}</textarea>
-                    </div>
-
-                    <!-- Step 3: Challenges Facing the Teacher -->
-                    <div class="border border-yellow-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-yellow-800">Step 3: Identify Challenges</h3>
-                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Challenges</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Identify challenges or difficulties observed during the lesson.</p>
-                        <textarea name="challenges_facing_teacher" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
-                                  placeholder="What challenges did the teacher face during the lesson? e.g. time management, learner engagement, materials...">{{ old('challenges_facing_teacher', $postConference?->challenges_facing_teacher) }}</textarea>
-                    </div>
-
-                    <!-- Step 4: Areas for Improvement -->
-                    <div class="border border-orange-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-orange-800">Step 4: Areas for Improvement</h3>
-                            <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Growth Areas</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Non-threatening areas where the teacher can grow and develop further.</p>
-                        <textarea name="areas_for_improvement" rows="3"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                                  placeholder="Identify specific areas where the teacher can improve. Frame these constructively...">{{ old('areas_for_improvement', $postConference?->areas_for_improvement) }}</textarea>
-                    </div>
-
-                    <!-- Step 5: Generating Ideas -->
-                    <div class="border border-purple-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-purple-800 dark:text-purple-300">Step 5: Ideas for Addressing Challenges</h3>
-                            <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 px-2 py-0.5 rounded-full">Solutions</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Collaboratively generate strategies and solutions to address the identified challenges.</p>
-                        <textarea name="ideas_for_addressing_challenges" rows="4"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                                  placeholder="Brainstorm strategies with the teacher. What resources, training, or support can help address these challenges?">{{ old('ideas_for_addressing_challenges', $postConference?->ideas_for_addressing_challenges) }}</textarea>
-                    </div>
-
-                    <!-- Step 6: Prioritizing Next Steps -->
-                    <div class="border border-indigo-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-indigo-800 dark:text-indigo-200">Step 6: Prioritized Next Steps</h3>
-                            <span class="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 px-2 py-0.5 rounded-full">Action Plan</span>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Agree on actionable next steps with clear timelines and responsibilities.</p>
-                        <textarea name="prioritized_next_steps" rows="4"
-                                  class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                                  placeholder="1. ... (by when)
-2. ... (by when)
-3. ... (by when)">{{ old('prioritized_next_steps', $postConference?->prioritized_next_steps) }}</textarea>
-                    </div>
-
-                    <!-- Step 7: Ending the Conference -->
-                    <div class="border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 rounded-r-lg p-4 mb-4">
-                        <h3 class="text-sm font-semibold text-green-800 dark:text-green-300">Step 7: Ending the Post-Observation Conference</h3>
-                        <p class="text-xs text-green-600 dark:text-green-400 mt-1">Summarize key points, acknowledge the teacher's efforts, and express confidence in their growth.</p>
-                    </div>
-                </div>
-                @endif
-
                 <!-- Teacher Reflection -->
                 <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ $isSchoolHeadObs ? 'School Head Reflection' : 'Teacher Reflection' }}</h2>
@@ -484,15 +395,68 @@
 
             <!-- Overall Score Card -->
             @if($observation->overall_score)
+            @php
+                // Indicator score scale for this observation: EPOC uses a fixed
+                // 5-point scale, while COT scales come from the rating instrument.
+                $scaleMax = $isSchoolHeadObs ? 5.0 : (float) $observation->ratingScaleMax();
+                if ($isSchoolHeadObs) {
+                    $scaleDesc = match (true) {
+                        $observation->overall_score >= 4.5 => 'Outstanding',
+                        $observation->overall_score >= 3.5 => 'Very Satisfactory',
+                        $observation->overall_score >= 2.5 => 'Satisfactory',
+                        $observation->overall_score >= 1.5 => 'Poor',
+                        default => 'Needs Improvement',
+                    };
+                    $bandTop = ['Outstanding' => 5.00, 'Very Satisfactory' => 4.50, 'Satisfactory' => 3.50, 'Poor' => 2.50, 'Needs Improvement' => 1.50];
+                    $bandBottom = ['Outstanding' => 4.50, 'Very Satisfactory' => 3.50, 'Satisfactory' => 2.50, 'Poor' => 1.50, 'Needs Improvement' => null];
+                } else {
+                    $scaleDesc = \App\Models\CotRating::descriptiveTotal((float) $observation->overall_score, $scaleMax);
+                    $bandTop = ['Outstanding' => $scaleMax, 'Very Satisfactory' => $scaleMax * 5.5 / 6.0, 'Satisfactory' => $scaleMax * 4.5 / 6.0, 'Poor' => $scaleMax * 3.5 / 6.0, 'Needs Improvement' => $scaleMax * 2.5 / 6.0];
+                    $bandBottom = ['Outstanding' => $scaleMax * 5.5 / 6.0, 'Very Satisfactory' => $scaleMax * 4.5 / 6.0, 'Satisfactory' => $scaleMax * 3.5 / 6.0, 'Poor' => $scaleMax * 2.5 / 6.0, 'Needs Improvement' => null];
+                }
+                $descBadgeClass = match ($scaleDesc) {
+                    'Outstanding' => 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+                    'Very Satisfactory' => 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+                    'Satisfactory' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+                    'Poor' => 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+                    default => 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+                };
+                $bandDot = [
+                    'Outstanding' => 'bg-emerald-500',
+                    'Very Satisfactory' => 'bg-blue-500',
+                    'Satisfactory' => 'bg-amber-500',
+                    'Poor' => 'bg-orange-500',
+                    'Needs Improvement' => 'bg-red-500',
+                ];
+            @endphp
             <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100 text-center">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Overall Score</h3>
                 <div class="text-4xl font-bold {{ $observation->overall_score >= 4 ? 'text-green-600 dark:text-green-400' : ($observation->overall_score >= 3 ? 'text-yellow-600' : 'text-red-600 dark:text-red-400') }}">
                     {{ number_format($observation->overall_score, 2) }}
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">out of {{ $isSchoolHeadObs ? '5.00' : '6.00' }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">out of {{ number_format($scaleMax, 2) }}</p>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mt-2 {{ $descBadgeClass }}">{{ $scaleDesc }}</span>
                 <div class="mt-3 w-full bg-gray-200 rounded-full h-3">
                     <div class="h-3 rounded-full {{ $observation->overall_score >= 4 ? 'bg-green-500' : ($observation->overall_score >= 3 ? 'bg-yellow-500' : 'bg-red-500') }}"
-                         style="width: {{ $observation->overall_score ? ($observation->overall_score / ($isSchoolHeadObs ? 5 : 6)) * 100 : 0 }}%"></div>
+                         style="width: {{ $observation->overall_score ? ($observation->overall_score / $scaleMax) * 100 : 0 }}%"></div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 text-left">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2 text-center">Indicator Score Scale</p>
+                    <ul class="space-y-1.5">
+                        @foreach(['Outstanding', 'Very Satisfactory', 'Satisfactory', 'Poor', 'Needs Improvement'] as $band)
+                        <li class="flex items-center gap-2 text-xs rounded-lg px-2 py-1 {{ $scaleDesc === $band ? 'bg-gray-100 dark:bg-gray-800 font-semibold' : '' }}">
+                            <span class="w-2 h-2 rounded-full shrink-0 {{ $bandDot[$band] }}"></span>
+                            <span class="{{ $scaleDesc === $band ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400' }}">{{ $band }}</span>
+                            <span class="ml-auto tabular-nums {{ $scaleDesc === $band ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500' }}">
+                                @if($bandBottom[$band] === null)
+                                    Below {{ number_format($bandTop[$band], 2) }}
+                                @else
+                                    {{ number_format($bandBottom[$band], 2) }} – {{ number_format($bandTop[$band], 2) }}
+                                @endif
+                            </span>
+                        </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
             @endif
@@ -512,12 +476,6 @@
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Focus</span>
                         <p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($planning->suggested_focus, 80) }}</p>
-                    </div>
-                    @endif
-                    @if($preConference?->finalized_focus)
-                    <div>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Finalized Focus</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($preConference->finalized_focus, 80) }}</p>
                     </div>
                     @endif
                 </div>

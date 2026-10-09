@@ -90,7 +90,7 @@ class ObservationSchedulingController extends Controller
 
             $totalObs = $recentObs->get($teacher->id, collect())->count();
             $completedObs = $recentObs->get($teacher->id, collect())->where('stage', 'post_conference')->count();
-            $inProgressObs = $recentObs->get($teacher->id, collect())->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count();
+            $inProgressObs = $recentObs->get($teacher->id, collect())->whereIn('stage', ['pre_observation_planning', 'observation'])->count();
 
             return [
                 'id' => $teacher->id,
@@ -641,7 +641,15 @@ class ObservationSchedulingController extends Controller
         $observeeType = SchoolHeadProfile::class;
         $observeeId = $schoolHeadProfile->id;
 
-        // Create the linked PPSSH observation
+        // Create the linked PPSSH observation.
+        // The school head observes no one here — the supervisor observes the
+        // school head directly — so the child carries no co-observer of its
+        // own (school_head_id stays null, avoiding a duplicated confirmation
+        // row for the same person). The schedule confirmation carries over
+        // from the parent co-observation: the school head already confirmed
+        // that exact schedule.
+        $inheritedConfirmation = ($observation->school_head_confirmation_status ?? 'pending') === 'confirmed';
+
         $linkedObservation = Observation::create([
             'observer_id' => Auth::id(),
             'observer_type' => User::class,
@@ -655,6 +663,8 @@ class ObservationSchedulingController extends Controller
             'stage' => 'pre_observation_planning',
             'notes' => 'Linked PPSSH observation for '.($observation->subject ?? 'observation #'.$observation->id),
             'status' => 'in_progress',
+            'confirmation_status' => $inheritedConfirmation ? 'confirmed' : 'pending',
+            'confirmed_at' => $inheritedConfirmation ? ($observation->school_head_confirmed_at ?? now()) : null,
             'school_year' => $schoolYear,
             'quarter' => $observation->quarter ?? $this->getCurrentTerm(),
             'observation_number' => 1,
@@ -663,7 +673,7 @@ class ObservationSchedulingController extends Controller
             'observation_mode' => 'in_person',
             'form_template_id' => $activeTemplate?->id,
             'cot_indicator_version_id' => $cotIndicatorVersion?->id,
-            'school_head_id' => $schoolHeadId,
+            'school_head_id' => null,
             'related_observation_id' => $observation->id,
         ]);
 
@@ -686,20 +696,19 @@ class ObservationSchedulingController extends Controller
             'success', [], $linkedObservation->toArray()
         );
 
-        // Notify school head if assigned
-        if ($linkedObservation->school_head_id) {
-            $shUser = User::find($linkedObservation->school_head_id);
-            if ($shUser) {
-                $shLink = route('school-head.observations.show', $linkedObservation->id);
-                $this->notificationService->notify(
-                    $shUser,
-                    \App\Enums\NotificationType::OBSERVATION,
-                    'Linked PPSSH Observation Assignment',
-                    'You have been assigned to conduct a School Head post-observation conference linked to teacher observation #' . $observation->getKey() . ' on ' . ($observation->observation_date?->format('M d, Y') ?? 'No date') . '.',
-                    null,
-                    $shLink
-                );
-            }
+        // Notify the school head (observee) about their scheduled evaluation.
+        $shUser = $schoolHeadProfile->user ?? User::find($schoolHeadId);
+        if ($shUser) {
+            $shLink = route('school-head.observations.show', $linkedObservation->id);
+            $this->notificationService->notify(
+                $shUser,
+                \App\Enums\NotificationType::OBSERVATION,
+                'School Head Evaluation Scheduled',
+                'A school head (PPSSH) evaluation linked to teacher observation #'.$observation->getKey().' has been scheduled for you on '.($observation->observation_date?->format('M d, Y') ?? 'No date').'.'
+                .($inheritedConfirmation ? ' Your confirmation from the co-observation carries over — you are marked confirmed.' : ' Please confirm your availability.'),
+                null,
+                $shLink
+            );
         }
 
         // Notify the teacher (observee) that a linked PPSSH observation was created
@@ -792,7 +801,7 @@ class ObservationSchedulingController extends Controller
         $baseQuery = Observation::where('observer_id', $user->id);
         $stats = [
             'total' => (clone $baseQuery)->count(),
-            'in_progress' => (clone $baseQuery)->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->where('status', '!=', 'cancelled')->count(),
+            'in_progress' => (clone $baseQuery)->whereIn('stage', ['pre_observation_planning', 'observation'])->where('status', '!=', 'cancelled')->count(),
             'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
             'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
         ];
@@ -818,7 +827,11 @@ class ObservationSchedulingController extends Controller
             'schoolHead',
         ]);
 
-        return view('supervisor.observations.show', compact('observation'));
+        // Linked PPSSH evaluation of the co-observer (if the supervisor
+        // created one from this teacher observation).
+        $linkedObservation = Observation::where('related_observation_id', $observation->id)->first();
+
+        return view('supervisor.observations.show', compact('observation', 'linkedObservation'));
     }
 
     /**

@@ -44,7 +44,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5" style="padding:14px 16px">
     @forelse($observations as $observation)
         @php
-            $stageLabels = ['pre_observation_planning' => 'Prepare', 'pre_conference' => 'Pre-Observation Conversation', 'observation' => 'Classroom Observation', 'post_conference' => 'Post-Observation Conference'];
+            $stageLabels = ['pre_observation_planning' => 'Prepare', 'observation' => 'Classroom Observation', 'post_conference' => 'Post-Observation Conference'];
             $stageBadgeColor = match($observation->status) {
                 'completed' => 'bg-green-100 dark:bg-green-900/30 text-green-700',
                 'scheduled' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700',
@@ -77,7 +77,7 @@
             </div>
             <div class="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-gray-800 mt-auto">
                 <a href="{{ route('supervisor.observations.show', $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50">View</a>
-                @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','pre_conference'=>'supervisor.observations.preConference','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null }; @endphp
+                @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null }; @endphp
                 @if($continueRoute)
                     <a href="{{ route($continueRoute, $observation) }}" class="flex-1 inline-flex items-center justify-center px-2.5 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">Continue</a>
                 @endif

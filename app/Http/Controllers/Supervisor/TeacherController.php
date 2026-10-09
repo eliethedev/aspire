@@ -191,7 +191,7 @@ class TeacherController extends Controller
                 ->count(),
             'in_progress' => Observation::where('observee_id', $teacher->id)
                 ->where('observee_type', Teacher::class)
-                ->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])
+                ->whereIn('stage', ['pre_observation_planning', 'observation'])
                 ->count(),
             'avg_score' => Observation::where('observee_id', $teacher->id)
                 ->where('observee_type', Teacher::class)

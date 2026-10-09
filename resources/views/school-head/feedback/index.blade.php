@@ -319,12 +319,11 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3">Stage Progress</h3>
                 <div class="space-y-2.5">
-                    @php $stages = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference']; @endphp
+                    @php $stages = ['pre_observation_planning', 'observation', 'post_conference']; @endphp
                     @foreach($stages as $i => $stage)
                         @php
                             $done = match($stage) {
                                 'pre_observation_planning' => (bool) $observation->preObservationPlanning,
-                                'pre_conference' => (bool) $observation->preConference,
                                 'observation' => $observation->cotRatings->count() > 0,
                                 'post_conference' => (bool) $observation->postConference,
                                 default => false,

@@ -56,6 +56,11 @@ class Observation extends Model
         'confirmed_at',
         'rejected_at',
         'teacher_confirmed_at',
+        'school_head_confirmation_status',
+        'school_head_rejection_reason',
+        'school_head_rejection_notes',
+        'school_head_confirmed_at',
+        'school_head_rejected_at',
         'lesson_plan_path',
         'lesson_plan_summary',
         'pre_observation_ai_prompts',
@@ -65,6 +70,7 @@ class Observation extends Model
         'ai_suggestions_approved_at',
         'ai_suggestions_approved_by',
         'school_head_id',
+        'related_observation_id',
         'finalized_at',
         'finalized_by',
     ];
@@ -78,6 +84,8 @@ class Observation extends Model
         'confirmed_at' => 'datetime',
         'rejected_at' => 'datetime',
         'teacher_confirmed_at' => 'datetime',
+        'school_head_confirmed_at' => 'datetime',
+        'school_head_rejected_at' => 'datetime',
         'pre_observation_ai_prompts' => 'array',
         'offline_downloaded_at' => 'datetime',
         'lesson_plan_reviewed_at' => 'datetime',
@@ -360,7 +368,7 @@ class Observation extends Model
 
     /**
      * Check if the observation can be cancelled.
-     * Allowed stages: pre_observation_planning, pre_conference, observation (with warning), post_conference (for record only)
+     * Allowed stages: pre_observation_planning, observation (with warning), post_conference (for record only)
      */
     public function canCancel(): bool
     {
@@ -368,7 +376,7 @@ class Observation extends Model
             return false;
         }
 
-        return in_array($this->stage, ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference']);
+        return in_array($this->stage, ['pre_observation_planning', 'observation', 'post_conference']);
     }
 
     /**
@@ -464,6 +472,98 @@ class Observation extends Model
     }
 
     /**
+     * Check if the observation can be confirmed by the assigned school head
+     * (co-observer). Only scheduled observations in pre_observation_planning
+     * stage with a pending school-head confirmation qualify.
+     */
+    public function canConfirmBySchoolHead(): bool
+    {
+        if ($this->status === 'cancelled' || $this->status === 'completed') {
+            return false;
+        }
+
+        if (empty($this->school_head_id)) {
+            return false;
+        }
+
+        return ($this->school_head_confirmation_status ?? 'pending') === 'pending'
+            && $this->stage === 'pre_observation_planning';
+    }
+
+    /**
+     * Confirm the co-observation schedule (assigned school head).
+     */
+    public function confirmBySchoolHead(): void
+    {
+        $this->update([
+            'school_head_confirmation_status' => 'confirmed',
+            'school_head_confirmed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reject the co-observation schedule with a reason (assigned school head).
+     */
+    public function rejectBySchoolHead(string $reason, ?string $notes = null): void
+    {
+        $this->update([
+            'school_head_confirmation_status' => 'rejected',
+            'school_head_rejection_reason' => $reason,
+            'school_head_rejection_notes' => $notes,
+            'school_head_rejected_at' => now(),
+        ]);
+    }
+
+    /**
+     * Whether both the teacher and the assigned school head (if any) have
+     * confirmed the schedule. Observations without an assigned school head
+     * only need the teacher's confirmation.
+     */
+    public function hasBothConfirmations(): bool
+    {
+        return $this->missingConfirmations() === [];
+    }
+
+    /**
+     * Human-readable labels of the parties whose schedule confirmation is
+     * still missing. Empty when the observation may advance stages.
+     */
+    public function missingConfirmations(): array
+    {
+        $missing = [];
+
+        if ($this->confirmation_status !== 'confirmed') {
+            $missing[] = $this->isSchoolHeadObservation() ? 'School head (observee)' : 'Teacher';
+        }
+
+        if (! empty($this->school_head_id)
+            && ($this->school_head_confirmation_status ?? 'pending') !== 'confirmed') {
+            $missing[] = 'School head (co-observer)';
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Whether the observation may advance out of pre-observation planning
+     * into the observation stage. Blocked while any required schedule
+     * confirmation (teacher, plus assigned school head) is missing, or when
+     * the observation is cancelled/completed.
+     */
+    public function canAdvanceFromPlanning(): bool
+    {
+        if ($this->status === 'cancelled' || $this->status === 'completed') {
+            return false;
+        }
+
+        if ($this->stage !== 'pre_observation_planning') {
+            return false;
+        }
+
+        return $this->missingConfirmations() === [];
+    }
+
+    /**
      * Scope for teacher observations
      */
     public function scopeTeacherObservations($query)
@@ -484,7 +584,7 @@ class Observation extends Model
      */
     public function scopePending($query)
     {
-        return $query->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation']);
+        return $query->whereIn('stage', ['pre_observation_planning', 'observation']);
     }
 
     /**

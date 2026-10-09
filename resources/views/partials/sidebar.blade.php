@@ -719,7 +719,7 @@
                 <ul x-show="!$store.sidebar.isCollapsed() ? supervisionOpen : true" class="space-y-0.5 mt-0.5">
                     <li>
                         <a data-mks="classroom observations all" href="{{ route('school-head.observations.index') }}"
-                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.preConference') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
+                           class="sidebar-link-hover flex items-center px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-400 {{ request()->routeIs('school-head.observations.show') || request()->routeIs('school-head.observations.preObservationPlanning') || request()->routeIs('school-head.observations.observation') || request()->routeIs('school-head.observations.postConference') || request()->routeIs('school-head.observations.cancel*') ? 'sidebar-link-active icon-observations' : '' }}"
                            :class="$store.sidebar.isCollapsed() ? 'justify-center px-2' : ''">
                             <span class="sidebar-icon-wrap icon-observations relative ml-5" :class="$store.sidebar.isCollapsed() ? '' : 'mr-3'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

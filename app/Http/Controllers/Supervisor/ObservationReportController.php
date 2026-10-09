@@ -56,7 +56,7 @@ class ObservationReportController extends Controller
             'total_observations' => (clone $baseQuery)->count(),
             'completed_observations' => (clone $baseQuery)->where('status', 'completed')->count(),
             'in_progress_observations' => (clone $baseQuery)
-                ->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])
+                ->whereIn('stage', ['pre_observation_planning', 'observation'])
                 ->where('status', '!=', 'cancelled')
                 ->count(),
         ];

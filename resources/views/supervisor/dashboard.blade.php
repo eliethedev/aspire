@@ -5,7 +5,7 @@
 @php
   $user = Auth::user();
   $completion = $stats['total_observations'] > 0 ? round(($stats['completed'] / $stats['total_observations']) * 100) : 0;
-  $pendingTotal = $stats['in_progress'] + $stats['stage_pre_planning'] + $stats['stage_pre_conference'] + $stats['stage_observation'];
+  $pendingTotal = $stats['in_progress'] + $stats['stage_pre_planning'] + $stats['stage_observation'];
   $todayStr = now()->format('l, F j, Y');
   $hour = (int) now()->format('G');
   $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
@@ -13,22 +13,20 @@
   $focus = $todoObservations->first() ?? $recentObservations->first();
   $focusName = $focus?->observee?->user?->name ?? 'No review in progress';
   $focusStage = $focus?->stage ?? null;
-  $stageOrder = ['pre_observation_planning' => 1, 'pre_conference' => 2, 'observation' => 3, 'post_conference' => 4];
+  $stageOrder = ['pre_observation_planning' => 1, 'observation' => 2, 'post_conference' => 3];
   $focusStep = $focusStage ? ($stageOrder[$focusStage] ?? 0) : 0;
   $trendLabel = ($trend > 0 ? '+' : '') . number_format((float) $trend, 1);
   $steps = [
     ['key' => 'pre_observation_planning', 'n' => 1, 'title' => 'Lesson planning'],
-    ['key' => 'pre_conference', 'n' => 2, 'title' => 'Chat befosre class'],
-    ['key' => 'observation', 'n' => 3, 'title' => 'Classroom visit'],
-    ['key' => 'post_conference', 'n' => 4, 'title' => 'Chat after class'],
+    ['key' => 'observation', 'n' => 2, 'title' => 'Classroom visit'],
+    ['key' => 'post_conference', 'n' => 3, 'title' => 'Chat after class'],
   ];
   $planRecord = $focus?->preObservationPlanning;
-  $preRecord = $focus?->preConference;
   $postRecord = $focus?->postConference;
   $ratingCount = (int) ($focus?->cot_ratings_count ?? 0);
   $focusDone = ($focus?->status === 'completed');
   $currentStepTitle = collect($steps)->firstWhere('n', $focusStep)['title'] ?? null;
-  $stageRoutes = ['pre_observation_planning' => 'supervisor.observations.preObservationPlanning', 'pre_conference' => 'supervisor.observations.preConference', 'observation' => 'supervisor.observations.observation', 'post_conference' => 'supervisor.observations.postConference'];
+  $stageRoutes = ['pre_observation_planning' => 'supervisor.observations.preObservationPlanning', 'observation' => 'supervisor.observations.observation', 'post_conference' => 'supervisor.observations.postConference'];
   $continueRoute = $focusDone ? 'supervisor.observations.show' : ($stageRoutes[$focusStage] ?? 'supervisor.observations.show');
   $teacherFirst = explode(' ', trim($focusName))[0] ?? 'the teacher';
   $plannedOn = $focus?->observation_date?->format('M d, Y');
@@ -104,12 +102,9 @@
                     : (($planRecord || $focus->lesson_plan_path || $focus->teacher_confirmed_at)
                       ? 'Plan submitted · waiting for your check'
                       : ($state === 'now' ? 'Waiting for ' . $teacherFirst . '’s lesson plan' : ($state === 'done' ? 'Done · ' . ($focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Not started yet')))),
-                  'pre_conference' => $preRecord?->conference_date
-                    ? 'Done · ' . $preRecord->conference_date->format('M d, Y')
-                    : ($preRecord ? 'Notes saved · ' . ($preRecord->updated_at?->format('M d · H:i') ?? '') : ($state === 'done' ? 'Done · ' . ($focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after lesson planning'))),
                   'observation' => $ratingCount > 0
                     ? $ratingCount . ' indicators scored' . ($focus->overall_score !== null ? ' · score ' . number_format((float) $focus->overall_score, 2) . ' / ' . number_format((float) ($focus?->ratingScaleMax() ?? ($scaleMax ?? 6)), 2) : '')
-                    : ($state === 'now' ? 'In progress · ' . ($plannedOn ?? 'no date set') . ' · ' . ($focus->subject ?? '—') : ($state === 'done' ? 'Done · ' . ($plannedOn ?? $focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after the short chat'))),
+                    : ($state === 'now' ? 'In progress · ' . ($plannedOn ?? 'no date set') . ' · ' . ($focus->subject ?? '—') : ($state === 'done' ? 'Done · ' . ($plannedOn ?? $focus->updated_at?->format('M d · H:i') ?? '') : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after lesson planning'))),
                   'post_conference' => $postRecord?->conference_date
                     ? 'Done · ' . $postRecord->conference_date->format('M d, Y')
                     : ($postRecord ? 'Notes saved · ' . ($postRecord->updated_at?->format('M d · H:i') ?? '') : ($focusDone ? 'Done · ' . ($focus->finalized_at?->format('M d · H:i') ?? $focus->updated_at?->format('M d · H:i') ?? '') : ($state === 'now' ? 'Ready when the classroom visit is scored' : ($plannedOn ? 'Planned · ' . $plannedOn : 'Starts after the classroom visit')))),
@@ -121,11 +116,6 @@
                     : (($planRecord || $focus->lesson_plan_path || $focus->teacher_confirmed_at)
                       ? 'Lesson plan from ' . $teacherFirst
                       : 'Waiting for ' . $teacherFirst . '’s lesson plan'),
-                  'pre_conference' => $preRecord?->topic
-                    ? 'About: ' . $preRecord->topic
-                    : (($preRecord?->finalized_focus)
-                      ? 'Agreed focus: ' . $preRecord->finalized_focus
-                      : ($preRecord ? 'Chat notes saved' : 'A short chat with ' . $teacherFirst . ' before the visit')),
                   'observation' => $visitWhat ?? 'Classroom visit with ' . $teacherFirst,
                   'post_conference' => $postRecord?->prioritized_next_steps
                     ? 'Next: ' . \Illuminate\Support\Str::limit($postRecord->prioritized_next_steps, 90)

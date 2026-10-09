@@ -83,7 +83,7 @@
 
             @forelse($observations as $observation)
                 @php
-                    $stageLabels = ['pre_observation_planning' => 'Pre-Observation Planning', 'pre_conference' => 'Pre-Conference', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
+                    $stageLabels = ['pre_observation_planning' => 'Pre-Observation Planning', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
                     $statusBadge = match($observation->status) {
                         'completed' => 'bg-green-100 dark:bg-green-900/30 text-green-700',
                         'scheduled' => 'bg-amber-100 dark:bg-amber-900/30 text-amber-700',

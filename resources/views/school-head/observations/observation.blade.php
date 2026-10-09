@@ -89,34 +89,6 @@
         </p>
     </div>
 
-    @if($preConference && !$observation->isSchoolHeadObservation())
-    <div x-data="{ open: true }" class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 mb-6">
-        <button type="button" @click="open = !open"
-                class="w-full flex items-center justify-between p-4 text-left">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Observation Conversation Summary</h2>
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-        </button>
-        <div x-show="open" x-collapse>
-            <div class="p-4 pt-0 border-t border-gray-100">
-                <div class="space-y-2">
-                    @if($preConference->finalized_focus)
-                    <div>
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">Agreed Focus:</span>
-                        <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $preConference->finalized_focus }}</p>
-                    </div>
-                    @endif
-                    @if($preConference->discussion_notes)
-                    <div>
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">Discussion Notes:</span>
-                        <p class="text-gray-900 dark:text-gray-100 mt-1 text-sm">{{ Str::limit($preConference->discussion_notes, 200) }}</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
     <form method="POST" action="{{ route('school-head.observations.storeObservationData', $observation) }}" class="space-y-6" enctype="multipart/form-data"
           x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
@@ -310,15 +282,13 @@
                 <span class="text-xs text-gray-600 dark:text-gray-400">Saving will auto-generate AI analysis and redirect to the Post-Observation Conference page.</span>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                @if(!$observation->isSchoolHeadObservation())
-                <a href="{{ route('school-head.observations.preConference', $observation) }}"
+                <a href="{{ route('school-head.observations.preObservationPlanning', $observation) }}"
                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-800 font-medium text-sm text-center transition-colors">
                     <span class="flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        Back to Pre-Observation Conversation
+                        Back to Pre-Observation Planning
                     </span>
                 </a>
-                @endif
                 <button type="submit" :disabled="submitting"
                         :class="submitting ? 'opacity-60 cursor-not-allowed' : ''"
                         class="flex-[2] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm shadow-sm transition-colors">

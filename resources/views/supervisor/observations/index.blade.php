@@ -104,7 +104,6 @@
                         <select name="stage" class="w-full px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-xs outline-none">
                             <option value="">All Stages</option>
                             <option value="pre_observation_planning" {{ request('stage') == 'pre_observation_planning' ? 'selected' : '' }}>Prepare</option>
-                            <option value="pre_conference" {{ request('stage') == 'pre_conference' ? 'selected' : '' }}>Pre-Observation Conversation</option>
                             <option value="observation" {{ request('stage') == 'observation' ? 'selected' : '' }}>Classroom Observation</option>
                             <option value="post_conference" {{ request('stage') == 'post_conference' ? 'selected' : '' }}>Post-Observation Conference</option>
                         </select>
@@ -169,7 +168,7 @@
                 default => ['label' => ucwords(str_replace('_',' ', $observation->status)), 'bg' => 'bg-blue-100 text-blue-700 border-blue-200'],
             };
             $accent = $observation->status === 'cancelled' ? 'border-l-red-500' : ($observation->status === 'completed' ? 'border-l-emerald-500' : 'border-l-indigo-500');
-            $stages = ['pre_observation_planning' => 'Prepare','pre_conference' => 'Pre-Obs Conv','observation' => 'Observe','post_conference' => 'Post-Obs Conv'];
+            $stages = ['pre_observation_planning' => 'Prepare','observation' => 'Observe','post_conference' => 'Post-Obs Conv'];
             $stageKeys = array_keys($stages);
             $currentIdx = array_search($observation->stage, $stageKeys);
             if($currentIdx===false) $currentIdx=0;
@@ -279,7 +278,7 @@
 
                 {{-- Primary action --}}
                 <div class="flex gap-1.5">
-                    @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','pre_conference'=>'supervisor.observations.preConference','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null }; @endphp
+                    @php $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null }; @endphp
                     @if($continueRoute && $observation->status!=='cancelled' && $observation->status!=='completed')
                         <a href="{{ route($continueRoute, $observation) }}" class="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-semibold shadow-sm transition-colors">Continue <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></a>
                     @else
@@ -345,12 +344,12 @@
                         };
                         $hideConfirm = $observation->confirmation_status === 'pending'
                             && in_array($observation->status, ['completed', 'cancelled'], true);
-            $stages = ['pre_observation_planning' => 'Prepare','pre_conference' => 'Pre-Observation Conversation','observation' => 'Classroom Observation','post_conference' => 'Post-Observation Conference'];
+            $stages = ['pre_observation_planning' => 'Prepare','observation' => 'Classroom Observation','post_conference' => 'Post-Observation Conference'];
                         $stageKeys = array_keys($stages);
                         $currentIdx = array_search($observation->stage, $stageKeys);
                         if($currentIdx===false) $currentIdx=0;
                         $stepNum = $currentIdx+1;
-                        $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','pre_conference'=>'supervisor.observations.preConference','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null };
+                        $continueRoute = match($observation->stage) { 'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','observation'=>'supervisor.observations.observation','post_conference'=>$observation->status!=='completed'?'supervisor.observations.postConference':null, default=>null };
                     @endphp
                     <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors">
                         <td class="px-3 py-2.5">

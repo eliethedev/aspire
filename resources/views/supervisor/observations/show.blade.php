@@ -23,7 +23,6 @@
 @php
     $stageConfig = [
         'pre_observation_planning' => ['label'=>'Pre-Observation','desc'=>'Lesson plan and goals','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>','accent'=>'blue'],
-        'pre_conference' => ['label'=>'Pre-Conference','desc'=>'Short chat before the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>','accent'=>'amber'],
         'observation' => ['label'=>'Observation','desc'=>'Notes and scores from the visit','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>','accent'=>'indigo'],
         'post_conference' => ['label'=>'Post-Observation','desc'=>'Feedback and next steps','icon'=>'<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','accent'=>'green'],
     ];
@@ -31,32 +30,22 @@
     $cfg = $stageConfig[$currentStage] ?? null;
     $stageRoutes = [
         'pre_observation_planning' => 'supervisor.observations.preObservationPlanning',
-        'pre_conference' => 'supervisor.observations.preConference',
         'observation' => 'supervisor.observations.observation',
         'post_conference' => 'supervisor.observations.postConference',
-        // School head observations render the EPOC rating sheet on the
-        // observation page, so the EPOC step links there as well.
-        'epoc' => 'supervisor.observations.observation',
     ];
     $stageLabels = [
         'pre_observation_planning' => 'Pre-Observation',
-        'pre_conference' => 'Pre-Conference',
         'observation' => 'Observation',
         'post_conference' => 'Post-Observation',
-        'epoc' => 'School head review',
     ];
     $stageCompleted = [
         'pre_observation_planning' => (bool) $observation->preObservationPlanning,
-        'pre_conference' => (bool) $observation->preConference,
         'observation' => $observation->isSchoolHeadObservation()
             ? ($observation->epocEvaluation?->ratings->isNotEmpty() ?? false)
             : ($observation->cotRatings && $observation->cotRatings->count() > 0),
-        'epoc' => $observation->epocEvaluation?->ratings->isNotEmpty() ?? false,
         'post_conference' => (bool) $observation->postConference,
     ];
-    $stageKeys = $observation->isSchoolHeadObservation()
-        ? ['pre_observation_planning', 'observation', 'epoc', 'post_conference']
-        : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+    $stageKeys = ['pre_observation_planning', 'observation', 'post_conference'];
     $initialFilter = request('detail_filter') ?? 'all';
     $observeeName = $observation->observee->user->name ?? 'Unknown';
     $initials = collect(explode(' ', $observeeName))->map(fn($p)=>mb_substr($p,0,1))->take(2)->implode('');
@@ -67,17 +56,8 @@
         ['key'=>'all','label'=>'All','icon'=>'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>'],
         ['key'=>'pre_observation','label'=>'Planning','icon'=>'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'],
         ['key'=>'observation','label'=>'Ratings','icon'=>'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>'],
-        ['key'=>'epoc','label'=>'School head review','icon'=>'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'],
         ['key'=>'post_conference','label'=>'Final chat','icon'=>'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'],
     ];
-    // School head observations skip the pre-conference step.
-    if ($observation->isSchoolHeadObservation()) {
-        $filterTabs = array_values(array_filter($filterTabs, fn($tab) => $tab['key'] !== 'pre_conference'));
-    }
-    // EPOC evaluates school heads only — hide its tab for teacher observations.
-    if (! $observation->isSchoolHeadObservation()) {
-        $filterTabs = array_values(array_filter($filterTabs, fn($tab) => $tab['key'] !== 'epoc'));
-    }
 @endphp
 
 <div class="obs-show mock-wrap max-w-7xl mx-auto px-1 py-1" x-data="{ detailFilter: '{{ $initialFilter }}' }">
@@ -196,14 +176,14 @@
             @if($observation->confirmation_status === 'confirmed')
             <div class="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 flex items-start gap-3">
                 <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
-                <div class="text-sm leading-relaxed"><p class="font-semibold text-emerald-800 dark:text-emerald-300">Teacher confirmed</p><p class="text-emerald-700 dark:text-emerald-300">on {{ $observation->confirmed_at?->format('M d, Y \a\t h:i A') }}</p></div>
+                <div class="text-sm leading-relaxed"><p class="font-semibold text-emerald-800 dark:text-emerald-300">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School head' }} confirmed</p><p class="text-emerald-700 dark:text-emerald-300">on {{ $observation->confirmed_at?->format('M d, Y \a\t h:i A') }}</p></div>
             </div>
             @elseif($observation->confirmation_status === 'rejected')
             <div class="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-4">
                 <div class="flex items-start gap-3">
                     <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-red-800 dark:text-red-300">Teacher requested reschedule</p>
+                        <p class="text-sm font-semibold text-red-800 dark:text-red-300">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School head' }} requested reschedule</p>
                         <p class="text-sm text-red-700 dark:text-red-300">on {{ $observation->rejected_at?->format('M d, Y \a\t h:i A') }}</p>
                         @if($observation->rejection_reason)<p class="text-sm mt-2"><span class="font-semibold">Reason:</span> {{ str_replace('_',' ', ucwords($observation->rejection_reason)) }}</p>@endif
                         @if($observation->rejection_notes)<p class="text-sm text-red-700 dark:text-red-300 mt-1"><span class="font-semibold">Notes:</span> {{ $observation->rejection_notes }}</p>@endif
@@ -211,6 +191,25 @@
                     </div>
                 </div>
             </div>
+            @endif
+
+            @if($observation->school_head_id)
+            @if(($observation->school_head_confirmation_status ?? 'pending') === 'confirmed')
+            <div class="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 flex items-start gap-3">
+                <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                <div class="text-sm leading-relaxed"><p class="font-semibold text-emerald-800 dark:text-emerald-300">School head confirmed attendance</p><p class="text-emerald-700 dark:text-emerald-300">{{ $observation->schoolHead?->name ?? '' }} · on {{ $observation->school_head_confirmed_at?->format('M d, Y \a\t h:i A') }}</p></div>
+            </div>
+            @elseif(($observation->school_head_confirmation_status ?? 'pending') === 'rejected')
+            <div class="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-4 flex items-start gap-3">
+                <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
+                <div class="text-sm leading-relaxed"><p class="font-semibold text-red-800 dark:text-red-300">School head declined the co-observation</p><p class="text-red-700 dark:text-red-300">{{ str_replace('_', ' ', ucwords($observation->school_head_rejection_reason ?? 'No reason given')) }} · on {{ $observation->school_head_rejected_at?->format('M d, Y \a\t h:i A') }}</p></div>
+            </div>
+            @else
+            <div class="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 flex items-start gap-3">
+                <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                <div class="text-sm leading-relaxed"><p class="font-semibold text-amber-800 dark:text-amber-300">Waiting for school head confirmation</p><p class="text-amber-700 dark:text-amber-300">{{ $observation->schoolHead?->name ?? '' }} has not confirmed attendance yet</p></div>
+            </div>
+            @endif
             @endif
 
             @if($observation->status === 'cancelled')
@@ -229,7 +228,7 @@
                         $done = $stageCompleted[$key];
                         $active = $key === $observation->stage;
                         $canAccess = $done || $active || ($i>0 && $stageCompleted[$stageKeys[$i-1]]);
-                        $icon = match($key){ 'pre_observation_planning'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>','pre_conference'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>','observation'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>','post_conference'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',};
+                        $icon = match($key){ 'pre_observation_planning'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>','observation'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>','post_conference'=>'<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',};
                     @endphp
                     @if($canAccess)
                         <a href="{{ route($stageRoutes[$key], $observation) }}" class="group flex items-center gap-3 p-3.5 rounded-2xl border {{ $active?'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 ring-1 ring-indigo-200 dark:ring-indigo-500/20':($done?'bg-white dark:bg-gray-800 border-emerald-200 dark:border-emerald-500/20':'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700') }} hover:shadow-md transition-all">
@@ -281,36 +280,6 @@
                     </div>
                 </div>
 
-                {{-- Pre-Conference --}}
-                @if(!$observation->isSchoolHeadObservation())
-                <div x-show="detailFilter==='all' || detailFilter==='pre_conference'" x-transition.opacity class="section-card page-card overflow-hidden">
-                    <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></span>
-                        <div class="flex-1"><h2 class="font-semibold text-gray-900 dark:text-white">Chat before class</h2><p class="text-xs text-gray-500 dark:text-gray-400">What you both agreed</p></div>
-                        @if($observation->preObservationPlanning?->ai_insights_reviewed)<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300">AI Reviewed</span>@endif
-                    </div>
-                    <div class="p-4">
-                        @if($observation->preConference)
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                @if($observation->preObservationPlanning?->ai_insights)<div class="md:col-span-2 rounded-xl bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 dark:border-violet-500/20 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-violet-700 dark:text-violet-300 mb-2">AI Observation Assistant</p>@php $insightSections=$observation->preObservationPlanning->insightsSections(); @endphp @if(isset($insightSections['raw']))<p class="text-sm whitespace-pre-wrap">{{ $insightSections['raw'] }}</p>@else{!! view('partials.ai-insights-display',['sections'=>$insightSections])->render() !!}@endif</div>@endif
-                                @if($observation->preConference->conference_date)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Conference Date</p><p class="font-medium text-gray-900 dark:text-white mt-1">{{ $observation->preConference->conference_date->format('M d, Y') }}</p></div>@endif
-                                @if($observation->preConference->topic)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Topic</p><p class="font-medium mt-1">{{ $observation->preConference->topic }}</p></div>@endif
-                                @if($observation->preConference->learning_objectives)<div class="md:col-span-2 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Learning Objectives</p><p class="text-sm mt-1 whitespace-pre-wrap">{{ $observation->preConference->learning_objectives }}</p></div>@endif
-                                @if($observation->preConference->teaching_strategies)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Teaching Strategies</p><p class="text-sm mt-1 whitespace-pre-wrap">{{ $observation->preConference->teaching_strategies }}</p></div>@endif
-                                @if($observation->preConference->assessment_activity)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Assessment / Activity</p><p class="text-sm mt-1 whitespace-pre-wrap">{{ $observation->preConference->assessment_activity }}</p></div>@endif
-                                @if($observation->preConference->discussion_notes)<div class="md:col-span-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-4"><p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Discussion Notes</p><p class="text-sm">{{ $observation->preConference->discussion_notes }}</p></div>@endif
-                                @if($observation->preConference->finalized_focus)<div class="md:col-span-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 p-4"><p class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">Agreed Focus</p><p class="text-sm">{{ $observation->preConference->finalized_focus }}</p></div>@endif
-                                @if($observation->preConference->expected_challenges)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Expected Challenges</p><p class="text-sm mt-1 whitespace-pre-wrap">{{ $observation->preConference->expected_challenges }}</p></div>@endif
-                                @if($observation->preConference->feedback_areas)<div class="rounded-xl bg-gray-50 dark:bg-gray-800 border dark:border-gray-700 p-4"><p class="text-xs font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500">Feedback Areas</p><p class="text-sm mt-1 whitespace-pre-wrap">{{ $observation->preConference->feedback_areas }}</p></div>@endif
-                                @if($observation->preConference->teacher_reflection)<div class="md:col-span-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 p-4"><p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-1">Teacher Reflection</p><p class="text-sm">{{ $observation->preConference->teacher_reflection }}</p></div>@endif
-                            </div>
-                        @else
-                            <div class="text-center py-8 text-sm text-gray-500 dark:text-gray-400">No chat before class recorded yet.</div>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
                 {{-- Observation Ratings --}}
                 @if($observation->cotRatings && $observation->cotRatings->count() > 0)
                 <div x-show="detailFilter==='all' || detailFilter==='observation' || detailFilter==='ratings'" x-transition.opacity class="section-card page-card overflow-hidden">
@@ -339,8 +308,8 @@
                 </div>
                 @endif
 
-                {{-- EPOC (school-head observees only) --}}
-                <div x-show="detailFilter==='all' || detailFilter==='epoc'" x-transition.opacity>
+                {{-- EPOC ratings live inside the observation stage for school-head observees --}}
+                <div x-show="detailFilter==='all' || detailFilter==='observation'" x-transition.opacity>
                 @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
                 <div class="section-card page-card overflow-hidden">
                     <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
@@ -434,7 +403,7 @@
             <div class="page-card p-4">
                 <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-3 flex items-center gap-2"><span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span> Quick actions</h3>
                 <div class="space-y-2">
-                    @php $continueLabel=match($observation->stage){'pre_observation_planning'=>'Lesson planning','pre_conference'=>'Chat before class','observation'=>'Classroom visit','post_conference'=>'Chat after class', default=>null}; $continueRoute=match($observation->stage){'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','pre_conference'=>'supervisor.observations.preConference','observation'=>'supervisor.observations.observation','post_conference'=>'supervisor.observations.postConference', default=>null}; @endphp
+                    @php $continueLabel=match($observation->stage){'pre_observation_planning'=>'Lesson planning','observation'=>'Classroom visit','post_conference'=>'Chat after class', default=>null}; $continueRoute=match($observation->stage){'pre_observation_planning'=>'supervisor.observations.preObservationPlanning','observation'=>'supervisor.observations.observation','post_conference'=>'supervisor.observations.postConference', default=>null}; @endphp
                     @if($continueRoute)<a href="{{ route($continueRoute,$observation) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm">Continue · {{ $continueLabel }} <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>@endif
                     @if($observation->canFinalize())<form method="POST" action="{{ route('supervisor.observations.finalize',$observation) }}" onsubmit="return confirm('Mark this review as finished? {{ $observation->isTeacherObservation() ? 'The teacher' : 'The school head' }} will be notified.')">@csrf<button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Finish review</button></form>@endif
                     <div class="grid grid-cols-2 gap-2">
@@ -443,6 +412,23 @@
                     </div>
                     @if($observation->canCancel())<a href="{{ route('supervisor.observations.cancel-form',$observation) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-500/10">Cancel review</a>@endif
                 </div>
+            </div>
+            @endif
+
+            {{-- Linked principal (PPSSH) evaluation of the co-observer --}}
+            @if($observation->isTeacherObservation() && $observation->school_head_id && $observation->status !== 'cancelled')
+            <div class="page-card p-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">Principal evaluation</h3>
+                @if(!empty($linkedObservation))
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">A PPSSH evaluation of {{ $observation->schoolHead?->name ?? 'the co-observer' }} is linked to this observation.</p>
+                <a href="{{ route('supervisor.observations.show', $linkedObservation) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">View linked principal evaluation <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                @else
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Evaluate {{ $observation->schoolHead?->name ?? 'the co-observer' }} with the PPSSH instrument, linked to this teacher observation.</p>
+                <form method="POST" action="{{ route('supervisor.observations.linked-ppssh', $observation) }}" onsubmit="return confirm('Create a linked PPSSH evaluation for {{ addslashes($observation->schoolHead?->name ?? 'the co-observer') }}? They will be notified.')">
+                    @csrf
+                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold shadow-sm transition-colors">Evaluate co-observer (PPSSH)</button>
+                </form>
+                @endif
             </div>
             @endif
 

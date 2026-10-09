@@ -33,7 +33,7 @@ class DashboardController extends Controller
             'total_schools' => School::where('is_active', true)->count(),
             'total_observations' => $totalObservations,
             'pending_cots' => Observation::where('stage', '!=', 'post_conference')->count(),
-            'active_observations' => Observation::whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count(),
+            'active_observations' => Observation::whereIn('stage', ['pre_observation_planning', 'observation'])->count(),
             'completed_total' => $completedTotal,
             'completion_rate' => $totalObservations > 0 ? round(($completedTotal / $totalObservations) * 100) : 0,
             'total_admins' => (int) ($roleCounts['admin'] ?? 0),

@@ -5,7 +5,6 @@
 @php
     $friendlyStatuses = [
         'pre_observation_planning' => 'Preparing for Observation',
-        'pre_conference' => 'Pre-Observation Conversation',
         'observation' => 'Classroom Observation',
         'post_conference' => 'Post-Observation Conference',
         'epoc' => 'EPOC Evaluation',

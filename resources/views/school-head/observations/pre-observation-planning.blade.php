@@ -385,31 +385,6 @@
 
                     </div>
 
-                <!-- Pre-Observation Conversation Details -->
-                @if(!$isSchoolHeadObs)
-                <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Conversation</h2>
-                    @if($preConference && $preConference->conference_date)
-                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-green-800 dark:text-green-300">Scheduled</span>
-                                <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full">Set</span>
-                            </div>
-                            <p class="text-sm text-green-700 font-medium">{{ $preConference->conference_date->format('M d, Y') }}</p>
-                            <p class="text-xs text-green-600 dark:text-green-400 mt-1">The pre-observation conversation has been scheduled.</p>
-                        </div>
-                    @else
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-600 text-center">
-                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No pre-observation conversation scheduled</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Continue to Pre-Observation Conversation to set the date.</p>
-                        </div>
-                    @endif
-                </div>
-                @endif
-
                 <!-- Action Buttons -->
                 <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 border border-gray-100">
                     <div class="space-y-3">
@@ -433,12 +408,19 @@
 
     <!-- Bottom Actions -->
     <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        @php $missingConfirmations = $observation->missingConfirmations(); @endphp
+        @if(!empty($missingConfirmations))
+        <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3.5">
+            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <p class="text-sm text-amber-800 dark:text-amber-300"><strong>Waiting for confirmation</strong> — you can continue to the Observation once confirmed by: {{ implode(', ', $missingConfirmations) }}.</p>
+        </div>
+        @endif
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button type="submit" name="continue" value="pre_conference"
+                <button type="submit" name="continue" value="observation"
                         class="inline-flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Pre-Observation Conversation' }}
+                    {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Observation' }}
                 </button>
                 @if($observation->canCancel())
                 <a href="{{ route('school-head.observations.cancel-form', $observation) }}"

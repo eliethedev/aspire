@@ -47,7 +47,6 @@
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border
                                 @switch($obs->stage)
                                     @case('pre_observation_planning') bg-purple-50 text-purple-700 border-purple-200 @break
-                                    @case('pre_conference') bg-indigo-50 text-indigo-700 border-indigo-200 @break
                                     @case('observation') bg-orange-50 text-orange-700 border-orange-200 @break
                                     @case('post_conference') bg-teal-50 text-teal-700 border-teal-200 @break
                                     @default bg-gray-50 text-gray-500 border-gray-200

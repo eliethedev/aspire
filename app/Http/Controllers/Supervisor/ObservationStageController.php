@@ -66,7 +66,7 @@ class ObservationStageController extends Controller
     {
         $this->authorizeObservation($observation);
 
-        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
+        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning']);
 
         $planning = $observation->preObservationPlanning;
 
@@ -93,12 +93,10 @@ class ObservationStageController extends Controller
             $prevWeaknesses = $prevRatings->filter(fn ($r) => $r->avg_rating < 3)->values();
         }
 
-        $preConference = $observation->preConference;
-
         $observerRole = Auth::user()->role;
 
         return view('supervisor.observations.pre-observation-planning', compact(
-            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'preConference', 'observerRole'
+            'observation', 'planning', 'previousObservations', 'prevStrengths', 'prevWeaknesses', 'observerRole'
         ));
     }
 
@@ -145,40 +143,38 @@ class ObservationStageController extends Controller
             $data
         );
 
-        if ($request->input('continue') === 'pre_conference') {
-            // School head observations skip the pre-conference step and
-            // proceed directly to the observation (which uses the EPOC sheet).
-            if ($observation->isSchoolHeadObservation()) {
-                $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
-                $currentIdx = array_search($observation->stage, $stageOrder);
-                $targetIdx = array_search('observation', $stageOrder);
-
-                if ($targetIdx === $currentIdx + 1) {
-                    $observation->logChange([
-                        'to_stage' => 'observation',
-                        'notes' => 'Pre-Observation Planning completed',
-                    ]);
-                    $observation->update(['stage' => 'observation']);
-                }
-
-                return redirect()->route('supervisor.observations.observation', $observation->id)
-                    ->with('success', 'Pre-Observation Planning has been saved. Proceed to the School Head Observation.');
+        // Three-stage cycle: pre_observation_planning -> observation -> post_conference.
+        // The pre-conference step has been phased out; continuing goes
+        // straight to the observation. Legacy 'pre_conference' values from
+        // older forms are treated the same as 'observation'.
+        if (in_array($request->input('continue'), ['pre_conference', 'observation'], true)) {
+            // Hard gate: the schedule must be confirmed by the teacher and,
+            // when one is assigned, the school head before leaving planning.
+            // Planning notes above are still saved; only the advance is held.
+            $missing = $observation->missingConfirmations();
+            if (! empty($missing)) {
+                return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
+                    ->with('error', 'Cannot proceed to the Observation yet — waiting for confirmation from: '.implode(', ', $missing).'.');
             }
 
-            $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+            $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
             $currentIdx = array_search($observation->stage, $stageOrder);
-            $targetIdx = array_search('pre_conference', $stageOrder);
+            $targetIdx = array_search('observation', $stageOrder);
 
             if ($targetIdx === $currentIdx + 1) {
                 $observation->logChange([
-                    'to_stage' => 'pre_conference',
+                    'to_stage' => 'observation',
                     'notes' => 'Pre-Observation Planning completed',
                 ]);
-                $observation->update(['stage' => 'pre_conference']);
+                $observation->update(['stage' => 'observation']);
             }
 
-            return redirect()->route('supervisor.observations.preConference', $observation->id)
-                ->with('success', 'Pre-Observation Planning has been saved. Proceed to Pre-Conference.');
+            $success = $observation->isSchoolHeadObservation()
+                ? 'Pre-Observation Planning has been saved. Proceed to the School Head Observation.'
+                : 'Pre-Observation Planning has been saved. Proceed to the Observation.';
+
+            return redirect()->route('supervisor.observations.observation', $observation->id)
+                ->with('success', $success);
         }
 
         return redirect()->route('supervisor.observations.preObservationPlanning', $observation->id)
@@ -322,138 +318,6 @@ class ObservationStageController extends Controller
     }
 
     /**
-     * Show Pre-Conference form
-     */
-    public function preConference(Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        // School head observations skip the pre-conference step entirely.
-        if ($observation->isSchoolHeadObservation()) {
-            return redirect()->route('supervisor.observations.observation', $observation->id)
-                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
-        }
-
-        $observation->load(['observee.user', 'observee.school', 'preObservationPlanning', 'preConference']);
-
-        $preConference = $observation->preConference;
-        $planning = $observation->preObservationPlanning;
-
-        // Load previous COT data for sidebar performance summary
-        $previousObservations = Observation::with(['cotRatings'])
-            ->where('observee_id', $observation->observee_id)
-            ->where('observee_type', $observation->observee_type)
-            ->where('id', '!=', $observation->id)
-            ->whereNotNull('overall_score')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $prevStrengths = collect();
-        $prevWeaknesses = collect();
-        if ($previousObservations->isNotEmpty()) {
-            $prevRatings = CotRating::whereIn('observation_id', $previousObservations->pluck('id'))
-                ->selectRaw('domain, AVG(rating) as avg_rating, COUNT(*) as total')
-                ->groupBy('domain')
-                ->get();
-
-            $prevStrengths = $prevRatings->filter(fn ($r) => $r->avg_rating >= 4)->values();
-            $prevWeaknesses = $prevRatings->filter(fn ($r) => $r->avg_rating < 3)->values();
-        }
-
-        return view('supervisor.observations.pre-conference', compact(
-            'observation', 'preConference', 'planning', 'prevStrengths', 'prevWeaknesses'
-        ));
-    }
-
-    /**
-     * Store Pre-Conference data
-     */
-    public function storePreConference(Request $request, Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        // School head observations skip the pre-conference step entirely.
-        if ($observation->isSchoolHeadObservation()) {
-            return redirect()->route('supervisor.observations.observation', $observation->id)
-                ->with('info', 'Pre-Observation Conference is not part of the School Head observation flow.');
-        }
-
-        $schoolYear = $observation->school_year ?? config('cot.default_version', date('Y').'-'.(date('Y') + 1));
-        $obsType = $observation->observation_type;
-        $templateRules = $this->formTemplateService->getValidationRules($schoolYear, 'pre_conference', $obsType);
-
-        $validated = $request->validate(array_merge([
-            'discussion_notes' => ['nullable', 'string'],
-            'finalized_focus' => ['nullable', 'string'],
-            'conference_date' => ['nullable', 'date'],
-            'teacher_reflection' => ['nullable', 'string'],
-            'lesson_plan_review' => ['nullable', 'string'],
-            'instructional_materials' => ['nullable', 'string'],
-            'topic' => ['nullable', 'string'],
-            'learning_objectives' => ['nullable', 'string'],
-            'teaching_strategies' => ['nullable', 'string'],
-            'assessment_activity' => ['nullable', 'string'],
-            'expected_challenges' => ['nullable', 'string'],
-            'feedback_areas' => ['nullable', 'string'],
-            'ai_insights_reviewed' => ['nullable', 'boolean'],
-        ], $templateRules));
-
-        $data = [
-            'discussion_notes' => $validated['discussion_notes'] ?? null,
-            'finalized_focus' => $validated['finalized_focus'] ?? null,
-            'conference_date' => $validated['conference_date'] ?? now(),
-            'teacher_reflection' => $validated['teacher_reflection'] ?? null,
-            'lesson_plan_review' => $validated['lesson_plan_review'] ?? null,
-            'instructional_materials' => $validated['instructional_materials'] ?? null,
-            'topic' => $validated['topic'] ?? null,
-            'learning_objectives' => $validated['learning_objectives'] ?? null,
-            'teaching_strategies' => $validated['teaching_strategies'] ?? null,
-            'assessment_activity' => $validated['assessment_activity'] ?? null,
-            'expected_challenges' => $validated['expected_challenges'] ?? null,
-            'feedback_areas' => $validated['feedback_areas'] ?? null,
-        ];
-
-        $formData = $this->formTemplateService->parseFormData($schoolYear, 'pre_conference', $request->all(), $obsType);
-        $data = array_merge($data, $formData);
-
-        $observation->preConference()->updateOrCreate(
-            ['observation_id' => $observation->id],
-            $data
-        );
-
-        // Mark AI insights as reviewed
-        if ($request->has('ai_insights_reviewed')) {
-            $observation->preObservationPlanning()->updateOrCreate(
-                ['observation_id' => $observation->id],
-                ['ai_insights_reviewed' => true]
-            );
-        }
-
-        // If save draft, stay on pre-conference page without advancing stage
-        if ($request->has('save_draft')) {
-            return redirect()->route('supervisor.observations.preConference', $observation->id)
-                ->with('success', 'Pre-Conference draft saved.');
-        }
-
-        // Only advance stage forward (prevent regression)
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
-        $currentIdx = array_search($observation->stage, $stageOrder);
-        $targetIdx = array_search('observation', $stageOrder);
-
-        if ($targetIdx === $currentIdx + 1) {
-            $observation->logChange([
-                'to_stage' => 'observation',
-                'notes' => 'Pre-Conference completed',
-            ]);
-            $observation->update(['stage' => 'observation']);
-        }
-
-        return redirect()->route('supervisor.observations.observation', $observation->id)
-            ->with('success', 'Pre-Conference has been saved.');
-    }
-
-    /**
      * Show Observation form (Digital COT)
      */
     public function observation(Observation $observation)
@@ -461,7 +325,6 @@ class ObservationStageController extends Controller
         $this->authorizeObservation($observation);
 
         $cotRatings = $observation->cotRatings;
-        $preConference = $observation->preConference;
         $observation->loadMissing(['preObservationPlanning', 'observee']);
 
         $schoolYear = $observation->school_year ?? config('cot.default_version', '2025-2026');
@@ -482,7 +345,7 @@ class ObservationStageController extends Controller
         }
 
         return view('supervisor.observations.observation', compact(
-            'observation', 'cotRatings', 'preConference',
+            'observation', 'cotRatings',
             'cotIndicators', 'ratingScale', 'ratingScaleCss',
             'existingSuggestions', 'schoolYear',
             'epocEvaluation', 'schoolHead'
@@ -611,7 +474,7 @@ class ObservationStageController extends Controller
             $pinned = $observation->cotIndicatorVersion;
             $requiresPostConference = $pinned ? $pinned->requiresPostConference() : ($cotVersion['requires_post_conference'] ?? true);
         }
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
@@ -732,7 +595,7 @@ class ObservationStageController extends Controller
 
         // Advance the workflow (same as COT path). School head observations
         // always require post-conference.
-        $stageOrder = ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageOrder = ['pre_observation_planning', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageOrder);
         $targetIdx = array_search('post_conference', $stageOrder);
 
@@ -775,10 +638,9 @@ class ObservationStageController extends Controller
         $postConference = $observation->postConference;
         $cotRatings = $observation->cotRatings;
         $planning = $observation->preObservationPlanning;
-        $preConference = $observation->preConference;
         $epocEvaluation = $observation->epocEvaluation;
 
-        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'preConference', 'epocEvaluation'));
+        return view('supervisor.observations.post-conference', compact('observation', 'postConference', 'cotRatings', 'planning', 'epocEvaluation'));
     }
 
     /**
@@ -984,32 +846,6 @@ class ObservationStageController extends Controller
             ->download($path, $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
     }
 
-    /**
-     * Save the pre-conference agenda checklist state.
-     */
-    public function saveAgendaChecklist(Request $request, Observation $observation)
-    {
-        $this->authorizeObservation($observation);
-
-        $validated = $request->validate([
-            'checked' => 'required|array',
-            'checked.*' => 'integer|min:0',
-        ]);
-
-        $existing = $observation->preConference;
-        $merged = array_merge(
-            $existing?->form_responses ?? [],
-            ['agenda_checklist' => $validated['checked']]
-        );
-
-        $observation->preConference()->updateOrCreate(
-            ['observation_id' => $observation->id],
-            ['form_responses' => $merged]
-        );
-
-        return response()->json(['ok' => true]);
-    }
-
     public function autosave(Request $request, Observation $observation)
     {
         $this->authorizeObservation($observation);
@@ -1110,10 +946,6 @@ class ObservationStageController extends Controller
                 'pre_observation_planning' => [
                     'relation' => 'preObservationPlanning',
                     'fillable' => ['ai_insights', 'suggested_focus', 'supervisor_notes', 'observation_tool'],
-                ],
-                'pre_conference' => [
-                    'relation' => 'preConference',
-                    'fillable' => ['discussion_notes', 'finalized_focus', 'teacher_reflection', 'lesson_plan_review', 'instructional_materials', 'conference_date', 'topic', 'learning_objectives', 'teaching_strategies', 'assessment_activity', 'expected_challenges', 'feedback_areas'],
                 ],
                 'post_conference' => [
                     'relation' => 'postConference',

@@ -136,7 +136,7 @@
                 <div style="padding:4px 16px 14px">
                 @forelse($observations as $observation)
                     @php
-                        $stageLabels = ['pre_observation_planning' => 'Planning', 'pre_conference' => 'Pre-Conference', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
+                        $stageLabels = ['pre_observation_planning' => 'Planning', 'observation' => 'Observation', 'post_conference' => 'Post-Conference'];
                         $statusTone = match($observation->status) {
                             'completed' => 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20',
                             'scheduled' => 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/20',

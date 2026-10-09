@@ -29,7 +29,6 @@ class DashboardController extends Controller
             'scheduled' => $obs->where('status', 'scheduled')->count(),
             'average_score' => round($obsScored->avg('overall_score') ?? 0, 2),
             'stage_pre_planning' => $obs->where('stage', 'pre_observation_planning')->count(),
-            'stage_pre_conference' => $obs->where('stage', 'pre_conference')->count(),
             'stage_observation' => $obs->where('stage', 'observation')->count(),
             'stage_post_conference' => $obs->where('stage', 'post_conference')->count(),
         ];

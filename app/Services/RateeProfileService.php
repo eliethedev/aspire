@@ -49,7 +49,7 @@ class RateeProfileService
 
         $total = (clone $all)->count();
         $completed = (clone $all)->where('status', 'completed')->count();
-        $inProgress = (clone $all)->whereIn('stage', ['pre_observation_planning', 'pre_conference', 'observation'])->count();
+        $inProgress = (clone $all)->whereIn('stage', ['pre_observation_planning', 'observation'])->count();
         $averageRating = $scoredObservations->avg('overall_score');
 
         $latest = $scoredObservations->first();

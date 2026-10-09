@@ -130,8 +130,8 @@ class ObservationController extends Controller
         }
 
         // Initial upload or replacement is allowed while the observation is
-        // still being prepared (planning / pre-conference stages).
-        $uploadableStages = ['pre_observation_planning', 'pre_conference'];
+        // still being prepared (planning / observation stages).
+        $uploadableStages = ['pre_observation_planning', 'observation'];
         if (! in_array($observation->stage, $uploadableStages, true)
             || in_array($observation->status, ['completed', 'cancelled'], true)) {
             return back()->with('error', 'Lesson plan can only be uploaded or replaced before the classroom observation.');

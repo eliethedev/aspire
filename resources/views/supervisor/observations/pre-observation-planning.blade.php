@@ -32,7 +32,7 @@
             <h1>Prepare for the Observation</h1>
             <p>{{ $observation->observee->user->name ?? 'Unknown' }} · {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
         </div>
-        <time>{{ ucfirst($observation->status) }} · Step 1 of 4</time>
+        <time>{{ ucfirst($observation->status) }} · Step 1 of 3</time>
     </div>
 
     @include('partials.draft-banner')
@@ -398,30 +398,72 @@
 
                     </div>
 
-                <!-- Pre-Conference Details -->
-                @if(!$isSchoolHeadObs)
+                <!-- Schedule Confirmations -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Conversation</h2>
-                    @if($preConference && $preConference->conference_date)
-                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-green-800 dark:text-green-300">Scheduled</span>
-                                <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 px-2 py-0.5 rounded-full">Set</span>
-                            </div>
-                            <p class="text-sm text-green-700 font-medium">{{ $preConference->conference_date->format('M d, Y') }}</p>
-                            <p class="text-xs text-green-600 dark:text-green-400 mt-1">The pre-observation conversation has been scheduled.</p>
-                        </div>
-                    @else
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-600 text-center">
-                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">No pre-observation conversation scheduled</p>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Continue to Pre-Observation Conversation to set the date.</p>
-                        </div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Schedule Confirmations</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Who has confirmed this schedule.</p>
+
+                    @if($observation->hasBothConfirmations())
+                    <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-3">
+                        <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Both confirmed — ready to observe</p>
+                    </div>
                     @endif
+
+                    <ul class="space-y-3">
+                        {{-- Teacher / observee confirmation --}}
+                        <li class="flex items-start gap-3">
+                            @if($observation->confirmation_status === 'confirmed')
+                            <span class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $isSchoolHeadObs ? 'School head' : 'Teacher' }} confirmed</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $observation->observee->user->name ?? '' }} · {{ $observation->confirmed_at?->format('M d, Y h:i A') ?? '' }}</p>
+                            </div>
+                            @elseif($observation->confirmation_status === 'rejected')
+                            <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-red-700 dark:text-red-300">{{ $isSchoolHeadObs ? 'School head' : 'Teacher' }} requested reschedule</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ str_replace('_', ' ', ucwords($observation->rejection_reason ?? 'No reason given')) }} · {{ $observation->rejected_at?->format('M d, Y h:i A') ?? '' }}</p>
+                            </div>
+                            @else
+                            <span class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Waiting for {{ $isSchoolHeadObs ? 'school head' : 'teacher' }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $observation->observee->user->name ?? '' }} has not confirmed yet</p>
+                            </div>
+                            @endif
+                        </li>
+
+                        {{-- Assigned school head (co-observer) confirmation --}}
+                        <li class="flex items-start gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                            @if(!$observation->school_head_id)
+                            <span class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No co-observer assigned</p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500">Only the {{ $isSchoolHeadObs ? 'school head' : 'teacher' }} needs to confirm</p>
+                            </div>
+                            @elseif(($observation->school_head_confirmation_status ?? 'pending') === 'confirmed')
+                            <span class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">School head confirmed</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $observation->schoolHead?->name ?? '' }} · {{ $observation->school_head_confirmed_at?->format('M d, Y h:i A') ?? '' }}</p>
+                            </div>
+                            @elseif(($observation->school_head_confirmation_status ?? 'pending') === 'rejected')
+                            <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-red-700 dark:text-red-300">School head declined</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ str_replace('_', ' ', ucwords($observation->school_head_rejection_reason ?? 'No reason given')) }} · {{ $observation->school_head_rejected_at?->format('M d, Y h:i A') ?? '' }}</p>
+                            </div>
+                            @else
+                            <span class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Waiting for school head</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $observation->schoolHead?->name ?? '' }} has not confirmed yet</p>
+                            </div>
+                            @endif
+                        </li>
+                    </ul>
                 </div>
-                @endif
 
                 <!-- Action Buttons -->
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
@@ -449,12 +491,19 @@
 
     <!-- Bottom Actions -->
     <div class="mt-6 sm:mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        @php $missingConfirmations = $observation->missingConfirmations(); @endphp
+        @if(!empty($missingConfirmations))
+        <div class="mb-4 flex items-start gap-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3.5">
+            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            <p class="text-sm text-amber-800 dark:text-amber-300"><strong>Waiting for confirmation</strong> — you can continue to the Observation once confirmed by: {{ implode(', ', $missingConfirmations) }}.</p>
+        </div>
+        @endif
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
-                <button type="submit" name="continue" value="pre_conference"
+                <button type="submit" name="continue" value="observation"
                         class="inline-flex w-full sm:w-auto justify-center min-h-[48px] items-center gap-3 px-1 sm:px-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-xl hover:shadow-indigo-600/30">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Pre-Observation Conversation' }}
+                    {{ $isSchoolHeadObs ? 'Continue to School Head Observation' : 'Continue to Observation' }}
                 </button>
                 @if($observation->canCancel())
                 <a href="{{ route('supervisor.observations.cancel-form', $observation) }}"

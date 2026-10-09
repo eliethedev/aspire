@@ -44,7 +44,7 @@
 @endpush
 
 @section('content')
-<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 obs-show">
+<div class="mock-wrap max-w-7xl mx-auto px-1 py-1 obs-show" x-data="{ detailFilter: '{{ request('detail_filter') ?? 'all' }}' }">
     <div class="mock-topbar">
         <div class="mock-crumbs">School Head <span>/</span> <b>Observations</b></div>
         <span class="mock-pill"><span class="pulse"></span>{{ ucwords(str_replace('_', ' ', $observation->status)) }}</span>
@@ -117,16 +117,6 @@
                 'dot'    => 'bg-blue-500',
                 'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
             ],
-            'pre_conference' => [
-                'label' => 'Pre-Observation Conversation',
-                'desc'   => 'Pre-observation discussion with teacher',
-                'color'  => 'amber',
-                'bg'     => 'bg-amber-50 dark:bg-amber-900/20',
-                'border' => 'border-amber-200 dark:border-amber-800',
-                'text'   => 'text-amber-700 dark:text-amber-300',
-                'dot'    => 'bg-amber-500',
-                'icon'   => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>',
-            ],
             'observation' => [
                 'label' => 'Classroom Observation',
                 'desc'   => 'Live classroom observation in progress',
@@ -182,32 +172,22 @@
     @php
         $stageRoutes = [
             'pre_observation_planning' => 'school-head.observations.preObservationPlanning',
-            'pre_conference' => 'school-head.observations.preConference',
             'observation' => 'school-head.observations.observation',
             'post_conference' => 'school-head.observations.postConference',
-            // School head observations render the EPOC rating sheet on the
-            // observation page, so the EPOC step links there as well.
-            'epoc' => 'school-head.observations.observation',
         ];
         $stageLabels = [
             'pre_observation_planning' => 'Prepare',
-            'pre_conference' => 'Pre-Observation Conversation',
             'observation' => $observation->isSchoolHeadObservation() ? 'School Head Observation' : 'Classroom Observation',
             'post_conference' => 'Post-Observation Conference',
-            'epoc' => 'Enhanced Post Observation Conference',
         ];
         $stageCompleted = [
             'pre_observation_planning' => (bool) $observation->preObservationPlanning,
-            'pre_conference' => (bool) $observation->preConference,
             'observation' => $observation->isSchoolHeadObservation()
                 ? ($observation->epocEvaluation?->ratings->isNotEmpty() ?? false)
                 : ($observation->cotRatings && $observation->cotRatings->count() > 0),
-            'epoc' => $observation->epocEvaluation?->ratings->isNotEmpty() ?? false,
             'post_conference' => (bool) $observation->postConference,
         ];
-        $stageKeys = $observation->isSchoolHeadObservation()
-            ? ['pre_observation_planning', 'observation', 'epoc', 'post_conference']
-            : ['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'];
+        $stageKeys = ['pre_observation_planning', 'observation', 'post_conference'];
         $currentIdx = array_search($observation->stage, $stageKeys);
     @endphp
 
@@ -249,7 +229,7 @@
     </div>
 
     <!-- Stage Navigation Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         @foreach($stageKeys as $i => $key)
             @php
                 $done = $stageCompleted[$key];
@@ -257,18 +237,14 @@
                 $canAccess = $done || $active || ($i > 0 && $stageCompleted[$stageKeys[$i - 1]]);
                 $icon = match($key) {
                     'pre_observation_planning' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
-                    'pre_conference' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>',
                     'observation' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>',
                     'post_conference' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-                    'epoc' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
                     default => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
                 };
                 $desc = match($key) {
                     'pre_observation_planning' => 'Lesson plan review & AI insights',
-                    'pre_conference' => 'Pre-observation discussion',
                     'observation' => 'Classroom ratings & notes',
                     'post_conference' => 'Feedback & action plan',
-                    'epoc' => 'School head evaluation',
                     default => 'Observation step',
                 };
             @endphp
@@ -307,7 +283,7 @@
     <div class="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 mb-6 flex items-start gap-3">
         <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
         <div class="text-sm leading-relaxed">
-            <p class="font-semibold text-emerald-800 dark:text-emerald-300">Teacher confirmed</p>
+            <p class="font-semibold text-emerald-800 dark:text-emerald-300">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School head' }} confirmed</p>
             <p class="text-emerald-700 dark:text-emerald-300">on {{ $observation->confirmed_at?->format('M d, Y \a\t h:i A') }}</p>
         </div>
     </div>
@@ -316,7 +292,7 @@
         <div class="flex items-start gap-3">
             <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-red-800 dark:text-red-300">Teacher requested reschedule</p>
+                <p class="text-sm font-semibold text-red-800 dark:text-red-300">{{ $observation->isTeacherObservation() ? 'Teacher' : 'School head' }} requested reschedule</p>
                 <p class="text-sm text-red-700 dark:text-red-300">on {{ $observation->rejected_at?->format('M d, Y \a\t h:i A') }}</p>
                 @if($observation->rejection_reason)
                 <p class="text-sm text-red-700 dark:text-red-300 mt-1">
@@ -340,14 +316,154 @@
     </div>
     @endif
 
-    <!-- Stage Details + Reports rail -->
+    <!-- Co-observer confirmation (assigned school head) -->
+    @if($observation->school_head_id)
+    <div class="mb-6" x-data="{ showRejectModal: false }">
+        @if(($observation->school_head_confirmation_status ?? 'pending') === 'confirmed')
+        <div class="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 flex items-start gap-3">
+            <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+            <div class="text-sm leading-relaxed">
+                <p class="font-semibold text-emerald-800 dark:text-emerald-300">School head confirmed attendance</p>
+                <p class="text-emerald-700 dark:text-emerald-300">on {{ $observation->school_head_confirmed_at?->format('M d, Y \a\t h:i A') }}</p>
+            </div>
+        </div>
+        @elseif(($observation->school_head_confirmation_status ?? 'pending') === 'rejected')
+        <div class="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-4">
+            <div class="flex items-start gap-3">
+                <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-red-800 dark:text-red-300">School head declined the co-observation</p>
+                    <p class="text-sm text-red-700 dark:text-red-300">on {{ $observation->school_head_rejected_at?->format('M d, Y \a\t h:i A') }}</p>
+                    @if($observation->school_head_rejection_reason)
+                    <p class="text-sm text-red-700 dark:text-red-300 mt-1">
+                        <strong>Reason:</strong> {{ str_replace('_', ' ', ucwords($observation->school_head_rejection_reason)) }}
+                    </p>
+                    @endif
+                    @if($observation->school_head_rejection_notes)
+                    <p class="text-sm text-red-700 dark:text-red-300 mt-1">
+                        <strong>Notes:</strong> {{ $observation->school_head_rejection_notes }}
+                    </p>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @elseif(auth()->id() === (int) $observation->school_head_id && $observation->canConfirmBySchoolHead())
+        <div class="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 sm:p-5">
+            <div class="flex gap-3">
+                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-amber-800 dark:text-amber-300">Confirm your attendance</h3>
+                    <p class="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                        You have been assigned to be present during this {{ $observation->observation_type === 'teacher_observation' ? 'teacher' : 'school head' }} observation on <strong>{{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</strong>.
+                        Please confirm your attendance or decline with a reason.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2.5 mt-4">
+                        <form action="{{ route('school-head.observations.confirm', $observation) }}" method="POST" x-data="{ submitting: false }" x-on:submit="submitting = true">
+                            @csrf
+                            <button type="submit" :disabled="submitting"
+                                    class="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span x-show="!submitting">Confirm Attendance</span>
+                                <span x-show="submitting">Confirming...</span>
+                            </button>
+                        </form>
+                        <button type="button" @click="showRejectModal = true"
+                                class="px-5 py-2.5 min-h-[44px] border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            Decline
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @else
+        <div class="rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 flex items-start gap-3">
+            <span class="w-8 h-8 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+            <div class="text-sm leading-relaxed">
+                <p class="font-semibold text-gray-700 dark:text-gray-300">Waiting for school head confirmation</p>
+                <p class="text-gray-500 dark:text-gray-400">The assigned school head has not confirmed attendance yet.</p>
+            </div>
+        </div>
+        @endif
+
+        <!-- Decline Modal -->
+        <div x-show="showRejectModal"
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center"
+             x-on:keydown.escape.window="showRejectModal = false">
+            <div class="fixed inset-0 bg-black/50" @click="showRejectModal = false"></div>
+            <div class="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-lg w-full mx-4 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Decline Co-Observation</h3>
+                    <button type="button" @click="showRejectModal = false" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <form action="{{ route('school-head.observations.reject', $observation) }}" method="POST">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason <span class="text-red-500">*</span></label>
+                            <select name="rejection_reason" required
+                                    class="w-full px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                <option value="">Select a reason...</option>
+                                <option value="scheduling_conflict">Scheduling Conflict</option>
+                                <option value="health_concern">Health Concern</option>
+                                <option value="insufficient_preparation">Insufficient Preparation</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Additional Notes</label>
+                            <textarea name="rejection_notes" rows="3"
+                                      class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                      placeholder="Optional details..."></textarea>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 mt-5">
+                        <button type="button" @click="showRejectModal = false"
+                                class="flex-1 px-4 py-2.5 min-h-[44px] rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            Keep Assignment
+                        </button>
+                        <button type="submit"
+                                class="flex-1 px-4 py-2.5 min-h-[44px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-colors">
+                            Decline Assignment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+    <!-- Details Filter -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <button type="button" @click="detailFilter = 'all'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                :class="detailFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300'">
+            All
+        </button>
+        <button type="button" @click="detailFilter = 'pre_observation'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                :class="detailFilter === 'pre_observation' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300'">
+            Planning
+        </button>
+        <button type="button" @click="detailFilter = 'observation'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                :class="detailFilter === 'observation' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300'">
+            Ratings
+        </button>
+        <button type="button" @click="detailFilter = 'post_conference'"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                :class="detailFilter === 'post_conference' ? 'bg-indigo-600 text-white border-indigo-500' : 'text-gray-700 dark:text-gray-300'">
+            Final chat
+        </button>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
     <div class="lg:col-span-2 space-y-6 min-w-0">
     <!-- Stage Details -->
     <div class="space-y-6">
         <!-- Pre-Observation Planning -->
         @if($observation->preObservationPlanning)
-        <div class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div x-show="detailFilter === 'all' || detailFilter === 'pre_observation'" class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pre-Observation Planning</h2>
             <div class="space-y-3">
                 @if($observation->preObservationPlanning->lesson_plan_file)
@@ -379,127 +495,9 @@
         </div>
         @endif
 
-        <!-- Pre-Conference -->
-        @if($observation->preConference && !$observation->isSchoolHeadObservation())
-        <div class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                </div>
-                <div class="flex-1">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pre-Conference</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Pre-observation discussion between teacher and supervisor</p>
-                </div>
-                @if($observation->preObservationPlanning?->ai_insights_reviewed)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        AI Reviewed
-                    </span>
-                @endif
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                @if($observation->preObservationPlanning?->ai_insights)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-purple-50 dark:from-purple-900/20 to-indigo-50 dark:to-indigo-900/20 border border-purple-100 dark:border-purple-800">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
-                        <span class="text-xs font-semibold text-purple-700 uppercase tracking-wider">AI Pre-Observation Insights</span>
-                    </div>
-                    @php $insightSections = $observation->preObservationPlanning->insightsSections(); @endphp
-                    @if(isset($insightSections['raw']))
-                        <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{{ $insightSections['raw'] }}</p>
-                    @else
-                        {!! view('partials.ai-insights-display', ['sections' => $insightSections])->render() !!}
-                    @endif
-                </div>
-                @endif
-                @if($observation->preConference->conference_date || $observation->preConference->topic)
-                <div class="md:col-span-2 flex flex-col md:flex-row gap-3">
-                    @if($observation->preConference->conference_date)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Conference Date</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 font-medium mt-1">{{ $observation->preConference->conference_date->format('M d, Y') }}</p>
-                    </div>
-                    @endif
-                    @if($observation->preConference->topic)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Topic</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 font-medium mt-1">{{ $observation->preConference->topic }}</p>
-                    </div>
-                    @endif
-                </div>
-                @endif
-                @if($observation->preConference->learning_objectives)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Learning Objectives</span>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->learning_objectives }}</p>
-                </div>
-                @endif
-                @if($observation->preConference->teaching_strategies || $observation->preConference->assessment_activity)
-                <div class="md:col-span-2 flex flex-col md:flex-row gap-3">
-                    @if($observation->preConference->teaching_strategies)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Teaching Strategies</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->teaching_strategies }}</p>
-                    </div>
-                    @endif
-                    @if($observation->preConference->assessment_activity)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assessment/Activity</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->assessment_activity }}</p>
-                    </div>
-                    @endif
-                </div>
-                @endif
-                @if($observation->preConference->discussion_notes)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-amber-50 dark:from-amber-900/20 to-yellow-50 dark:to-yellow-900/20 border border-amber-100 dark:border-amber-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                        <span class="text-sm font-semibold text-amber-800 dark:text-amber-300">Discussion Notes</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $observation->preConference->discussion_notes }}</p>
-                </div>
-                @endif
-                @if($observation->preConference->finalized_focus)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-blue-50 dark:from-blue-900/20 to-cyan-50 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                        <span class="text-sm font-semibold text-blue-800 dark:text-blue-300">Finalized Focus</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $observation->preConference->finalized_focus }}</p>
-                </div>
-                @endif
-                @if($observation->preConference->expected_challenges || $observation->preConference->feedback_areas)
-                <div class="md:col-span-2 flex flex-col md:flex-row gap-3">
-                    @if($observation->preConference->expected_challenges)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expected Challenges</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->expected_challenges }}</p>
-                    </div>
-                    @endif
-                    @if($observation->preConference->feedback_areas)
-                    <div class="flex-1 min-w-0 p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800">
-                        <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Feedback Areas</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap">{{ $observation->preConference->feedback_areas }}</p>
-                    </div>
-                    @endif
-                </div>
-                @endif
-                @if($observation->preConference->teacher_reflection)
-                <div class="md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-emerald-50 dark:from-emerald-900/20 to-teal-50 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <span class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Teacher Reflection</span>
-                    </div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $observation->preConference->teacher_reflection }}</p>
-                </div>
-                @endif
-            </div>
-        </div>
-        @endif
-
         <!-- Observation (COT Ratings) -->
         @if($observation->cotRatings && $observation->cotRatings->count() > 0)
-        <div class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div x-show="detailFilter === 'all' || detailFilter === 'observation'" class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -578,7 +576,7 @@
 
         <!-- EPOC Evaluation (School Head observees only) -->
         @if($observation->isSchoolHeadObservation() && $observation->epocEvaluation)
-        <div class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div x-show="detailFilter === 'all' || detailFilter === 'observation'" class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
@@ -643,7 +641,7 @@
             @endif
         </div>
         @elseif($observation->isSchoolHeadObservation() && $observation->schoolHead && !$observation->isFinalized())
-        <div class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-dashed border-purple-200 dark:border-purple-800 p-6">
+        <div x-show="detailFilter === 'all' || detailFilter === 'observation'" class="mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-dashed border-purple-200 dark:border-purple-800 p-6">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -658,7 +656,7 @@
 
         <!-- Post-Conference -->
         @if($observation->postConference)
-        <div class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div x-show="detailFilter === 'all' || detailFilter === 'post_conference'" class="section-card mock-panel bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Post-Conference</h2>
             <div class="space-y-3">
                 @if($observation->postConference->conference_date)
@@ -854,14 +852,12 @@
         @php
             $continueLabel = match($observation->stage) {
                 'pre_observation_planning' => 'Continue to Pre-Observation Planning',
-                'pre_conference' => 'Continue to Pre-Conference',
                 'observation' => 'Continue to Observation',
                 'post_conference' => 'Continue to Post-Conference',
                 default => null,
             };
             $continueRoute = match($observation->stage) {
                 'pre_observation_planning' => 'school-head.observations.preObservationPlanning',
-                'pre_conference' => 'school-head.observations.preConference',
                 'observation' => 'school-head.observations.observation',
                 'post_conference' => 'school-head.observations.postConference',
                 default => null,

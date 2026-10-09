@@ -75,6 +75,9 @@ class SupervisorObsRenderTest extends TestCase
         $content = $r->getContent();
         $this->assertStringContainsString('totalIndicators', $content);
         $this->assertStringNotContainsString('EPOC Evaluation', $content);
+        // Desktop inline comment toggle removed; mobile full-width toggle stays.
+        $this->assertStringNotContainsString('max-md:hidden inline-flex', $content);
+        $this->assertStringContainsString('Add Comment', $content);
     }
 
     public function test_epoc_routes_are_rejected_for_teacher_observations()

@@ -112,7 +112,6 @@
                     ];
                     $stageLabels = [
                         'pre_observation_planning' => 'Pre-Observation Planning',
-                        'pre_conference' => 'Pre-Conference',
                         'observation' => 'Observation',
                         'post_conference' => 'Post-Conference',
                     ];

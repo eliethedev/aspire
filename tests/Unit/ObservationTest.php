@@ -59,7 +59,7 @@ class ObservationTest extends TestCase
 
     public function test_can_cancel_allowed_stages(): void
     {
-        foreach (['pre_observation_planning', 'pre_conference', 'observation', 'post_conference'] as $stage) {
+        foreach (['pre_observation_planning', 'observation', 'post_conference'] as $stage) {
             $observation = Observation::factory()->create(['stage' => $stage]);
             $this->assertTrue($observation->canCancel(), "Should allow cancelling at stage {$stage}");
         }

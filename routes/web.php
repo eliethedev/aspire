@@ -311,9 +311,6 @@ Route::middleware(['auth', 'role:supervisor', 'profile.complete'])->prefix('supe
     Route::get('/observations/{observation}/pre-observation-planning', [ObservationStageController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
     Route::post('/observations/{observation}/pre-observation-planning', [ObservationStageController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
     Route::post('/observations/{observation}/request-lesson-plan', [ObservationStageController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
-    Route::get('/observations/{observation}/pre-conference', [ObservationStageController::class, 'preConference'])->name('observations.preConference');
-    Route::post('/observations/{observation}/pre-conference', [ObservationStageController::class, 'storePreConference'])->name('observations.storePreConference');
-    Route::post('/observations/{observation}/agenda-checklist', [ObservationStageController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
     Route::get('/observations/{observation}/observation', [ObservationStageController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [ObservationStageController::class, 'storeObservationData'])->name('observations.storeObservationData');
     Route::post('/observations/{observation}/autosave', [ObservationStageController::class, 'autosave'])->name('observations.autosave');
@@ -420,9 +417,6 @@ Route::middleware(['auth', 'role:school_head', 'profile.complete'])->prefix('sch
     Route::get('/observations/{observation}/pre-observation-planning', [App\Http\Controllers\SchoolHead\ObservationController::class, 'preObservationPlanning'])->name('observations.preObservationPlanning');
     Route::post('/observations/{observation}/pre-observation-planning', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storePreObservationPlanning'])->name('observations.storePreObservationPlanning');
     Route::post('/observations/{observation}/request-lesson-plan', [App\Http\Controllers\SchoolHead\ObservationController::class, 'requestLessonPlan'])->name('observations.request-lesson-plan');
-    Route::get('/observations/{observation}/pre-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'preConference'])->name('observations.preConference');
-    Route::post('/observations/{observation}/pre-conference', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storePreConference'])->name('observations.storePreConference');
-    Route::post('/observations/{observation}/agenda-checklist', [App\Http\Controllers\SchoolHead\ObservationController::class, 'saveAgendaChecklist'])->name('observations.agenda-checklist');
     Route::get('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'observation'])->name('observations.observation');
     Route::post('/observations/{observation}/observation', [App\Http\Controllers\SchoolHead\ObservationController::class, 'storeObservationData'])->name('observations.storeObservationData');
     Route::post('/observations/{observation}/autosave', [App\Http\Controllers\SchoolHead\ObservationController::class, 'autosave'])->name('observations.autosave');

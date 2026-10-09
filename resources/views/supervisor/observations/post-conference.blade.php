@@ -33,7 +33,7 @@
             <h1>Post-Observation Conference</h1>
             <p>{{ $observation->observee->user->name ?? 'Unknown' }} &middot; {{ $observation->observation_date?->format('M d, Y') ?? 'No date' }}</p>
         </div>
-        <time>Step 4 of 4</time>
+        <time>Step 3 of 3</time>
     </div>
 
     @include('partials.draft-banner')
@@ -489,12 +489,6 @@
                     <div>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Focus</span>
                         <p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($planning->suggested_focus, 80) }}</p>
-                    </div>
-                    @endif
-                    @if($preConference?->finalized_focus)
-                    <div>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">Agreed Focus</span>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ Str::limit($preConference->finalized_focus, 80) }}</p>
                     </div>
                     @endif
                 </div>
