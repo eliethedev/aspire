@@ -1,17 +1,18 @@
-{{-- Offline status + guided sync flow (Architecture B). Included in supervisor layout.
-     Ambient status lives in the header pill (#aspire-net-*); this banner shows
-     contextual guidance with a 3-step flow: Cache → Capture → Sync. --}}
-<div id="aspire-offline-banner" class="hidden border-b border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 px-4 py-2.5" role="status">
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+{{-- Offline status + guided sync flow (Architecture B). Single source of truth
+     for Cache data / Sync now — the header pill was removed to avoid
+     duplicate notifications. This banner shows contextual guidance
+     with a 3-step flow: Cache → Capture → Sync. --}}
+<div id="aspire-offline-banner" class="hidden border-b border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 px-2 py-2 sm:px-5 mt-6" role="status">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5">
         <span id="aspire-offline-dot" class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"></span>
-        <p id="aspire-offline-text" class="text-sm font-medium text-amber-900 dark:text-amber-100"></p>
-        <span id="aspire-offline-count" class="hidden items-center rounded-full bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-xs font-bold text-amber-900 dark:text-amber-100"></span>
-        <span class="ml-auto flex flex-wrap gap-2">
-            <button type="button" class="aspire-cache-offline inline-flex items-center gap-1 rounded-md border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-transparent px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">Cache data</button>
-            <button type="button" class="aspire-sync-now inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Sync now</button>
+        <p id="aspire-offline-text" class="mr-1 py-0.5 text-sm font-medium leading-relaxed text-amber-900 dark:text-amber-100"></p>
+        <span id="aspire-offline-count" class="hidden items-center rounded-full bg-amber-200 dark:bg-amber-800 px-2.5 py-1 text-xs font-bold text-amber-900 dark:text-amber-100"></span>
+        <span class="ml-auto flex flex-wrap items-center gap-2.5 pl-3">
+            <button type="button" class="aspire-cache-offline inline-flex items-center gap-1 rounded-md border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-transparent px-3.5 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">Cache data</button>
+            <button type="button" class="aspire-sync-now inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Sync now</button>
         </span>
     </div>
-    <ol id="aspire-steps" class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" aria-label="Offline workflow">
+    <ol id="aspire-steps" class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-amber-200/60 pt-2.5 text-xs dark:border-amber-800/60" aria-label="Offline workflow">
         <li data-step="cache" class="flex items-center gap-1.5">
             <span class="aspire-step-dot inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold"></span>
             <span class="aspire-step-label">Cache data</span>

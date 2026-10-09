@@ -193,6 +193,34 @@
     </div>
         </div>
     </details>
+
+    <!-- Dismiss queued offline observation: confirmation modal (replaces native confirm()) -->
+    <div id="of-discard-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="of-discard-title" aria-describedby="of-discard-desc">
+        <div class="absolute inset-0 bg-black/40" data-of-discard-backdrop></div>
+        <div class="relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </div>
+                <div class="min-w-0">
+                    <h3 id="of-discard-title" class="text-lg font-semibold text-gray-900 dark:text-gray-100">Discard queued observation?</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">This cannot be undone.</p>
+                </div>
+            </div>
+            <p id="of-discard-desc" class="text-sm text-gray-600 dark:text-gray-300">This queued observation and its attached files will be permanently removed from this device.</p>
+            <p id="of-discard-item" class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100 truncate"></p>
+            <div class="mt-5 flex gap-3">
+                <button type="button" id="of-discard-keep"
+                        class="flex-1 px-4 py-2 min-h-[44px] rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+                    Keep
+                </button>
+                <button type="button" id="of-discard-confirm"
+                        class="flex-1 px-4 py-2 min-h-[44px] rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-colors">
+                    Discard observation
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('scripts')
@@ -697,7 +725,27 @@
     }
 
     function buildCotSheet(json, kept) {
-        var tpl = (json.cot_templates || [])[0];
+        // Ad-hoc capture defaults to the Teacher I-III instrument (2–6 scale).
+        // cot_templates is ordered is_default DESC, label ASC, so [0] can be
+        // the Master Teacher template (4–8) when nothing is flagged default
+        // ('COT … (Master …)' sorts before 'COT … (Teacher …)').
+        var templates = json.cot_templates || [];
+        var tpl = null;
+        for (var ti = 0; ti < templates.length; ti++) {
+            if (templates[ti] && templates[ti].career_stage === 'teacher_i_iii') { tpl = templates[ti]; break; }
+        }
+        if (!tpl) {
+            for (var di = 0; di < templates.length; di++) {
+                if (templates[di] && templates[di].is_default) { tpl = templates[di]; break; }
+            }
+        }
+        if (!tpl) {
+            for (var si = 0; si < templates.length; si++) {
+                var keys = templates[si] && templates[si].rating_scale ? Object.keys(templates[si].rating_scale).map(Number) : [];
+                if (keys.length && Math.min.apply(null, keys) === 2) { tpl = templates[si]; break; }
+            }
+        }
+        if (!tpl) tpl = templates[0];
         var sheet = document.createElement('div');
         sheet.setAttribute('data-hub-sheet', 'cot');
         if (!tpl) {
@@ -985,8 +1033,8 @@
                 body.appendChild(sub);
                 var del = document.createElement('button');
                 del.type = 'button';
-                del.className = 'shrink-0 text-xs font-semibold text-rose-600 hover:text-rose-800 px-2 py-1';
-                del.textContent = 'Discard';
+                del.className = 'shrink-0 min-h-[44px] px-3 py-2 text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md transition-colors';
+                del.textContent = 'Dismiss';
                 del.setAttribute('data-client-id', i.client_id);
                 li.appendChild(body);
                 li.appendChild(del);
@@ -995,17 +1043,58 @@
         });
     }
 
-    list.addEventListener('click', function (e) {
-        var btn = e.target.closest ? e.target.closest('[data-client-id]') : null;
-        if (!btn) return;
-        if (!confirm('Discard this queued observation and its attached files? This cannot be undone.')) return;
-        var cid = btn.getAttribute('data-client-id');
+    // Dismiss queued offline observation — confirmation modal (no native confirm()).
+    var discardModal = document.getElementById('of-discard-modal');
+    var discardItem = document.getElementById('of-discard-item');
+    var discardConfirm = document.getElementById('of-discard-confirm');
+    var discardKeep = document.getElementById('of-discard-keep');
+    var pendingDiscardId = null;
+
+    function openDiscardModal(clientId, label) {
+        pendingDiscardId = clientId;
+        if (discardItem) discardItem.textContent = label || '';
+        if (!discardModal) return;
+        discardModal.classList.remove('hidden');
+        discardModal.classList.add('flex');
+        if (discardConfirm) discardConfirm.focus();
+    }
+
+    function closeDiscardModal() {
+        pendingDiscardId = null;
+        if (!discardModal) return;
+        discardModal.classList.add('hidden');
+        discardModal.classList.remove('flex');
+    }
+
+    if (discardKeep) discardKeep.addEventListener('click', closeDiscardModal);
+    if (discardModal) discardModal.querySelector('[data-of-discard-backdrop]')?.addEventListener('click', closeDiscardModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && discardModal && !discardModal.classList.contains('hidden')) closeDiscardModal();
+    });
+    if (discardConfirm) discardConfirm.addEventListener('click', function () {
+        if (!pendingDiscardId) { closeDiscardModal(); return; }
+        var cid = pendingDiscardId;
+        discardConfirm.disabled = true;
         AspireOffline.deleteFilesForObservation(cid).then(function () {
             return AspireOffline.deletePending(cid);
         }).then(function () {
             notify('info', 'Queued observation (and its files) discarded.');
+            closeDiscardModal();
             refreshAll();
+        }).catch(function () {
+            notify('error', 'Could not discard this queued observation. Try again.');
+        }).then(function () {
+            discardConfirm.disabled = false;
         });
+    });
+
+    list.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-client-id]') : null;
+        if (!btn) return;
+        var cid = btn.getAttribute('data-client-id');
+        var li = btn.closest('li');
+        var label = li ? (li.querySelector('p') ? li.querySelector('p').textContent : '') : '';
+        openDiscardModal(cid, label);
     });
 
     document.getElementById('offline-form').addEventListener('submit', function (e) {

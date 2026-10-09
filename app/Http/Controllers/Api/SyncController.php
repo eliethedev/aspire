@@ -213,6 +213,8 @@ class SyncController extends Controller
                 'id' => $v->id,
                 'label' => $v->label,
                 'is_default' => (bool) $v->is_default,
+                'career_stage' => $v->career_stage,
+                'ratee_role' => $v->ratee_role,
                 'rating_scale' => $v->ratingScale(),
                 'indicators' => $v->indicators->map(fn ($i) => [
                     'code' => $i->code,
